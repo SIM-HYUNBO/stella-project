@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import LeftMenu from "../components/leftMenu";
 import CommentBox from "../components/CommentBox";
-import {CenterSpinner} from "../components/CenterSpinner"
+import { CenterSpinner } from "../components/CenterSpinner";
 import Link from "next/link";
 
 export default function Home() {
@@ -37,7 +37,7 @@ export default function Home() {
         <div className="flex w-full min-h-screen">
           <div className="flex-1">
             <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
-              Let's be a genius.
+              {`Let's be a genius.`}
             </h1>
 
             <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
@@ -57,16 +57,17 @@ export default function Home() {
                 />
               </div>
               <ul>
-              <li>
-            <Link className="px-4 py-2 ml-8 mb-10 bg-yellow-300 text-white rounded hover:bg-yellow-400" href="/board">
-              GENIUS 게시판 가는 길
-            </Link>
-          </li>
+                <li>
+                  <Link
+                    className="px-4 py-2 ml-8 mb-10 bg-yellow-300 text-white rounded hover:bg-yellow-400"
+                    href="/board"
+                  >
+                    GENIUS 게시판 가는 길
+                  </Link>
+                </li>
               </ul>
-            
-            
+
               <div className="min-h-full p-6">
-                
                 <CommentBox />
               </div>
             </div>
