@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import LeftMenu from "/components/leftMenu";
 import CommentBox from "/components/CommentBox";
-import {CenterSpinner} from "/components/CenterSpinner"
+import { CenterSpinner } from "/components/CenterSpinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -38,45 +38,44 @@ export default function Study() {
         <div className="flex w-full min-h-screen">
           <div className="flex-1">
             <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
-             Check the tips.
+              Check the tips.
             </h1>
 
             <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
-             CLick the buttons and check each sujects.
+              CLick the buttons and check each subjects.
             </h1>
             <button
-          onClick={() => router.push("/m")}
-          className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
-        >
-         수학
-        </button>
-        <button
-          onClick={() => router.push("/k")}
-          className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
-        >
-         국어
-        </button>
-        <button
-          onClick={() => router.push("/e")}
-          className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
-        >영어
-         
-        </button>
-        <button
-          onClick={() => router.push("/s")}
-          className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
-        >
-         과학
-        </button>
-        <button
-          onClick={() => router.push("/h")}
-          className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
-        >
-         사회
-        </button>
+              onClick={() => router.push("/m")}
+              className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
+            >
+              수학
+            </button>
+            <button
+              onClick={() => router.push("/k")}
+              className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
+            >
+              국어
+            </button>
+            <button
+              onClick={() => router.push("/e")}
+              className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
+            >
+              영어
+            </button>
+            <button
+              onClick={() => router.push("/s")}
+              className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
+            >
+              과학
+            </button>
+            <button
+              onClick={() => router.push("/h")}
+              className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
+            >
+              사회
+            </button>
             <div className="w-full">
-              <div className="min-h-full p-6">
-              </div>
+              <div className="min-h-full p-6"></div>
             </div>
           </div>
         </div>
