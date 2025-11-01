@@ -12,7 +12,7 @@ import {
   doc,
 } from "firebase/firestore";
 
-export default function plusBox() {
+export default function PlusBox() {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<any[]>([]);
 
