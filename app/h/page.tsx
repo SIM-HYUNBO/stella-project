@@ -61,7 +61,7 @@ export default function KoreaHistoryPage() {
         </div>
 
         {/* 수직선 타임라인 */}
-        <div className="absolute top-40 left-1/2 transform -translate-x-1/2 w-1 bg-orange-300 rounded-full bottom-4"></div>
+        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 w-1 bg-orange-300 rounded-full bottom-4"></div>
 
         {/* 시대별 버튼 */}
         <div className="flex flex-col items-center justify-center mt-40 mb-24 space-y-20">
