@@ -42,70 +42,40 @@ export default function SciencePage() {
     ]);
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  // ----------------- 드래그 이벤트 -----------------
+  const startDrag = (x: number, y: number, id: string) => {
     const item = dragItems.find((i) => i.id === id);
     if (!item) return;
     setDraggingId(id);
-    setOffset({ x: e.clientX - item.x, y: e.clientY - item.y });
+    setOffset({ x: x - item.x, y: y - item.y });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    startDrag(e.clientX, e.clientY, id);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, id: string) => {
+    e.stopPropagation();
+    const touch = e.touches[0];
+    startDrag(touch.clientX, touch.clientY, id);
+  };
+
+  const handleMove = (x: number, y: number) => {
     if (!draggingId) return;
     setDragItems((prev) =>
       prev.map((i) =>
-        i.id === draggingId ? { ...i, x: e.clientX - offset.x, y: e.clientY - offset.y } : i
+        i.id === draggingId ? { ...i, x: x - offset.x, y: y - offset.y } : i
       )
     );
   };
 
-  const handleMouseUp = () => {
-    if (!draggingId) return;
+  const handleMouseMove = (e: React.MouseEvent) => handleMove(e.clientX, e.clientY);
+  const handleTouchMove = (e: React.TouchEvent) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
 
-    const bottle = dragItems.find((i) => i.id === "bottle");
-    const tank = dragItems.find((i) => i.id === "tank");
-    const flask = dragItems.find((i) => i.id === "flask");
-    const mnO2 = dragItems.find((i) => i.id === "mnO2");
-    const h2O2 = dragItems.find((i) => i.id === "h2O2");
-    const fire = dragItems.find((i) => i.id === "fire");
-
-    if (bottle && tank) {
-      const inTank =
-        bottle.x + bottle.width / 2 > tank.x &&
-        bottle.x + bottle.width / 2 < tank.x + tank.width &&
-        bottle.y + bottle.height / 2 > tank.y &&
-        bottle.y + bottle.height / 2 < tank.y + tank.height;
-      if (inTank) setFillOxygen(true);
-    }
-
-    if (flask && mnO2) {
-      const mnInFlask =
-        mnO2.x + mnO2.width / 2 > flask.x &&
-        mnO2.x + mnO2.width / 2 < flask.x + flask.width &&
-        mnO2.y + mnO2.height / 2 > flask.y &&
-        mnO2.y + mnO2.height / 2 < flask.y + flask.height;
-      if (mnInFlask) setFillFlask(true);
-    }
-    if (flask && h2O2) {
-      const h2InFlask =
-        h2O2.x + h2O2.width / 2 > flask.x &&
-        h2O2.x + h2O2.width / 2 < flask.x + flask.width &&
-        h2O2.y + h2O2.height / 2 > flask.y &&
-        h2O2.y + h2O2.height / 2 < flask.y + flask.height;
-      if (h2InFlask) setFillFlask(true);
-    }
-
-    if (bottle && fire) {
-      const fireInBottle =
-        fire.x + fire.width / 2 > bottle.x &&
-        fire.x + fire.width / 2 < bottle.x + bottle.width &&
-        fire.y + fire.height / 2 > bottle.y &&
-        fire.y + fire.height / 2 < bottle.y + bottle.height;
-      if (fireInBottle && oxygenLevel > 20) setFireOn(true);
-    }
-
-    setDraggingId(null);
-  };
+  const handleMouseUp = () => setDraggingId(null);
+  const handleTouchEnd = () => setDraggingId(null);
+  // -------------------------------------------------
 
   useEffect(() => {
     if (!fillOxygen || oxygenLevel >= 100) return;
@@ -125,6 +95,8 @@ export default function SciencePage() {
         className="relative w-full h-screen bg-white overflow-hidden"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* 오른쪽 상단 백 버튼 */}
         <button
@@ -134,7 +106,7 @@ export default function SciencePage() {
           « back
         </button>
 
-        {/* 제목 + 설명 (반응형) */}
+        {/* 제목 + 설명 */}
         <div className="absolute top-6 left-1/2 lg:left-80 transform -translate-x-1/2 flex flex-col items-start">
           <h1 className="text-5xl text-orange-400 text-center lg:text-left">Science</h1>
           <p className="text-orange-900 text-2xl mt-2 text-center lg:text-left">
@@ -147,6 +119,7 @@ export default function SciencePage() {
           <div
             key={item.id}
             onMouseDown={(e) => handleMouseDown(e, item.id)}
+            onTouchStart={(e) => handleTouchStart(e, item.id)}
             style={{
               position: "absolute",
               left: item.x,
@@ -175,7 +148,6 @@ export default function SciencePage() {
                 }}
               />
             )}
-
             {item.id === "flask" && (
               <div
                 style={{
@@ -191,7 +163,6 @@ export default function SciencePage() {
                 }}
               />
             )}
-
             {item.type === "fire" && fireOn && (
               <div
                 style={{
@@ -207,7 +178,6 @@ export default function SciencePage() {
                 }}
               />
             )}
-
             {item.label && <span className="absolute text-xs text-white font-bold">{item.label}</span>}
           </div>
         ))}
@@ -221,7 +191,13 @@ export default function SciencePage() {
         `}</style>
       </div>
 
-      <BrunnerVideo title="Tutorial" url="/Screen Recording - Made with RecordCast (3).webm" className="mb-8" originalWidth={640} originalHeight={360} />
+      <BrunnerVideo
+        title=""
+        url="/Screen Recording - Made with RecordCast (3).webm"
+        className="mb-8"
+        originalWidth={640}
+        originalHeight={360}
+      />
       <CommentBox />
     </PageContainer>
   );
