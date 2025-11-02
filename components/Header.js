@@ -1,4 +1,4 @@
-import DarkModeToggleButton from "/components/darkModeToggleButton";
+
 
 const Header = () => {
   return (
@@ -9,7 +9,7 @@ const Header = () => {
 
       {/* DarkModeToggleButton을 오른쪽 끝으로 정렬 */}
       <div className="flex justify-start">
-        <DarkModeToggleButton />
+       
       </div>
     </header>
   );
