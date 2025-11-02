@@ -192,7 +192,7 @@ export default function SciencePage() {
       </div>
 
       <BrunnerVideo
-        title=""
+        title="Tutorial"
         url="/Screen Recording - Made with RecordCast (3).webm"
         className="mb-8"
         originalWidth={640}
