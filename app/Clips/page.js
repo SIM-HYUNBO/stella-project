@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
-import LeftMenu from "/components/leftMenu";
 // import DotSpinner from "/components/DotSpinner";
 import { CenterSpinner } from "/components/CenterSpinner";
 
@@ -19,7 +18,6 @@ export default function Clips() {
       {loading && <CenterSpinner />}
 
       <PageContainer>
-        <LeftMenu />
         <div className="p-6">
           <h1 className="text-3xl font-bold text-orange-900 dark:text-white mb-4">
             helpful clips.

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import PageContainer from "@/components/PageContainer";
-import LeftMenu from "@/components/leftMenu";
 import CommentBox from "@/components/CommentBox";
 import BrunnerVideo from "@/components/brunnerVideo";
 import { useRouter } from "next/navigation";
@@ -42,7 +41,6 @@ export default function KoreaHistoryPage() {
 
   return (
     <PageContainer>
-      <LeftMenu />
 
       <div className="relative w-full h-screen bg-white overflow-hidden">
         {/* 상단 제목 */}

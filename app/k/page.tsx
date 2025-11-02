@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from "react";
 import PageContainer from "@/components/PageContainer";
-import LeftMenu from "@/components/leftMenu";
 import { CenterSpinner } from "@/components/CenterSpinner";
 import { useRouter } from "next/navigation";
 
@@ -116,7 +115,6 @@ const KoreanPage: React.FC = () => {
   return (
     <PageContainer>
       <div className="flex w-full h-screen">
-        <LeftMenu />
         <div className="flex-1 flex flex-col p-8 overflow-y-auto">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-6">

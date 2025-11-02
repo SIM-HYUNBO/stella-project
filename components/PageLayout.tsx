@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import LeftMenu from "@/components/leftMenu";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -19,7 +18,6 @@ export default function PageLayout({ children }: PageLayoutProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* 좌측 메뉴 */}
         <div className="w-64 bg-gray-200">
-          <LeftMenu />
         </div>
 
         {/* 콘텐츠 영역: 스크롤 가능 */}

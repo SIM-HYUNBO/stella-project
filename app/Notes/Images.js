@@ -1,12 +1,10 @@
 import PageContainer from "@/components/PageContainer";
-import LeftMenu from "@/components/leftMenu";
 import Image from "next/image";
 
 
 export default function Images() {
   return (
     <PageContainer>
-      <LeftMenu />
       <div className="flex flex-row md:flex-row w-full">
         <div className="w-screen h-screen">
           <h1 className="text-5xl text-green-800 dark:text-white ml-14 mt-5 w-full text-left">

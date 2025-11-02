@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
-import LeftMenu from "/components/leftMenu";
 import { CenterSpinner } from "/components/CenterSpinner";
 
 // DotSpinner 컴포넌트 (파일 따로 만들 필요 없음, 그냥 페이지 안에 추가)
@@ -98,7 +97,6 @@ function Contact() {
       {loading && <CenterSpinner />}
       <PageContainer>
         <div className="flex w-full h-screen">
-          <LeftMenu />
           <div className="flex-1 p-8 overflow-auto">
             <h1 className="text-5xl text-orange-400 dark:text-white mb-8">
               Write important info.

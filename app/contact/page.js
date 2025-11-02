@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
-import LeftMenu from "/components/leftMenu";
 import { CenterSpinner } from "/components/CenterSpinner";
 import Image from "next/image";
 
@@ -17,7 +16,6 @@ export default function Contact() {
     <>
       {loading && <CenterSpinner />}
       <PageContainer>
-        <LeftMenu />
         <div className="items-start justify-start p-6">
           <h1 className="text-5xl text-orange-400 dark:text-white mb-4">
             Visit us again!

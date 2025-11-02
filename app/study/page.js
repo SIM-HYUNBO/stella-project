@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import PageContainer from "/components/PageContainer";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import LeftMenu from "/components/leftMenu";
 import CommentBox from "/components/CommentBox";
 import { CenterSpinner } from "/components/CenterSpinner";
 import Link from "next/link";
@@ -34,7 +33,6 @@ export default function Study() {
       {loading && <CenterSpinner />}
 
       <PageContainer>
-        <LeftMenu />
         <div className="flex w-full min-h-screen">
           <div className="flex-1">
             <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">

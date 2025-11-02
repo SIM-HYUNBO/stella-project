@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import PageContainer from "@/components/PageContainer";
-import LeftMenu from "@/components/leftMenu";
 import CommentBox from "@/components/CommentBox";
 import { useRouter } from "next/navigation";
 import BrunnerVideo from "@/components/brunnerVideo";
@@ -202,7 +201,6 @@ export default function SciencePage() {
 
   return (
     <PageContainer>
-      <LeftMenu />
       <div
         className="relative w-full h-screen bg-white overflow-hidden"
         onMouseMove={handleMouseMove}

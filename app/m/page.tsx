@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import { useTheme } from "next-themes";
 import {CenterSpinner} from "@/components/CenterSpinner";
-import LeftMenu from "@/components/leftMenu";
 import CommentBox from "@/components/CommentBox";
 import { useRouter } from "next/navigation";
 
@@ -68,7 +67,6 @@ export default function Math() {
 
   return (
     <PageContainer>
-      <LeftMenu />
       <div className="flex w-full h-screen">
 
         <div className="flex-1 flex flex-col p-8 overflow-y-auto">
