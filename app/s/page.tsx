@@ -28,6 +28,7 @@ export default function SciencePage() {
   const [fillFlask, setFillFlask] = useState(false);
   const [fireOn, setFireOn] = useState(false);
 
+  // 초기 드래그 아이템 세팅
   useEffect(() => {
     setDragItems([
       { id: "tank", x: 200, y: 200, width: 300, height: 200, color: "#cceeff", type: "tank" },
@@ -42,6 +43,7 @@ export default function SciencePage() {
     ]);
   }, []);
 
+  // 드래그 시작
   const startDrag = (x: number, y: number, id: string) => {
     const item = dragItems.find((i) => i.id === id);
     if (!item) return;
@@ -60,27 +62,76 @@ export default function SciencePage() {
     startDrag(touch.clientX, touch.clientY, id);
   };
 
+  // 드래그 이동
   const handleMove = (x: number, y: number) => {
     if (!draggingId) return;
     setDragItems((prev) =>
-      prev.map((i) =>
-        i.id === draggingId ? { ...i, x: x - offset.x, y: y - offset.y } : i
-      )
+      prev.map((i) => (i.id === draggingId ? { ...i, x: x - offset.x, y: y - offset.y } : i))
     );
   };
 
   const handleMouseMove = (e: React.MouseEvent) => handleMove(e.clientX, e.clientY);
   const handleTouchMove = (e: React.TouchEvent) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
 
-  const handleMouseUp = () => setDraggingId(null);
-  const handleTouchEnd = () => setDraggingId(null);
+  // 드래그 종료 및 실험 처리
+  const handleEnd = () => {
+    const bottle = dragItems.find((i) => i.id === "bottle");
+    const tank = dragItems.find((i) => i.id === "tank");
+    const flask = dragItems.find((i) => i.id === "flask");
+    const mnO2 = dragItems.find((i) => i.id === "mnO2");
+    const h2O2 = dragItems.find((i) => i.id === "h2O2");
+    const fire = dragItems.find((i) => i.id === "fire");
 
+    if (bottle && tank) {
+      const inTank =
+        bottle.x + bottle.width / 2 > tank.x &&
+        bottle.x + bottle.width / 2 < tank.x + tank.width &&
+        bottle.y + bottle.height / 2 > tank.y &&
+        bottle.y + bottle.height / 2 < tank.y + tank.height;
+      if (inTank) setFillOxygen(true);
+    }
+
+    if (flask && mnO2) {
+      const mnInFlask =
+        mnO2.x + mnO2.width / 2 > flask.x &&
+        mnO2.x + mnO2.width / 2 < flask.x + flask.width &&
+        mnO2.y + mnO2.height / 2 > flask.y &&
+        mnO2.y + mnO2.height / 2 < flask.y + flask.height;
+      if (mnInFlask) setFillFlask(true);
+    }
+
+    if (flask && h2O2) {
+      const h2InFlask =
+        h2O2.x + h2O2.width / 2 > flask.x &&
+        h2O2.x + h2O2.width / 2 < flask.x + flask.width &&
+        h2O2.y + h2O2.height / 2 > flask.y &&
+        h2O2.y + h2O2.height / 2 < flask.y + flask.height;
+      if (h2InFlask) setFillFlask(true);
+    }
+
+    if (bottle && fire) {
+      const fireInBottle =
+        fire.x + fire.width / 2 > bottle.x &&
+        fire.x + fire.width / 2 < bottle.x + bottle.width &&
+        fire.y + fire.height / 2 > bottle.y &&
+        fire.y + fire.height / 2 < bottle.y + bottle.height;
+      if (fireInBottle && oxygenLevel > 20) setFireOn(true);
+    }
+
+    setDraggingId(null);
+  };
+
+  const handleMouseUp = () => handleEnd();
+  const handleTouchEnd = () => handleEnd();
+
+  // 산소 채움 애니메이션
   useEffect(() => {
     if (!fillOxygen || oxygenLevel >= 100) return;
     const interval = setInterval(() => setOxygenLevel((prev) => Math.min(prev + 1, 100)), 50);
     return () => clearInterval(interval);
   }, [fillOxygen, oxygenLevel]);
 
+  // 플라스크 채움 애니메이션
   useEffect(() => {
     if (!fillFlask || flaskFill >= 100) return;
     const interval = setInterval(() => setFlaskFill((prev) => Math.min(prev + 1, 100)), 80);
@@ -90,7 +141,7 @@ export default function SciencePage() {
   return (
     <PageContainer>
       <div
-        className="relative w-full min-h-screen bg-white"
+        className="relative w-full min-h-screen overflow-auto bg-white dark:bg-slate-700"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onTouchMove={handleTouchMove}
@@ -103,6 +154,7 @@ export default function SciencePage() {
           « back
         </button>
 
+        {/* 글씨 왼쪽 상단 */}
         <div className="absolute top-6 left-4 max-w-[90%] flex flex-col items-start z-40">
           <h1 className="text-4xl lg:text-5xl text-orange-400 break-words">Science</h1>
           <p className="text-lg lg:text-2xl text-orange-900 mt-2 break-words">
@@ -110,6 +162,7 @@ export default function SciencePage() {
           </p>
         </div>
 
+        {/* 드래그 아이템 */}
         {dragItems.map((item) => (
           <div
             key={item.id}
@@ -172,13 +225,7 @@ export default function SciencePage() {
         `}</style>
       </div>
 
-      <BrunnerVideo
-        title="Tutorial"
-        url="/Screen Recording - Made with RecordCast (3).webm"
-        className="mb-8"
-        originalWidth={640}
-        originalHeight={360}
-      />
+      <BrunnerVideo title="Tutorial" url="/Screen Recording - Made with RecordCast (3).webm" className="mb-8" originalWidth={640} originalHeight={360} />
       <CommentBox />
     </PageContainer>
   );
