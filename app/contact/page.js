@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
 import { CenterSpinner } from "/components/CenterSpinner";
 import Image from "next/image";
-
+import HamburgerMenu from "/components/hamburger";
 export default function Contact() {
   const [loading, setLoading] = useState(true);
 
@@ -20,6 +20,7 @@ export default function Contact() {
           <h1 className="text-5xl text-orange-400 dark:text-white mb-4">
             Visit us again!
           </h1>
+          <HamburgerMenu />
           <h2 className="text-3xl font-semibold text-orange-300 dark:text-gray-300 mt-5">
             Contact Us
           </h2>

@@ -7,6 +7,7 @@ import CommentBox from "/components/CommentBox";
 import { CenterSpinner } from "/components/CenterSpinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import HamburgerMenu from "/components/hamburger";
 
 export default function Study() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function Study() {
             <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
               Check the tips.
             </h1>
+            <HamburgerMenu />
 
             <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
               CLick the buttons and check each subjects.

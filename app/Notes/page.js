@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
 import { CenterSpinner } from "/components/CenterSpinner";
+import HamburgerMenu from "/components/hamburger";
 
 // DotSpinner 컴포넌트 (파일 따로 만들 필요 없음, 그냥 페이지 안에 추가)
 // function DotSpinner() {
@@ -101,6 +102,7 @@ function Contact() {
             <h1 className="text-5xl text-orange-400 dark:text-white mb-8">
               Write important info.
             </h1>
+            <HamburgerMenu />
             <h2 className="text-2xl text-orange-900 dark:text-white mb-8">
               button here
             </h2>

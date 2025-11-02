@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
 // import DotSpinner from "/components/DotSpinner";
 import { CenterSpinner } from "/components/CenterSpinner";
+import HamburgerMenu from "/components/hamburger";
 
 export default function Clips() {
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,7 @@ export default function Clips() {
           <h1 className="text-3xl font-bold text-orange-900 dark:text-white mb-4">
             helpful clips.
           </h1>
+          <HamburgerMenu />
 
           <div className="relative w-full h-0 pb-[56.25%]">
             <iframe

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import CommentBox from "../components/CommentBox";
 import { CenterSpinner } from "../components/CenterSpinner";
+import HamburgerMenu from "../components/hamburger";
 import Link from "next/link";
 
 export default function Home() {
@@ -37,6 +38,7 @@ export default function Home() {
             <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
               {`Let's be a genius.`}
             </h1>
+            <HamburgerMenu />
 
             <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
               Good Luck! You found our page.
