@@ -6,7 +6,7 @@ const Header = () => {
       {/* 제목 클릭 시 홈으로 이동 */}
       <Link
         href="/"
-        className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-wide hover:opacity-80 transition-opacity"
+        className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-wide"
       >
         GENIUS
       </Link>
