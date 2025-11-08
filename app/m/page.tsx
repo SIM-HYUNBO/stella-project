@@ -6,6 +6,9 @@ import {CenterSpinner} from "@/components/CenterSpinner";
 import CommentBox from "@/components/CommentBox";
 import { useRouter } from "next/navigation";
 
+// ✅ 새로 만든 MathProblem 컴포넌트 임포트
+import MathProblem from "@/components/MathProblem";
+
 export default function Math() {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -28,7 +31,6 @@ export default function Math() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 10문제 퀴즈 데이터
   const quizList = [
     { q: "다음 중 소수(Prime Number)는?", options: [9, 11, 15, 21], a: 11 },
     { q: "3 × 7 = ?", options: [20, 21, 22, 24], a: 21 },
@@ -45,13 +47,12 @@ export default function Math() {
   const quiz = quizList[currentIndex];
 
   const handleAnswer = (option) => {
-    if (selected !== null) return; // 중복 클릭 방지
+    if (selected !== null) return;
     setSelected(option);
     const correct = option === quiz.a;
     setIsCorrect(correct);
     if (correct) setScore((s) => s + 1);
 
-    // 1초 후 다음 문제로 이동
     setTimeout(() => {
       if (currentIndex < quizList.length - 1) {
         setCurrentIndex((i) => i + 1);
@@ -68,7 +69,6 @@ export default function Math() {
   return (
     <PageContainer>
       <div className="flex w-full h-screen">
-
         <div className="flex-1 flex flex-col p-8 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-5xl text-orange-400 dark:text-white">Math</h1>
@@ -157,7 +157,11 @@ export default function Math() {
               </div>
             )}
           </div>
-          <CommentBox />
+
+          {/* 새로 추가한 MathProblem 컴포넌트 */}
+          <div className="mt-12">
+            <MathProblem />
+          </div>
         </div>
       </div>
     </PageContainer>
