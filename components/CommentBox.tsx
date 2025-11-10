@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { db } from "../components/firebase";
 import {
@@ -15,44 +16,50 @@ import {
 export default function CommentBox() {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const savedComments = localStorage.getItem("comments");
-    if (savedComments) {
-      setComments(JSON.parse(savedComments));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("comments", JSON.stringify(comments));
-  }, [comments]);
-
+  // ✅ Firestore 실시간 댓글 불러오기
   useEffect(() => {
     const q = query(collection(db, "comments"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setComments(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const commentList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setComments(commentList);
+      setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
+  // ✅ 댓글 작성
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!comment.trim()) return;
 
-    await addDoc(collection(db, "comments"), {
-      text: comment,
-      user: "Stella❤",
-      createdAt: Timestamp.fromDate(new Date()),
-    });
-
-    setComment("");
+    try {
+      await addDoc(collection(db, "comments"), {
+        text: comment,
+        user: "Stella❤",
+        createdAt: Timestamp.now(),
+      });
+      setComment("");
+    } catch (error) {
+      console.error("❌ Firestore 저장 실패:", error);
+    }
   };
 
+  // ✅ 댓글 삭제
   const handleDelete = async (id: string) => {
-    await deleteDoc(doc(db, "comments", id));
+    try {
+      await deleteDoc(doc(db, "comments", id));
+    } catch (error) {
+      console.error("❌ Firestore 삭제 실패:", error);
+    }
   };
 
-  // ✅ 모든 JSX는 함수 내부 return 안에 있어야 함
+  // ✅ 렌더링
   return (
     <div className="w-full max-w-2xl bg-pink-100 p-4 mt-5 rounded-lg shadow-md">
       <h2 className="text-xl font-bold text-orange-900 mb-2">Communication</h2>
@@ -73,25 +80,31 @@ export default function CommentBox() {
         </button>
       </form>
 
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {comments.map((c) => (
-          <div
-            key={c.id}
-            className="border-b border-gray-200 pb-2 flex justify-between items-center"
-          >
-            <div>
-              <p className="font-medium">{c.user}</p>
-              <p>{c.text}</p>
-            </div>
-            <button
-              onClick={() => handleDelete(c.id)}
-              className="text-red-500 hover:text-red-600 ml-4"
+      {loading ? (
+        <p className="text-gray-500">불러오는 중...</p>
+      ) : comments.length === 0 ? (
+        <p className="text-gray-500">아직 댓글이 없습니다 😄</p>
+      ) : (
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {comments.map((c) => (
+            <div
+              key={c.id}
+              className="border-b border-gray-200 pb-2 flex justify-between items-center"
             >
-              Delete
-            </button>
-          </div>
-        ))}
-      </div>
+              <div>
+                <p className="font-medium text-orange-900">{c.user}</p>
+                <p className="text-gray-800">{c.text}</p>
+              </div>
+              <button
+                onClick={() => handleDelete(c.id)}
+                className="text-red-500 hover:text-red-600 ml-4"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
