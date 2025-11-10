@@ -1,4 +1,6 @@
 // app/firebase.ts
+"use client";
+
 import { initializeApp, getApps, getApp } from "firebase/app"; // ✅ 여기서 getApps, getApp을 함께 import
 import { getAuth } from "firebase/auth";
 
