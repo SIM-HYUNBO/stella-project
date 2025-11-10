@@ -30,7 +30,7 @@ export default function Home() {
     return () => clearTimeout(timer); // 로딩 상태 종료
   }, []);
 
-  console.log("User State: ", user); // `user` 상태 값 확인
+  console.log("user: ", user); // `user` 상태 값 확인
 
   return (
     <>
@@ -47,7 +47,7 @@ export default function Home() {
               Let's be a genius.
             </h1>
 
-            <HamburgerMenu />
+            <HamburgerMenu/>
 
             <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
               Good Luck! You found our page.
@@ -68,7 +68,7 @@ export default function Home() {
 
               {/* 로그인 안 된 상태: 로그인 / 회원가입 버튼 */}
               {!user ? (
-                <div className="flex flex-col ml-10 gap-4">
+                <div className="flex flex-row ml-10 gap-4">
                   <Link
                     href="/login"
                     className="px-6 py-3 bg-blue-400 text-white rounded-xl text-center hover:bg-blue-500"
