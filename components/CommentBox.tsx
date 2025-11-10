@@ -12,16 +12,16 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";  // ✅ 추가
-import { auth } from "../app/firebase";              // ✅ 로그인용 firebase에서 auth 불러오기
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../app/firebase";
 
 export default function CommentBox() {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null); // ✅ 로그인한 사용자 정보
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 로그인 상태 추적
+  // ✅ 로그인 상태 감지
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -29,17 +29,25 @@ export default function CommentBox() {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Firestore 댓글 불러오기
+  // ✅ Firestore 실시간 댓글 불러오기
   useEffect(() => {
     const q = query(collection(db, "comments"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const commentList = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setComments(commentList);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const commentList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setComments(commentList);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("❌ Firestore 읽기 오류:", error);
+        setLoading(false);
+      }
+    );
+
     return () => unsubscribe();
   }, []);
 
@@ -55,17 +63,23 @@ export default function CommentBox() {
     try {
       await addDoc(collection(db, "comments"), {
         text: comment,
-        user: user.email, // ✅ 로그인한 유저의 이메일 저장
+        user: user.email, // 로그인한 사용자의 이메일 저장
         createdAt: Timestamp.now(),
       });
       setComment("");
     } catch (error) {
       console.error("❌ Firestore 저장 실패:", error);
+      alert("댓글 저장에 실패했습니다. 콘솔을 확인하세요.");
     }
   };
 
-  // ✅ 댓글 삭제
-  const handleDelete = async (id: string) => {
+  // ✅ 댓글 삭제 (본인만 가능)
+  const handleDelete = async (id: string, commentUser: string) => {
+    if (!user || user.email !== commentUser) {
+      alert("본인 댓글만 삭제할 수 있습니다!");
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, "comments", id));
     } catch (error) {
@@ -73,7 +87,6 @@ export default function CommentBox() {
     }
   };
 
-  // ✅ 렌더링
   return (
     <div className="w-full max-w-2xl bg-pink-100 p-4 mt-5 rounded-lg shadow-md">
       <h2 className="text-xl font-bold text-orange-900 mb-2">Communication</h2>
@@ -83,12 +96,22 @@ export default function CommentBox() {
           type="text"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="여러분의 지식을 입력하세요..."
+          placeholder={
+            user
+              ? "여러분의 지식을 입력하세요..."
+              : "로그인 후 댓글을 작성할 수 있습니다."
+          }
           className="flex-1 border border-gray-200 rounded px-3 py-2 focus:outline-none"
+          disabled={!user}
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-500"
+          className={`px-4 py-2 rounded text-white transition ${
+            user
+              ? "bg-blue-400 hover:bg-blue-500"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+          disabled={!user}
         >
           Submit
         </button>
@@ -109,12 +132,16 @@ export default function CommentBox() {
                 <p className="font-medium text-orange-900">{c.user}</p>
                 <p className="text-gray-800">{c.text}</p>
               </div>
-              <button
-                onClick={() => handleDelete(c.id)}
-                className="text-red-500 hover:text-red-600 ml-4"
-              >
-                Delete
-              </button>
+
+              {/* 🔒 본인 댓글만 삭제 버튼 표시 */}
+              {user && user.email === c.user && (
+                <button
+                  onClick={() => handleDelete(c.id, c.user)}
+                  className="text-red-500 hover:text-red-600 ml-4"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           ))}
         </div>
