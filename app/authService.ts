@@ -1,4 +1,6 @@
 // src/app/authService.ts
+"use client";
+
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase"; // 경로 꼭 확인
 
