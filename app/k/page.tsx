@@ -13,6 +13,7 @@ import {
   Timestamp,
   deleteDoc,
   doc,
+  getDoc,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -27,7 +28,8 @@ interface QuizQuestion {
 interface Discussion {
   id: string;
   text: string;
-  userEmail: string;
+  userUid: string;
+  userNickname: string;
   createdAt: any;
 }
 
@@ -66,7 +68,7 @@ const dictionary: Record<string, string> = {
 const KoreanPage: React.FC = () => {
   const router = useRouter();
 
-  // ✅ 공통 상태
+  // ✅ 상태
   const [word, setWord] = useState("");
   const [meaning, setMeaning] = useState("");
   const [loading, setLoading] = useState(false);
@@ -78,12 +80,23 @@ const KoreanPage: React.FC = () => {
 
   // ✅ Firestore 관련
   const [user, setUser] = useState<any>(null);
+  const [nickname, setNickname] = useState<string | null>(null);
   const [discussionText, setDiscussionText] = useState("");
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
 
-  // 🔸 로그인 감지
+  // 🔸 로그인 감지 및 닉네임 로드
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
+        const userDoc = await getDoc(doc(db, "users", u.uid));
+        if (userDoc.exists()) {
+          setNickname(userDoc.data().nickname);
+        }
+      } else {
+        setNickname(null);
+      }
+    });
     return () => unsubscribe();
   }, []);
 
@@ -107,11 +120,7 @@ const KoreanPage: React.FC = () => {
     setLoading(true);
     setMeaning("");
     setTimeout(() => {
-      if (dictionary[word]) {
-        setMeaning(dictionary[word]);
-      } else {
-        setMeaning("뜻을 찾을 수 없습니다.");
-      }
+      setMeaning(dictionary[word] || "뜻을 찾을 수 없습니다.");
       setLoading(false);
     }, 500);
   };
@@ -139,7 +148,7 @@ const KoreanPage: React.FC = () => {
   // 🔸 토론 등록
   const handleDiscussionSubmit = async () => {
     if (!discussionText.trim()) return;
-    if (!user) {
+    if (!user || !nickname) {
       alert("로그인 후 글을 남길 수 있습니다!");
       return;
     }
@@ -147,7 +156,8 @@ const KoreanPage: React.FC = () => {
     try {
       await addDoc(collection(db, "korean_discussions"), {
         text: discussionText,
-        userEmail: user.email,
+        userUid: user.uid,
+        userNickname: nickname,
         createdAt: Timestamp.now(),
       });
       setDiscussionText("");
@@ -157,8 +167,8 @@ const KoreanPage: React.FC = () => {
   };
 
   // 🔸 본인 글 삭제
-  const handleDeleteDiscussion = async (id: string, email: string) => {
-    if (!user || user.email !== email) {
+  const handleDeleteDiscussion = async (id: string, uid: string) => {
+    if (!user || user.uid !== uid) {
       alert("본인 글만 삭제할 수 있습니다!");
       return;
     }
@@ -256,31 +266,21 @@ const KoreanPage: React.FC = () => {
             )}
           </div>
 
-          {/* 성장 그래프 */}
-          <div className="p-6 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-md max-w-2xl mb-6">
-            <h3 className="text-xl font-semibold text-orange-400 mb-3">📈 성장 그래프</h3>
-            <p>퀴즈 정답 수: {correctCount} / {randomQuestions.length}</p>
-            <p>학습 시간: {correctCount * 4}초</p>
-            <p>푼 문제 수: {quizIndex}</p>
-          </div>
-
-          {/* ✅ Firestore 토론방 */}
+          {/* ✅ 토론방 */}
           <div className="p-6 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-md max-w-2xl mb-6">
             <h3 className="text-xl font-semibold text-orange-400 mb-3">💬 토론방</h3>
             <textarea
               value={discussionText}
               onChange={(e) => setDiscussionText(e.target.value)}
-              placeholder={
-                user ? "자유롭게 글을 남겨보세요..." : "로그인 후 글을 남길 수 있습니다."
-              }
+              placeholder={nickname ? "자유롭게 글을 남겨보세요..." : "로그인 후 글을 남길 수 있습니다."}
               className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 mb-2"
-              disabled={!user}
+              disabled={!nickname}
             />
             <button
               onClick={handleDiscussionSubmit}
-              disabled={!user}
+              disabled={!nickname}
               className={`px-4 py-2 rounded text-white mb-3 ${
-                user
+                nickname
                   ? "bg-orange-500 hover:bg-orange-600"
                   : "bg-gray-400 cursor-not-allowed"
               }`}
@@ -298,12 +298,14 @@ const KoreanPage: React.FC = () => {
                     className="p-2 bg-gray-100 dark:bg-gray-700 rounded flex justify-between items-start"
                   >
                     <div>
-                      <p className="text-orange-900 dark:text-white font-semibold">{d.userEmail}</p>
+                      <p className="text-orange-900 dark:text-white font-semibold">
+                        {d.userNickname || "익명"}
+                      </p>
                       <p className="text-gray-800 dark:text-gray-200">{d.text}</p>
                     </div>
-                    {user && user.email === d.userEmail && (
+                    {user && user.uid === d.userUid && (
                       <button
-                        onClick={() => handleDeleteDiscussion(d.id, d.userEmail)}
+                        onClick={() => handleDeleteDiscussion(d.id, d.userUid)}
                         className="text-red-500 hover:text-red-600 text-sm"
                       >
                         🗑

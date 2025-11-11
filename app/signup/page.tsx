@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -22,12 +24,31 @@ export default function SignupPage() {
       return;
     }
 
+    if (!nickname.trim()) {
+      setError("닉네임을 입력해주세요.");
+      return;
+    }
+
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("회원가입이 완료되었습니다 🎉");
+      // ✅ Firebase Auth 계정 생성
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // ✅ Firestore에 유저 정보 저장
+      await setDoc(doc(db, "users", user.uid), {
+        email,
+        nickname,
+        createdAt: serverTimestamp(),
+      });
+
+      // ✅ Firebase Auth displayName 업데이트 (햄버거 메뉴에서 바로 표시 가능)
+      await updateProfile(user, { displayName: nickname });
+
+      alert(`${nickname}님, 회원가입이 완료되었습니다 🎉`);
       router.push("/login");
     } catch (err: any) {
-      setError(err.message);
+      console.error("회원가입 오류:", err);
+      setError("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -35,12 +56,22 @@ export default function SignupPage() {
     <PageContainer>
       <div className="flex justify-center items-center min-h-screen">
         <div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg">
-          <h1 className="text-3xl font-bold text-center text-green-400 mb-6">회원가입</h1>
+          <h1 className="text-3xl font-bold text-center text-green-400 mb-6">
+            회원가입
+          </h1>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
             새로운 계정을 만들어주세요.
           </p>
 
           <form className="flex flex-col gap-4" onSubmit={handleSignup}>
+            <input
+              type="text"
+              placeholder="닉네임"
+              className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              required
+            />
             <input
               type="email"
               placeholder="이메일"
@@ -66,9 +97,7 @@ export default function SignupPage() {
               required
             />
 
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
             <button
               type="submit"

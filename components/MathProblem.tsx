@@ -11,34 +11,19 @@ import {
   Timestamp,
   deleteDoc,
   doc,
+  getDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
-interface Reply {
-  id: string;
-  text: string;
-  userEmail: string;
-  createdAt: any;
-}
-
-interface Problem {
-  id: string;
-  text: string;
-  userEmail: string;
-  createdAt: any;
-}
-
 export default function MathProblem() {
   const [problemText, setProblemText] = useState("");
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const [problems, setProblems] = useState<any[]>([]);
   const [replyTexts, setReplyTexts] = useState<{ [key: string]: string }>({});
   const [user, setUser] = useState<any>(null);
 
   // ✅ 로그인 상태 감지
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
     return () => unsubscribe();
   }, []);
 
@@ -46,23 +31,29 @@ export default function MathProblem() {
   useEffect(() => {
     const q = query(collection(db, "problems"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setProblems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Problem[]);
+      setProblems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
     return () => unsubscribe();
   }, []);
+
+  // ✅ Firestore에서 닉네임 가져오기
+  const fetchNickname = async (uid: string) => {
+    const userDoc = await getDoc(doc(db, "users", uid));
+    return userDoc.exists() ? userDoc.data().nickname : "익명";
+  };
 
   // ✅ 문제 등록
   const handleProblemSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!problemText.trim()) return;
-    if (!user) {
-      alert("로그인 후 문제를 올릴 수 있습니다!");
-      return;
-    }
+    if (!user) return alert("로그인 후 문제를 올릴 수 있습니다!");
+
+    const nickname = await fetchNickname(user.uid);
 
     await addDoc(collection(db, "problems"), {
       text: problemText,
-      userEmail: user.email,
+      userUid: user.uid,
+      userNickname: nickname,
       createdAt: Timestamp.now(),
     });
 
@@ -70,11 +61,9 @@ export default function MathProblem() {
   };
 
   // ✅ 문제 삭제 (본인만)
-  const handleProblemDelete = async (id: string, userEmail: string) => {
-    if (!user || user.email !== userEmail) {
-      alert("본인 문제만 삭제할 수 있습니다!");
-      return;
-    }
+  const handleProblemDelete = async (id: string, userUid: string) => {
+    if (!user || user.uid !== userUid)
+      return alert("본인 문제만 삭제할 수 있습니다!");
     await deleteDoc(doc(db, "problems", id));
   };
 
@@ -82,15 +71,15 @@ export default function MathProblem() {
   const handleReplySubmit = async (problemId: string) => {
     const text = replyTexts[problemId];
     if (!text?.trim()) return;
-    if (!user) {
-      alert("로그인 후 답글을 작성할 수 있습니다!");
-      return;
-    }
+    if (!user) return alert("로그인 후 답글을 작성할 수 있습니다!");
+
+    const nickname = await fetchNickname(user.uid);
 
     const repliesRef = collection(db, "problems", problemId, "replies");
     await addDoc(repliesRef, {
       text,
-      userEmail: user.email,
+      userUid: user.uid,
+      userNickname: nickname,
       createdAt: Timestamp.now(),
     });
 
@@ -101,13 +90,10 @@ export default function MathProblem() {
   const handleReplyDelete = async (
     problemId: string,
     replyId: string,
-    userEmail: string
+    userUid: string
   ) => {
-    if (!user || user.email !== userEmail) {
-      alert("본인 답글만 삭제할 수 있습니다!");
-      return;
-    }
-
+    if (!user || user.uid !== userUid)
+      return alert("본인 답글만 삭제할 수 있습니다!");
     await deleteDoc(doc(db, "problems", problemId, "replies", replyId));
   };
 
@@ -120,9 +106,7 @@ export default function MathProblem() {
         <textarea
           value={problemText}
           onChange={(e) => setProblemText(e.target.value)}
-          placeholder={
-            user ? "문제를 입력하세요" : "로그인 후 문제를 올릴 수 있습니다."
-          }
+          placeholder={user ? "문제를 입력하세요" : "로그인 후 문제를 올릴 수 있습니다."}
           className="flex-1 border border-gray-300 rounded p-2 focus:outline-none"
           rows={3}
           disabled={!user}
@@ -168,16 +152,8 @@ function ProblemItem({
   handleProblemDelete,
   handleReplyDelete,
   currentUser,
-}: {
-  problem: Problem;
-  replyText: string;
-  setReplyText: (text: string) => void;
-  handleReplySubmit: (problemId: string) => void;
-  handleProblemDelete: (id: string, userEmail: string) => void;
-  handleReplyDelete: (problemId: string, replyId: string, userEmail: string) => void;
-  currentUser: any;
-}) {
-  const [replies, setReplies] = useState<Reply[]>([]);
+}: any) {
+  const [replies, setReplies] = useState<any[]>([]);
 
   useEffect(() => {
     const q = query(
@@ -185,7 +161,7 @@ function ProblemItem({
       orderBy("createdAt", "asc")
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setReplies(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Reply[]);
+      setReplies(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
     return () => unsubscribe();
   }, [problem.id]);
@@ -193,10 +169,10 @@ function ProblemItem({
   return (
     <div className="bg-yellow-50 p-4 rounded shadow">
       <div className="flex justify-between mb-2">
-        <p className="font-medium text-blue-900">{problem.userEmail}</p>
-        {currentUser && currentUser.email === problem.userEmail && (
+        <p className="font-medium text-blue-900">{problem.userNickname}</p>
+        {currentUser && currentUser.uid === problem.userUid && (
           <button
-            onClick={() => handleProblemDelete(problem.id, problem.userEmail)}
+            onClick={() => handleProblemDelete(problem.id, problem.userUid)}
             className="text-red-500 hover:text-red-600"
           >
             삭제
@@ -212,12 +188,12 @@ function ProblemItem({
         {replies.map((r) => (
           <div key={r.id} className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-orange-800">{r.userEmail}</p>
+              <p className="font-medium text-orange-800">{r.userNickname}</p>
               <pre className="whitespace-pre-wrap text-gray-700">{r.text}</pre>
             </div>
-            {currentUser && currentUser.email === r.userEmail && (
+            {currentUser && currentUser.uid === r.userUid && (
               <button
-                onClick={() => handleReplyDelete(problem.id, r.id, r.userEmail)}
+                onClick={() => handleReplyDelete(problem.id, r.id, r.userUid)}
                 className="text-red-500 hover:text-red-600 ml-2"
               >
                 삭제

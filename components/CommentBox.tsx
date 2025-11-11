@@ -13,6 +13,7 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  getDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../app/firebase";
@@ -25,31 +26,20 @@ export default function CommentBox() {
 
   // ✅ 로그인 상태 감지
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) =>
+      setUser(currentUser)
+    );
     return () => unsubscribe();
   }, []);
 
   // ✅ Firestore 실시간 댓글 불러오기
   useEffect(() => {
     const q = query(collection(db, "comments"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const commentList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setComments(commentList);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("❌ Firestore 읽기 오류:", error);
-        setLoading(false);
-      }
-    );
-
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setComments(list);
+      setLoading(false);
+    });
     return () => unsubscribe();
   }, []);
 
@@ -57,93 +47,85 @@ export default function CommentBox() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    if (!user) {
-      alert("로그인 후 댓글을 작성할 수 있습니다!");
-      return;
-    }
+    if (!user) return alert("로그인 후 댓글 작성 가능!");
 
     try {
+      // 🔹 users 컬렉션에서 닉네임 가져오기
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const nickname = userDoc.exists() ? userDoc.data().nickname : "익명";
+
       await addDoc(collection(db, "comments"), {
         text: comment,
-        userEmail: user.email, // 이메일 저장
+        userEmail: user.email,
+        userNickname: nickname,
         userPhoto: user.photoURL || "/images/default-profile.png",
         likes: [],
         createdAt: Timestamp.now(),
       });
       setComment("");
-    } catch (error) {
-      console.error("❌ Firestore 저장 실패:", error);
-      alert("댓글 저장에 실패했습니다. 콘솔을 확인하세요.");
+    } catch (err) {
+      console.error("❌ 댓글 저장 실패:", err);
+      alert("댓글 저장 중 문제가 발생했습니다.");
     }
   };
 
-  // ✅ 좋아요 토글
-  const handleLike = async (id: string, likes: string[] = []) => {
-    if (!user) {
-      alert("로그인 후 좋아요를 누를 수 있습니다!");
-      return;
-    }
+  // ✅ 좋아요
+  const handleLike = async (id: string, likes: string[], commentUserEmail: string) => {
+    if (!user) return alert("로그인 후 좋아요 가능!");
+    if (user.email === commentUserEmail)
+      return alert("자신의 댓글에는 좋아요를 누를 수 없습니다.");
 
-    const commentRef = doc(db, "comments", id);
-    const hasLiked = Array.isArray(likes) && likes.includes(user.uid);
+    const ref = doc(db, "comments", id);
+    const hasLiked = likes.includes(user.uid);
 
     try {
-      await updateDoc(commentRef, {
-        likes: hasLiked
-          ? arrayRemove(user.uid)
-          : arrayUnion(user.uid),
+      await updateDoc(ref, {
+        likes: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
       });
-    } catch (error) {
-      console.error("❌ 좋아요 업데이트 실패:", error);
+    } catch (err) {
+      console.error("❌ 좋아요 실패:", err);
     }
   };
 
-  // ✅ 댓글 삭제 (본인만 가능)
+  // ✅ 댓글 삭제
   const handleDelete = async (id: string, commentUserEmail: string) => {
-    if (!user || user.email !== commentUserEmail) {
-      alert("본인 댓글만 삭제할 수 있습니다!");
-      return;
-    }
+    if (!user || user.email !== commentUserEmail)
+      return alert("본인 댓글만 삭제할 수 있습니다!");
 
     try {
       await deleteDoc(doc(db, "comments", id));
-    } catch (error) {
-      console.error("❌ Firestore 삭제 실패:", error);
+    } catch (err) {
+      console.error("❌ 댓글 삭제 실패:", err);
     }
   };
 
+  // ✅ UI
   return (
     <div className="w-full max-w-2xl bg-pink-100 p-4 mt-5 rounded-lg shadow-md">
       <h2 className="text-xl font-bold text-orange-900 mb-2">Communication</h2>
 
-      {/* ✅ 댓글 입력 폼 */}
+      {/* 댓글 입력 */}
       <form onSubmit={handleSubmit} className="flex mb-4 space-x-2">
         <input
           type="text"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder={
-            user
-              ? "여러분의 지식을 입력하세요..."
-              : "로그인 후 댓글을 작성할 수 있습니다."
-          }
+          placeholder={user ? "댓글을 입력하세요..." : "로그인 후 이용 가능"}
           className="flex-1 border border-gray-200 rounded px-3 py-2 focus:outline-none"
           disabled={!user}
         />
         <button
           type="submit"
-          className={`px-4 py-2 rounded text-white transition ${
-            user
-              ? "bg-blue-400 hover:bg-blue-500"
-              : "bg-gray-400 cursor-not-allowed"
+          className={`px-4 py-2 rounded text-white ${
+            user ? "bg-blue-400 hover:bg-blue-500" : "bg-gray-400 cursor-not-allowed"
           }`}
           disabled={!user}
         >
-          Submit
+          등록
         </button>
       </form>
 
-      {/* ✅ 댓글 목록 */}
+      {/* 댓글 목록 */}
       {loading ? (
         <p className="text-gray-500">불러오는 중...</p>
       ) : comments.length === 0 ? (
@@ -153,33 +135,33 @@ export default function CommentBox() {
           {comments.map((c) => (
             <div
               key={c.id}
-              className="border-b border-gray-200 pb-3 flex justify-between items-start"
+              className="border-b border-gray-200 pb-3 flex items-start space-x-3"
             >
-              <div className="flex items-start space-x-3">
-                <img
-                  src={c.userPhoto || "/images/default-profile.png"}
-                  alt="프로필"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-semibold text-orange-900">{c.userEmail}</p>
-                  <p className="text-sm text-gray-700">{c.text}</p>
-                  <div className="flex items-center space-x-3 mt-1">
+              <img
+                src={c.userPhoto}
+                alt="프로필"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+              <div>
+                <p className="font-semibold text-orange-900">
+                  {c.userNickname || c.userEmail}
+                </p>
+                <p className="text-gray-800">{c.text}</p>
+                <div className="flex items-center space-x-3 mt-1">
+                  <button
+                    onClick={() => handleLike(c.id, c.likes || [], c.userEmail)}
+                    className="text-blue-500 hover:text-blue-600 text-sm"
+                  >
+                    👍 {c.likes?.length || 0}
+                  </button>
+                  {user?.email === c.userEmail && (
                     <button
-                      onClick={() => handleLike(c.id, c.likes || [])}
-                      className="text-blue-500 hover:text-blue-600 text-sm"
+                      onClick={() => handleDelete(c.id, c.userEmail)}
+                      className="text-red-500 hover:text-red-600 text-sm"
                     >
-                      👍 {c.likes?.length || 0}
+                      🗑 삭제
                     </button>
-                    {user && user.email === c.userEmail && (
-                      <button
-                        onClick={() => handleDelete(c.id, c.userEmail)}
-                        className="text-red-500 hover:text-red-600 text-sm"
-                      >
-                        🗑 삭제
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
