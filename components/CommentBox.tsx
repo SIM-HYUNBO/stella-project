@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "./firebase";
 import {
   collection,
   addDoc,
@@ -13,7 +12,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../app/firebase";
+import { db,auth } from "../app/firebase";
 
 export default function CommentBox() {
   const [comment, setComment] = useState("");
@@ -58,9 +57,11 @@ export default function CommentBox() {
     if (!user) {
       alert("로그인 후 댓글을 작성할 수 있습니다!");
       return;
-    }
+    } console.log("🔥 Current user:", user);
+
 
     try {
+
       await addDoc(collection(db, "comments"), {
         text: comment,
         user: user.email, // 로그인한 사용자의 이메일 저장
