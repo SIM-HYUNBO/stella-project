@@ -42,7 +42,7 @@ export default function Study() {
             <HamburgerMenu />
 
             <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
-              CLick the buttons and check each subjects.
+              Click the buttons and check each subjects.
             </h1>
             <button
               onClick={() => router.push("/m")}

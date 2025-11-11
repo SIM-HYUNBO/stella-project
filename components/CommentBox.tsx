@@ -10,9 +10,12 @@ import {
   Timestamp,
   deleteDoc,
   doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { db,auth } from "../app/firebase";
+import { db, auth } from "../app/firebase";
 
 export default function CommentBox() {
   const [comment, setComment] = useState("");
@@ -57,14 +60,14 @@ export default function CommentBox() {
     if (!user) {
       alert("로그인 후 댓글을 작성할 수 있습니다!");
       return;
-    } console.log("🔥 Current user:", user);
-
+    }
 
     try {
-
       await addDoc(collection(db, "comments"), {
         text: comment,
-        user: user.email, // 로그인한 사용자의 이메일 저장
+        userEmail: user.email, // 이메일 저장
+        userPhoto: user.photoURL || "/images/default-profile.png",
+        likes: [],
         createdAt: Timestamp.now(),
       });
       setComment("");
@@ -74,9 +77,30 @@ export default function CommentBox() {
     }
   };
 
+  // ✅ 좋아요 토글
+  const handleLike = async (id: string, likes: string[] = []) => {
+    if (!user) {
+      alert("로그인 후 좋아요를 누를 수 있습니다!");
+      return;
+    }
+
+    const commentRef = doc(db, "comments", id);
+    const hasLiked = Array.isArray(likes) && likes.includes(user.uid);
+
+    try {
+      await updateDoc(commentRef, {
+        likes: hasLiked
+          ? arrayRemove(user.uid)
+          : arrayUnion(user.uid),
+      });
+    } catch (error) {
+      console.error("❌ 좋아요 업데이트 실패:", error);
+    }
+  };
+
   // ✅ 댓글 삭제 (본인만 가능)
-  const handleDelete = async (id: string, commentUser: string) => {
-    if (!user || user.email !== commentUser) {
+  const handleDelete = async (id: string, commentUserEmail: string) => {
+    if (!user || user.email !== commentUserEmail) {
       alert("본인 댓글만 삭제할 수 있습니다!");
       return;
     }
@@ -92,6 +116,7 @@ export default function CommentBox() {
     <div className="w-full max-w-2xl bg-pink-100 p-4 mt-5 rounded-lg shadow-md">
       <h2 className="text-xl font-bold text-orange-900 mb-2">Communication</h2>
 
+      {/* ✅ 댓글 입력 폼 */}
       <form onSubmit={handleSubmit} className="flex mb-4 space-x-2">
         <input
           type="text"
@@ -118,31 +143,45 @@ export default function CommentBox() {
         </button>
       </form>
 
+      {/* ✅ 댓글 목록 */}
       {loading ? (
         <p className="text-gray-500">불러오는 중...</p>
       ) : comments.length === 0 ? (
         <p className="text-gray-500">아직 댓글이 없습니다 😄</p>
       ) : (
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div className="space-y-3 max-h-96 overflow-y-auto">
           {comments.map((c) => (
             <div
               key={c.id}
-              className="border-b border-gray-200 pb-2 flex justify-between items-center"
+              className="border-b border-gray-200 pb-3 flex justify-between items-start"
             >
-              <div>
-                <p className="font-medium text-orange-900">{c.user}</p>
-                <p className="text-gray-800">{c.text}</p>
+              <div className="flex items-start space-x-3">
+                <img
+                  src={c.userPhoto || "/images/default-profile.png"}
+                  alt="프로필"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <div>
+                  <p className="font-semibold text-orange-900">{c.userEmail}</p>
+                  <p className="text-sm text-gray-700">{c.text}</p>
+                  <div className="flex items-center space-x-3 mt-1">
+                    <button
+                      onClick={() => handleLike(c.id, c.likes || [])}
+                      className="text-blue-500 hover:text-blue-600 text-sm"
+                    >
+                      👍 {c.likes?.length || 0}
+                    </button>
+                    {user && user.email === c.userEmail && (
+                      <button
+                        onClick={() => handleDelete(c.id, c.userEmail)}
+                        className="text-red-500 hover:text-red-600 text-sm"
+                      >
+                        🗑 삭제
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-
-              {/* 🔒 본인 댓글만 삭제 버튼 표시 */}
-              {user && user.email === c.user && (
-                <button
-                  onClick={() => handleDelete(c.id, c.user)}
-                  className="text-red-500 hover:text-red-600 ml-4"
-                >
-                  Delete
-                </button>
-              )}
             </div>
           ))}
         </div>
