@@ -16,8 +16,8 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function Mycraft() {
-  const [problemText, setProblemText] = useState("");
-  const [problems, setProblems] = useState<any[]>([]);
+  const [mycraftText, setMycraftText] = useState("");
+  const [mycraft, setMycraft] = useState<any[]>([]);
   const [replyTexts, setReplyTexts] = useState<{ [key: string]: string }>({});
   const [user, setUser] = useState<any>(null);
 
@@ -27,11 +27,11 @@ export default function Mycraft() {
     return () => unsubscribe();
   }, []);
 
-  // ✅ 문제 실시간 불러오기
+  // ✅ mycraft 실시간 불러오기
   useEffect(() => {
-    const q = query(collection(db, "problems"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "mycraft"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setProblems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setMycraft(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
     return () => unsubscribe();
   }, []);
@@ -42,40 +42,40 @@ export default function Mycraft() {
     return userDoc.exists() ? userDoc.data().nickname : "익명";
   };
 
-  // ✅ 문제 등록
+  // ✅ 글 등록
   const handleProblemSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!problemText.trim()) return;
+    if (!mycraftText.trim()) return;
     if (!user) return alert("로그인 후 글을 올릴 수 있습니다!");
 
     const nickname = await fetchNickname(user.uid);
 
-    await addDoc(collection(db, "problems"), {
-      text: problemText,
+    await addDoc(collection(db, "mycraft"), {
+      text: mycraftText,
       userUid: user.uid,
       userNickname: nickname,
       createdAt: Timestamp.now(),
     });
 
-    setProblemText("");
+    setMycraftText("");
   };
 
-  // ✅ 문제 삭제 (본인만)
+  // ✅ 글 삭제 (본인만)
   const handleProblemDelete = async (id: string, userUid: string) => {
     if (!user || user.uid !== userUid)
       return alert("본인 글만 삭제할 수 있습니다!");
-    await deleteDoc(doc(db, "problems", id));
+    await deleteDoc(doc(db, "mycraft", id));
   };
 
   // ✅ 답글 등록
-  const handleReplySubmit = async (problemId: string) => {
-    const text = replyTexts[problemId];
+  const handleReplySubmit = async (craftId: string) => {
+    const text = replyTexts[craftId];
     if (!text?.trim()) return;
     if (!user) return alert("로그인 후 답글을 작성할 수 있습니다!");
 
     const nickname = await fetchNickname(user.uid);
 
-    const repliesRef = collection(db, "problems", problemId, "replies");
+    const repliesRef = collection(db, "mycraft", craftId, "replies");
     await addDoc(repliesRef, {
       text,
       userUid: user.uid,
@@ -83,29 +83,29 @@ export default function Mycraft() {
       createdAt: Timestamp.now(),
     });
 
-    setReplyTexts({ ...replyTexts, [problemId]: "" });
+    setReplyTexts({ ...replyTexts, [craftId]: "" });
   };
 
   // ✅ 답글 삭제 (본인만)
   const handleReplyDelete = async (
-    problemId: string,
+    craftId: string,
     replyId: string,
     userUid: string
   ) => {
     if (!user || user.uid !== userUid)
       return alert("본인 답글만 삭제할 수 있습니다!");
-    await deleteDoc(doc(db, "problems", problemId, "replies", replyId));
+    await deleteDoc(doc(db, "mycraft", craftId, "replies", replyId));
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-orange-800">글 뽐내기</h1>
 
-      {/* 문제 작성 */}
+      {/* 글 작성 */}
       <form onSubmit={handleProblemSubmit} className="flex mb-6 space-x-2">
         <textarea
-          value={problemText}
-          onChange={(e) => setProblemText(e.target.value)}
+          value={mycraftText}
+          onChange={(e) => setMycraftText(e.target.value)}
           placeholder={user ? "글을 입력하세요" : "로그인 후 글을 올릴 수 있습니다."}
           className="flex-1 border border-gray-300 rounded p-2 focus:outline-none"
           rows={3}
@@ -122,15 +122,15 @@ export default function Mycraft() {
         </button>
       </form>
 
-      {/* 문제 리스트 */}
+      {/* 글 리스트 */}
       <div className="space-y-6">
-        {problems.map((problem) => (
+        {mycraft.map((item) => (
           <ProblemItem
-            key={problem.id}
-            problem={problem}
-            replyText={replyTexts[problem.id] || ""}
+            key={item.id}
+            problem={item}
+            replyText={replyTexts[item.id] || ""}
             setReplyText={(text: string) =>
-              setReplyTexts({ ...replyTexts, [problem.id]: text })
+              setReplyTexts({ ...replyTexts, [item.id]: text })
             }
             handleReplySubmit={handleReplySubmit}
             handleProblemDelete={handleProblemDelete}
@@ -143,7 +143,7 @@ export default function Mycraft() {
   );
 }
 
-// ✅ 문제 아이템
+// ✅ 글 아이템
 function ProblemItem({
   problem,
   replyText,
@@ -157,7 +157,7 @@ function ProblemItem({
 
   useEffect(() => {
     const q = query(
-      collection(db, "problems", problem.id, "replies"),
+      collection(db, "mycraft", problem.id, "replies"),
       orderBy("createdAt", "asc")
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -180,7 +180,7 @@ function ProblemItem({
         )}
       </div>
 
-      {/* 문제 텍스트 */}
+      {/* 글 내용 */}
       <pre className="whitespace-pre-wrap mb-3">{problem.text}</pre>
 
       {/* 답글 목록 */}

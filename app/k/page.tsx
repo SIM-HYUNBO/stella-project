@@ -316,8 +316,8 @@ const KoreanPage: React.FC = () => {
                 ))
               )}
             </div>
-            <Mycraft/>
           </div>
+          <Mycraft/>
         </div>
       </div>
     </PageContainer>
