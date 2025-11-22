@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import TextAvatar from "@/components/TextAvatar";
 import { useEffect, useState } from "react";
 import {
   collection,
@@ -55,7 +55,6 @@ export default function CommentBox() {
         text: comment,
         userEmail: user.email,
         userNickname: nickname,
-        userPhoto: user.photoURL || "/images/default-profile.png",
         likes: [],
         createdAt: Timestamp.now(),
       });
@@ -129,18 +128,14 @@ export default function CommentBox() {
               key={c.id}
               className="border-b border-gray-200 pb-3 flex items-start space-x-3"
             >
-              <Image
-                src={c.userPhoto}
-                alt="프로필"
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
+              <TextAvatar nickname={c.userNickname} size={40} />
+
               <div>
                 <p className="font-semibold text-orange-900">
                   {c.userNickname || c.userEmail}
                 </p>
                 <p className="text-gray-800">{c.text}</p>
+
                 <div className="flex items-center space-x-3 mt-1">
                   <button
                     onClick={() => handleLike(c.id, c.likes || [], c.userEmail)}
@@ -148,6 +143,7 @@ export default function CommentBox() {
                   >
                     👍 {c.likes?.length || 0}
                   </button>
+
                   {user?.email === c.userEmail && (
                     <button
                       onClick={() => handleDelete(c.id, c.userEmail)}

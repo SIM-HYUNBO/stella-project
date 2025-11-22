@@ -6,6 +6,7 @@ import Link from "next/link";
 import { auth, db } from "../app/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import TextAvatar from "@/components/TextAvatar";
 
 export default function HamburgerMenuWithDarkModeInside() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,18 +17,14 @@ export default function HamburgerMenuWithDarkModeInside() {
 
   useEffect(() => setMounted(true), []);
 
-  // ✅ 로그인 감지 + Firestore에서 닉네임 불러오기
+  // 🔹 로그인 감지 + Firestore에서 닉네임 불러오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
         try {
           const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-          if (userDoc.exists()) {
-            setNickname(userDoc.data().nickname);
-          } else {
-            setNickname(null);
-          }
+          setNickname(userDoc.exists() ? userDoc.data().nickname : null);
         } catch (err) {
           console.error("닉네임 불러오기 실패:", err);
         }
@@ -42,8 +39,7 @@ export default function HamburgerMenuWithDarkModeInside() {
   if (!mounted) return null;
 
   const currentTheme = theme || "light";
-  const toggleTheme = () =>
-    setTheme(currentTheme === "dark" ? "light" : "dark");
+  const toggleTheme = () => setTheme(currentTheme === "dark" ? "light" : "dark");
 
   const handleLogout = async () => {
     try {
@@ -69,62 +65,49 @@ export default function HamburgerMenuWithDarkModeInside() {
 
       {/* 🔹 메뉴 내용 */}
       {menuOpen && (
-        <div className="fixed top-16 right-4 bg-white shadow-lg rounded p-4 z-40 flex flex-col space-y-3 items-start">
-        <p className="text-black font-medium">
-  {user ? `안녕하세요, ${user.displayName || "익명"}님!` : "로그인 해주세요."}
-</p>
+        <div className="fixed top-16 right-4 bg-white shadow-lg rounded p-4 z-40 flex flex-col space-y-4 items-start">
+          {/* 🔹 아바타 + 닉네임 */}
+          <div className="flex items-center space-x-3">
+            <TextAvatar
+              nickname={nickname ?? user?.displayName ?? user?.email ?? "익명"}
+              size={40}
+            />
+            <span className="text-black font-semibold">
+              {nickname ?? user?.displayName ?? user?.email ?? "로그인 해주세요."}
+            </span>
+          </div>
 
-
-          <Link
-            href="/"
-            onClick={() => setMenuOpen(false)}
-            className="text-black font-medium"
-          >
+          {/* 🔹 메뉴 링크 */}
+          <Link href="/" onClick={() => setMenuOpen(false)} className="text-black font-medium">
             Home
           </Link>
-          <Link
-            href="/Clips"
-            onClick={() => setMenuOpen(false)}
-            className="text-black font-medium"
-          >
+          <Link href="/Clips" onClick={() => setMenuOpen(false)} className="text-black font-medium">
             Clips
           </Link>
-          <Link
-            href="/Notes"
-            onClick={() => setMenuOpen(false)}
-            className="text-black font-medium"
-          >
+          <Link href="/Notes" onClick={() => setMenuOpen(false)} className="text-black font-medium">
             Notes
           </Link>
-          <Link
-            href="/study"
-            onClick={() => setMenuOpen(false)}
-            className="text-black font-medium"
-          >
+          <Link href="/study" onClick={() => setMenuOpen(false)} className="text-black font-medium">
             Study
           </Link>
-          <Link
-            href="/contact"
-            onClick={() => setMenuOpen(false)}
-            className="text-black font-medium"
-          >
+          <Link href="/contact" onClick={() => setMenuOpen(false)} className="text-black font-medium">
             Contact
           </Link>
 
-          {/* ✅ 로그아웃 버튼 */}
+          {/* 🔹 로그아웃 버튼 */}
           {user && (
             <button
               onClick={handleLogout}
-              className="mt-2 w-full text-center py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              className="w-full text-center py-2 bg-red-500 text-white rounded hover:bg-red-600"
             >
               로그아웃
             </button>
           )}
 
-          {/* ✅ 다크모드 토글 */}
+          {/* 🔹 다크모드 */}
           <button
             onClick={toggleTheme}
-            className="mt-3 inline-flex items-center py-2 px-4 bg-orange-100 rounded"
+            className="inline-flex items-center py-2 px-4 bg-orange-100 rounded"
           >
             {currentTheme === "dark" ? "🌙" : "☀️"}
           </button>
