@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { auth, db } from "../app/firebase";
@@ -14,6 +14,7 @@ export default function HamburgerMenuWithDarkModeInside() {
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [nickname, setNickname] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null); // 🔹 메뉴 DOM 참조
 
   useEffect(() => setMounted(true), []);
 
@@ -35,6 +36,17 @@ export default function HamburgerMenuWithDarkModeInside() {
     });
     return () => unsubscribe();
   }, []);
+
+  // 🔹 메뉴 바깥 클릭 시 메뉴 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
   if (!mounted) return null;
 
@@ -65,7 +77,10 @@ export default function HamburgerMenuWithDarkModeInside() {
 
       {/* 🔹 메뉴 내용 */}
       {menuOpen && (
-        <div className="fixed top-16 right-4 bg-white shadow-lg rounded p-4 z-40 flex flex-col space-y-4 items-start">
+        <div
+          ref={menuRef}
+          className="fixed top-16 right-4 bg-white shadow-lg rounded p-4 z-40 flex flex-col space-y-4 items-start"
+        >
           {/* 🔹 아바타 + 닉네임 */}
           <div className="flex items-center space-x-3">
             <TextAvatar
