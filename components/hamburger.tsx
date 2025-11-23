@@ -21,10 +21,8 @@ export default function HamburgerMenuWithDarkModeInside() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
-
   useEffect(() => setMounted(true), []);
 
-  // 로그인 & Firestore 유저 정보 실시간 반영
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -43,7 +41,6 @@ export default function HamburgerMenuWithDarkModeInside() {
     return () => unsubscribe();
   }, []);
 
-  // 바깥 클릭 → 메뉴 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -61,38 +58,40 @@ export default function HamburgerMenuWithDarkModeInside() {
   }, []);
 
   if (!mounted) return null;
-
   const currentTheme = theme || "light";
 
   return (
     <>
-      {/* === 햄버거 버튼 === */}
+      {/* 햄버거 버튼 */}
       <button
         onClick={() => {
           setMenuOpen(!menuOpen);
           setProfileMenuOpen(false);
         }}
-        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-white border rounded shadow z-50"
+        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 dark:bg-slate-600 border rounded-xl shadow-md hover:shadow-xl transition z-50"
       >
-        <span className="block h-1 w-full bg-black"></span>
-        <span className="block h-1 w-full bg-black"></span>
-        <span className="block h-1 w-full bg-black"></span>
+        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded"></span>
+        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded"></span>
+        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded"></span>
       </button>
 
-      {/* = 메뉴 = */}
+      {/* 메뉴 */}
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-16 right-4 bg-white shadow-lg rounded p-4 z-40 flex flex-col space-y-3 items-start"
+          className="fixed top-20 right-4 bg-amber-50 dark:bg-slate-700 shadow-xl rounded-2xl px-6 py-5 z-40 flex flex-col gap-4 w-60 border border-amber-200 dark:border-slate-500"
         >
           {user && (
             <button
-              ref={profileRef}
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="w-full flex items-center gap-2 mb-2"
+              className="w-full flex items-center gap-3 hover:bg-amber-100 dark:hover:bg-slate-600 p-2 rounded-xl transition"
             >
-              <TextAvatar nickname={nickname || "유저"} size={40} profileImage={profileImage} />
-              <span className="text-black text-lg font-bold">
+              <TextAvatar
+                nickname={nickname || "유저"}
+                size={48}
+                profileImage={profileImage}
+              />
+              <span className="text-[#4a342a] dark:text-white text-lg font-semibold">
                 {nickname || "유저"}
               </span>
             </button>
@@ -100,37 +99,52 @@ export default function HamburgerMenuWithDarkModeInside() {
 
           {/* 프로필 미니 메뉴 */}
           {profileMenuOpen && (
-            <div className="bg-gray-100 w-full rounded px-3 py-2 space-y-2">
+            <div
+              ref={profileRef}
+              className="bg-amber-100 dark:bg-slate-600 w-full rounded-xl px-4 py-3 space-y-3 shadow-inner"
+            >
               <button
                 onClick={() => {
                   router.push("/profile/edit");
                   setMenuOpen(false);
                 }}
-                className="text-black font-medium block"
+                className="w-full text-left text-[#4a342a] dark:text-white font-medium hover:opacity-70 transition"
               >
-              편집
+                ✏️ 편집
               </button>
               <button
                 onClick={() => signOut(auth)}
-                className="text-red-500 font-medium block"
+                className="w-full text-left text-red-500 hover:opacity-70 font-medium transition"
               >
-              로그아웃
+                🚪 로그아웃
               </button>
             </div>
           )}
 
-          <Link href="/" onClick={() => setMenuOpen(false)}>Home</Link>
-          <Link href="/Clips" onClick={() => setMenuOpen(false)}>Clips</Link>
-          <Link href="/Notes" onClick={() => setMenuOpen(false)}>Notes</Link>
-          <Link href="/study" onClick={() => setMenuOpen(false)}>Study</Link>
-          <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+          {/* 메뉴 링크 */}
+          {[
+            { href: "/", label: "🏠 Home" },
+            { href: "/Clips", label: "🎬 Clips" },
+            { href: "/Notes", label: "📝 Notes" },
+            { href: "/study", label: "📚 Study" },
+            { href: "/contact", label: "📩 Contact" },
+          ].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMenuOpen(false)}
+              className="text-[#4a342a] dark:text-white font-medium hover:bg-amber-100 dark:hover:bg-slate-600 p-2 rounded-xl transition"
+            >
+              {label}
+            </Link>
+          ))}
 
-          {/* 다크모드 */}
+          {/* 다크모드 전환 */}
           <button
             onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
-            className="mt-2 inline-flex items-center py-2 px-4 bg-orange-200 rounded"
+            className="mt-2 inline-flex items-center justify-center py-2 px-4 bg-amber-200 dark:bg-slate-500 rounded-xl shadow hover:shadow-lg transition text-[#4a342a] dark:text-white font-semibold"
           >
-            {currentTheme === "dark" ? "🌙" : "☀️"}
+            {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
           </button>
         </div>
       )}
