@@ -1,8 +1,9 @@
 "use client";
 
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCjhPd01r11xqHVJeQDgH2Di2dlAfk5Ifo",
@@ -13,11 +14,10 @@ const firebaseConfig = {
   appId: "1:1035365924254:web:ee578f90e6159e83cdea8f"
 };
 
-const loginApp =
-  getApps().some((app) => app.name === "loginApp")
-    ? getApp("loginApp")
-    : initializeApp(firebaseConfig, "loginApp");
+// ❗️중요: DEFAULT App 한 번만 생성해야 함
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
-export const auth = getAuth(loginApp);
-export const db = getFirestore(loginApp);
-export default loginApp;
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export default app;
