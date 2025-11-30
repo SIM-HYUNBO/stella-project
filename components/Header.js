@@ -14,7 +14,7 @@ const Header = () => {
       className="rounded-full"
         />
         <span className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-wide">
-          GENIUS
+          WAGIE
         </span>
       </Link>
 
