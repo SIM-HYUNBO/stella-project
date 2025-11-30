@@ -23,6 +23,6 @@
     "**/*.tsx",
     "app/board/page.js",
     "app/m/page.ts"
-  ],
+, ".next/server/pages/_document.tsx"  ],
   "exclude": ["node_modules"]
 }
