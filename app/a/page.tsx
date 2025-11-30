@@ -1,232 +1,48 @@
+// pages/art.tsx
 "use client";
+
 import React, { useState, useEffect } from "react";
 import PageContainer from "@/components/PageContainer";
-import CommentBox from "@/components/CommentBox";
 import { useRouter } from "next/navigation";
-import BrunnerVideo from "@/components/brunnerVideo";
+import SketchBook from "../../components/SketchBook";
 
-interface DraggableItem {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  label?: string;
-  type: string;
-}
-
-export default function SciencePage() {
+const ArtPage: React.FC = () => {
   const router = useRouter();
-  const [dragItems, setDragItems] = useState<DraggableItem[]>([]);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  const [oxygenLevel, setOxygenLevel] = useState(0);
-  const [fillOxygen, setFillOxygen] = useState(false);
-  const [flaskFill, setFlaskFill] = useState(0);
-  const [fillFlask, setFillFlask] = useState(false);
-  const [fireOn, setFireOn] = useState(false);
-
-  // 초기 드래그 아이템 세팅
-  useEffect(() => {
-    setDragItems([
-      { id: "tank", x: 200, y: 200, width: 300, height: 200, color: "#cceeff", type: "tank" },
-      { id: "bottle", x: 250, y: 350, width: 50, height: 100, color: "#87ceeb", type: "bottle" },
-      { id: "flask", x: 500, y: 250, width: 60, height: 80, color: "#ffffcc", type: "flask" },
-      { id: "funnel", x: 550, y: 150, width: 50, height: 40, color: "#a9a9a9", type: "funnel" },
-      { id: "mnO2", x: 600, y: 200, width: 40, height: 40, color: "#8b0000", type: "chemical", label: "MnO₂" },
-      { id: "h2O2", x: 650, y: 200, width: 40, height: 40, color: "#add8e6", type: "chemical", label: "H₂O₂" },
-      { id: "tube1", x: 480, y: 250, width: 10, height: 100, color: "#333", type: "tube" },
-      { id: "tube2", x: 560, y: 250, width: 100, height: 10, color: "#333", type: "tubeG" },
-      { id: "fire", x: 100, y: 400, width: 10, height: 60, color: "orange", type: "fire" },
-    ]);
-  }, []);
-
-  // 드래그 시작
-  const startDrag = (x: number, y: number, id: string) => {
-    const item = dragItems.find((i) => i.id === id);
-    if (!item) return;
-    setDraggingId(id);
-    setOffset({ x: x - item.x, y: y - item.y });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    startDrag(e.clientX, e.clientY, id);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent, id: string) => {
-    e.stopPropagation();
-    const touch = e.touches[0];
-    startDrag(touch.clientX, touch.clientY, id);
-  };
-
-  // 드래그 이동
-  const handleMove = (x: number, y: number) => {
-    if (!draggingId) return;
-    setDragItems((prev) =>
-      prev.map((i) => (i.id === draggingId ? { ...i, x: x - offset.x, y: y - offset.y } : i))
-    );
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => handleMove(e.clientX, e.clientY);
-  const handleTouchMove = (e: React.TouchEvent) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
-
-  // 드래그 종료 및 실험 처리
-  const handleEnd = () => {
-    const bottle = dragItems.find((i) => i.id === "bottle");
-    const tank = dragItems.find((i) => i.id === "tank");
-    const flask = dragItems.find((i) => i.id === "flask");
-    const mnO2 = dragItems.find((i) => i.id === "mnO2");
-    const h2O2 = dragItems.find((i) => i.id === "h2O2");
-    const fire = dragItems.find((i) => i.id === "fire");
-
-    if (bottle && tank) {
-      const inTank =
-        bottle.x + bottle.width / 2 > tank.x &&
-        bottle.x + bottle.width / 2 < tank.x + tank.width &&
-        bottle.y + bottle.height / 2 > tank.y &&
-        bottle.y + bottle.height / 2 < tank.y + tank.height;
-      if (inTank) setFillOxygen(true);
-    }
-
-    if (flask && mnO2) {
-      const mnInFlask =
-        mnO2.x + mnO2.width / 2 > flask.x &&
-        mnO2.x + mnO2.width / 2 < flask.x + flask.width &&
-        mnO2.y + mnO2.height / 2 > flask.y &&
-        mnO2.y + mnO2.height / 2 < flask.y + flask.height;
-      if (mnInFlask) setFillFlask(true);
-    }
-
-    if (flask && h2O2) {
-      const h2InFlask =
-        h2O2.x + h2O2.width / 2 > flask.x &&
-        h2O2.x + h2O2.width / 2 < flask.x + flask.width &&
-        h2O2.y + h2O2.height / 2 > flask.y &&
-        h2O2.y + h2O2.height / 2 < flask.y + flask.height;
-      if (h2InFlask) setFillFlask(true);
-    }
-
-    if (bottle && fire) {
-      const fireInBottle =
-        fire.x + fire.width / 2 > bottle.x &&
-        fire.x + fire.width / 2 < bottle.x + bottle.width &&
-        fire.y + fire.height / 2 > bottle.y &&
-        fire.y + fire.height / 2 < bottle.y + bottle.height;
-      if (fireInBottle && oxygenLevel > 20) setFireOn(true);
-    }
-
-    setDraggingId(null);
-  };
-
-  const handleMouseUp = () => handleEnd();
-  const handleTouchEnd = () => handleEnd();
-
-  // 산소 채움 애니메이션
-  useEffect(() => {
-    if (!fillOxygen || oxygenLevel >= 100) return;
-    const interval = setInterval(() => setOxygenLevel((prev) => Math.min(prev + 1, 100)), 50);
-    return () => clearInterval(interval);
-  }, [fillOxygen, oxygenLevel]);
-
-  // 플라스크 채움 애니메이션
-  useEffect(() => {
-    if (!fillFlask || flaskFill >= 100) return;
-    const interval = setInterval(() => setFlaskFill((prev) => Math.min(prev + 1, 100)), 80);
-    return () => clearInterval(interval);
-  }, [fillFlask, flaskFill]);
 
   return (
     <PageContainer>
-      <div
-        className="relative w-full min-h-screen overflow-auto bg-white dark:bg-slate-700"
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <button
-          onClick={() => router.push("/study")}
-          className="absolute top-6 right-4 text-orange-600 hover:underline text-lg z-50"
-        >
-          « back
-        </button>
-
-        {/* 글씨 왼쪽 상단 */}
-        <div className="absolute top-6 left-4 max-w-[90%] flex flex-col items-start z-40">
-          <h1 className="text-4xl lg:text-5xl text-orange-400 break-words">Science</h1>
-          <p className="text-lg lg:text-2xl text-orange-900 mt-2 break-words">
-            Drag to generate oxygen and ignite the torch with it.
-          </p>
-        </div>
-
-        {/* 드래그 아이템 */}
-        {dragItems.map((item) => (
-          <div
-            key={item.id}
-            onMouseDown={(e) => handleMouseDown(e, item.id)}
-            onTouchStart={(e) => handleTouchStart(e, item.id)}
-            style={{
-              position: "absolute",
-              left: item.x,
-              top: item.y,
-              width: item.width,
-              height: item.height,
-              backgroundColor: item.color,
-              borderRadius: item.type === "bottle" || item.type === "flask" ? "10px" : "4px",
-              border: "1px solid #333",
-              cursor: "grab",
-              zIndex: item.type === "tank" ? 0 : 10,
-              transform: item.type === "fire" ? "rotate(-15deg)" : "none",
-            }}
-          >
-            {item.id === "bottle" && (
-              <div
-                style={{ height: `${oxygenLevel}%` }}
-                className="absolute bottom-0 left-0 w-full bg-white rounded-t-lg transition-[height] duration-100 ease-linear"
-              />
-            )}
-
-            {item.id === "flask" && (
-              <div
-                style={{ height: `${flaskFill}%` }}
-                className="absolute bottom-0 left-0 w-full bg-white rounded-t-lg overflow-hidden transition-[height] duration-100 ease-linear"
-              />
-            )}
-
-            {item.type === "fire" && fireOn && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "0",
-                  left: "-10px",
-                  width: "30px",
-                  height: "60px",
-                  background: "linear-gradient(to top, orange 40%, red 60%, yellow 100%)",
-                  clipPath:
-                    "polygon(50% 0%, 60% 20%, 70% 40%, 60% 60%, 50% 100%, 40% 60%, 30% 40%, 40% 20%)",
-                  animation: "flicker 0.1s infinite alternate",
-                }}
-              />
-            )}
-
-            {item.label && <span className="absolute text-xs text-white font-bold">{item.label}</span>}
+      <div className="flex w-full h-screen">
+        <div className="flex-1 flex flex-col p-8 overflow-y-auto">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-5xl text-orange-400 dark:text-white">Art</h1>
+            <button
+              onClick={() => router.push("/study")}
+              className="text-orange-600 dark:text-white hover:underline text-lg"
+            >
+              « back
+            </button>
           </div>
-        ))}
 
-        <style>{`
-          @keyframes flicker {
-            0% { transform: scaleY(1) rotate(-15deg); }
-            50% { transform: scaleY(1.2) rotate(-10deg); }
-            100% { transform: scaleY(0.9) rotate(-20deg); }
-          }
-        `}</style>
+          <p className="text-2xl text-orange-900 dark:text-white mb-8">
+            Explore and create amazing artworks.
+          </p>
+
+          {/* 스케치북 */}
+          <div className="p-6 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-md max-w-4xl mb-6">
+            <h3 className="text-xl font-semibold text-orange-400 mb-3">🎨 SketchBook</h3>
+            <SketchBook />
+          </div>
+
+          {/* 그림 댓글창 */}
+          <div className="p-6 bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-md max-w-4xl mb-6">
+            <h3 className="text-xl font-semibold text-orange-400 mb-3">🖼 Art Comments</h3>
+            
+          </div>
+        </div>
       </div>
-
-      <BrunnerVideo title="Tutorial" url="/Screen Recording - Made with RecordCast (3).webm" className="mb-8" originalWidth={640} originalHeight={360} />
-      <CommentBox />
     </PageContainer>
   );
-}
+};
+
+export default ArtPage;

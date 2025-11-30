@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/app/firebase";
-import { updateDoc, doc, getDoc } from "firebase/firestore";
+import { updateDoc, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import PageContainer from "@/components/PageContainer";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -12,9 +12,9 @@ export default function EditProfile() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [originalNickname, setOriginalNickname] = useState("");
   const [originalProfileImage, setOriginalProfileImage] = useState<string | null>(null);
+  const [nicknameChecked, setNicknameChecked] = useState(false);
   const router = useRouter();
 
-  // 로그인 유저 & 기존 정보 불러오기
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return router.push("/");
@@ -25,12 +25,27 @@ export default function EditProfile() {
         setOriginalNickname(data.nickname);
         setProfileImage(data.profileImage || null);
         setOriginalProfileImage(data.profileImage || null);
+        setNicknameChecked(true);
       }
     });
     return () => unsub();
   }, []);
 
-  // 이미지 파일 → Base64 변환
+  const checkNickname = async () => {
+    if (nickname === originalNickname) {
+      setNicknameChecked(true);
+      return alert("현재 닉네임과 동일합니다.");
+    }
+    const q = query(collection(db, "users"), where("nickname", "==", nickname));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      setNicknameChecked(false);
+      return alert("이미 사용 중인 닉네임입니다!");
+    }
+    setNicknameChecked(true);
+    alert("사용 가능한 닉네임입니다!");
+  };
+
   const handleImageChange = (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -39,20 +54,18 @@ export default function EditProfile() {
     reader.readAsDataURL(file);
   };
 
-  // 저장
   const handleSave = async () => {
     const user = auth.currentUser;
     if (!user) return;
+
+    if (!nicknameChecked) return alert("닉네임 중복 체크를 해주세요!");
 
     const changed =
       nickname !== originalNickname || profileImage !== originalProfileImage;
 
     if (!changed) return alert("변경된 내용이 없습니다!");
 
-    await updateDoc(doc(db, "users", user.uid), {
-      nickname,
-      profileImage,
-    });
+    await updateDoc(doc(db, "users", user.uid), { nickname, profileImage });
 
     alert("프로필이 저장되었습니다!");
     router.push("/");
@@ -60,50 +73,41 @@ export default function EditProfile() {
 
   return (
     <PageContainer>
-      <div className="max-w-md mx-auto mt-16 bg-white shadow p-6 rounded space-y-6">
-        <h1 className="text-2xl font-bold text-center text-orange-900">User Profile</h1>
+      <div className="max-w-md mx-auto mt-16 bg-white shadow p-6 rounded space-y-5">
+        <h1 className="text-2xl font-bold text-center text-orange-900">Edit Profile</h1>
 
-        {/* 프로필 이미지 + 업로드 버튼 */}
         <div className="flex flex-col items-center space-y-3">
           {profileImage && (
-            <img
-              src={profileImage}
-              className="w-32 h-32 object-cover rounded-full shadow-md"
-            />
+            <img src={profileImage} className="w-32 h-32 object-cover rounded-full" />
           )}
 
-          {/* 숨긴 파일 input */}
-          <input
-            id="fileInput"
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-
-          {/* 커스텀 버튼 */}
-          <label
-            htmlFor="fileInput"
-            className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow transition"
-          >
-            프로필 사진 변경
+          {/* 파일 업로드 버튼 이쁘게 */}
+          <label className="bg-orange-300 hover:bg-orange-400 cursor-pointer text-white px-4 py-2 rounded shadow">
+            프로필 이미지 선택
+            <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
           </label>
         </div>
 
-        {/* 닉네임 */}
         <div>
-          <label className="font-semibold text-orange-800">닉네임</label>
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-orange-300 outline-none"
-          />
+          <label className="font-semibold">닉네임</label>
+          <div className="flex gap-2 mt-1">
+            <input
+              value={nickname}
+              onChange={(e) => {
+                setNickname(e.target.value);
+                setNicknameChecked(false);
+              }}
+              className="flex-1 border rounded px-3 py-2"
+            />
+            <button onClick={checkNickname} className="bg-orange-400 hover:bg-orange-500 text-white px-3 rounded">
+              중복 확인
+            </button>
+          </div>
         </div>
 
-        {/* 저장 버튼 */}
         <button
           onClick={handleSave}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg font-semibold shadow transition"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
         >
           저장
         </button>

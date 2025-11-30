@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
+  const [checkingNickname, setCheckingNickname] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,25 +31,39 @@ export default function SignupPage() {
     }
 
     try {
-      // ✅ Firebase Auth 계정 생성
+      setCheckingNickname(true);
+
+      // 🚨 닉네임 중복 체크
+      const q = query(collection(db, "users"), where("nickname", "==", nickname));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        setError("이미 사용 중인 닉네임입니다.");
+        setCheckingNickname(false);
+        return;
+      }
+
+      // ✨ Firebase Auth 계정 생성
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Firestore에 유저 정보 저장
+      // ✨ Firestore 유저 정보 저장
       await setDoc(doc(db, "users", user.uid), {
         email,
         nickname,
         createdAt: serverTimestamp(),
       });
 
-      // ✅ Firebase Auth displayName 업데이트 (햄버거 메뉴에서 바로 표시 가능)
+      // ✨ displayName 업데이트
       await updateProfile(user, { displayName: nickname });
 
       alert(`${nickname}님, 회원가입이 완료되었습니다 🎉`);
       router.push("/login");
-    } catch (err: any) {
+    } catch (err) {
       console.error("회원가입 오류:", err);
       setError("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setCheckingNickname(false);
     }
   };
 
@@ -101,9 +116,10 @@ export default function SignupPage() {
 
             <button
               type="submit"
-              className="mt-4 px-6 py-3 bg-green-400 text-white rounded-xl shadow hover:bg-green-500 transition"
+              disabled={checkingNickname}
+              className="mt-4 px-6 py-3 bg-green-400 text-white rounded-xl shadow hover:bg-green-500 transition disabled:bg-gray-400"
             >
-              회원가입
+              {checkingNickname ? "처리 중..." : "회원가입"}
             </button>
           </form>
 
