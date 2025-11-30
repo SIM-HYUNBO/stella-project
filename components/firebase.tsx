@@ -4,6 +4,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getMessaging } from "firebase/messaging";
 
 // ✅ Firebase 설정 (같은 프로젝트 ID 그대로)
 const firebaseConfig = {
@@ -16,9 +17,11 @@ const firebaseConfig = {
 };
 
 // ✅ 이미 초기화된 앱이 있으면 재사용
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const firebaseApp = initializeApp(firebaseConfig);
 
-// ✅ Auth와 Firestore를 같은 앱에서 생성
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export default app;
+// 서비스 가져오기
+const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
+const messaging = getMessaging(firebaseApp); // FCM용
+
+export { firebaseApp, db, auth, messaging };

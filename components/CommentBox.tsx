@@ -17,7 +17,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { db, auth } from "../app/firebase";
+import { db, auth, messaging } from "../app/firebase"; // messaging 추가
+import { getToken, onMessage } from "firebase/messaging"; // FCM import
 
 interface Comment {
   id: string;
@@ -28,7 +29,7 @@ interface Comment {
   profileImage?: string | null;
   likes: string[];
   createdAt: any;
-  parentId?: string | null; // 대댓글용
+  parentId?: string | null;
 }
 
 export default function CommentBox() {
@@ -42,6 +43,8 @@ export default function CommentBox() {
   const [replyTargetId, setReplyTargetId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
 
+  const [newReplyAlert, setNewReplyAlert] = useState<string | null>(null); // ✅ FCM 알림 표시
+
   // 로그인 체크
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -49,6 +52,38 @@ export default function CommentBox() {
     });
     return () => unsubscribe();
   }, []);
+
+  // ✅ FCM 토큰 등록 + 알림 수신
+  useEffect(() => {
+    if (!user) return;
+
+    const registerFCM = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const token = await getToken(messaging, { vapidKey: "YOUR_VAPID_KEY" });
+          console.log("FCM 토큰:", token);
+          if (token) {
+            await updateDoc(doc(db, "users", user.uid), {
+              fcmTokens: arrayUnion(token),
+            });
+          }
+        }
+      } catch (err) {
+        console.error("FCM 토큰 등록 실패:", err);
+      }
+    };
+
+    registerFCM();
+
+    const unsubscribeMessage = onMessage(messaging, (payload) => {
+      console.log("푸시 알림 수신:", payload);
+      setNewReplyAlert(payload.notification?.body || "새 알림이 도착했습니다!");
+      setTimeout(() => setNewReplyAlert(null), 5000); // 5초 후 자동 사라짐
+    });
+
+    return () => unsubscribeMessage();
+  }, [user]);
 
   // 댓글 실시간 가져오기
   useEffect(() => {
@@ -73,7 +108,6 @@ export default function CommentBox() {
           createdAt: data.createdAt || Timestamp.now(),
           parentId: data.parentId || null,
         });
-        
       }
       setComments(list);
       setLoading(false);
@@ -93,7 +127,6 @@ export default function CommentBox() {
 
     try {
       if (parentId) {
-        // 대댓글
         await addDoc(collection(db, "comments"), {
           text: replyText,
           userId: user.uid,
@@ -107,7 +140,6 @@ export default function CommentBox() {
         setReplyText("");
         setReplyTargetId(null);
       } else {
-        // 일반 댓글
         await addDoc(collection(db, "comments"), {
           text: comment,
           userId: user.uid,
@@ -124,13 +156,11 @@ export default function CommentBox() {
     }
   };
 
-  // 댓글 수정
+  // 댓글 수정, 좋아요, 삭제, 렌더링 등 기존 코드 그대로
   const handleEdit = async (id: string) => {
     if (!editingText.trim()) return;
     try {
-      await updateDoc(doc(db, "comments", id), {
-        text: editingText,
-      });
+      await updateDoc(doc(db, "comments", id), { text: editingText });
       setEditingCommentId(null);
       setEditingText("");
     } catch (err) {
@@ -138,42 +168,29 @@ export default function CommentBox() {
     }
   };
 
-  // 좋아요
   const handleLike = async (id: string, likes: string[] = [], commentUserId: string) => {
     if (!user) return alert("로그인 후 좋아요 가능");
     if (user.uid === commentUserId) return alert("자신의 댓글에는 좋아요 불가!");
-
     const ref = doc(db, "comments", id);
     const hasLiked = likes.includes(user.uid);
-
     try {
-      await updateDoc(ref, {
-        likes: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-      });
+      await updateDoc(ref, { likes: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid) });
     } catch (err) {
       console.error("❌ 좋아요 실패:", err);
     }
   };
 
-  // 댓글 삭제
   const handleDelete = async (id: string, commentUserId: string) => {
-    if (!user || user.uid !== commentUserId)
-      return alert("본인 댓글만 삭제 가능");
-
-    try {
-      await deleteDoc(doc(db, "comments", id));
-    } catch (err) {
-      console.error("❌ 댓글 삭제 실패:", err);
-    }
+    if (!user || user.uid !== commentUserId) return alert("본인 댓글만 삭제 가능");
+    try { await deleteDoc(doc(db, "comments", id)); } 
+    catch (err) { console.error("❌ 댓글 삭제 실패:", err); }
   };
 
-  // 댓글 날짜 포맷
   const formatDate = (timestamp: any) => {
     const date = timestamp.toDate();
     return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
   };
 
-  // 댓글 렌더링
   const renderComments = (parentId: string | null = null, level = 0) => {
     return comments
       .filter((c) => (c.parentId || null) === parentId)
@@ -187,11 +204,7 @@ export default function CommentBox() {
 
           {editingCommentId === c.id ? (
             <div className="flex space-x-2 mt-1">
-              <input
-                value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-                className="flex-1 border px-2 py-1 rounded"
-              />
+              <input value={editingText} onChange={(e) => setEditingText(e.target.value)} className="flex-1 border px-2 py-1 rounded" />
               <button onClick={() => handleEdit(c.id)} className="text-blue-500">저장</button>
               <button onClick={() => setEditingCommentId(null)} className="text-gray-500">취소</button>
             </div>
@@ -200,86 +213,44 @@ export default function CommentBox() {
           )}
 
           <div className="flex items-center space-x-3 mt-1">
-            <button
-              onClick={() => handleLike(c.id, c.likes || [], c.userId)}
-              className="text-blue-500 hover:text-blue-600 text-sm"
-            >
-              👍 {Array.isArray(c.likes) ? c.likes.length : 0}
-            </button>
-
+            <button onClick={() => handleLike(c.id, c.likes || [], c.userId)} className="text-blue-500 hover:text-blue-600 text-sm">👍 {Array.isArray(c.likes) ? c.likes.length : 0}</button>
             {user?.uid === c.userId && editingCommentId !== c.id && (
-              <button
-                onClick={() => {
-                  setEditingCommentId(c.id);
-                  setEditingText(c.text);
-                }}
-                className="text-yellow-500 text-sm"
-              >
-                ✏ 수정
-              </button>
+              <button onClick={() => { setEditingCommentId(c.id); setEditingText(c.text); }} className="text-yellow-500 text-sm">✏ 수정</button>
             )}
-
             {user?.uid === c.userId && (
-              <button
-                onClick={() => handleDelete(c.id, c.userId)}
-                className="text-red-500 hover:text-red-600 text-sm"
-              >
-                🗑 삭제
-              </button>
+              <button onClick={() => handleDelete(c.id, c.userId)} className="text-red-500 hover:text-red-600 text-sm">🗑 삭제</button>
             )}
-
             {user?.uid !== c.userId && !replyTargetId && (
-              <button
-                onClick={() => setReplyTargetId(c.id)}
-                className="text-green-600 text-sm"
-              >
-                ↳ 답글
-              </button>
+              <button onClick={() => setReplyTargetId(c.id)} className="text-green-600 text-sm">↳ 답글</button>
             )}
           </div>
 
-          {/* 대댓글 입력 */}
           {replyTargetId === c.id && (
             <form onSubmit={(e) => handleSubmit(e, c.id)} className="flex space-x-2 mt-1 ml-12">
-              <input
-                type="text"
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="답글을 입력하세요..."
-                className="flex-1 border px-2 py-1 rounded"
-              />
+              <input type="text" value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="답글을 입력하세요..." className="flex-1 border px-2 py-1 rounded" />
               <button type="submit" className="text-blue-500">등록</button>
               <button onClick={() => setReplyTargetId(null)} className="text-gray-500">취소</button>
             </form>
           )}
 
-          {/* 대댓글 재귀 렌더링 */}
           <div className="ml-8">{renderComments(c.id, level + 1)}</div>
         </div>
       ));
   };
 
   return (
-    <div className="w-full max-w-2xl bg-pink-100 p-4 mt-5 rounded-lg shadow-md">
+    <div className="w-full max-w-2xl bg-pink-100 p-4 mt-5 rounded-lg shadow-md relative">
+      {newReplyAlert && (
+        <div className="absolute top-0 right-0 m-4 bg-yellow-300 p-2 rounded shadow-lg">
+          {newReplyAlert}
+        </div>
+      )}
+
       <h2 className="text-xl font-bold text-orange-900 mb-2">Communication</h2>
 
-      {/* 댓글 입력 */}
       <form onSubmit={(e) => handleSubmit(e)} className="flex mb-4 space-x-2">
-        <input
-          type="text"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder={user ? "댓글을 입력하세요..." : "로그인 후 이용 가능"}
-          className="flex-1 border border-gray-200 rounded px-3 py-2 focus:outline-none"
-          disabled={!user}
-        />
-        <button
-          type="submit"
-          className={`px-4 py-2 rounded text-white ${user ? "bg-blue-400 hover:bg-blue-500" : "bg-gray-400 cursor-not-allowed"}`}
-          disabled={!user}
-        >
-          등록
-        </button>
+        <input type="text" value={comment} onChange={(e) => setComment(e.target.value)} placeholder={user ? "댓글을 입력하세요..." : "로그인 후 이용 가능"} className="flex-1 border border-gray-200 rounded px-3 py-2 focus:outline-none" disabled={!user} />
+        <button type="submit" className={`px-4 py-2 rounded text-white ${user ? "bg-blue-400 hover:bg-blue-500" : "bg-gray-400 cursor-not-allowed"}`} disabled={!user}>등록</button>
       </form>
 
       {loading ? (
