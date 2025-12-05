@@ -1,5 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Jua } from 'next/font/google';
+
+const jua = Jua({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 const Header = () => {
   return (
@@ -11,9 +17,12 @@ const Header = () => {
           alt="Genius Light Bulb"
           width={48}
           height={48}
-      className="rounded-full"
+          className="rounded-full"
         />
-        <span className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-wide">
+
+        <span
+          className={`${jua.className} text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-wide`}
+        >
           WAGIE
         </span>
       </Link>
