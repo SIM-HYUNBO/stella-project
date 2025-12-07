@@ -118,22 +118,15 @@ export default function HamburgerMenuWithDarkModeInside() {
               >
                 🚪 로그아웃
               </button>
-              <button
-              onClick={() => router.push("/avatar")}
-              className="w-full text-left text-[#4a342a] dark:text-white font-medium hover:opacity-70 transition"
-            >
-              아바타
-            </button>
-            
             </div>
           )}
 
           {/* 메뉴 링크 */}
           {[
-            { href: "/", label: "🏠 Home" },
+            { href: "/m-home", label: "🏠 Home" },
             { href: "/Clips", label: "🎬 Clips" },
-            { href: "/Notes", label: "📝 Notes" },
-            { href: "/study", label: "📚 Study" },
+            { href: "/m2", label: "📚 Study" },
+            { href: "/progress", label: "📈 Progress" },
             { href: "/contact", label: "📩 Contact" },
           ].map(({ href, label }) => (
             <Link
@@ -154,10 +147,10 @@ export default function HamburgerMenuWithDarkModeInside() {
             {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
           </button>
           <button
-              onClick={() => router.push("/m-home")}
+              onClick={() => router.push("/")}
               className="px-5 py-2.5 text-orange-400 rounded-lg transition-all"
             >
-             중등 WAGIE 이동
+             초등 WAGIE 이동
             </button>
         </div>
       )}

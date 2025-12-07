@@ -51,7 +51,7 @@ export default function Study() {
               공부 천재
             </button>
             <button
-              onClick={() => router.push("/k")}
+              onClick={() => router.push("/a")}
               className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
             >
               그림 천재

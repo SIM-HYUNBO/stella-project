@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PageContainer from "../components/PageContainer";
+import PageContainer from "../../components/PageContainer";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import HamburgerMenu from "../components/hamburger";
+import HamburgerMenu from "../../components/hamburgermenu";
 import Link from "next/link";
-import { watchAuthState } from "./authService"; // 로그인 상태 감지
+import { watchAuthState } from "../authService"; // 로그인 상태 감지
 import { User } from "firebase/auth";
-import CommentBox from "../components/CommentBox";
+import CommentBox from "../../components/CommentBox";
 import { useRouter } from "next/navigation";
 
 export default function Home() {

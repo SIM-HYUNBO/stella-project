@@ -25,7 +25,11 @@ const Header = () => {
         >
           WAGIE
         </span>
+       
+       
       </Link>
+      
+      
 
       {/* 오른쪽 끝 영역 */}
       <div className="flex justify-start">
