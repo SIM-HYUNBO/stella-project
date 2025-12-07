@@ -4,7 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 
-export default function ProgressPage({ userId }: { userId: string }) {
+
+export default function ProgressPage({ params }: { params: { userId: string } }) {
+  const userId = params.userId; // <-- 여기서 userId
   const [progressData, setProgressData] = useState<any[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

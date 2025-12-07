@@ -134,19 +134,44 @@ return trees;
 };
 // 3D 코인 컴포넌트
 // 여러 개 코인을 랜덤 배치
-const generateCoins = (count = 20) => {
-    const coins = [];
-  
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 80;  // -40 ~ 40
-      const z = (Math.random() - 0.5) * 80;  // -40 ~ 40
-  
-      coins.push(<mesh key={`coin-${i}`} position={[x, 1.5, z]} />);
+"use client";
+
+import React, { useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+
+function Coin() {
+  const ref = useRef<any>(null);
+
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.02;
     }
-  
-    return coins;
-  };
-  
+  });
+
+  return (
+    <mesh ref={ref} position={[0, 0, 0]}>
+      <cylinderGeometry args={[1, 1, 0.2, 32]} />
+      <meshStandardMaterial color={"gold"} metalness={1} roughness={0.2} />
+    </mesh>
+  );
+}
+
+export default function CoinScene() {
+  return (
+    <div style={{ width: "100%", height: "400px" }}>
+      <Canvas camera={{ position: [3, 3, 3] }}>
+        <ambientLight intensity={1} />
+        <directionalLight position={[5, 5, 5]} intensity={1} />
+        <Coin />
+        <OrbitControls />
+      </Canvas>
+    </div>
+  );
+}
+
+
+
 
 
 export default function MathLand3D() {
