@@ -8,10 +8,9 @@ import HamburgerMenu from "../../components/hamburgermenu";
 import Link from "next/link";
 import { watchAuthState } from "../authService"; // 로그인 상태 감지
 import { User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, limit, orderBy } from "firebase/firestore";
 import { db } from "@/app/firebase"; // Firestore
 import CommentBox from "../../components/CommentBox";
-import { useRouter } from "next/navigation";
 
 interface UserProfile {
   uid: string;
@@ -20,13 +19,13 @@ interface UserProfile {
 }
 
 export default function Home() {
-  const router = useRouter();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [postId, setPostId] = useState<string | null>(null);
 
   // 로그인 상태 추적 + Firestore에서 유저 정보 불러오기
   useEffect(() => {
@@ -40,7 +39,7 @@ export default function Home() {
           setUserProfile({
             uid: u.uid,
             nickname: data.nickname || "익명",
-            grade: data.grade || "초등", // Firestore에 grade 필드 있어야 함
+            grade: data.grade || "초등",
           });
         }
       } else {
@@ -48,6 +47,24 @@ export default function Home() {
       }
     });
     return () => unsubscribe();
+  }, []);
+
+  // 첫 번째 게시글 가져오기 (홈에서 댓글창 띄우기용)
+  useEffect(() => {
+    const fetchFirstPost = async () => {
+      const postsCol = collection(db, "posts");
+      const q = query(postsCol, orderBy("createdAt", "desc"), limit(1));
+      const querySnap = await getDocs(q);
+
+      if (!querySnap.empty) {
+        const firstDoc = querySnap.docs[0];
+        setPostId(firstDoc.id);
+      } else {
+        console.log("게시글이 없습니다.");
+      }
+    };
+
+    fetchFirstPost();
   }, []);
 
   // 페이지 초기 로딩 상태 해제
@@ -113,13 +130,15 @@ export default function Home() {
                 href="/board"
                 className="px-4 py-2 ml-10 mt-5 bg-yellow-300 text-white rounded hover:bg-yellow-400"
               >
-                GENIUS 게시판 가는 길
+                WAGIE 게시판 가는 길
               </Link>
             )}
           </div>
 
-          {/* CommentBox: userProfile이 있어야 렌더링 */}
-          {user && userProfile && <CommentBox userProfile={userProfile} />}
+          {/* 댓글창 */}
+          {user && userProfile && postId && (
+            <CommentBox userProfile={userProfile} postId={postId} />
+          )}
         </div>
       </div>
     </PageContainer>

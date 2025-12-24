@@ -96,13 +96,23 @@ export default function Home() {
                 href="/board"
                 className="px-4 py-2 ml-10 mt-5 bg-yellow-300 text-white rounded hover:bg-yellow-400"
               >
-                GENIUS 게시판 가는 길
+                WAGIE 게시판 가는 길
               </Link>
             )}
           </div>
 
           {/* ✅ 댓글 박스 (이제 버튼 클릭 잘 됨) */}
-          <CommentBox />
+          <CommentBox
+            postId="home"
+            userProfile={
+              user
+                ? {
+                    uid: user.uid,
+                    nickname: user.displayName || "익명",
+                  }
+                : null
+            }
+          />
         </div>
       </div>
     </PageContainer>
