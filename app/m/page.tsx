@@ -41,6 +41,27 @@ const miniTests = {
   ],
 };
 
+// 힌트 틀
+const hintsTemplate = {
+  국어: ["맞춤법 규칙을 잘 생각해 보세요. ",
+    "곰의 소리를 흉내 낼 때 나는 소리를 생각해 보세요.",
+    "반대말을 찾을 때 의미를 곰곰이 생각해 보세요.",
+    "'학교'에 가는 것을 나타낼 때 알맞은 조사를 선택하세요.",
+    "주어와 서술어가 있는 것을 문장이라고 할 수 있어요.",],
+    영어: [
+      "'사과를 먹고 싶다.'를 영어로 번역하면?",
+      "'저 강아지는 귀엽다.'를 영어로 번역하면?",
+      "'오늘 태양이 밝게 빛난다.'를 영어로 번역하면?",
+      "'저 접시를 빨간 색이다'를 영어로 번역하면?",
+      "'나는 물고기를 키운다'를 영어로 번역하면?'",
+    ],
+  수학: ["5 + 5 + 2는?",
+     "쿠키 9개 중에 내가 4개를 먹었어요. 남은 쿠키 수는?",
+       "계란이 3개씩 4묶음 있어요. 총 계란 수는?",
+       "연필 20자루를 5명의 학생에게 나누어 주었어요. 한 사람이 갖는 연필 수는?", 
+       "10 + 3은?"],
+};
+
 export default function Study() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -158,6 +179,12 @@ export default function Study() {
     setTestScore(0);
     setFinished(false);
   };
+
+  /** 아바타 힌트 상태 **/
+  const [showHint, setShowHint] = useState(false);
+  const currentHint = hintsTemplate[currentSubject][testIndex];
+
+  const toggleHint = () => setShowHint((v) => !v);
 
   /** 로딩 처리 **/
   useEffect(() => {
@@ -280,8 +307,8 @@ export default function Study() {
           </div>
         </div>
 
-        {/* 미니 테스트 */}
-        <div className="p-6 rounded-2xl shadow bg-white/70 max-w-xl">
+        {/* 미니 테스트 + 아바타 힌트 버튼 */}
+        <div className="p-6 rounded-2xl shadow bg-white/70 max-w-xl flex flex-col gap-4">
           <h3 className="text-xl font-bold text-orange-600 mb-4">📝 미니 테스트</h3>
           <div className="flex gap-2 mb-4">
             {subjects.map((s) => (
@@ -297,7 +324,7 @@ export default function Study() {
           {!finished ? (
             <>
               <p className="mb-3 text-orange-900">{quiz.q}</p>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mb-2">
                 {quiz.options.map((opt) => (
                   <button
                     key={opt}
@@ -308,6 +335,22 @@ export default function Study() {
                   </button>
                 ))}
               </div>
+
+              {/* 아바타 도움말 버튼 */}
+              <div className="flex flex-col items-start gap-2">
+                <button
+                  onClick={toggleHint}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                >
+                  아바타 도움 받기
+                </button>
+                {showHint && (
+                  <div className="relative bg-white dark:bg-slate-700 p-3 rounded-xl shadow-md text-gray-800 dark:text-gray-100 mt-2 max-w-xs">
+                    <div className="absolute -top-3 left-5 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-white dark:border-b-slate-700"></div>
+                    {currentHint}
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <div className="text-orange-900 font-bold">
@@ -316,18 +359,6 @@ export default function Study() {
             </div>
           )}
         </div>
-
-        {/* 수학 마을 버튼 */}
-        <div className="flex items-center justify-center w-full h-screen bg-green-100">
-  <button
-    onClick={() => router.push("/MathLand3D")}
-    className="px-12 py-6 bg-green-600 text-white text-2xl font-bold rounded-3xl shadow-lg hover:bg-green-700 transition"
-  >
-    🏡 수학 마을 가기
-  </button>
-</div>
-
-
       </div>
     </PageContainer>
   );

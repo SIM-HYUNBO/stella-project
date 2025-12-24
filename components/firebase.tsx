@@ -1,27 +1,20 @@
-// app/firebase.ts
-"use client";
-
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging } from "firebase/messaging";
 
-// ✅ Firebase 설정 (같은 프로젝트 ID 그대로)
 const firebaseConfig = {
-  apiKey: "AIzaSyCjhPd01r11xqHVJeQDgH2Di2dlAfk5Ifo",
-  authDomain: "commentandlogin-a7482.firebaseapp.com",
-  projectId: "commentandlogin-a7482",
-  storageBucket: "commentandlogin-a7482.appspot.com",
-  messagingSenderId: "1035365924254",
-  appId: "1:1035365924254:web:ee578f90e6159e83cdea8f"
+  apiKey: "AIzaSyCZpx2J53C-gA5AOfZGJlEiPV59ktB1KBE",
+  authDomain: "commentbox-f0b9d.firebaseapp.com",
+  projectId: "commentbox-f0b9d",
+  storageBucket: "commentbox-f0b9d.firebasestorage.app",
+  messagingSenderId: "815767964448",
+  appId: "1:815767964448:web:bf30016e89a83401c22545",
 };
 
-// ✅ 이미 초기화된 앱이 있으면 재사용
-const firebaseApp = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// 서비스 가져오기
-const db = getFirestore(firebaseApp);
-const auth = getAuth(firebaseApp);
-const messaging = getMessaging(firebaseApp); // FCM용
+console.log("🔥 실제 연결된 Firebase projectId:", app.options.projectId);
 
-export { firebaseApp, db, auth, messaging };
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export { app };

@@ -8,8 +8,16 @@ import HamburgerMenu from "../../components/hamburgermenu";
 import Link from "next/link";
 import { watchAuthState } from "../authService"; // 로그인 상태 감지
 import { User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/app/firebase"; // Firestore
 import CommentBox from "../../components/CommentBox";
 import { useRouter } from "next/navigation";
+
+interface UserProfile {
+  uid: string;
+  nickname: string;
+  grade: "초등" | "중등";
+}
 
 export default function Home() {
   const router = useRouter();
@@ -17,29 +25,40 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 로그인 상태 추적
+  // 로그인 상태 추적 + Firestore에서 유저 정보 불러오기
   useEffect(() => {
-    const unsubscribe = watchAuthState((u) => {
-      console.log("Auth state updated: ", u);
+    const unsubscribe = watchAuthState(async (u) => {
       setUser(u);
-    });
 
+      if (u) {
+        const userDoc = await getDoc(doc(db, "users", u.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserProfile({
+            uid: u.uid,
+            nickname: data.nickname || "익명",
+            grade: data.grade || "초등", // Firestore에 grade 필드 있어야 함
+          });
+        }
+      } else {
+        setUserProfile(null);
+      }
+    });
     return () => unsubscribe();
   }, []);
 
-  // ✅ 페이지 초기 로딩 상태 해제
+  // 페이지 초기 로딩 상태 해제
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-      console.log("✅ 로딩 끝");
     }, 700);
     return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
-    // ✅ 로딩 오버레이 (화면 덮지 않게 position 변경)
     return (
       <div className="flex justify-center items-center min-h-screen bg-white dark:bg-gray-900">
         Loading...
@@ -51,11 +70,10 @@ export default function Home() {
     <PageContainer>
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-       
           <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
             We are Genius in Everything.
           </h1>
-    
+
           <HamburgerMenu />
 
           <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
@@ -75,7 +93,6 @@ export default function Home() {
               />
             </div>
 
-            {/* ✅ 로그인 안 된 상태 */}
             {!user ? (
               <div className="flex flex-row ml-10 gap-4">
                 <Link
@@ -101,8 +118,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* ✅ 댓글 박스 (이제 버튼 클릭 잘 됨) */}
-          <CommentBox />
+          {/* CommentBox: userProfile이 있어야 렌더링 */}
+          {user && userProfile && <CommentBox userProfile={userProfile} />}
         </div>
       </div>
     </PageContainer>
