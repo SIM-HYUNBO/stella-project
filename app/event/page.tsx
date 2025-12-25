@@ -12,7 +12,7 @@ type Post = {
   title: string;
   content: string;
   likes: number;
-  liked?: boolean; // 좋아요 중복 방지
+  liked?: boolean;
   replies: Reply[];
 };
 
@@ -50,7 +50,7 @@ export default function WagieChristmasPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // 눈 제거 (애니메이션 끝나면)
+  // 눈 제거
   useEffect(() => {
     const timeout = setInterval(() => {
       setFlakes((prev) => prev.filter((f) => f.id + 8000 > Date.now()));
@@ -58,14 +58,12 @@ export default function WagieChristmasPage() {
     return () => clearInterval(timeout);
   }, []);
 
-  // 로컬 저장
   const saveToLocalStorage = (updatedPosts: Post[]) => {
     const json = JSON.stringify(updatedPosts);
     const encoded = btoa(json);
     localStorage.setItem(LOCAL_STORAGE_KEY, encoded);
   };
 
-  // 글 추가
   const addPost = () => {
     if (!title || !content) return alert("제목과 내용을 모두 입력해주세요!");
     const newPost: Post = {
@@ -84,7 +82,6 @@ export default function WagieChristmasPage() {
     setShowForm(false);
   };
 
-  // 좋아요 (중복 방지)
   const likePost = (id: number) => {
     const updatedPosts = posts.map((p) =>
       p.id === id
@@ -97,14 +94,12 @@ export default function WagieChristmasPage() {
     saveToLocalStorage(updatedPosts);
   };
 
-  // 글 삭제
   const deletePost = (id: number) => {
     const updatedPosts = posts.filter((p) => p.id !== id);
     setPosts(updatedPosts);
     saveToLocalStorage(updatedPosts);
   };
 
-  // 답글 추가
   const addReply = (postId: number, text: string) => {
     if (!text) return;
     const updatedPosts = posts.map((p) =>
@@ -118,7 +113,7 @@ export default function WagieChristmasPage() {
 
   return (
     <div className="relative min-h-screen bg-red-50 overflow-hidden">
-      {/* 눈 애니메이션 */}
+      {/* 눈 */}
       {flakes.map((f) => (
         <span
           key={f.id}
@@ -129,6 +124,17 @@ export default function WagieChristmasPage() {
         </span>
       ))}
 
+      {/* 트리 (크게) */}
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 text-8xl animate-bounce z-20">
+        🎄
+      </span>
+
+      {/* 산타 얼굴 */}
+      <span className="absolute top-10 right-10 text-5xl animate-fly z-20">
+        🎅
+      </span>
+
+      {/* 게시글 영역 */}
       <div className="max-w-2xl mx-auto p-4 relative z-10">
         <h1 className="text-3xl font-bold text-center text-red-600 mb-6">
           🎄 와기 크리스마스!
@@ -185,7 +191,9 @@ export default function WagieChristmasPage() {
               <div className="flex gap-4 mt-3 text-sm">
                 <button
                   onClick={() => likePost(post.id)}
-                  className={`text-red-500 ${post.liked ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`text-red-500 ${
+                    post.liked ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   disabled={post.liked}
                 >
                   ❤️ 좋아요 {post.likes}
@@ -204,18 +212,17 @@ export default function WagieChristmasPage() {
       {/* CSS 애니메이션 */}
       <style jsx>{`
         @keyframes fall {
-          0% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-          }
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
-        .animate-fall {
-          animation: fall 8s linear forwards;
+        .animate-fall { animation: fall 8s linear forwards; }
+
+        @keyframes fly {
+          0% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(-200px) translateY(50px); }
+          100% { transform: translateX(0) translateY(0); }
         }
+        .animate-fly { animation: fly 10s linear infinite; }
       `}</style>
     </div>
   );
@@ -234,10 +241,7 @@ function ReplySection({
     <div className="mt-3">
       <div className="space-y-1 mb-2">
         {replies.map((r) => (
-          <div
-            key={r.id}
-            className="text-sm bg-gray-100 rounded px-2 py-1"
-          >
+          <div key={r.id} className="text-sm bg-gray-100 rounded px-2 py-1">
             💬 {r.text}
           </div>
         ))}
