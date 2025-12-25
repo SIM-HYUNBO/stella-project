@@ -25,7 +25,6 @@ export default function Home() {
       console.log("Auth state updated: ", u);
       setUser(u);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -39,7 +38,6 @@ export default function Home() {
   }, []);
 
   if (loading) {
-    // ✅ 로딩 오버레이 (화면 덮지 않게 position 변경)
     return (
       <div className="flex justify-center items-center min-h-screen bg-white dark:bg-gray-900">
         Loading...
@@ -51,11 +49,10 @@ export default function Home() {
     <PageContainer>
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-       
           <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
             We are Genius in Everything.
           </h1>
-    
+
           <HamburgerMenu />
 
           <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
@@ -75,7 +72,6 @@ export default function Home() {
               />
             </div>
 
-            {/* ✅ 로그인 안 된 상태 */}
             {!user ? (
               <div className="flex flex-row ml-10 gap-4">
                 <Link
@@ -100,20 +96,23 @@ export default function Home() {
               </Link>
             )}
           </div>
+          
+      {/* ✅ 댓글 박스 */}
+<div className="flex justify-start ml-11 mt-5">
+  <CommentBox
+    postId="home"
+    userProfile={
+      user
+        ? {
+            uid: user.uid,
+            nickname: user.displayName || "익명",
+          }
+        : null
+    }
+  />
+</div>
 
-          {/* ✅ 댓글 박스 (이제 버튼 클릭 잘 됨) */}
-          <CommentBox
-            postId="home"
-            userProfile={
-              user
-                ? {
-                    uid: user.uid,
-                    nickname: user.displayName || "익명",
-                  }
-                : null
-            }
-          />
-        </div>
+      </div>
       </div>
     </PageContainer>
   );

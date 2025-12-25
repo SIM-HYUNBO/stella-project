@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "antd": "^5.27.6",
@@ -24,6 +26,7 @@
     "three": "^0.181.2"
   },
   "devDependencies": {
+    "@types/dom-mediacapture-record": "^1.0.22",
     "@types/node": "24.7.2",
     "@types/react": "19.2.2",
     "@types/three": "^0.181.0",

@@ -137,7 +137,7 @@ export default function Home() {
 
           {/* 댓글창 */}
           {user && userProfile && postId && (
-            <CommentBox userProfile={userProfile} postId={postId} />
+            <CommentBox userProfile={userProfile} postId="m-home" />
           )}
         </div>
       </div>

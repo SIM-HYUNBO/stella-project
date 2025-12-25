@@ -247,7 +247,6 @@ const EnglishPage: React.FC = () => {
           </div>
 
        
-              <CommentBox />
             </div>
           </div>
     </PageContainer>

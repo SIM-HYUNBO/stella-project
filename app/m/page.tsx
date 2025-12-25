@@ -340,9 +340,9 @@ export default function Study() {
               <div className="flex flex-col items-start gap-2">
                 <button
                   onClick={toggleHint}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition"
                 >
-                  아바타 도움 받기
+                  도움 받기
                 </button>
                 {showHint && (
                   <div className="relative bg-white dark:bg-slate-700 p-3 rounded-xl shadow-md text-gray-800 dark:text-gray-100 mt-2 max-w-xs">

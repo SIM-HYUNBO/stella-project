@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
-// import DotSpinner from "/components/DotSpinner";
 import { CenterSpinner } from "/components/CenterSpinner";
 import HamburgerMenu from "/components/hamburger";
+import { useRouter } from "next/navigation"; // ✅ 추가
 
 export default function Clips() {
   const [loading, setLoading] = useState(true);
+  const router = useRouter(); // ✅ 라우터 객체 생성
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 800);
@@ -15,7 +16,6 @@ export default function Clips() {
 
   return (
     <>
-      {/* {loading && <DotSpinner />} */}
       {loading && <CenterSpinner />}
 
       <PageContainer>
@@ -33,6 +33,16 @@ export default function Clips() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+          </div>
+
+          {/* ✅ 맨 아래 업로드 버튼 (router.push 사용) */}
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => router.push("/video-c")}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              동영상 업로드
+            </button>
           </div>
         </div>
       </PageContainer>

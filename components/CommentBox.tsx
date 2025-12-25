@@ -42,8 +42,6 @@ export default function CommentBox({ userProfile, postId }: CommentBoxProps) {
   const [replyTargetId, setReplyTargetId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  if (!userProfile) return null;
-
   // 댓글 실시간 조회
   useEffect(() => {
     const colRef = collection(db, "posts", postId, "comments");
@@ -54,20 +52,19 @@ export default function CommentBox({ userProfile, postId }: CommentBoxProps) {
         id: d.id,
         ...d.data(),
       })) as Comment[];
-
       setComments(list);
     });
 
     return () => unsubscribe();
   }, [postId]);
 
-  // 댓글 / 답글 추가
+  // 댓글 추가
   const addComment = async (parentId: string | null = null) => {
+    if (!userProfile) return;
     const text = parentId ? replyText : commentText;
     if (!text.trim()) return;
 
     const colRef = collection(db, "posts", postId, "comments");
-
     await addDoc(colRef, {
       text,
       userId: userProfile.uid,
@@ -84,17 +81,17 @@ export default function CommentBox({ userProfile, postId }: CommentBoxProps) {
 
   // 댓글 삭제
   const deleteComment = async (id: string, commentUserId: string) => {
-    if (userProfile.uid !== commentUserId) {
+    if (!userProfile || userProfile.uid !== commentUserId) {
       alert("본인 댓글만 삭제할 수 있습니다.");
       return;
     }
-
     const ref = doc(db, "posts", postId, "comments", id);
     await deleteDoc(ref);
   };
 
   // 좋아요 토글
   const toggleLike = async (id: string, likes: string[] = []) => {
+    if (!userProfile) return;
     const ref = doc(db, "posts", postId, "comments", id);
     const hasLiked = likes.includes(userProfile.uid);
 
@@ -123,20 +120,20 @@ export default function CommentBox({ userProfile, postId }: CommentBoxProps) {
               👍 {c.likes?.length || 0}
             </button>
 
-            {userProfile.uid === c.userId && (
+            {userProfile && userProfile.uid === c.userId && (
               <button onClick={() => deleteComment(c.id!, c.userId)}>
                 삭제
               </button>
             )}
 
-            {userProfile.uid !== c.userId && (
+            {userProfile && userProfile.uid !== c.userId && (
               <button onClick={() => setReplyTargetId(c.id!)}>
                 ↳ 답글
               </button>
             )}
           </div>
 
-          {replyTargetId === c.id && (
+          {replyTargetId === c.id && userProfile && (
             <div className="flex mt-2 space-x-2">
               <input
                 type="text"
@@ -167,23 +164,27 @@ export default function CommentBox({ userProfile, postId }: CommentBoxProps) {
 
   return (
     <div className="max-w-2xl mx-auto p-4 bg-pink-50 rounded shadow-md">
-      <h2 className="text-xl font-bold mb-2">댓글</h2>
+      <h2 className="text-xl font-bold mb-2 text-orange-900">댓글</h2>
 
-      <div className="flex mb-4">
-        <input
-          type="text"
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          placeholder="댓글 입력..."
-          className="flex-1 px-3 py-2 border rounded"
-        />
-        <button
-          onClick={() => addComment()}
-          className="ml-2 px-4 py-2 bg-blue-400 text-white rounded"
-        >
-          등록
-        </button>
-      </div>
+      {!userProfile ? (
+        <p className="text-gray-500">로그인 후 댓글을 작성할 수 있습니다.</p>
+      ) : (
+        <div className="flex mb-4">
+          <input
+            type="text"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="댓글 입력..."
+            className="flex-1 px-3 py-2 border rounded"
+          />
+          <button
+            onClick={() => addComment()}
+            className="ml-2 px-4 py-2 bg-blue-400 text-white rounded"
+          >
+            등록
+          </button>
+        </div>
+      )}
 
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {comments.length === 0 ? (
