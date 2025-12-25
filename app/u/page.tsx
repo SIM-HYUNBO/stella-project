@@ -99,7 +99,7 @@ export default function KoreaHistoryPage() {
       )}
 
       {/* 하단 동영상 & 댓글 */}
-      <CommentBox />
+  
     </PageContainer>
   );
 }
