@@ -4,7 +4,7 @@ import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getMessaging } from "firebase/messaging";
+// import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCjhPd01r11xqHVJeQDgH2Di2dlAfk5Ifo",
@@ -22,6 +22,6 @@ const firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApps(
 const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
 const storage = getStorage(firebaseApp);
-const messaging = getMessaging(firebaseApp); // FCM용
+// const messaging = getMessaging(firebaseApp); // FCM용
 
-export { firebaseApp, db, auth, storage, messaging };
+export { firebaseApp, db, auth, storage/*, messaging*/ };
