@@ -34,7 +34,7 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
 
       alert(`${nickname}님 환영합니다!`);
-      router.push("/");
+      router.push("/home");
     } catch (err: any) {
       console.error("로그인 오류:", err);
       setError("로그인에 실패했습니다. 닉네임 또는 비밀번호를 확인하세요.");

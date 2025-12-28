@@ -6,10 +6,18 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import HamburgerMenu from "../../components/hamburgermenu";
 import Link from "next/link";
-import { watchAuthState } from "../authService"; // 로그인 상태 감지
+import { watchAuthState } from "../authService";
 import { User } from "firebase/auth";
-import { doc, getDoc, collection, getDocs, query, limit, orderBy } from "firebase/firestore";
-import { db } from "@/app/firebase"; // Firestore
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  limit,
+  orderBy,
+} from "firebase/firestore";
+import { db } from "@/app/firebase";
 import CommentBox from "../../components/CommentBox";
 
 interface UserProfile {
@@ -20,14 +28,12 @@ interface UserProfile {
 
 export default function Home() {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(theme);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [postId, setPostId] = useState<string | null>(null);
 
-  // 로그인 상태 추적 + Firestore에서 유저 정보 불러오기
+  // 로그인 상태 + 유저 정보
   useEffect(() => {
     const unsubscribe = watchAuthState(async (u) => {
       setUser(u);
@@ -46,32 +52,28 @@ export default function Home() {
         setUserProfile(null);
       }
     });
+
     return () => unsubscribe();
   }, []);
 
-  // 첫 번째 게시글 가져오기 (홈에서 댓글창 띄우기용)
+  // 첫 게시글 id
   useEffect(() => {
     const fetchFirstPost = async () => {
       const postsCol = collection(db, "posts");
       const q = query(postsCol, orderBy("createdAt", "desc"), limit(1));
-      const querySnap = await getDocs(q);
+      const snap = await getDocs(q);
 
-      if (!querySnap.empty) {
-        const firstDoc = querySnap.docs[0];
-        setPostId(firstDoc.id);
-      } else {
-        console.log("게시글이 없습니다.");
+      if (!snap.empty) {
+        setPostId(snap.docs[0].id);
       }
     };
 
     fetchFirstPost();
   }, []);
 
-  // 페이지 초기 로딩 상태 해제
+  // 로딩
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 700);
+    const timer = setTimeout(() => setLoading(false), 700);
     return () => clearTimeout(timer);
   }, []);
 
@@ -85,12 +87,26 @@ export default function Home() {
 
   return (
     <PageContainer>
+      {/* ✅ 헤더 오른쪽: 로그인 / 회원가입만 */}
+      {!user && (
+        <div className="absolute top-5 right-20 flex gap-4 z-50">
+          <Link
+            href="/login"
+            className="px-6 py-3 bg-yellow-50 text-orange-900 hover:bg-yellow-100 rounded-3xl border border-yellow-400 text-center"
+          >
+            로그인
+          </Link>
+         
+        </div>
+      )}
+
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
           <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
             We are Genius in Everything.
           </h1>
 
+          {/* ❗ 햄버거 그대로 */}
           <HamburgerMenu />
 
           <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
@@ -106,38 +122,24 @@ export default function Home() {
                 alt="설명 텍스트"
                 width={300}
                 height={300}
-                className="ml-10 mt-3 mb-5 rounded-xl"
+                className="ml-10 mt-3 mb-3 rounded-xl"
               />
             </div>
 
-            {!user ? (
-              <div className="flex flex-row ml-10 gap-4">
-                <Link
-                  href="/login"
-                  className="px-6 py-3 bg-blue-400 text-white rounded-xl text-center hover:bg-blue-500"
-                >
-                  로그인
-                </Link>
-                <Link
-                  href="/signup"
-                  className="px-6 py-3 bg-green-400 text-white rounded-xl text-center hover:bg-green-500"
-                >
-                  회원가입
-                </Link>
-              </div>
-            ) : (
-              <Link
-                href="/board"
-                className="px-4 py-2 ml-10 mt-5 bg-yellow-300 text-white rounded hover:bg-yellow-400"
-              >
-                WAGIE 게시판 가는 길
-              </Link>
-            )}
+            {/* ✅ 항상 표시 + 이미지 바로 아래 */}
+            <Link
+              href="/board"
+              className="ml-10 inline-block px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-400"
+            >
+              WAGIE 게시판 가는 길
+            </Link>
           </div>
 
-          {/* 댓글창 */}
+          {/* 댓글창 (조건 그대로) */}
           {user && userProfile && postId && (
-            <CommentBox userProfile={userProfile} postId="m-home" />
+            <div className="ml-4 mt-5">
+              <CommentBox userProfile={userProfile} postId="m-home" />
+            </div>
           )}
         </div>
       </div>

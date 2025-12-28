@@ -1,265 +1,340 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { auth, db } from "@/app/firebase";
 
+/* ======================
+   타입
+====================== */
 type Reply = {
   id: number;
   text: string;
+  nickname: string;
 };
 
 type Post = {
   id: number;
+  uid: string;
   title: string;
   content: string;
-  likes: number;
-  liked?: boolean;
+  nickname: string;
+  likedBy: string[];
   replies: Reply[];
 };
 
-const LOCAL_STORAGE_KEY = "wagie_christmas_posts";
+type UserProfile = {
+  uid: string;
+  nickname: string;
+};
 
-export default function WagieChristmasPage() {
+const STORAGE_KEY = "wagie_event_posts";
+
+/* ======================
+   Base64 (UTF-8 안전)
+====================== */
+const encode = (v: any) =>
+  btoa(unescape(encodeURIComponent(JSON.stringify(v))));
+const decode = (v: string) =>
+  JSON.parse(decodeURIComponent(escape(atob(v))));
+
+/* ======================
+   페이지
+====================== */
+export default function WagieChristmasEventPage() {
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const [flakes, setFlakes] = useState<{ id: number; left: number }[]>([]);
 
-  // 글 로드
+  /* ===== Auth + 닉네임 ===== */
   useEffect(() => {
-    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (data) {
-      try {
-        const decoded = atob(data);
-        const parsed: Post[] = JSON.parse(decoded);
-        setPosts(parsed.sort((a, b) => b.id - a.id));
-      } catch (e) {
-        console.error("로컬 데이터 파싱 실패:", e);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setUserProfile(null);
+        return;
       }
+
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        const nickname = user.displayName || `와기${user.uid.slice(0, 5)}`;
+        await setDoc(ref, {
+          uid: user.uid,
+          nickname,
+          createdAt: Timestamp.now(),
+        });
+        setUserProfile({ uid: user.uid, nickname });
+      } else {
+        setUserProfile(snap.data() as UserProfile);
+      }
+    });
+
+    return () => unsub();
+  }, []);
+
+  /* ===== 로드 + 마이그레이션 ===== */
+  useEffect(() => {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return;
+
+    try {
+      const parsed = decode(data).map((p: any) => ({
+        ...p,
+        likedBy: Array.isArray(p.likedBy) ? p.likedBy : [],
+        replies: Array.isArray(p.replies) ? p.replies : [],
+      }));
+
+      setPosts(parsed);
+      save(parsed);
+    } catch (e) {
+      console.error("로컬 데이터 파싱 실패", e);
     }
   }, []);
 
-  // 눈 생성
+  const save = (list: Post[]) =>
+    localStorage.setItem(STORAGE_KEY, encode(list));
+
+  /* ===== 눈 ===== */
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFlakes((prev) => [
-        ...prev,
-        { id: Date.now(), left: Math.random() * window.innerWidth },
+    const i = setInterval(() => {
+      setFlakes((p) => [
+        ...p.slice(-50),
+        { id: Date.now() + Math.random(), left: Math.random() * window.innerWidth },
       ]);
     }, 200);
-    return () => clearInterval(interval);
+    return () => clearInterval(i);
   }, []);
 
-  // 눈 제거
-  useEffect(() => {
-    const timeout = setInterval(() => {
-      setFlakes((prev) => prev.filter((f) => f.id + 8000 > Date.now()));
-    }, 1000);
-    return () => clearInterval(timeout);
-  }, []);
-
-  const saveToLocalStorage = (updatedPosts: Post[]) => {
-    const json = JSON.stringify(updatedPosts);
-    const encoded = btoa(json);
-    localStorage.setItem(LOCAL_STORAGE_KEY, encoded);
-  };
-
+  /* ===== 글 작성 ===== */
   const addPost = () => {
-    if (!title || !content) return alert("제목과 내용을 모두 입력해주세요!");
-    const newPost: Post = {
+    if (!userProfile) return alert("로그인 필요");
+    if (!title || !content) return;
+
+    const post: Post = {
       id: Date.now(),
+      uid: userProfile.uid,
       title,
       content,
-      likes: 0,
-      liked: false,
+      nickname: userProfile.nickname,
+      likedBy: [],
       replies: [],
     };
-    const updatedPosts = [newPost, ...posts];
-    setPosts(updatedPosts);
-    saveToLocalStorage(updatedPosts);
+
+    const updated = [post, ...posts];
+    setPosts(updated);
+    save(updated);
     setTitle("");
     setContent("");
     setShowForm(false);
   };
 
-  const likePost = (id: number) => {
-    const updatedPosts = posts.map((p) =>
-      p.id === id
-        ? p.liked
-          ? p
-          : { ...p, likes: p.likes + 1, liked: true }
-        : p
-    );
-    setPosts(updatedPosts);
-    saveToLocalStorage(updatedPosts);
-  };
-
+  /* ===== 삭제 ===== */
   const deletePost = (id: number) => {
-    const updatedPosts = posts.filter((p) => p.id !== id);
-    setPosts(updatedPosts);
-    saveToLocalStorage(updatedPosts);
+    if (!confirm("삭제하시겠습니까?")) return;
+    const updated = posts.filter((p) => p.id !== id);
+    setPosts(updated);
+    save(updated);
   };
 
-  const addReply = (postId: number, text: string) => {
-    if (!text) return;
-    const updatedPosts = posts.map((p) =>
-      p.id === postId
-        ? { ...p, replies: [...p.replies, { id: Date.now(), text }] }
+  /* ===== 좋아요 ===== */
+  const toggleLike = (postId: number) => {
+    if (!userProfile) return alert("로그인 필요");
+
+    const updated = posts.map((p) => {
+      const likedBy = p.likedBy ?? [];
+      return p.id === postId
+        ? {
+            ...p,
+            likedBy: likedBy.includes(userProfile.uid)
+              ? likedBy.filter((id) => id !== userProfile.uid)
+              : [...likedBy, userProfile.uid],
+          }
+        : p;
+    });
+
+    setPosts(updated);
+    save(updated);
+  };
+
+  /* ===== 답글 ===== */
+  const addReply = (id: number, text: string) => {
+    if (!userProfile || !text.trim()) return;
+
+    const updated = posts.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            replies: [
+              ...p.replies,
+              { id: Date.now(), text, nickname: userProfile.nickname },
+            ],
+          }
         : p
     );
-    setPosts(updatedPosts);
-    saveToLocalStorage(updatedPosts);
+
+    setPosts(updated);
+    save(updated);
   };
 
   return (
-    <div className="relative min-h-screen bg-red-50 overflow-hidden">
+    <div className="min-h-screen bg-red-50 relative overflow-hidden">
       {/* 눈 */}
       {flakes.map((f) => (
         <span
           key={f.id}
-          className="absolute text-white text-xl animate-fall"
-          style={{ left: f.left, top: -20 }}
+          className="absolute top-0 text-xl animate-fall"
+          style={{ left: f.left }}
         >
           ❄️
         </span>
       ))}
 
-      {/* 트리 (크게) */}
-      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 text-8xl animate-bounce z-20">
-        🎄
-      </span>
-
-      {/* 산타 얼굴 */}
-      <span className="absolute top-10 right-10 text-5xl animate-fly z-20">
-        🎅
-      </span>
-
-      {/* 게시글 영역 */}
       <div className="max-w-2xl mx-auto p-4 relative z-10">
-        <h1 className="text-3xl font-bold text-center text-red-600 mb-6">
-          🎄 와기 크리스마스!
+        <h1 className="text-3xl text-center font-bold text-red-600 mb-2">
+          🎄 와기 크리스마스 이벤트
         </h1>
 
-        <div className="flex justify-end mb-4">
+        {userProfile && (
+          <p className="text-center mb-4 text-gray-600">
+            👋 {userProfile.nickname} 님
+          </p>
+        )}
+
+        <div className="flex justify-end mb-3">
           <button
             onClick={() => setShowForm(!showForm)}
-            className="w-10 h-10 rounded-full bg-red-500 text-white text-2xl"
+            className="w-10 h-10 bg-red-500 text-white rounded-full text-xl"
           >
             +
           </button>
         </div>
 
         {showForm && (
-          <div className="border rounded p-3 mb-6 bg-red-50">
+          <div className="bg-white p-3 rounded shadow mb-4">
             <input
-              className="w-full border rounded px-2 py-1 mb-2"
-              placeholder="제목 추가..."
+              className="w-full border p-2 mb-2"
+              placeholder="제목"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
             <textarea
-              className="w-full border rounded px-2 py-1 mb-2"
-              placeholder="글 추가..."
-              rows={4}
+              className="w-full border p-2 mb-2"
+              placeholder="내용"
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
             <button
               onClick={addPost}
-              className="px-4 py-2 bg-red-500 text-white rounded"
+              className="bg-red-500 text-white px-4 py-2 rounded"
             >
-              제출
+              등록
             </button>
           </div>
         )}
 
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <div key={post.id} className="border rounded p-4 bg-white shadow">
-              <div className="flex justify-between items-start">
-                <h2 className="font-bold text-lg">{post.title}</h2>
-                <button
-                  onClick={() => deletePost(post.id)}
-                  className="text-gray-400 hover:text-red-500 text-sm"
-                >
-                  삭제
-                </button>
-              </div>
-
-              <p className="mt-2 text-gray-700">{post.content}</p>
-
-              <div className="flex gap-4 mt-3 text-sm">
-                <button
-                  onClick={() => likePost(post.id)}
-                  className={`text-red-500 ${
-                    post.liked ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={post.liked}
-                >
-                  ❤️ 좋아요 {post.likes}
-                </button>
-              </div>
-
-              <ReplySection
-                replies={post.replies}
-                onAdd={(text) => addReply(post.id, text)}
-              />
-            </div>
-          ))}
-        </div>
+        {posts.map((p) => (
+          <PostItem
+            key={p.id}
+            post={p}
+            user={userProfile}
+            onDelete={deletePost}
+            onLike={toggleLike}
+            onReply={addReply}
+          />
+        ))}
       </div>
 
-      {/* CSS 애니메이션 */}
+      {/* 애니메이션 */}
       <style jsx>{`
         @keyframes fall {
-          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+          0% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh);
+            opacity: 0;
+          }
         }
-        .animate-fall { animation: fall 8s linear forwards; }
-
-        @keyframes fly {
-          0% { transform: translateX(0) translateY(0); }
-          50% { transform: translateX(-200px) translateY(50px); }
-          100% { transform: translateX(0) translateY(0); }
+        .animate-fall {
+          animation: fall 8s linear forwards;
         }
-        .animate-fly { animation: fly 10s linear infinite; }
       `}</style>
     </div>
   );
 }
 
-function ReplySection({
-  replies,
-  onAdd,
+/* ======================
+   게시글 컴포넌트
+====================== */
+function PostItem({
+  post,
+  user,
+  onDelete,
+  onLike,
+  onReply,
 }: {
-  replies: Reply[];
-  onAdd: (text: string) => void;
+  post: Post;
+  user: UserProfile | null;
+  onDelete: (id: number) => void;
+  onLike: (id: number) => void;
+  onReply: (id: number, text: string) => void;
 }) {
-  const [reply, setReply] = useState("");
+  const [text, setText] = useState("");
+
+  const likedBy = post.likedBy ?? [];
+  const liked = user ? likedBy.includes(user.uid) : false;
 
   return (
-    <div className="mt-3">
-      <div className="space-y-1 mb-2">
-        {replies.map((r) => (
-          <div key={r.id} className="text-sm bg-gray-100 rounded px-2 py-1">
-            💬 {r.text}
-          </div>
-        ))}
+    <div className="bg-white p-4 mb-4 rounded shadow">
+      <div className="flex justify-between mb-1">
+        <p className="text-sm text-gray-500">✍ {post.nickname}</p>
+        {user?.uid === post.uid && (
+          <button
+            onClick={() => onDelete(post.id)}
+            className="text-sm text-red-500"
+          >
+            삭제
+          </button>
+        )}
       </div>
 
-      <div className="flex gap-2">
+      <h2 className="font-bold">{post.title}</h2>
+      <p className="mt-1">{post.content}</p>
+
+      <button
+        onClick={() => onLike(post.id)}
+        className={`mt-2 text-sm ${
+          liked ? "text-red-500" : "text-gray-400"
+        }`}
+      >
+        ❤️ {likedBy.length}
+      </button>
+
+      {post.replies.map((r) => (
+        <div key={r.id} className="text-sm bg-gray-100 p-2 mt-2 rounded">
+          <b>{r.nickname}</b> : {r.text}
+        </div>
+      ))}
+
+      <div className="flex gap-2 mt-2">
         <input
-          className="flex-1 border rounded px-2 py-1 text-sm"
-          placeholder="답글 달기..."
-          value={reply}
-          onChange={(e) => setReply(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="flex-1 border px-2 py-1 text-sm"
+          placeholder="답글..."
         />
         <button
           onClick={() => {
-            onAdd(reply);
-            setReply("");
+            onReply(post.id, text);
+            setText("");
           }}
-          className="text-sm px-2 py-1 bg-gray-300 rounded"
+          className="bg-gray-300 px-2 rounded text-sm"
         >
           등록
         </button>

@@ -43,7 +43,7 @@ export default function BoardPage() {
         </p>
         <button
           onClick={() => router.push("/event")}
-          className="px-5 py-2.5 bg-orange-400 text-white rounded-lg transition-all"
+          className="px-5 py-2.5 mt-10 bg-orange-400 text-white rounded-lg transition-all"
         >
           이벤트 참여하기
         </button>

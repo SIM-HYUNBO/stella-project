@@ -58,7 +58,7 @@ export default function SignupPage() {
       await updateProfile(user, { displayName: nickname });
 
       alert(`${nickname}님, 회원가입이 완료되었습니다 🎉`);
-      router.push("/login");
+      router.push("/home");
     } catch (err) {
       console.error("회원가입 오류:", err);
       setError("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");

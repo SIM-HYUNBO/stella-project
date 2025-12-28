@@ -201,6 +201,12 @@ export default function HamburgerMenuWithDelete() {
           >
             {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
           </button>
+                <Link
+            href="/m-home"
+            className="px-6 py-3 text-orange-400 hover:underline rounded-xl text-center"
+          >
+            중등 와기로 이동
+          </Link>
         </div>
       )}
 
