@@ -7,6 +7,9 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
 
+// 관리자 닉네임 제한 키워드
+const ADMIN_KEYWORDS = ["admin", "manager", "root"];
+
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -15,6 +18,33 @@ export default function SignupPage() {
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
   const [checkingNickname, setCheckingNickname] = useState(false);
+
+  // 닉네임 검증 함수
+  const validateNickname = (nick: string): string | null => {
+    const trimmed = nick.trim();
+
+    // 1. 관리자 관련 단어 금지
+    if (ADMIN_KEYWORDS.some((kw) => trimmed.toLowerCase().includes(kw))) {
+      return "관리자 관련 단어는 사용할 수 없습니다.";
+    }
+
+    // 2. 이모지/특수문자 금지 (알파벳, 숫자, 한글만 허용)
+    if (!/^[\w가-힣]+$/.test(trimmed)) {
+      return "이모지나 특수문자는 사용할 수 없습니다.";
+    }
+
+    // 3. 8자 이상 금지
+    if (trimmed.length > 8) {
+      return "닉네임은 8자 이하로 입력해주세요.";
+    }
+
+    // 4. 띄어쓰기 금지
+    if (/\s/.test(trimmed)) {
+      return "닉네임에 공백을 포함할 수 없습니다.";
+    }
+
+    return null;
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +57,13 @@ export default function SignupPage() {
 
     if (!nickname.trim()) {
       setError("닉네임을 입력해주세요.");
+      return;
+    }
+
+    // 🚨 닉네임 제한 검증
+    const nickError = validateNickname(nickname);
+    if (nickError) {
+      setError(nickError);
       return;
     }
 

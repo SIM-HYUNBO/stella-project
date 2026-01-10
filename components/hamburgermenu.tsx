@@ -157,12 +157,6 @@ export default function HamburgerMenuWithDelete() {
                 ✏️ 편집
               </button>
               <button
-                onClick={() => router.push("/avatar")}
-                className="w-full text-left text-[#4a342a] dark:text-white font-medium hover:opacity-70 transition"
-              >
-                🙍‍♀️ 아바타
-              </button>
-              <button
                 onClick={() => signOut(auth)}
                 className="w-full text-left text-red-500 hover:opacity-70 font-medium transition"
               >
@@ -180,10 +174,10 @@ export default function HamburgerMenuWithDelete() {
           {/* 메뉴 링크 */}
           {[
            { href: "/m-home", label: "🏠 Home" },
-           { href: "/Clips", label: "🎬 Clips" },
+           { href: "/clip", label: "🎬 Clips" },
            { href: "/study2", label: "📚 Study" },
-           { href: "/progress", label: "📈 Progress" },
-           { href: "/contact", label: "📩 Contact" },
+           { href: "/edu", label: "🎓 Education" },
+           { href: "/contact2", label: "📩 Contact" },
         ].map(({ href, label }) => (
          <Link
               key={href}
@@ -202,7 +196,7 @@ export default function HamburgerMenuWithDelete() {
             {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
           </button>
            <Link
-            href="/"
+            href="/home"
             className="px-6 py-3 text-orange-400 hover:underline rounded-xl text-center"
           >
             초등 와기로 이동

@@ -1,10 +1,9 @@
 "use client";
 
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app"; // ✅ getApp 추가
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCjhPd01r11xqHVJeQDgH2Di2dlAfk5Ifo",
@@ -15,13 +14,12 @@ const firebaseConfig = {
   appId: "1:1035365924254:web:ee578f90e6159e83cdea8f",
 };
 
-// ✅ Firebase 앱이 이미 초기화되어 있는지 체크
-const firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+// Firebase 앱 초기화 (중복 초기화 방지)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// 서비스 가져오기
-const db = getFirestore(firebaseApp);
-const auth = getAuth(firebaseApp);
-const storage = getStorage(firebaseApp);
-// const messaging = getMessaging(firebaseApp); // FCM용
+// Auth, Firestore, Storage 내보내기
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-export { firebaseApp, db, auth, storage/*, messaging*/ };
+export default app;

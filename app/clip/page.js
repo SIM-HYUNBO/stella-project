@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import PageContainer from "/components/PageContainer";
 import { CenterSpinner } from "/components/CenterSpinner";
-import HamburgerMenu from "/components/hamburger";
+import HamburgerMenu from "/components/hamburgermenu";
 import { useRouter } from "next/navigation"; // ✅ 추가
 
 export default function Clips() {

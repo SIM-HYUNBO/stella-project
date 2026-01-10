@@ -157,12 +157,6 @@ export default function HamburgerMenuWithDelete() {
                 ✏️ 편집
               </button>
               <button
-                onClick={() => router.push("/avatar")}
-                className="w-full text-left text-[#4a342a] dark:text-white font-medium hover:opacity-70 transition"
-              >
-                🙍‍♀️ 아바타
-              </button>
-              <button
                 onClick={() => signOut(auth)}
                 className="w-full text-left text-red-500 hover:opacity-70 font-medium transition"
               >
@@ -179,7 +173,7 @@ export default function HamburgerMenuWithDelete() {
 
           {/* 메뉴 링크 */}
           {[
-            { href: "/", label: "🏠 Home" },
+            { href: "/home", label: "🏠 Home" },
             { href: "/Clips", label: "🎬 Clips" },
             { href: "/Notes", label: "📝 Notes" },
             { href: "/study", label: "📚 Study" },

@@ -7,7 +7,7 @@ import CommentBox from "/components/CommentBox";
 import { CenterSpinner } from "/components/CenterSpinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import HamburgerMenu from "/components/hamburger";
+import HamburgerMenu from "/components/hamburgermenu";
 import SlideEditor from "/components/SlideEditor";
 
 export default function Study() {
@@ -64,7 +64,7 @@ export default function Study() {
               노래 천재
             </button>
             <button
-              onClick={() => router.push("/a")}
+              onClick={() => router.push("/k")}
               className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
             >
               얼굴 천재

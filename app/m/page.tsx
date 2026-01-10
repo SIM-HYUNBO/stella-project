@@ -16,8 +16,9 @@ import { db } from "../firebase";
 import PageContainer from "@/components/PageContainer";
 import { CenterSpinner } from "@/components/CenterSpinner";
 
-// 미니 테스트 데이터
-const miniTests = {
+/* ================= 미니 테스트 데이터 ================= */
+
+const miniTests: any = {
   국어: [
     { q: "다음 중 맞춤법이 맞는 것은?", options: ["안돼", "안 돼"], a: "안 돼" },
     { q: "‘곰’의 소리를 흉내 낸 말은?", options: ["웅크", "웅담", "으르렁"], a: "으르렁" },
@@ -41,35 +42,39 @@ const miniTests = {
   ],
 };
 
-// 힌트 틀
-const hintsTemplate = {
-  국어: ["맞춤법 규칙을 잘 생각해 보세요. ",
-    "곰의 소리를 흉내 낼 때 나는 소리를 생각해 보세요.",
-    "반대말을 찾을 때 의미를 곰곰이 생각해 보세요.",
-    "'학교'에 가는 것을 나타낼 때 알맞은 조사를 선택하세요.",
-    "주어와 서술어가 있는 것을 문장이라고 할 수 있어요.",],
-    영어: [
-      "'사과를 먹고 싶다.'를 영어로 번역하면?",
-      "'저 강아지는 귀엽다.'를 영어로 번역하면?",
-      "'오늘 태양이 밝게 빛난다.'를 영어로 번역하면?",
-      "'저 접시를 빨간 색이다'를 영어로 번역하면?",
-      "'나는 물고기를 키운다'를 영어로 번역하면?'",
-    ],
-  수학: ["5 + 5 + 2는?",
-     "쿠키 9개 중에 내가 4개를 먹었어요. 남은 쿠키 수는?",
-       "계란이 3개씩 4묶음 있어요. 총 계란 수는?",
-       "연필 20자루를 5명의 학생에게 나누어 주었어요. 한 사람이 갖는 연필 수는?", 
-       "10 + 3은?"],
+const hintsTemplate: any = {
+  국어: [
+    "맞춤법 규칙을 떠올려 봐.",
+    "곰이 화났을 때 소리를 생각해.",
+    "의미가 반대인지 확인!",
+    "학교에 ‘들어간다’는 느낌!",
+    "주어+서술어 체크!",
+  ],
+  영어: [
+    "apple = 과일",
+    "dog = 반려동물",
+    "sun = 하늘에 있음",
+    "red = 색깔",
+    "fish = 물속",
+  ],
+  수학: [
+    "5+5+2",
+    "9-4",
+    "3×4",
+    "20÷5",
+    "10+3",
+  ],
 };
 
 export default function Study() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  /** 체크리스트 **/
-  const [checklist, setChecklist] = useState([]);
+  /* ================= 체크리스트 ================= */
+
+  const [checklist, setChecklist] = useState<any[]>([]);
   const [newItem, setNewItem] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
 
   useEffect(() => {
@@ -87,24 +92,25 @@ export default function Study() {
     setNewItem("");
   };
 
-  const toggleCheck = (i) => {
+  const toggleCheck = (i: number) => {
     const list = [...checklist];
     list[i].checked = !list[i].checked;
     setChecklist(list);
   };
 
-  const removeItem = (i) => {
+  const removeItem = (i: number) => {
     const list = [...checklist];
     list.splice(i, 1);
     setChecklist(list);
   };
 
-  const startEdit = (i) => {
+  const startEdit = (i: number) => {
     setEditIndex(i);
     setEditText(checklist[i].text);
   };
 
   const saveEdit = () => {
+    if (editIndex === null) return;
     const list = [...checklist];
     list[editIndex].text = editText;
     setChecklist(list);
@@ -112,20 +118,20 @@ export default function Study() {
     setEditText("");
   };
 
-  /** 채팅 **/
-  const [messages, setMessages] = useState([]);
+  /* ================= 채팅 ================= */
+
+  const [messages, setMessages] = useState<any[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [nickname, setNickname] = useState("익명");
-  const [replyTo, setReplyTo] = useState(null);
-  const [editingMsgId, setEditingMsgId] = useState(null);
+  const [replyTo, setReplyTo] = useState<any>(null);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingMsgText, setEditingMsgText] = useState("");
 
   useEffect(() => {
     const q = query(collection(db, "studyChat"), orderBy("createdAt"));
-    const unsub = onSnapshot(q, (snap) =>
+    return onSnapshot(q, (snap) =>
       setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
     );
-    return unsub;
   }, []);
 
   const sendMessage = async () => {
@@ -140,32 +146,37 @@ export default function Study() {
     setReplyTo(null);
   };
 
-  const deleteMessage = async (id) => {
+  const deleteMessage = async (id: string) => {
     await deleteDoc(doc(db, "studyChat", id));
   };
 
-  const startEditingMessage = (msg) => {
+  const startEditingMessage = (msg: any) => {
     setEditingMsgId(msg.id);
     setEditingMsgText(msg.text);
   };
 
   const saveEditedMessage = async () => {
-    const ref = doc(db, "studyChat", editingMsgId);
-    await updateDoc(ref, { text: editingMsgText });
+    if (!editingMsgId) return;
+    await updateDoc(doc(db, "studyChat", editingMsgId), {
+      text: editingMsgText,
+    });
     setEditingMsgId(null);
     setEditingMsgText("");
   };
 
-  /** 미니 테스트 **/
+  /* ================= 미니 테스트 ================= */
+
   const subjects = ["국어", "영어", "수학"];
   const [currentSubject, setCurrentSubject] = useState("국어");
   const [testIndex, setTestIndex] = useState(0);
   const [testScore, setTestScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const quiz = miniTests[currentSubject][testIndex];
+  const hint = hintsTemplate[currentSubject][testIndex];
 
-  const answerTest = (opt) => {
+  const answerTest = (opt: string) => {
     if (opt === quiz.a) setTestScore((s) => s + 1);
     if (testIndex < miniTests[currentSubject].length - 1) {
       setTestIndex((i) => i + 1);
@@ -180,66 +191,59 @@ export default function Study() {
     setFinished(false);
   };
 
-  /** 아바타 힌트 상태 **/
-  const [showHint, setShowHint] = useState(false);
-  const currentHint = hintsTemplate[currentSubject][testIndex];
-
-  const toggleHint = () => setShowHint((v) => !v);
-
-  /** 로딩 처리 **/
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400);
+    const t = setTimeout(() => setLoading(false), 300);
     return () => clearTimeout(t);
   }, []);
-
-  const formatTime = (t) => {
-    const d = new Date(t);
-    return `${d.getHours().toString().padStart(2, "0")}:${d
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`;
-  };
 
   if (loading) return <CenterSpinner />;
 
   return (
     <PageContainer>
-      <div className="flex flex-col w-full min-h-screen p-8 gap-12">
+      <div className="flex flex-col min-h-screen p-8 gap-12">
+        <div className="max-w-3xl mx-auto space-y-8">
 
-        {/* 체크리스트 */}
-        <div className="p-6 rounded-2xl shadow bg-white/70 max-w-xl">
-          <h3 className="text-xl font-bold text-orange-600 mb-4">📋 체크리스트</h3>
-          <div className="flex gap-2 mb-4">
-            <input
-              className="flex-1 p-3 rounded-lg bg-orange-50 border text-orange-900"
-              value={newItem}
-              onChange={(e) => setNewItem(e.target.value)}
-              placeholder="할 일을 입력하세요"
-            />
-            <button onClick={addItem} className="px-4 py-2 bg-orange-500 text-white rounded-lg">
-              추가
-            </button>
-          </div>
-          <div className="flex flex-col gap-2">
+          <h1 className="text-4xl text-orange-400 text-center">
+            내 머리 좀 좋다? 바로 테스트!
+          </h1>
+
+          {/* 체크리스트 */}
+          <section className="p-6 bg-white/80 rounded-2xl shadow">
+            <h3 className="text-xl font-bold text-orange-900 mb-4">📋 체크리스트</h3>
+
+            <div className="flex gap-2 mb-4">
+              <input
+                className="flex-1 p-3 border rounded-lg"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+              />
+              <button
+                onClick={addItem}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                추가
+              </button>
+            </div>
+
             {checklist.map((item, i) => (
-              <div key={i} className="flex items-center justify-between bg-orange-50 p-3 rounded-lg">
-                <div className="flex items-center gap-3">
+              <div key={i} className="flex justify-between items-center p-3 bg-orange-50 rounded-lg mb-2">
+                <div className="flex gap-2 items-center">
                   <input type="checkbox" checked={item.checked} onChange={() => toggleCheck(i)} />
                   {editIndex === i ? (
                     <input
-                      className="p-1 bg-white border rounded text-orange-900"
+                      className="border p-1 rounded"
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                     />
                   ) : (
-                    <span className={`text-orange-900 ${item.checked ? "line-through opacity-60" : ""}`}>
+                    <span className={item.checked ? "line-through opacity-60" : ""}>
                       {item.text}
                     </span>
                   )}
                 </div>
                 <div className="flex gap-2">
                   {editIndex === i ? (
-                    <button onClick={saveEdit} className="text-green-600 font-semibold">저장</button>
+                    <button onClick={saveEdit} className="text-green-600">저장</button>
                   ) : (
                     <button onClick={() => startEdit(i)} className="text-blue-600">수정</button>
                   )}
@@ -247,117 +251,115 @@ export default function Study() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
+          </section>
 
-        {/* 채팅 */}
-        <div className="p-6 rounded-2xl shadow bg-white/70 max-w-xl">
-          <h3 className="text-xl font-bold text-orange-600 mb-4">💬 채팅방</h3>
-          <input
-            className="w-full p-3 mb-3 bg-orange-50 border rounded-lg text-orange-900"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="닉네임 입력"
-          />
-          <div className="h-60 overflow-y-auto bg-orange-50 rounded p-3 mb-4 text-orange-900">
-            {messages.map((m) => (
-              <div key={m.id} className="mb-3 p-2 bg-white/80 rounded-lg">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-orange-700">{m.nickname || "익명"}</span>
-                  <span className="text-sm opacity-70">{formatTime(m.createdAt)}</span>
-                </div>
-                {editingMsgId === m.id ? (
-                  <>
-                    <input
-                      className="w-full p-1 bg-white border rounded mb-2"
-                      value={editingMsgText}
-                      onChange={(e) => setEditingMsgText(e.target.value)}
-                    />
-                    <button onClick={saveEditedMessage} className="text-green-600 mr-2">저장</button>
-                    <button onClick={() => setEditingMsgId(null)} className="text-gray-600">취소</button>
-                  </>
-                ) : (
-                  <p>{m.text}</p>
-                )}
-                <div className="flex gap-3 mt-1 text-sm">
-                  <button onClick={() => setReplyTo(m)} className="text-blue-600">답글</button>
-                  <button onClick={() => startEditingMessage(m)} className="text-green-600">수정</button>
-                  <button onClick={() => deleteMessage(m.id)} className="text-red-600">삭제</button>
-                </div>
-                {m.replyTo && (
-                  <div className="ml-4 mt-2 p-2 bg-orange-100 rounded text-sm">↳ {m.replyTo.text}</div>
-                )}
-              </div>
-            ))}
-          </div>
-          {replyTo && (
-            <div className="mb-2 p-2 bg-orange-100 rounded text-sm text-orange-900">
-              ↳ {replyTo.text}
-              <button onClick={() => setReplyTo(null)} className="ml-2 text-red-600 text-xs">취소</button>
-            </div>
-          )}
-          <div className="flex gap-2">
+          {/* 채팅 */}
+          <section className="p-6 bg-white/80 rounded-2xl shadow">
+            <h3 className="text-xl font-bold text-orange-900 mb-4">💬 채팅</h3>
+
             <input
-              className="flex-1 p-3 rounded-lg bg-orange-50 border text-orange-900"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder="메시지를 입력하세요"
+              className="w-full p-2 mb-2 border rounded"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="닉네임"
             />
-            <button onClick={sendMessage} className="px-4 py-2 bg-orange-500 text-white rounded-lg">전송</button>
-          </div>
-        </div>
 
-        {/* 미니 테스트 + 아바타 힌트 버튼 */}
-        <div className="p-6 rounded-2xl shadow bg-white/70 max-w-xl flex flex-col gap-4">
-          <h3 className="text-xl font-bold text-orange-600 mb-4">📝 미니 테스트</h3>
-          <div className="flex gap-2 mb-4">
-            {subjects.map((s) => (
+            <div className="h-64 overflow-y-auto mb-3">
+              {messages.map((m) => (
+                <div key={m.id} className="bg-gray-50 p-3 rounded mb-2">
+                  <b>{m.nickname}</b>
+                  {editingMsgId === m.id ? (
+                    <>
+                      <input
+                        className="w-full border p-1 my-1"
+                        value={editingMsgText}
+                        onChange={(e) => setEditingMsgText(e.target.value)}
+                      />
+                      <button onClick={saveEditedMessage} className="text-green-600 mr-2">저장</button>
+                      <button onClick={() => setEditingMsgId(null)} className="text-gray-500">취소</button>
+                    </>
+                  ) : (
+                    <p>{m.text}</p>
+                  )}
+                  <div className="flex gap-3 text-sm mt-1">
+                    <button onClick={() => setReplyTo(m)} className="text-blue-600">답글</button>
+                    <button onClick={() => startEditingMessage(m)} className="text-green-600">수정</button>
+                    <button onClick={() => deleteMessage(m.id)} className="text-red-600">삭제</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {replyTo && (
+              <div className="text-sm mb-2 text-gray-600">
+                ↳ {replyTo.text}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                className="flex-1 border rounded p-2"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+              />
               <button
-                key={s}
-                onClick={() => { setCurrentSubject(s); resetTest(); }}
-                className={`px-3 py-1 rounded-lg ${currentSubject === s ? "bg-orange-500 text-white" : "bg-orange-100 text-orange-900"}`}
+                onClick={sendMessage}
+                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
               >
-                {s}
+                전송
               </button>
-            ))}
-          </div>
-          {!finished ? (
-            <>
-              <p className="mb-3 text-orange-900">{quiz.q}</p>
-              <div className="flex flex-col gap-2 mb-2">
-                {quiz.options.map((opt) => (
+            </div>
+          </section>
+
+          {/* 미니 테스트 */}
+          <section className="p-6 bg-white/80 rounded-2xl shadow">
+            <h3 className="text-xl font-bold text-orange-900 mb-4">📝 미니 테스트</h3>
+
+            <div className="flex gap-2 mb-4">
+              {subjects.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setCurrentSubject(s); resetTest(); }}
+                  className="px-3 py-1 bg-orange-100 rounded hover:bg-orange-200"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {!finished ? (
+              <>
+                <p className="mb-3">{quiz.q}</p>
+                {quiz.options.map((o: string) => (
                   <button
-                    key={opt}
-                    onClick={() => answerTest(opt)}
-                    className="p-2 bg-orange-100 rounded-lg text-orange-900"
+                    key={o}
+                    onClick={() => answerTest(o)}
+                    className="block w-full mb-2 p-2 bg-orange-100 rounded hover:bg-orange-200"
                   >
-                    {opt}
+                    {o}
                   </button>
                 ))}
-              </div>
-
-              {/* 아바타 도움말 버튼 */}
-              <div className="flex flex-col items-start gap-2">
                 <button
-                  onClick={toggleHint}
-                  className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition"
+                  onClick={() => setShowHint((v) => !v)}
+                  className="mt-2 text-sm text-blue-600"
                 >
-                  도움 받기
+                  ❓
                 </button>
-                {showHint && (
-                  <div className="relative bg-white dark:bg-slate-700 p-3 rounded-xl shadow-md text-gray-800 dark:text-gray-100 mt-2 max-w-xs">
-                    <div className="absolute -top-3 left-5 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-white dark:border-b-slate-700"></div>
-                    {currentHint}
-                  </div>
-                )}
+                {showHint && <div className="mt-2 text-sm text-gray-600">{hint}</div>}
+              </>
+            ) : (
+              <div>
+                점수 {testScore}/{miniTests[currentSubject].length}
+                <button
+                  onClick={resetTest}
+                  className="ml-3 px-3 py-1 bg-orange-500 text-white rounded"
+                >
+                  다시하기
+                </button>
               </div>
-            </>
-          ) : (
-            <div className="text-orange-900 font-bold">
-              테스트 완료! 점수: {testScore}/{miniTests[currentSubject].length}
-              <button onClick={resetTest} className="ml-4 px-3 py-1 bg-orange-500 text-white rounded-lg">다시하기</button>
-            </div>
-          )}
+            )}
+          </section>
+
         </div>
       </div>
     </PageContainer>

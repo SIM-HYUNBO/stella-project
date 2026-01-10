@@ -30,7 +30,7 @@ type Friend = {
 
 type Room = {
   id: string;
-  friend?: Friend; // 친구톡이면 friend 있음, 글로벌 톡방이면 undefined
+  friend?: Friend;
   messages: Message[];
 };
 
@@ -52,7 +52,7 @@ export default function WagieChatPage() {
   const GLOBAL_ROOM_ID = "wagie_global_room";
 
   // =====================
-  // 유저 + 친구 로딩
+  // 초기 유저 + 친구 + 글로벌 방 로드
   // =====================
   useEffect(() => {
     const fetchData = async () => {
@@ -82,7 +82,7 @@ export default function WagieChatPage() {
       await loadFriends(user.uid, users);
 
       // 글로벌 톡방 생성 및 로드
-      createGlobalRoom(user.uid, users);
+      await createGlobalRoom(user.uid);
     };
     fetchData();
   }, []);
@@ -99,7 +99,10 @@ export default function WagieChatPage() {
       setFriends(friendList);
 
       // 기존 방 로드
-      friendList.forEach((f) => loadRoom(f));
+      friendList.forEach((f) => {
+        const roomId = getRoomId(uid, f.uid);
+        loadRoomById(roomId, f);
+      });
     } else {
       setFriends([]);
     }
@@ -108,27 +111,35 @@ export default function WagieChatPage() {
   // =====================
   // 글로벌 톡방 생성
   // =====================
-  const createGlobalRoom = async (uid: string, users: Friend[]) => {
+  const createGlobalRoom = async (uid: string) => {
     const roomRef = doc(db, "chats", GLOBAL_ROOM_ID);
     const roomSnap = await getDoc(roomRef);
     if (!roomSnap.exists()) {
       await setDoc(roomRef, { messages: [] });
     }
-
-    loadGlobalRoom(GLOBAL_ROOM_ID);
+    loadRoomById(GLOBAL_ROOM_ID);
     setCurrentRoomId(GLOBAL_ROOM_ID);
   };
 
-  const loadGlobalRoom = (roomId: string) => {
+  // =====================
+  // 방 로드 통합 함수
+  // =====================
+  const loadRoomById = (roomId: string, friend?: Friend) => {
     const roomRef = doc(db, "chats", roomId);
+
+    setRooms((prev) => {
+      if (!prev.find((r) => r.id === roomId)) {
+        return [...prev, { id: roomId, friend, messages: [] }];
+      }
+      return prev;
+    });
+
     onSnapshot(roomRef, (snap) => {
       const data = snap.data();
       const messages: Message[] = data?.messages || [];
-      setRooms((prev) => {
-        const exists = prev.find((r) => r.id === roomId);
-        if (exists) return prev.map((r) => (r.id === roomId ? { ...r, messages } : r));
-        else return [...prev, { id: roomId, messages }];
-      });
+      setRooms((prev) =>
+        prev.map((r) => (r.id === roomId ? { ...r, messages, friend: friend || r.friend } : r))
+      );
     });
   };
 
@@ -137,8 +148,17 @@ export default function WagieChatPage() {
   // =====================
   const handleSelectFriend = async (friend: Friend) => {
     if (!myUid) return;
+    const roomId = getRoomId(myUid, friend.uid);
 
-    // 친구 추가
+    const roomRef = doc(db, "chats", roomId);
+    const roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) await setDoc(roomRef, { messages: [] });
+
+    loadRoomById(roomId, friend);
+    setCurrentRoomId(roomId);
+
+    if (!friends.find((f) => f.uid === friend.uid)) setFriends((prev) => [...prev, friend]);
+
     const friendRef = doc(db, "friends", myUid);
     const friendSnap = await getDoc(friendRef);
     if (friendSnap.exists()) {
@@ -147,34 +167,9 @@ export default function WagieChatPage() {
       await setDoc(friendRef, { friendUids: [friend.uid] });
     }
 
-    if (!friends.find((f) => f.uid === friend.uid)) setFriends((prev) => [...prev, friend]);
-
-    // 채팅방 시작
-    const roomId = getRoomId(myUid, friend.uid);
-    setCurrentRoomId(roomId);
-    loadRoom(friend);
-
     setSearchNick("");
     setSearchResults([]);
     searchInputRef.current?.blur();
-  };
-
-  // =====================
-  // 친구 채팅방 로드
-  // =====================
-  const loadRoom = (friend: Friend) => {
-    if (!myUid) return;
-    const roomId = getRoomId(myUid, friend.uid);
-    const roomRef = doc(db, "chats", roomId);
-    onSnapshot(roomRef, (snap) => {
-      const data = snap.data();
-      const messages: Message[] = data?.messages || [];
-      setRooms((prev) => {
-        const exists = prev.find((r) => r.id === roomId);
-        if (exists) return prev.map((r) => (r.id === roomId ? { ...r, messages } : r));
-        else return [...prev, { id: roomId, friend, messages }];
-      });
-    });
   };
 
   // =====================
@@ -189,21 +184,11 @@ export default function WagieChatPage() {
   }, [searchNick, allUsers]);
 
   // =====================
-  // 플러스 버튼 클릭
-  // =====================
-  const handleAddFriendClick = () => {
-    if (searchResults.length === 0) {
-      alert(`닉네임 "${searchNick}"을(를) 가진 사용자가 없습니다.`);
-      return;
-    }
-    handleSelectFriend(searchResults[0]);
-  };
-
-  // =====================
   // 메시지 전송
   // =====================
   const sendMessage = async () => {
-    if (!input.trim() || !myUid || !currentRoomId || !myNickname) return;
+    if (!input.trim() || !myUid || !myNickname || !currentRoomId) return;
+
     const roomRef = doc(db, "chats", currentRoomId);
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -212,14 +197,19 @@ export default function WagieChatPage() {
       reactions: {},
       time: now(),
     };
-    const roomSnap = await getDoc(roomRef);
-    if (roomSnap.exists()) {
-      const messages = roomSnap.data()?.messages || [];
-      await updateDoc(roomRef, { messages: [...messages, newMessage] });
-    } else {
-      await setDoc(roomRef, { messages: [newMessage] });
+
+    try {
+      const roomSnap = await getDoc(roomRef);
+      if (roomSnap.exists()) {
+        const messages = roomSnap.data()?.messages || [];
+        await updateDoc(roomRef, { messages: [...messages, newMessage] });
+      } else {
+        await setDoc(roomRef, { messages: [newMessage] });
+      }
+      setInput("");
+    } catch (err) {
+      console.error("메시지 전송 실패:", err);
     }
-    setInput("");
   };
 
   // =====================
@@ -236,7 +226,47 @@ export default function WagieChatPage() {
         ? { ...m, reactions: { ...m.reactions, [emoji]: (m.reactions[emoji] || 0) + 1 } }
         : m
     );
-    await updateDoc(roomRef, { messages: updated });
+    try {
+      await updateDoc(roomRef, { messages: updated });
+    } catch (err) {
+      console.error("리액션 업데이트 실패:", err);
+    }
+  };
+
+  // =====================
+  // 메시지 삭제
+  // =====================
+  const handleDeleteMessage = async (msgId: string) => {
+    if (!currentRoomId) return;
+    const roomRef = doc(db, "chats", currentRoomId);
+    const roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) return;
+    const messages: Message[] = roomSnap.data()?.messages || [];
+    const updated = messages.filter((m) => m.id !== msgId);
+    try {
+      await updateDoc(roomRef, { messages: updated });
+    } catch (err) {
+      console.error("메시지 삭제 실패:", err);
+    }
+  };
+
+  // =====================
+  // 메시지 수정
+  // =====================
+  const handleEditMessage = async (msgId: string) => {
+    if (!currentRoomId) return;
+    const newText = prompt("메시지를 수정하세요");
+    if (!newText) return;
+    const roomRef = doc(db, "chats", currentRoomId);
+    const roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) return;
+    const messages: Message[] = roomSnap.data()?.messages || [];
+    const updated = messages.map((m) => (m.id === msgId ? { ...m, text: newText } : m));
+    try {
+      await updateDoc(roomRef, { messages: updated });
+    } catch (err) {
+      console.error("메시지 수정 실패:", err);
+    }
   };
 
   const currentRoom = rooms.find((r) => r.id === currentRoomId);
@@ -258,13 +288,12 @@ export default function WagieChatPage() {
           />
           <button
             className="bg-orange-400 text-white px-3 rounded-xl font-bold disabled:opacity-50"
-            onClick={handleAddFriendClick}
+            onClick={() => searchResults[0] && handleSelectFriend(searchResults[0])}
             disabled={!myUid}
           >
             ➕
           </button>
 
-          {/* 검색 미리보기 */}
           {searchResults.length > 0 && (
             <div className="absolute top-10 left-0 w-full bg-white rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
               {searchResults.map((f) => (
@@ -273,9 +302,7 @@ export default function WagieChatPage() {
                   className="flex items-center gap-2 p-2 hover:bg-orange-200 cursor-pointer"
                   onClick={() => handleSelectFriend(f)}
                 >
-                  {f.profilePic && (
-                    <img src={f.profilePic} className="w-6 h-6 rounded-full" />
-                  )}
+                  {f.profilePic && <img src={f.profilePic} className="w-6 h-6 rounded-full" />}
                   <span>{f.nickname}</span>
                 </div>
               ))}
@@ -291,6 +318,7 @@ export default function WagieChatPage() {
             }`}
             onClick={() => {
               setCurrentRoomId(GLOBAL_ROOM_ID);
+              loadRoomById(GLOBAL_ROOM_ID);
             }}
           >
             🌐 전체 톡방
@@ -302,7 +330,11 @@ export default function WagieChatPage() {
               className={`p-2 rounded-xl mb-2 cursor-pointer ${
                 currentRoomId === getRoomId(myUid!, f.uid) ? "bg-orange-300" : "bg-white"
               }`}
-              onClick={() => handleSelectFriend(f)}
+              onClick={() => {
+                const roomId = getRoomId(myUid!, f.uid);
+                setCurrentRoomId(roomId);
+                loadRoomById(roomId, f);
+              }}
             >
               💬 {f.nickname}
             </div>
@@ -328,47 +360,63 @@ export default function WagieChatPage() {
 
             <div className="h-[70vh] overflow-y-auto bg-white rounded-3xl p-4 mb-3">
               {currentRoom.messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`mb-3 ${m.sender === myNickname ? "text-right" : ""}`}
-                >
-                  <div className="inline-block bg-yellow-100 rounded-2xl px-3 py-2">
+                <div key={m.id} className={`mb-3 ${m.sender === myNickname ? "text-right" : ""}`}>
+                  <div className="inline-block bg-yellow-100 rounded-2xl px-3 py-2 relative">
                     <div className="text-xs text-gray-500">
                       {m.sender} · {m.time}
                     </div>
                     <div>{m.text}</div>
                     <div className="flex gap-1 mt-1">
                       {["👍", "👏", "🌟", "😆"].map((e) => (
-                        <span
-                          key={e}
-                          className="cursor-pointer"
-                          onClick={() => react(m.id, e)}
-                        >
+                        <span key={e} className="cursor-pointer" onClick={() => react(m.id, e)}>
                           {e}
                           {m.reactions[e] ? m.reactions[e] : ""}
                         </span>
                       ))}
                     </div>
+
+                    {m.sender === myNickname && (
+                      <div className="absolute top-1 right-1 flex gap-1 text-xs">
+                        <button
+                          className="bg-red-400 text-white px-1 rounded"
+                          onClick={() => handleDeleteMessage(m.id)}
+                        >
+                          삭제
+                        </button>
+                        <button
+                          className="bg-blue-400 text-white px-1 rounded"
+                          onClick={() => handleEditMessage(m.id)}
+                        >
+                          수정
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
+<div className="flex gap-2">
+  <input
+    className="flex-1 p-3 rounded-2xl"
+    placeholder="메시지 입력..."
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    }}
+  />
+  <button
+    className="bg-orange-400 px-4 rounded-2xl text-white"
+    onClick={sendMessage}
+    disabled={!myUid || !currentRoomId || !input.trim()}
+  >
+    전송
+  </button>
+</div>
 
-            <div className="flex gap-2">
-              <input
-                className="flex-1 p-3 rounded-2xl"
-                placeholder="메시지 입력..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <button
-                className="bg-orange-400 px-4 rounded-2xl text-white"
-                onClick={sendMessage}
-              >
-                전송
-              </button>
-            </div>
           </>
         )}
       </div>

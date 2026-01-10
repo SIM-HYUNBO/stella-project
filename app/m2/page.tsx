@@ -126,7 +126,7 @@ export default function MiniTestPage() {
   return (
     <PageContainer>
       <div className="max-w-3xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-center">📘 과목별 미니 테스트</h1>
+        <h1 className="text-4xl text-orange-400 text-center">내 머리 좀 좋다? 바로 테스트!</h1>
 
         {/* 과목 선택 */}
         <div className="flex flex-wrap gap-2 justify-center">

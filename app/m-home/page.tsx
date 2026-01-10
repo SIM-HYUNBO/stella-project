@@ -87,19 +87,22 @@ export default function Home() {
 
   return (
     <PageContainer>
-      {/* ✅ 헤더 오른쪽: 로그인 / 회원가입만 */}
-      {!user && (
-        <div className="absolute top-5 right-20 flex gap-4 z-50">
-          <Link
-            href="/login"
-            className="px-6 py-3 bg-yellow-50 text-orange-900 hover:bg-yellow-100 rounded-3xl border border-yellow-400 text-center"
-          >
-            로그인
-          </Link>
-         
-        </div>
-      )}
+      <div className="fixed top-5 right-20 z-50">
+  <Link href="/pro">
+    <span className="px-6 py-3 bg-red-50 text-red-900 hover:bg-red-100 rounded-3xl border border-red-400 block">
+      Pro 구입
+    </span>
+  </Link>
 
+        {/* 로그인 버튼은 로그인 안했을 때만 */}
+        {!user && (
+          <Link href="/login">
+            <span className="px-6 py-3 bg-yellow-50 text-orange-900 hover:bg-yellow-100 rounded-3xl sticky border border-yellow-400 block text-center">
+              로그인
+            </span>
+          </Link>
+        )}
+      </div>
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
           <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
@@ -136,12 +139,22 @@ export default function Home() {
           </div>
 
           {/* 댓글창 (조건 그대로) */}
-          {user && userProfile && postId && (
-            <div className="ml-4 mt-5">
-              <CommentBox userProfile={userProfile} postId="m-home" />
-            </div>
+          <div className="ml-10 mt-5">
+  {postId ? (
+    <CommentBox
+      postId={postId} // 실제 Firebase 문서 ID
+      userProfile={
+        userProfile || {
+          uid: "test",
+          nickname: "테스트유저",
+        }
+      }
+    />
+  ) : (
+    <p className="text-gray-500">댓글을 불러오는 중...</p>
           )}
         </div>
+      </div>
       </div>
     </PageContainer>
   );
