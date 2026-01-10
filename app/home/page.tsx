@@ -80,13 +80,7 @@ export default function Home() {
           </span>
         </Link>
 
-        {/* ✅ 관리자만 볼 수 있음 */}
-        {isAdmin && (
-          <span className="px-4 py-2 text-sm bg-orange-100 text-orange-900 rounded-2xl">
-             {onlineUserCount}명 로그인!
-          </span>
-        )}
-
+       
         {!user && (
           <Link href="/login">
             <span className="px-4 py-2 text-sm bg-yellow-50 text-orange-900 rounded-3xl border border-yellow-400">
