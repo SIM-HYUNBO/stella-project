@@ -7,119 +7,39 @@ import {
   getDoc,
   collection,
   addDoc,
+  updateDoc,
   query,
   orderBy,
   onSnapshot,
   serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 
-// 🔹 타입 정의
 type Message = { id: string; user: string; content: string; createdAt?: any };
-type Category = "공부" | "미술" | "노래/댄스" | "얼굴";
-type Point = { x: number; y: number; color: string; size: number; uid: string; createdAt: any };
+type Room = { id: string; name: string; members: string[] };
 
-// 🔹 ArtBoard 컴포넌트
-function ArtBoard({ roomId, nickname }: { roomId: string; nickname: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-  const [drawing, setDrawing] = useState(false);
-  const [color, setColor] = useState("#000000");
-  const [size, setSize] = useState(4);
-  const [points, setPoints] = useState<Point[]>([]);
-  const [windowWidth, setWindowWidth] = useState<number>(0);
-
-  // 화면 크기
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = 200;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.lineCap = "round";
-    ctxRef.current = ctx;
-  }, []);
-
-  // 실시간 그림 불러오기
-  useEffect(() => {
-    const q = query(collection(db, "art", roomId, "points"), orderBy("createdAt", "asc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const ctx = ctxRef.current;
-      if (!ctx) return;
-      snap.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const p = change.doc.data() as Point;
-          const scale = p.uid === nickname ? 1 : 1 / 16;
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = p.size * scale;
-          ctx.beginPath();
-          ctx.moveTo(p.x * scale, p.y * scale);
-          ctx.lineTo(p.x * scale, p.y * scale);
-          ctx.stroke();
-        }
-      });
-    });
-    return () => unsub();
-  }, [nickname, roomId]);
-
-  const getPos = (e: any) => {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  };
-
-  const startDraw = () => setDrawing(true);
-  const endDraw = () => setDrawing(false);
-
-  const draw = async (e: any) => {
-    if (!drawing) return;
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-    const { x, y } = getPos(e);
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = size;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-
-    await addDoc(collection(db, "art", roomId, "points"), {
-      x, y, color, size, uid: nickname, createdAt: serverTimestamp()
-    });
-  };
-
-  return (
-    <div className="mb-2">
-      <div className="flex gap-2 mb-1 items-center">
-        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-        <input type="range" min={2} max={20} value={size} onChange={(e) => setSize(Number(e.target.value))} />
-      </div>
-      <canvas
-        ref={canvasRef}
-        className="w-full bg-white border rounded-xl"
-        onMouseDown={startDraw}
-        onMouseUp={endDraw}
-        onMouseLeave={endDraw}
-        onMouseMove={draw}
-      />
-    </div>
-  );
-}
-
-// 🔹 메인 채팅 + 미술
-export default function ChatWithArtRoom() {
+export default function ChatWithRooms() {
   const [nickname, setNickname] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [category, setCategory] = useState<Category>("공부");
   const [isContracted, setIsContracted] = useState<boolean | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
+  const [input, setInput] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [contractUsers, setContractUsers] = useState<string[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("");
+  const [longPressedRoomId, setLongPressedRoomId] = useState<string | null>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteUsers, setInviteUsers] = useState<string[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageSound = useRef<HTMLAudioElement | null>(null);
-  const prevMessageCount = useRef(0);
 
-  // 🔹 로그인 + 계약 확인
+  const alwaysDisplayed = ["관리자", "나율", "프레드"];
+
+  // 로그인 + 계약 확인
   useEffect(() => {
     return auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -129,8 +49,16 @@ export default function ChatWithArtRoom() {
       }
       const snap = await getDoc(doc(db, "users", user.uid));
       if (snap.exists()) {
-        setNickname(snap.data().nickname || "유저");
+        const nick = snap.data().nickname || "유저";
+        setNickname(nick);
         setIsContracted(!!snap.data().isContracted);
+
+        // 계약 회원 목록 가져오기
+        const usersSnap = await getDoc(doc(db, "meta", "contractUsers"));
+        if (usersSnap.exists()) {
+          const allUsers: string[] = usersSnap.data().users || [];
+          setContractUsers(Array.from(new Set(allUsers))); // 중복 제거
+        }
       } else {
         setNickname("유저");
         setIsContracted(false);
@@ -138,34 +66,48 @@ export default function ChatWithArtRoom() {
     });
   }, []);
 
-  // 🔹 수신음
   useEffect(() => {
     messageSound.current = new Audio("/sounds/message.mp3");
   }, []);
 
-  // 🔹 메시지 구독
+  // 방 목록 구독
   useEffect(() => {
-    if (!nickname) return;
-    const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
-    return onSnapshot(q, (snap) => {
+    const q = query(collection(db, "rooms"));
+    const unsub = onSnapshot(q, (snap) => {
+      const r: Room[] = snap.docs.map((d) => ({
+        id: d.id,
+        name: d.data().name,
+        members: d.data().members || [],
+      }));
+      setRooms(r);
+    });
+    return () => unsub();
+  }, []);
+
+  // 메시지 구독
+  useEffect(() => {
+    if (!currentRoomId) return;
+    const q = query(
+      collection(db, "rooms", currentRoomId, "messages"),
+      orderBy("createdAt", "asc")
+    );
+    const unsub = onSnapshot(q, (snap) => {
       const msgs = snap.docs.map((d) => ({
         id: d.id,
         user: d.data().user,
         content: d.data().content,
         createdAt: d.data().createdAt,
       }));
-      if (msgs.length > prevMessageCount.current && msgs[msgs.length - 1]?.user !== nickname) {
-        messageSound.current?.play().catch(() => {});
-      }
-      prevMessageCount.current = msgs.length;
+      messageSound.current?.play().catch(() => {});
       setMessages(msgs);
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     });
-  }, [nickname]);
+    return () => unsub();
+  }, [currentRoomId]);
 
   const sendMessage = async () => {
-    if (!input.trim() || !nickname) return;
-    await addDoc(collection(db, "messages"), {
+    if (!input.trim() || !nickname || !currentRoomId) return;
+    await addDoc(collection(db, "rooms", currentRoomId, "messages"), {
       user: nickname,
       content: input.trim(),
       createdAt: serverTimestamp(),
@@ -173,86 +115,266 @@ export default function ChatWithArtRoom() {
     setInput("");
   };
 
-  // 🔹 계약 미가입 처리
- const alwaysAllowed = ["관리자", "나율", "프레드"];
+  const alwaysAllowed = ["관리자", "나율", "프레드"];
+  if (!nickname) return <div>로딩중...</div>;
+  if (!alwaysAllowed.includes(nickname) && isContracted === false) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+        <p className="mb-4 text-lg">계약 회원만 이용할 수 있습니다.</p>
+        <button
+          onClick={() => (window.location.href = "/contract")}
+          className="px-4 py-2 rounded bg-amber-400 font-bold"
+        >
+          계약하러 가기
+        </button>
+      </div>
+    );
+  }
 
-if (!nickname) return <div>로딩중...</div>;
+  // 새 방 생성
+  const createRoom = async () => {
+    if (!nickname) return;
+    const members = [nickname, ...selectedUsers];
+    const docRef = await addDoc(collection(db, "rooms"), {
+      name: newRoomName || "천왁즈",
+      members,
+    });
 
-if (!alwaysAllowed.includes(nickname) && isContracted === false) {
+    // 입장 메시지
+    await addDoc(collection(db, "rooms", docRef.id, "messages"), {
+      user: "system",
+      content: `${nickname} 님이 입장하였습니다`,
+      createdAt: serverTimestamp(),
+    });
+
+    setCurrentRoomId(docRef.id);
+    setSelectedUsers([]);
+    setNewRoomName("");
+    setIsCreateModalOpen(false);
+  };
+
+  // 방 탈퇴
+  const leaveRoom = async (roomId: string) => {
+    if (!nickname) return;
+    await updateDoc(doc(db, "rooms", roomId), {
+      members: arrayRemove(nickname),
+    });
+    await addDoc(collection(db, "rooms", roomId, "messages"), {
+      user: "system",
+      content: `${nickname} 님이 탈퇴하였습니다`,
+      createdAt: serverTimestamp(),
+    });
+    if (currentRoomId === roomId) setCurrentRoomId(null);
+    setLongPressedRoomId(null);
+  };
+
+  // 초대
+  const inviteToRoom = async () => {
+    if (!nickname || !longPressedRoomId) return;
+    const docRef = doc(db, "rooms", longPressedRoomId);
+    for (const user of inviteUsers) {
+      await updateDoc(docRef, {
+        members: arrayUnion(user),
+      });
+      await addDoc(collection(docRef, "messages"), {
+        user: "system",
+        content: `${user} 님이 초대되었습니다`,
+        createdAt: serverTimestamp(),
+      });
+    }
+    setInviteUsers([]);
+    setInviteModalOpen(false);
+    setLongPressedRoomId(null);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-      <p className="mb-4 text-lg">계약 회원만 이용할 수 있습니다.</p>
-      <button
-        onClick={() => window.location.href="/contract"}
-        className="px-4 py-2 rounded bg-amber-400 font-bold"
-      >
-        계약하러 가기
-      </button>
-    </div>
-  );
-}
+    <div className="flex fixed inset-0 bg-white">
+      {/* 사이드바 */}
+      <div className="w-64 border-r p-4 flex flex-col gap-4">
+        <button
+          className="px-3 py-2 bg-amber-400 rounded font-bold hover:bg-amber-500"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          새 방 만들기
+        </button>
 
+        {/* 방 생성 모달 */}
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white p-4 rounded shadow-md w-80 flex flex-col gap-3">
+              <h2 className="font-bold text-lg">새 방 만들기</h2>
+              <input
+                type="text"
+                placeholder="방 이름 입력"
+                value={newRoomName}
+                onChange={(e) => setNewRoomName(e.target.value)}
+                className="px-3 py-2 border rounded"
+              />
 
-  if (!nickname || isContracted === null) return <div>로딩중...</div>;
+              <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
+                {alwaysDisplayed.map((user) => (
+                  <label key={user} className="flex items-center gap-2 font-semibold text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user)}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedUsers([...selectedUsers, user]);
+                        else setSelectedUsers(selectedUsers.filter((u) => u !== user));
+                      }}
+                    />
+                    {user} (항상 표시)
+                  </label>
+                ))}
 
-  return (
-    <div className="flex flex-col fixed inset-0 bg-white">
+                {contractUsers
+                  .filter((u) => !alwaysDisplayed.includes(u))
+                  .map((user) => (
+                    <label key={user} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedUsers([...selectedUsers, user]);
+                          else setSelectedUsers(selectedUsers.filter((u) => u !== user));
+                        }}
+                      />
+                      {user}
+                    </label>
+                  ))}
+              </div>
 
-      {/* 상단 */}
-      <div className="bg-amber-100 border-b">
-        <div className="h-12 flex items-center justify-center font-extrabold">
-          천왁즈 · {category}
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  className="px-3 py-1 bg-gray-300 rounded"
+                  onClick={() => setIsCreateModalOpen(false)}
+                >
+                  취소
+                </button>
+                <button
+                  className="px-3 py-1 bg-amber-400 rounded font-bold"
+                  onClick={createRoom}
+                >
+                  생성
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 내 방 목록 */}
+        <div className="mt-4 font-semibold">내 방 목록</div>
+        <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
+          {rooms
+            .filter((r) => Array.isArray(r.members) && r.members.includes(nickname!))
+            .map((r) => (
+              <div
+                key={r.id}
+                onMouseDown={() => setLongPressedRoomId(r.id)}
+                onMouseUp={() => setTimeout(() => setLongPressedRoomId(null), 2000)}
+                className={`px-2 py-1 rounded hover:bg-gray-200 cursor-pointer ${
+                  r.id === currentRoomId ? "bg-gray-300" : ""
+                }`}
+              >
+                {r.name}
+                {longPressedRoomId === r.id && (
+                  <div className="flex gap-2 mt-1">
+                    <button
+                      className="px-2 py-1 bg-red-300 rounded text-xs"
+                      onClick={() => leaveRoom(r.id)}
+                    >
+                      탈퇴
+                    </button>
+                    <button
+                      className="px-2 py-1 bg-green-300 rounded text-xs"
+                      onClick={() => setInviteModalOpen(true)}
+                    >
+                      초대
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
         </div>
-        <div className="flex justify-around pb-2">
-          {["공부", "미술", "노래/댄스", "얼굴"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setCategory(t as Category)}
-              className={`px-4 py-2 rounded-xl ${
-                category === t ? "bg-amber-300 font-bold" : "hover:bg-amber-200"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
 
-        {category === "미술" && (
-          <ArtBoard roomId="global-room" nickname={nickname} />
+        {/* 초대 모달 */}
+        {inviteModalOpen && longPressedRoomId && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white p-4 rounded shadow-md w-80 flex flex-col gap-2">
+              <h3 className="font-bold">회원 초대</h3>
+              <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
+                {contractUsers
+                  .filter((u) => !rooms.find(r => r.id === longPressedRoomId)?.members.includes(u))
+                  .map((user) => (
+                    <label key={user} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={inviteUsers.includes(user)}
+                        onChange={(e) => {
+                          if (e.target.checked)
+                            setInviteUsers([...inviteUsers, user]);
+                          else
+                            setInviteUsers(inviteUsers.filter((u) => u !== user));
+                        }}
+                      />
+                      {user}
+                    </label>
+                  ))}
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  className="px-3 py-1 bg-gray-300 rounded"
+                  onClick={() => setInviteModalOpen(false)}
+                >
+                  취소
+                </button>
+                <button
+                  className="px-3 py-1 bg-green-400 rounded font-bold"
+                  onClick={inviteToRoom}
+                >
+                  초대
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* 채팅 */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-1">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`max-w-xs px-3 py-2 rounded-xl ${
-              m.user === nickname ? "self-end bg-amber-300" : "self-start bg-gray-200"
-            }`}
-          >
-            <div className="text-xs font-semibold opacity-70">{m.user}</div>
-            {m.content}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+      {/* 채팅 영역 */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1">
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={`max-w-xs px-3 py-2 rounded-xl ${
+                m.user === nickname
+                  ? "self-end bg-red-100"
+                  : m.user === "system"
+                  ? "self-center bg-gray-300 font-semibold text-sm"
+                  : "self-start bg-gray-200"
+              }`}
+            >
+              {m.user !== "system" && <div className="text-xs font-semibold opacity-70">{m.user}</div>}
+              {m.content}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
 
-      {/* 입력 */}
-      <div className="flex px-4 py-3 border-t gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          className="flex-1 rounded-xl px-4 py-2 border"
-          placeholder="메시지 입력..."
-        />
-        <button
-          onClick={sendMessage}
-          className="px-5 py-2 rounded-xl bg-amber-400 font-semibold"
-        >
-          전송
-        </button>
+        <div className="flex p-4 border-t gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            className="flex-1 rounded-xl px-4 py-2 border"
+            placeholder="메시지 입력..."
+          />
+          <button
+            onClick={sendMessage}
+            className="px-5 py-2 rounded-xl bg-yellow-200 font-semibold"
+          >
+            전송
+          </button>
+        </div>
       </div>
     </div>
   );

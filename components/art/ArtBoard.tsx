@@ -1,205 +1,136 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { db, auth } from "@/app/firebase";
+import { useState, useEffect, useRef } from "react";
+import { db } from "@/app/firebase";
 import {
   collection,
   addDoc,
-  onSnapshot,
   query,
   orderBy,
-  deleteDoc,
-  getDocs,
+  onSnapshot,
+  serverTimestamp,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
 
-/* ================= 타입 ================= */
-type DrawPoint = {
+type Point = {
   x: number;
   y: number;
   color: string;
   size: number;
   uid: string;
+  createdAt: any;
+  isErase?: boolean;
 };
 
-/* ================= 메인 ================= */
-export default function ArtBoard({ roomId }: { roomId: string }) {
-  const [uid, setUid] = useState<string | null>(null);
-  const [users, setUsers] = useState<string[]>([]);
-  const [isMobile, setIsMobile] = useState(false);
-
-  /* 모바일 체크 */
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 640);
-  }, []);
-
-  /* 로그인 */
-  useEffect(() => {
-    return onAuthStateChanged(auth, (u) => {
-      if (u) setUid(u.uid);
-    });
-  }, []);
-
-  /* 참여자 수집 */
-  useEffect(() => {
-    const q = query(
-      collection(db, "art", roomId, "points"),
-      orderBy("createdAt", "asc")
-    );
-
-    return onSnapshot(q, (snap) => {
-      const set = new Set<string>();
-      snap.forEach((d) => set.add(d.data().uid));
-      if (uid) set.add(uid);
-      setUsers(Array.from(set));
-    });
-  }, [roomId, uid]);
-
-  if (!uid) return null;
-
-  const me = uid;
-  const others = users.filter((u) => u !== me);
-
-  return (
-    <div className="p-2 bg-amber-50">
-
-      {/* 내 보드 */}
-      <Canvas
-        roomId={roomId}
-        ownerUid={me}
-        me={me}
-        big={!isMobile}
-        isMobile={isMobile}
-      />
-
-      {/* 친구 보드 */}
-      <div className="flex gap-2 mt-3 overflow-x-auto">
-        {others.map((u) => (
-          <Canvas
-            key={u}
-            roomId={roomId}
-            ownerUid={u}
-            me={me}
-            isMobile={isMobile}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ================= 캔버스 ================= */
-function Canvas({
+export default function ArtBoard({
   roomId,
-  ownerUid,
-  me,
-  big = false,
-  isMobile,
+  nickname,
+  scale = 1, // 친구 보드 축소
 }: {
   roomId: string;
-  ownerUid: string;
-  me: string;
-  big?: boolean;
-  isMobile?: boolean;
+  nickname: string;
+  scale?: number;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-  const drawing = useRef(false);
+  const [drawing, setDrawing] = useState(false);
+  const [color, setColor] = useState("#000000");
+  const [size, setSize] = useState(4);
+  const [isErase, setIsErase] = useState(false);
 
-  // 모바일이면 항상 작게
-  const scale = isMobile ? 0.25 : big ? 1 : 0.25;
-  const canDraw = ownerUid === me && !isMobile;
-
-  /* 초기화 */
+  // 캔버스 초기화
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    canvas.width = 600 * scale;
-    canvas.height = 360 * scale;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const ctx = canvas.getContext("2d")!;
+    canvas.width = window.innerWidth * scale;
+    canvas.height = 200 * scale;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.lineCap = "round";
     ctxRef.current = ctx;
   }, [scale]);
 
-  /* 실시간 수신 */
+  // 실시간 Firestore 그림 불러오기
   useEffect(() => {
-    const q = query(
-      collection(db, "art", roomId, "points"),
-      orderBy("createdAt", "asc")
-    );
-
-    return onSnapshot(q, (snap) => {
+    const q = query(collection(db, "art", roomId, "points"), orderBy("createdAt", "asc"));
+    const unsub = onSnapshot(q, (snap) => {
       const ctx = ctxRef.current;
       if (!ctx) return;
 
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-      snap.forEach((d) => {
-        const p = d.data() as DrawPoint;
-        if (p.uid !== ownerUid) return;
-
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = p.size * scale;
-        ctx.beginPath();
-        ctx.lineTo(p.x * scale, p.y * scale);
-        ctx.stroke();
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const p = change.doc.data() as Point;
+          const s = p.uid === nickname ? 1 : 1 / 16; // 친구는 축소
+          ctx.strokeStyle = p.isErase ? "#fff" : p.color;
+          ctx.lineWidth = p.size * s;
+          ctx.beginPath();
+          ctx.moveTo(p.x * s, p.y * s);
+          ctx.lineTo(p.x * s, p.y * s);
+          ctx.stroke();
+        }
       });
     });
-  }, [roomId, ownerUid, scale]);
 
-  /* 좌표 */
-  const pos = (e: any) => {
+    return () => unsub();
+  }, [nickname, roomId]);
+
+  // 마우스 위치
+  const getPos = (e: any) => {
     const rect = canvasRef.current!.getBoundingClientRect();
-    const t = e.touches ? e.touches[0] : e;
-    return {
-      x: (t.clientX - rect.left) / scale,
-      y: (t.clientY - rect.top) / scale,
-    };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   };
 
-  /* 그리기 */
+  const startDraw = () => setDrawing(true);
+  const endDraw = () => setDrawing(false);
+
   const draw = async (e: any) => {
-    if (!drawing.current || !canDraw) return;
-    const { x, y } = pos(e);
+    if (!drawing) return;
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    const { x, y } = getPos(e);
+
+    ctx.strokeStyle = isErase ? "#fff" : color;
+    ctx.lineWidth = size;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
 
     await addDoc(collection(db, "art", roomId, "points"), {
       x,
       y,
-      color: "#000",
-      size: 4,
-      uid: me,
-      createdAt: Date.now(),
+      color,
+      size,
+      uid: nickname,
+      isErase,
+      createdAt: serverTimestamp(),
     });
   };
 
-  /* 전체 지우기 (내 보드만) */
-  const clearAll = async () => {
-    if (!canDraw) return;
-    const snap = await getDocs(collection(db, "art", roomId, "points"));
-    snap.forEach((d) => deleteDoc(d.ref));
-  };
-
   return (
-    <div>
-      {canDraw && (
+    <div className="mb-2 relative">
+      {/* 버튼 영역 - 항상 canvas 위에 */}
+      <div className="flex gap-2 mb-1 items-center z-50 bg-white p-2 rounded shadow">
+        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} disabled={isErase} />
+        <input type="range" min={2} max={20} value={size} onChange={(e) => setSize(Number(e.target.value))} />
         <button
-          onClick={clearAll}
-          className="mb-1 text-xs bg-red-400 px-2 py-1 rounded text-white"
+          className={`px-3 py-1 rounded font-bold ${isErase ? "bg-red-400" : "bg-gray-300"}`}
+          onClick={() => setIsErase(!isErase)}
         >
-          전체 지우기
+          {isErase ? "펜 모드" : "지우개"}
         </button>
-      )}
+      </div>
 
+      {/* 캔버스 */}
       <canvas
         ref={canvasRef}
-        className="bg-white border rounded-xl touch-none"
-        onMouseDown={() => (drawing.current = true)}
-        onMouseUp={() => (drawing.current = false)}
-        onMouseLeave={() => (drawing.current = false)}
+        className="w-full bg-white border rounded-xl"
+        onMouseDown={startDraw}
+        onMouseUp={endDraw}
+        onMouseLeave={endDraw}
         onMouseMove={draw}
-        onTouchStart={() => (drawing.current = true)}
-        onTouchEnd={() => (drawing.current = false)}
-        onTouchMove={draw}
+        style={{ touchAction: "none" }} // 모바일 터치 막힘 방지
       />
     </div>
   );
