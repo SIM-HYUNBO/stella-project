@@ -9,11 +9,12 @@ import {
   addDoc,
   deleteDoc,
   updateDoc,
+  arrayUnion,
+  arrayRemove,
   serverTimestamp,
   query,
   orderBy,
   onSnapshot,
-  arrayRemove,
 } from "firebase/firestore";
 
 type Message = { id: string; user: string; content: string; createdAt?: any };
@@ -26,15 +27,14 @@ export default function ChatWithRooms() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
   const [input, setInput] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [contractUsers, setContractUsers] = useState<string[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
-  const [showRoomActions, setShowRoomActions] = useState<string | null>(null);
+  const [showRoomActionsId, setShowRoomActionsId] = useState<string | null>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteUsers, setInviteUsers] = useState<string[]>([]);
 
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
-  const clickCount = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageSound = useRef<HTMLAudioElement | null>(null);
 
@@ -53,6 +53,7 @@ export default function ChatWithRooms() {
         const nick = snap.data().nickname || "유저";
         setNickname(nick);
         setIsContracted(!!snap.data().isContracted);
+
         const usersSnap = await getDoc(doc(db, "meta", "contractUsers"));
         if (usersSnap.exists()) {
           const allUsers: string[] = usersSnap.data().users || [];
@@ -83,15 +84,18 @@ export default function ChatWithRooms() {
     return () => unsub();
   }, []);
 
-  // 현재 방 메시지 구독 (로컬은 백업용)
+  // 현재 방 메시지 로컬 + Firestore 구독
   useEffect(() => {
     if (!currentRoomId) return;
+
+    const localMessages = localStorage.getItem(`chat_${currentRoomId}`);
+    if (localMessages) setMessages(JSON.parse(localMessages));
+    else setMessages([]);
 
     const q = query(
       collection(db, "rooms", currentRoomId, "messages"),
       orderBy("createdAt", "asc")
     );
-
     const unsub = onSnapshot(q, (snap) => {
       const msgs = snap.docs.map((d) => ({
         id: d.id,
@@ -102,9 +106,9 @@ export default function ChatWithRooms() {
       if (msgs.length > 0) messageSound.current?.play().catch(() => {});
       setMessages(msgs);
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
       localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(msgs));
     });
-
     return () => unsub();
   }, [currentRoomId]);
 
@@ -118,7 +122,9 @@ export default function ChatWithRooms() {
       createdAt: new Date(),
     };
 
-    setMessages([...messages, newMsg]);
+    const updated = [...messages, newMsg];
+    setMessages(updated);
+    localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(updated));
     setInput("");
 
     await addDoc(collection(db, "rooms", currentRoomId, "messages"), {
@@ -129,56 +135,20 @@ export default function ChatWithRooms() {
   };
 
   const deleteMessage = async (msg: Message) => {
-    if (msg.user !== nickname || msg.user === "system") return;
-
-    setMessages(messages.filter((m) => m.id !== msg.id));
+    if (!currentRoomId) return;
+    if (!msg.id) return;
 
     try {
-      const docRef = doc(db, "rooms", currentRoomId!, "messages", msg.id);
+      const docRef = doc(db, "rooms", currentRoomId, "messages", msg.id);
       await deleteDoc(docRef);
     } catch (e) {
-      console.warn("Firestore 메시지 삭제 실패", e);
+      console.warn("Firestore 메시지 삭제 실패, 로컬만 삭제:", e);
     }
+
+    const updated = messages.filter((m) => m.id !== msg.id);
+    setMessages(updated);
+    localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(updated));
     setSelectedMessageId(null);
-  };
-
-  const leaveRoom = async (roomId: string) => {
-    if (!nickname) return;
-    const docRef = doc(db, "rooms", roomId);
-    await updateDoc(docRef, {
-      members: arrayRemove(nickname),
-    });
-
-    // 방 혼자 남으면 삭제
-    const roomSnap = await getDoc(docRef);
-    if (roomSnap.exists()) {
-      const members: string[] = roomSnap.data().members || [];
-      if (members.length <= 1) {
-        try {
-          await deleteDoc(docRef);
-        } catch {}
-      }
-    }
-
-    if (currentRoomId === roomId) setCurrentRoomId(null);
-    setShowRoomActions(null);
-  };
-
-  const handleRoomClick = (roomId: string) => {
-    clickCount.current += 1;
-    if (clickTimeout.current) clearTimeout(clickTimeout.current);
-
-    clickTimeout.current = setTimeout(() => {
-      if (clickCount.current === 1) {
-        // 한 번 클릭 → 채팅 시작
-        setCurrentRoomId(roomId);
-        setShowRoomActions(null);
-      } else if (clickCount.current === 2) {
-        // 두 번 클릭 → 탈퇴 버튼 표시
-        setShowRoomActions(roomId);
-      }
-      clickCount.current = 0;
-    }, 250);
   };
 
   const alwaysAllowed = ["관리자", "나율", "프레드"];
@@ -199,24 +169,40 @@ export default function ChatWithRooms() {
 
   const createRoom = async () => {
     if (!nickname) return;
-    const members = [nickname, ...selectedUsers];
+    const members = [nickname];
     const docRef = await addDoc(collection(db, "rooms"), {
       name: newRoomName || "천왁즈",
       members,
     });
-    await addDoc(collection(db, "rooms", docRef.id, "messages"), {
-      user: "system",
-      content: `${nickname} 님이 입장하였습니다`,
-      createdAt: serverTimestamp(),
-    });
+
     setCurrentRoomId(docRef.id);
-    setSelectedUsers([]);
     setNewRoomName("");
     setIsCreateModalOpen(false);
   };
 
+  const leaveRoom = async (roomId: string) => {
+    if (!nickname) return;
+    await updateDoc(doc(db, "rooms", roomId), {
+      members: arrayRemove(nickname),
+    });
+    if (currentRoomId === roomId) setCurrentRoomId(null);
+    setShowRoomActionsId(null);
+  };
+
+  const inviteToRoom = async () => {
+    if (!nickname || !currentRoomId) return;
+    const docRef = doc(db, "rooms", currentRoomId);
+    for (const user of inviteUsers) {
+      await updateDoc(docRef, { members: arrayUnion(user) });
+    }
+    setInviteUsers([]);
+    setInviteModalOpen(false);
+    setShowRoomActionsId(null);
+  };
+
   return (
     <div className="flex fixed inset-0 bg-white">
+      {/* 사이드바 */}
       <div className="w-64 border-r p-4 flex flex-col gap-4">
         <button
           className="px-3 py-2 bg-amber-400 rounded font-bold hover:bg-amber-500"
@@ -236,36 +222,6 @@ export default function ChatWithRooms() {
                 onChange={(e) => setNewRoomName(e.target.value)}
                 className="px-3 py-2 border rounded"
               />
-              <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
-                {alwaysDisplayed.map((user) => (
-                  <label key={user} className="flex items-center gap-2 font-semibold text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user)}
-                      onChange={(e) => {
-                        if (e.target.checked) setSelectedUsers([...selectedUsers, user]);
-                        else setSelectedUsers(selectedUsers.filter((u) => u !== user));
-                      }}
-                    />
-                    {user} (항상 표시)
-                  </label>
-                ))}
-                {contractUsers
-                  .filter((u) => !alwaysDisplayed.includes(u))
-                  .map((user) => (
-                    <label key={user} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user)}
-                        onChange={(e) => {
-                          if (e.target.checked) setSelectedUsers([...selectedUsers, user]);
-                          else setSelectedUsers(selectedUsers.filter((u) => u !== user));
-                        }}
-                      />
-                      {user}
-                    </label>
-                  ))}
-              </div>
               <div className="flex justify-end gap-2 mt-2">
                 <button
                   className="px-3 py-1 bg-gray-300 rounded"
@@ -291,19 +247,28 @@ export default function ChatWithRooms() {
             .map((r) => (
               <div
                 key={r.id}
-                onClick={() => handleRoomClick(r.id)}
+                onClick={() => setCurrentRoomId(r.id)}
+                onDoubleClick={() =>
+                  setShowRoomActionsId((prev) => (prev === r.id ? null : r.id))
+                }
                 className={`px-2 py-1 rounded hover:bg-gray-200 cursor-pointer ${
                   r.id === currentRoomId ? "bg-gray-300" : ""
                 }`}
               >
                 {r.name}
-                {showRoomActions === r.id && (
+                {showRoomActionsId === r.id && (
                   <div className="flex gap-2 mt-1">
                     <button
                       className="px-2 py-1 bg-red-300 rounded text-xs"
                       onClick={() => leaveRoom(r.id)}
                     >
                       탈퇴
+                    </button>
+                    <button
+                      className="px-2 py-1 bg-green-300 rounded text-xs"
+                      onClick={() => setInviteModalOpen(true)}
+                    >
+                      초대
                     </button>
                   </div>
                 )}
@@ -312,6 +277,7 @@ export default function ChatWithRooms() {
         </div>
       </div>
 
+      {/* 채팅 영역 */}
       <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1">
           {currentRoomId ? (
@@ -326,17 +292,17 @@ export default function ChatWithRooms() {
                     : "self-start bg-gray-200"
                 }`}
                 onClick={() =>
-                  m.user === nickname && m.user !== "system"
-                    ? setSelectedMessageId(m.id === selectedMessageId ? null : m.id)
-                    : null
+                  m.user === nickname ? setSelectedMessageId(m.id) : null
                 }
               >
-                {m.user !== "system" && <div className="text-xs font-semibold opacity-70">{m.user}</div>}
+                {m.user !== "system" && (
+                  <div className="text-xs font-semibold opacity-70">{m.user}</div>
+                )}
                 {m.content}
                 {selectedMessageId === m.id && m.user === nickname && (
                   <button
+                    className="absolute top-0 right-0 text-xs bg-red-400 rounded px-1"
                     onClick={() => deleteMessage(m)}
-                    className="absolute -top-2 -right-2 bg-red-400 text-white text-xs px-2 py-1 rounded"
                   >
                     삭제
                   </button>
@@ -369,6 +335,44 @@ export default function ChatWithRooms() {
           </div>
         )}
       </div>
+
+      {/* 초대 모달 */}
+      {inviteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded shadow-md w-80 flex flex-col gap-2">
+            <h3 className="font-bold">회원 초대</h3>
+            <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
+              {alwaysDisplayed.map((user) => (
+                <label key={user} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={inviteUsers.includes(user)}
+                    onChange={(e) => {
+                      if (e.target.checked) setInviteUsers([...inviteUsers, user]);
+                      else setInviteUsers(inviteUsers.filter((u) => u !== user));
+                    }}
+                  />
+                  {user}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 mt-2">
+              <button
+                className="px-3 py-1 bg-gray-300 rounded"
+                onClick={() => setInviteModalOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                className="px-3 py-1 bg-green-400 rounded font-bold"
+                onClick={inviteToRoom}
+              >
+                초대
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
