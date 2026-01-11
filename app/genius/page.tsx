@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import {
   collection,
@@ -16,6 +17,7 @@ import {
 type Message = { id: string; user: string; content: string; createdAt?: any };
 
 export default function SimpleChat() {
+  const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -37,9 +39,10 @@ export default function SimpleChat() {
     });
   }, []);
 
-  // 메시지 알림 사운드
   useEffect(() => {
-    messageSound.current = new Audio("/sounds/message.mp3");
+   const testSound = new Audio("/sounds/message.wav");
+testSound.play().catch((e) => console.log("재생 실패:", e));
+
   }, []);
 
   // 메시지 구독 + 로컬 저장
@@ -61,13 +64,11 @@ export default function SimpleChat() {
       if (msgs.length > 0) messageSound.current?.play().catch(() => {});
       setMessages(msgs);
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-
       localStorage.setItem(`chat_${roomId}`, JSON.stringify(msgs));
     });
     return () => unsub();
   }, []);
 
-  // 메시지 전송
   const sendMessage = async () => {
     if (!input.trim() || !nickname) return;
 
@@ -78,13 +79,11 @@ export default function SimpleChat() {
       createdAt: new Date(),
     };
 
-    // 로컬 반영
     const updated = [...messages, newMsg];
     setMessages(updated);
     localStorage.setItem(`chat_${roomId}`, JSON.stringify(updated));
     setInput("");
 
-    // Firestore 반영
     await addDoc(collection(db, "rooms", roomId, "messages"), {
       user: nickname,
       content: newMsg.content,
@@ -92,7 +91,6 @@ export default function SimpleChat() {
     });
   };
 
-  // 메시지 삭제 (내 메시지만)
   const deleteMessage = async (msg: Message) => {
     if (!msg.id) return;
 
@@ -113,8 +111,20 @@ export default function SimpleChat() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* 상단 고정 바 */}
+      <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b flex items-center justify-center z-10 px-4">
+        {/* 왼쪽 홈 버튼 */}
+        <button
+          className="absolute left-4 text-xl font-bold"
+          onClick={() => router.push("/home")}
+        >
+          &lt;
+        </button>
+        <span className="font-bold text-lg">와기챗</span>
+      </div>
+
       {/* 메시지 영역 */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1 mt-12">
         {messages.map((m) => (
           <div
             key={m.id}
