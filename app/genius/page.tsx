@@ -40,6 +40,7 @@ export default function ChatWithRooms() {
 
   const alwaysDisplayed = ["관리자", "나율", "프레드"];
 
+  // 로그인 + 계약 확인
   useEffect(() => {
     return auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -68,6 +69,7 @@ export default function ChatWithRooms() {
     messageSound.current = new Audio("/sounds/message.mp3");
   }, []);
 
+  // 방 목록 구독
   useEffect(() => {
     const q = query(collection(db, "rooms"));
     const unsub = onSnapshot(q, (snap) => {
@@ -81,16 +83,15 @@ export default function ChatWithRooms() {
     return () => unsub();
   }, []);
 
+  // 현재 방 메시지 구독 (로컬은 백업용)
   useEffect(() => {
     if (!currentRoomId) return;
-    const localMessages = localStorage.getItem(`chat_${currentRoomId}`);
-    if (localMessages) setMessages(JSON.parse(localMessages));
-    else setMessages([]);
 
     const q = query(
       collection(db, "rooms", currentRoomId, "messages"),
       orderBy("createdAt", "asc")
     );
+
     const unsub = onSnapshot(q, (snap) => {
       const msgs = snap.docs.map((d) => ({
         id: d.id,
@@ -103,21 +104,23 @@ export default function ChatWithRooms() {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(msgs));
     });
+
     return () => unsub();
   }, [currentRoomId]);
 
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentRoomId) return;
+
     const newMsg: Message = {
       id: Date.now().toString(),
       user: nickname,
       content: input.trim(),
       createdAt: new Date(),
     };
-    const updated = [...messages, newMsg];
-    setMessages(updated);
-    localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(updated));
+
+    setMessages([...messages, newMsg]);
     setInput("");
+
     await addDoc(collection(db, "rooms", currentRoomId, "messages"), {
       user: nickname,
       content: newMsg.content,
@@ -127,9 +130,9 @@ export default function ChatWithRooms() {
 
   const deleteMessage = async (msg: Message) => {
     if (msg.user !== nickname || msg.user === "system") return;
-    const updated = messages.filter((m) => m.id !== msg.id);
-    setMessages(updated);
-    localStorage.setItem(`chat_${currentRoomId!}`, JSON.stringify(updated));
+
+    setMessages(messages.filter((m) => m.id !== msg.id));
+
     try {
       const docRef = doc(db, "rooms", currentRoomId!, "messages", msg.id);
       await deleteDoc(docRef);
@@ -152,7 +155,6 @@ export default function ChatWithRooms() {
       const members: string[] = roomSnap.data().members || [];
       if (members.length <= 1) {
         try {
-          // Firestore 방 삭제
           await deleteDoc(docRef);
         } catch {}
       }
@@ -172,7 +174,7 @@ export default function ChatWithRooms() {
         setCurrentRoomId(roomId);
         setShowRoomActions(null);
       } else if (clickCount.current === 2) {
-        // 두 번 클릭 → 탈퇴/초대 버튼 표시
+        // 두 번 클릭 → 탈퇴 버튼 표시
         setShowRoomActions(roomId);
       }
       clickCount.current = 0;
