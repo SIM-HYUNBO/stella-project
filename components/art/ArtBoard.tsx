@@ -26,6 +26,12 @@ type DrawPoint = {
 export default function ArtBoard({ roomId }: { roomId: string }) {
   const [uid, setUid] = useState<string | null>(null);
   const [users, setUsers] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  /* 모바일 체크 */
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 640);
+  }, []);
 
   /* 로그인 */
   useEffect(() => {
@@ -44,13 +50,10 @@ export default function ArtBoard({ roomId }: { roomId: string }) {
     return onSnapshot(q, (snap) => {
       const set = new Set<string>();
       snap.forEach((d) => set.add(d.data().uid));
-      setUid((me) => {
-        if (me) set.add(me);
-        return me;
-      });
+      if (uid) set.add(uid);
       setUsers(Array.from(set));
     });
-  }, [roomId]);
+  }, [roomId, uid]);
 
   if (!uid) return null;
 
@@ -65,7 +68,8 @@ export default function ArtBoard({ roomId }: { roomId: string }) {
         roomId={roomId}
         ownerUid={me}
         me={me}
-        big
+        big={!isMobile}
+        isMobile={isMobile}
       />
 
       {/* 친구 보드 */}
@@ -76,6 +80,7 @@ export default function ArtBoard({ roomId }: { roomId: string }) {
             roomId={roomId}
             ownerUid={u}
             me={me}
+            isMobile={isMobile}
           />
         ))}
       </div>
@@ -89,18 +94,21 @@ function Canvas({
   ownerUid,
   me,
   big = false,
+  isMobile,
 }: {
   roomId: string;
   ownerUid: string;
   me: string;
   big?: boolean;
+  isMobile?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const drawing = useRef(false);
 
-  const scale = big ? 1 : 0.25;
-  const canDraw = ownerUid === me && big;
+  // 모바일이면 항상 작게
+  const scale = isMobile ? 0.25 : big ? 1 : 0.25;
+  const canDraw = ownerUid === me && !isMobile;
 
   /* 초기화 */
   useEffect(() => {
