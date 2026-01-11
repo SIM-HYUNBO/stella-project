@@ -18,7 +18,7 @@ export default function LandingPage() {
       </p>
 
       {/* 버튼 */}
-      <div className="flex gap-10">
+      <div className="flex gap-2">
           <Link
           href="/home"
           className="px-8 py-3 border border-black text-black hover:bg-black hover:text-white transition"

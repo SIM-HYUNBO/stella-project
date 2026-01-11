@@ -21,7 +21,7 @@ const Header = () => {
         />
 
         <span
-          className={`${jua.className} text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-wide`}
+          className={`${jua.className} text-5xl bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 dark:text-white tracking-tight `}
         >
           WAGIE
         </span>
