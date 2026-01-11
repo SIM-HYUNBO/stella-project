@@ -206,9 +206,17 @@ export default function HamburgerMenuWithDelete() {
           >
             {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
           </button>
-        </div>
+       
+       
+  <Link
+            href="/home"
+            className="text-center text-orange-400 hover:underline"
+          >
+            초등 와기로 이동
+          </Link>
+           </div>
       )}
-
+       
       {/* 계정 탈퇴 모달 */}
       {confirmDeleteOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

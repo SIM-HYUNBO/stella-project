@@ -86,13 +86,13 @@ export default function Home() {
 
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-          <h1 className="text-[2.5rem]  text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
+          <h1 className="text-[2rem]  text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
             We are Genius in Everything.
           </h1>
 
           <HamburgerMenu />
 
-          <h2 className="text-xl text-orange-900 dark:text-white ml-11 mt-5">
+          <h2 className="text-lg text-orange-900 dark:text-white ml-11 mt-5">
             Good Luck! You found our page.
             <br />
             You can check the tips about studying here. Be a genius!

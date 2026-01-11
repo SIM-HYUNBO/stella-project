@@ -8,128 +8,105 @@ import HamburgerMenu from "../../components/hamburgermenu";
 import Link from "next/link";
 import { watchAuthState } from "../authService";
 import { User } from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs,
-  query,
-  limit,
-  orderBy,
-} from "firebase/firestore";
-import { db } from "@/app/firebase";
 import CommentBox from "../../components/CommentBox";
 
-interface UserProfile {
-  uid: string;
-  nickname: string;
-  grade: "초등" | "중등";
-}
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Home() {
   const { theme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [postId, setPostId] = useState<string | null>(null);
+  const [showAuthCard, setShowAuthCard] = useState(false);
 
-  // 로그인 상태 + 유저 정보
+  // ✅ 로그인된 일반 유저 수
+  const [onlineUserCount, setOnlineUserCount] = useState(0);
+
+  // ✅ 로그인 상태 추적
   useEffect(() => {
-    const unsubscribe = watchAuthState(async (u) => {
+    const unsubscribe = watchAuthState((u) => {
       setUser(u);
-
-      if (u) {
-        const userDoc = await getDoc(doc(db, "users", u.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserProfile({
-            uid: u.uid,
-            nickname: data.nickname || "익명",
-            grade: data.grade || "초등",
-          });
-        }
-      } else {
-        setUserProfile(null);
-      }
     });
-
     return () => unsubscribe();
   }, []);
 
-  // 첫 게시글 id
+  // ✅ 로그인된 유저 수 실시간 감지
   useEffect(() => {
-    const fetchFirstPost = async () => {
-      const postsCol = collection(db, "posts");
-      const q = query(postsCol, orderBy("createdAt", "desc"), limit(1));
-      const snap = await getDocs(q);
+    const q = query(
+      collection(db, "users"),
+      where("online", "==", true)
+    );
 
-      if (!snap.empty) {
-        setPostId(snap.docs[0].id);
-      }
-    };
+    const unsub = onSnapshot(q, (snap) => {
+      const normalUsers = snap.docs.filter(
+        (doc) => doc.data().nickname !== "관리자"
+      );
+      setOnlineUserCount(normalUsers.length);
+    });
 
-    fetchFirstPost();
+    return () => unsub();
   }, []);
 
-  // 로딩
+  // ✅ 로딩 처리
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 700);
     return () => clearTimeout(timer);
   }, []);
 
+  // ✅ 홈 진입 시 자동 카드 표시
+  useEffect(() => {
+    if (!loading && !user) {
+      setShowAuthCard(true);
+    }
+  }, [loading, user]);
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-white dark:bg-gray-900">
+      <div className="flex justify-center items-center min-h-screen bg-white">
         Loading...
       </div>
     );
   }
 
+  const isAdmin = user?.displayName === "관리자";
+
   return (
     <PageContainer>
-      <div className="fixed top-5 right-20 z-50">
-  <Link href="/pro">
-    <span className="px-6 py-3 bg-red-50 text-red-900 hover:bg-red-100 rounded-3xl border border-red-400 block">
-      Pro 구입
-    </span>
-  </Link>
+      {/* 오른쪽 버튼 영역 */}
+      <div className="fixed top-5 right-20 z-50 flex items-center gap-2 mt-2">
+        <Link href="/pro">
+          <span className="px-3 py-2 text-sm bg-red-50 text-red-900 rounded-3xl border border-red-400">
+            Pro 구입
+          </span>
+        </Link>
 
-        {/* 로그인 버튼은 로그인 안했을 때만 */}
-        {!user && (
-          <Link href="/login">
-            <span className="px-6 py-3 bg-yellow-50 text-orange-900 hover:bg-yellow-100 rounded-3xl sticky border border-yellow-400 block text-center">
-              로그인
-            </span>
-          </Link>
-        )}
+       
+      
       </div>
+
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-          <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
+          <h1 className="text-[2rem]  text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
             We are Genius in Everything.
           </h1>
 
-          {/* ❗ 햄버거 그대로 */}
           <HamburgerMenu />
 
-          <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
+          <h2 className="text-lg text-orange-900 dark:text-white ml-11 mt-5">
             Good Luck! You found our page.
             <br />
             You can check the tips about studying here. Be a genius!
-          </h1>
+          </h2>
 
           <div className="w-full">
-            <div>
-              <Image
-                src="/images/sim.gif"
-                alt="설명 텍스트"
-                width={300}
-                height={300}
-                className="ml-10 mt-3 mb-3 rounded-xl"
-              />
-            </div>
+            <Image
+              src="/images/sim.gif"
+              alt="설명 텍스트"
+              width={300}
+              height={300}
+              className="ml-10 mt-3 mb-3 rounded-xl"
+            />
 
-            {/* ✅ 항상 표시 + 이미지 바로 아래 */}
             <Link
               href="/board"
               className="ml-10 inline-block px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-400"
@@ -138,24 +115,56 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* 댓글창 (조건 그대로) */}
-          <div className="ml-10 mt-5">
-  {postId ? (
-    <CommentBox
-      postId={postId} // 실제 Firebase 문서 ID
-      userProfile={
-        userProfile || {
-          uid: "test",
-          nickname: "테스트유저",
-        }
-      }
-    />
-  ) : (
-    <p className="text-gray-500">댓글을 불러오는 중...</p>
-          )}
+          <div className="mt-7 ml-10">
+            <CommentBox
+              postId="home"
+              userProfile={
+                user
+                  ? {
+                      uid: user.uid,
+                      nickname: user.displayName || "익명",
+                    }
+                  : null
+              }
+            />
+          </div>
         </div>
       </div>
-      </div>
+
+      {/* 로그인 유도 카드 */}
+      {!user && showAuthCard && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-[360px] text-center">
+            <h2 className="text-lg font-bold mb-4 text-orange-900">
+              WAGIE를 무제한으로 이용하고 싶다고요?
+            </h2>
+            <h2 className="text-sm mb-4 text-orange-900">
+              로그인하여 더 많은 것을 누려보세요!
+            </h2>
+
+            <div className="flex flex-col gap-3">
+              <Link href="/login">
+                <span className="py-3 rounded-xl bg-orange-300 text-white hover:bg-orange-400 block">
+                  로그인
+                </span>
+              </Link>
+
+              <Link href="/signup">
+                <span className="py-3 rounded-xl bg-red-100 text-orange-900 border border-red-400 hover:bg-red-200 block">
+                  회원가입
+                </span>
+              </Link>
+
+              <button
+                onClick={() => setShowAuthCard(false)}
+                className="py-3 text-orange-800 hover:underline"
+              >
+                로그아웃 상태 유지
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 }
