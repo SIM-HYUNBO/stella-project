@@ -10,13 +10,10 @@ export default function PricingCard() {
         {/* Premium - 인기 */}
         <div className="relative bg-white rounded-2xl shadow-lg p-6 w-72 text-center hover:scale-105 transform transition">
           {/* 인기 뱃지 */}
-          <span className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-orange-900 text-sm font-bold px-3 py-1 rounded-full shadow-lg">
-            🔥 인기
-          </span>
-
-          <h2 className="text-2xl font-bold mb-2 mt-8">Premium</h2>
+          
+          <h2 className="text-2xl font-bold mb-2">Premium</h2>
           <p className="text-gray-500 mb-4">월간 구독</p>
-          <p className="text-4xl font-extrabold mb-4">5,000원</p>
+          <p className="text-4xl font-extrabold mb-4">3,000원</p>
           <ul className="text-gray-600 mb-6 text-left">
             <li>✔ 무제한 사용</li>
             <li>✔ 특별 WAGIE 초대</li>
@@ -35,7 +32,7 @@ export default function PricingCard() {
         <div className="bg-white rounded-2xl shadow-lg p-6 w-72 text-center hover:scale-105 transform transition">
           <h2 className="text-2xl font-bold mb-2">Pro</h2>
           <p className="text-gray-500 mb-4">월간 구독</p>
-          <p className="text-4xl font-extrabold mb-4">3,000원</p>
+          <p className="text-4xl font-extrabold mb-4">990원</p>
           <ul className="text-gray-600 mb-6 text-left">
             <li>✔ 무제한 사용</li>
             <li>✔ 특별 기능 제공</li>
@@ -49,27 +46,11 @@ export default function PricingCard() {
           </Link>
         </div>
 
-        {/* Basic */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 w-72 text-center hover:scale-105 transform transition">
-          <h2 className="text-2xl font-bold mb-2">Basic</h2>
-          <p className="text-gray-500 mb-4">월간 구독</p>
-          <p className="text-4xl font-extrabold mb-4">990원</p>
-          <ul className="text-gray-600 mb-6 text-left">
-            <li>✔ 무제한 사용</li>
-            <li>✔ 고급 기능 제공</li>
-            <li>✔ 일반 학습용</li>
-          </ul>
-          <Link
-            href="/signup"
-            className="inline-block w-full py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition"
-          >
-            구독하기
-          </Link>
-        </div>
+      
 
         {/* Lite */}
         <div className="bg-white rounded-2xl shadow-lg p-6 w-72 text-center hover:scale-105 transform transition">
-          <h2 className="text-2xl font-bold mb-2">Lite</h2>
+          <h2 className="text-2xl font-bold mb-2">Basic</h2>
           <p className="text-gray-500 mb-4">월간 구독</p>
           <p className="text-4xl font-extrabold mb-4">0원</p>
           <ul className="text-gray-600 mb-6 text-left">
