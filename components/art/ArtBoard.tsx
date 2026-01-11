@@ -4,103 +4,119 @@ import { useEffect, useRef, useState } from "react";
 import { db, auth } from "@/app/firebase";
 import {
   collection,
-  doc,
-  setDoc,
   addDoc,
   onSnapshot,
-  serverTimestamp,
   query,
   orderBy,
+  deleteDoc,
+  getDocs,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
-type User = {
+/* ================= 타입 ================= */
+type DrawPoint = {
+  x: number;
+  y: number;
+  color: string;
+  size: number;
   uid: string;
-  nickname: string;
 };
 
+/* ================= 메인 ================= */
 export default function ArtBoard({ roomId }: { roomId: string }) {
-  const [me, setMe] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [uid, setUid] = useState<string | null>(null);
+  const [users, setUsers] = useState<string[]>([]);
 
   /* 로그인 */
   useEffect(() => {
-    return onAuthStateChanged(auth, async (u) => {
-      if (!u) return;
-
-      const nickname = u.displayName || "익명";
-      setMe({ uid: u.uid, nickname });
-
-      await setDoc(
-        doc(db, "artRooms", roomId, "users", u.uid),
-        { nickname },
-        { merge: true }
-      );
+    return onAuthStateChanged(auth, (u) => {
+      if (u) setUid(u.uid);
     });
-  }, [roomId]);
+  }, []);
 
-  /* 유저 목록 */
+  /* 참여자 수집 */
   useEffect(() => {
-    const q = collection(db, "artRooms", roomId, "users");
+    const q = query(
+      collection(db, "art", roomId, "points"),
+      orderBy("createdAt", "asc")
+    );
+
     return onSnapshot(q, (snap) => {
-      setUsers(
-        snap.docs.map((d) => ({
-          uid: d.id,
-          nickname: d.data().nickname,
-        }))
-      );
+      const set = new Set<string>();
+      snap.forEach((d) => set.add(d.data().uid));
+      setUid((me) => {
+        if (me) set.add(me);
+        return me;
+      });
+      setUsers(Array.from(set));
     });
   }, [roomId]);
 
-  if (!me) return null;
+  if (!uid) return null;
+
+  const me = uid;
+  const others = users.filter((u) => u !== me);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-amber-50">
-      {users.map((u) => (
-        <UserCanvas
-          key={u.uid}
-          roomId={roomId}
-          user={u}
-          isMe={u.uid === me.uid}
-        />
-      ))}
+    <div className="p-2 bg-amber-50">
+
+      {/* 내 보드 */}
+      <Canvas
+        roomId={roomId}
+        ownerUid={me}
+        me={me}
+        big
+      />
+
+      {/* 친구 보드 */}
+      <div className="flex gap-2 mt-3 overflow-x-auto">
+        {others.map((u) => (
+          <Canvas
+            key={u}
+            roomId={roomId}
+            ownerUid={u}
+            me={me}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
 /* ================= 캔버스 ================= */
-
-function UserCanvas({
+function Canvas({
   roomId,
-  user,
-  isMe,
+  ownerUid,
+  me,
+  big = false,
 }: {
   roomId: string;
-  user: User;
-  isMe: boolean;
+  ownerUid: string;
+  me: string;
+  big?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const drawing = useRef(false);
 
-  /* canvas 초기화 */
+  const scale = big ? 1 : 0.25;
+  const canDraw = ownerUid === me && big;
+
+  /* 초기화 */
   useEffect(() => {
     const canvas = canvasRef.current!;
-    canvas.width = canvas.offsetWidth;
-    canvas.height = 260;
+    canvas.width = 600 * scale;
+    canvas.height = 360 * scale;
 
     const ctx = canvas.getContext("2d")!;
-    ctx.lineWidth = 3;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#000";
-
     ctxRef.current = ctx;
-  }, []);
+  }, [scale]);
 
-  /* stroke 수신 */
+  /* 실시간 수신 */
   useEffect(() => {
     const q = query(
-      collection(db, "artRooms", roomId, "users", user.uid, "strokes"),
+      collection(db, "art", roomId, "points"),
       orderBy("createdAt", "asc")
     );
 
@@ -108,71 +124,74 @@ function UserCanvas({
       const ctx = ctxRef.current;
       if (!ctx) return;
 
-      snap.docChanges().forEach((c) => {
-        const { x, y, type } = c.doc.data();
-        if (type === "start") {
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-        }
-        if (type === "draw") {
-          ctx.lineTo(x, y);
-          ctx.stroke();
-        }
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      snap.forEach((d) => {
+        const p = d.data() as DrawPoint;
+        if (p.uid !== ownerUid) return;
+
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.size * scale;
+        ctx.beginPath();
+        ctx.lineTo(p.x * scale, p.y * scale);
+        ctx.stroke();
       });
     });
-  }, [roomId, user.uid]);
+  }, [roomId, ownerUid, scale]);
 
   /* 좌표 */
   const pos = (e: any) => {
-    const r = canvasRef.current!.getBoundingClientRect();
-    const t = e.touches?.[0];
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
     return {
-      x: (t ? t.clientX : e.clientX) - r.left,
-      y: (t ? t.clientY : e.clientY) - r.top,
+      x: (t.clientX - rect.left) / scale,
+      y: (t.clientY - rect.top) / scale,
     };
   };
 
-  const start = async (e: any) => {
-    if (!isMe) return;
-    e.preventDefault();
-    drawing.current = true;
+  /* 그리기 */
+  const draw = async (e: any) => {
+    if (!drawing.current || !canDraw) return;
     const { x, y } = pos(e);
 
-    await addDoc(
-      collection(db, "artRooms", roomId, "users", user.uid, "strokes"),
-      { x, y, type: "start", createdAt: serverTimestamp() }
-    );
+    await addDoc(collection(db, "art", roomId, "points"), {
+      x,
+      y,
+      color: "#000",
+      size: 4,
+      uid: me,
+      createdAt: Date.now(),
+    });
   };
 
-  const move = async (e: any) => {
-    if (!drawing.current || !isMe) return;
-    e.preventDefault();
-    const { x, y } = pos(e);
-
-    await addDoc(
-      collection(db, "artRooms", roomId, "users", user.uid, "strokes"),
-      { x, y, type: "draw", createdAt: serverTimestamp() }
-    );
+  /* 전체 지우기 (내 보드만) */
+  const clearAll = async () => {
+    if (!canDraw) return;
+    const snap = await getDocs(collection(db, "art", roomId, "points"));
+    snap.forEach((d) => deleteDoc(d.ref));
   };
-
-  const end = () => (drawing.current = false);
 
   return (
-    <div className="bg-white rounded-xl p-2 shadow">
-      <div className="text-xs mb-1 font-bold text-center">
-        {user.nickname} {isMe && "(나)"}
-      </div>
+    <div>
+      {canDraw && (
+        <button
+          onClick={clearAll}
+          className="mb-1 text-xs bg-red-400 px-2 py-1 rounded text-white"
+        >
+          전체 지우기
+        </button>
+      )}
 
       <canvas
         ref={canvasRef}
-        className="w-full rounded border touch-none"
-        onMouseDown={start}
-        onMouseMove={move}
-        onMouseUp={end}
-        onMouseLeave={end}
-        onTouchStart={start}
-        onTouchMove={move}
-        onTouchEnd={end}
+        className="bg-white border rounded-xl touch-none"
+        onMouseDown={() => (drawing.current = true)}
+        onMouseUp={() => (drawing.current = false)}
+        onMouseLeave={() => (drawing.current = false)}
+        onMouseMove={draw}
+        onTouchStart={() => (drawing.current = true)}
+        onTouchEnd={() => (drawing.current = false)}
+        onTouchMove={draw}
       />
     </div>
   );
