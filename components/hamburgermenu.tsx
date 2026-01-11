@@ -154,6 +154,12 @@ export default function HamburgerMenuWithDelete() {
                   >
                     ✏️ 편집
                   </button>
+                    <button
+                    onClick={() => router.push("/genius")}
+                    className="w-full text-left"
+                  >
+                    👤 천왁즈
+                  </button>
                   <button
                     onClick={() => signOut(auth)}
                     className="w-full text-left text-red-500 font-medium"
