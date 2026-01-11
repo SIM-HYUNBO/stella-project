@@ -62,11 +62,11 @@ export default function HamburgerMenuWithDelete() {
       ) {
         setMenuOpen(false);
         setProfileMenuOpen(false);
-        // setConfirmDeleteOpen(false); <- 이제 입력창 클릭에도 모달 안 닫힘
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleDeleteAccount = async () => {
@@ -82,16 +82,13 @@ export default function HamburgerMenuWithDelete() {
       await deleteUser(user);
 
       alert("계정이 성공적으로 삭제되었습니다.");
-
-      // 탈퇴 후 로그아웃 상태 홈으로 이동
-      signOut(auth);
-      router.push("/"); // 홈 화면
+      await signOut(auth);
+      router.push("/");
     } catch (err: any) {
-      console.error(err);
       if (err.code === "auth/wrong-password") {
         alert("비밀번호가 올바르지 않습니다.");
       } else if (err.code === "auth/requires-recent-login") {
-        alert("보안상 최근 로그인 후에만 탈퇴 가능합니다. 다시 로그인해주세요.");
+        alert("최근 로그인 후 다시 시도해주세요.");
       } else {
         alert("계정 삭제 중 오류가 발생했습니다.");
       }
@@ -113,124 +110,127 @@ export default function HamburgerMenuWithDelete() {
           setProfileMenuOpen(false);
           setConfirmDeleteOpen(false);
         }}
-        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 dark:bg-slate-600 border rounded-xl shadow-md hover:shadow-xl transition z-50"
+        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 dark:bg-slate-600 border rounded-xl shadow-md z-50"
       >
-        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded"></span>
-        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded"></span>
-        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded"></span>
+        <span className="h-1 bg-[#4a342a] dark:bg-white rounded" />
+        <span className="h-1 bg-[#4a342a] dark:bg-white rounded" />
+        <span className="h-1 bg-[#4a342a] dark:bg-white rounded" />
       </button>
 
-      {/* 메뉴 */}
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-20 right-4 bg-amber-50 dark:bg-slate-700 shadow-xl rounded-2xl px-6 py-5 z-40 flex flex-col gap-4 w-60 border border-amber-200 dark:border-slate-500"
+          className="fixed top-20 right-4 w-60 bg-amber-50 dark:bg-slate-700 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
-          {user && (
+          {/* 로그인 상태 */}
+          {user ? (
+            <>
+              <button
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-600"
+              >
+                <TextAvatar
+                  nickname={nickname || "유저"}
+                  size={48}
+                  profileImage={profileImage}
+                />
+                <span className="font-semibold">
+                  {nickname || "유저"}
+                </span>
+              </button>
+
+              {profileMenuOpen && (
+                <div
+                  ref={profileRef}
+                  className="bg-amber-100 dark:bg-slate-600 rounded-xl px-4 py-3 space-y-2"
+                >
+                  <button
+                    onClick={() => router.push("/profile/edit")}
+                    className="w-full text-left"
+                  >
+                    ✏️ 편집
+                  </button>
+                  <button
+                    onClick={() => signOut(auth)}
+                    className="w-full text-left text-red-500"
+                  >
+                    🚪 로그아웃
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteOpen(true)}
+                    className="w-full text-left text-red-700"
+                  >
+                    🛑 계정 탈퇴
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
             <button
-              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="w-full flex items-center gap-3 hover:bg-amber-100 dark:hover:bg-slate-600 p-2 rounded-xl transition"
+              onClick={() => router.push("/login")}
+              className="px-6 py-2 rounded-2xl bg-amber-300 font-semibold"
             >
-              <TextAvatar
-                nickname={nickname || "유저"}
-                size={48}
-                profileImage={profileImage}
-              />
-              <span className="text-[#4a342a] dark:text-white text-lg font-semibold">
-                {nickname || "유저"}
-              </span>
+              🔐 로그인
             </button>
           )}
 
-          {profileMenuOpen && (
-            <div
-              ref={profileRef}
-              className="bg-amber-100 dark:bg-slate-600 w-full rounded-xl px-4 py-3 space-y-3 shadow-inner"
-            >
-              <button
-                onClick={() => {
-                  router.push("/profile/edit");
-                  setMenuOpen(false);
-                }}
-                className="w-full text-left text-[#4a342a] dark:text-white font-medium hover:opacity-70 transition"
-              >
-                ✏️ 편집
-              </button>
-              <button
-                onClick={() => signOut(auth)}
-                className="w-full text-left text-red-500 hover:opacity-70 font-medium transition"
-              >
-                🚪 로그아웃
-              </button>
-              <button
-                onClick={() => setConfirmDeleteOpen(true)}
-                className="w-full text-left text-red-700 hover:opacity-70 font-medium transition"
-              >
-                🛑 계정 탈퇴
-              </button>
-            </div>
-          )}
-
-          {/* 메뉴 링크 */}
+          {/* 공통 메뉴 */}
           {[
-            { href: "/home", label: "🏠 Home" },
-            { href: "/Clips", label: "🎬 Clips" },
-            { href: "/Notes", label: "📝 Notes" },
-            { href: "/study", label: "📚 Study" },
-            { href: "/contact", label: "📩 Contact" },
-          ].map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMenuOpen(false)}
-              className="text-[#4a342a] dark:text-white font-medium hover:bg-amber-100 dark:hover:bg-slate-600 p-2 rounded-xl transition"
-            >
+            ["/home", "🏠 Home"],
+            ["/Clips", "🎬 Clips"],
+            ["/Notes", "📝 Notes"],
+            ["/study", "📚 Study"],
+            ["/contact", "📩 Contact"],
+          ].map(([href, label]) => (
+            <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
               {label}
             </Link>
           ))}
 
           <button
-            onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
-            className="mt-2 inline-flex items-center justify-center py-2 px-4 bg-amber-200 dark:bg-slate-500 rounded-xl shadow hover:shadow-lg transition text-[#4a342a] dark:text-white font-semibold"
+            onClick={() =>
+              setTheme(currentTheme === "dark" ? "light" : "dark")
+            }
+            className="py-2 rounded-xl bg-amber-200 dark:bg-slate-500"
           >
             {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
           </button>
-                <Link
+
+          {/* ⭐ 중등 와기 이동 */}
+          <Link
             href="/m-home"
-            className="px-6 py-3 text-orange-400 hover:underline rounded-xl text-center"
+            className="text-center text-orange-400 hover:underline"
           >
             중등 와기로 이동
           </Link>
         </div>
       )}
 
-      {/* 계정 탈퇴 모달 */}
+      {/* 탈퇴 모달 */}
       {confirmDeleteOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-slate-700 rounded-xl p-6 w-80 shadow-lg flex flex-col gap-4">
-            <h2 className="text-xl font-bold text-red-600">정말로 탈퇴하시겠습니까?</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              탈퇴 시 계정을 복구할 수 없습니다.
-            </p>
-            {/* 입력창 클릭해도 모달 안닫힘 */}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-700 p-6 rounded-xl w-80 space-y-4">
+            <h2 className="text-red-600 font-bold text-lg">
+              정말 탈퇴하시겠습니까?
+            </h2>
             <input
               type="password"
               placeholder="비밀번호 입력"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="border rounded px-3 py-2 mt-2 w-full"
+              className="w-full border px-3 py-2 rounded"
             />
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={handleDeleteAccount}
-                className={`px-4 py-2 bg-red-600 text-white rounded ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={loading}
+                className="bg-red-600 text-white px-4 py-2 rounded"
               >
                 예
               </button>
               <button
                 onClick={() => setConfirmDeleteOpen(false)}
-                className="px-4 py-2 bg-gray-300 text-black rounded"
+                className="bg-gray-300 px-4 py-2 rounded"
               >
                 아니오
               </button>

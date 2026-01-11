@@ -81,24 +81,18 @@ export default function Home() {
         </Link>
 
        
-        {!user && (
-          <Link href="/login">
-            <span className="px-3 py-2 text-sm bg-yellow-50 text-orange-900 rounded-3xl border border-yellow-400">
-              로그인
-            </span>
-          </Link>
-        )}
+      
       </div>
 
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-          <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
+          <h1 className="text-[2.5rem]  text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
             We are Genius in Everything.
           </h1>
 
           <HamburgerMenu />
 
-          <h2 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5">
+          <h2 className="text-xl text-orange-900 dark:text-white ml-11 mt-5">
             Good Luck! You found our page.
             <br />
             You can check the tips about studying here. Be a genius!
