@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import ArtBoard from "../../components/art";
 import { auth, db } from "@/app/firebase";
-import { onAuthStateChanged } from "firebase/auth";
 import {
   doc,
   getDoc,
@@ -15,44 +13,139 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-type Message = {
-  id: string;
-  user: string;
-  content: string;
-  createdAt?: any;
-};
-
+// 🔹 타입 정의
+type Message = { id: string; user: string; content: string; createdAt?: any };
 type Category = "공부" | "미술" | "노래/댄스" | "얼굴";
+type Point = { x: number; y: number; color: string; size: number; uid: string; createdAt: any };
 
-export default function ChatWithFirestore() {
+// 🔹 ArtBoard 컴포넌트
+function ArtBoard({ roomId, nickname }: { roomId: string; nickname: string }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [color, setColor] = useState("#000000");
+  const [size, setSize] = useState(4);
+  const [points, setPoints] = useState<Point[]>([]);
+  const [windowWidth, setWindowWidth] = useState<number>(0);
+
+  // 화면 크기
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = 200;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.lineCap = "round";
+    ctxRef.current = ctx;
+  }, []);
+
+  // 실시간 그림 불러오기
+  useEffect(() => {
+    const q = query(collection(db, "art", roomId, "points"), orderBy("createdAt", "asc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const ctx = ctxRef.current;
+      if (!ctx) return;
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const p = change.doc.data() as Point;
+          const scale = p.uid === nickname ? 1 : 1 / 16;
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = p.size * scale;
+          ctx.beginPath();
+          ctx.moveTo(p.x * scale, p.y * scale);
+          ctx.lineTo(p.x * scale, p.y * scale);
+          ctx.stroke();
+        }
+      });
+    });
+    return () => unsub();
+  }, [nickname, roomId]);
+
+  const getPos = (e: any) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const startDraw = () => setDrawing(true);
+  const endDraw = () => setDrawing(false);
+
+  const draw = async (e: any) => {
+    if (!drawing) return;
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    const { x, y } = getPos(e);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    await addDoc(collection(db, "art", roomId, "points"), {
+      x, y, color, size, uid: nickname, createdAt: serverTimestamp()
+    });
+  };
+
+  return (
+    <div className="mb-2">
+      <div className="flex gap-2 mb-1 items-center">
+        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+        <input type="range" min={2} max={20} value={size} onChange={(e) => setSize(Number(e.target.value))} />
+      </div>
+      <canvas
+        ref={canvasRef}
+        className="w-full bg-white border rounded-xl"
+        onMouseDown={startDraw}
+        onMouseUp={endDraw}
+        onMouseLeave={endDraw}
+        onMouseMove={draw}
+      />
+    </div>
+  );
+}
+
+// 🔹 메인 채팅 + 미술
+export default function ChatWithArtRoom() {
   const [nickname, setNickname] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [category, setCategory] = useState<Category>("공부");
+  const [isContracted, setIsContracted] = useState<boolean | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const prevMessageCount = useRef(0);
 
-  /* 로그인 + 닉네임 */
+  // 🔹 로그인 + 계약 확인
   useEffect(() => {
-    return onAuthStateChanged(auth, async (user) => {
-      if (!user) return setNickname(null);
-
+    return auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        setNickname(null);
+        setIsContracted(false);
+        return;
+      }
       const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists()) setNickname(snap.data().nickname || "유저");
+      if (snap.exists()) {
+        setNickname(snap.data().nickname || "유저");
+        setIsContracted(!!snap.data().isContracted);
+      } else {
+        setNickname("유저");
+        setIsContracted(false);
+      }
     });
   }, []);
 
-  /* 수신음 */
+  // 🔹 수신음
   useEffect(() => {
     messageSound.current = new Audio("/sounds/message.mp3");
   }, []);
 
-  /* 메시지 구독 */
+  // 🔹 메시지 구독
   useEffect(() => {
     if (!nickname) return;
-
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
     return onSnapshot(q, (snap) => {
       const msgs = snap.docs.map((d) => ({
@@ -61,14 +154,9 @@ export default function ChatWithFirestore() {
         content: d.data().content,
         createdAt: d.data().createdAt,
       }));
-
-      if (
-        msgs.length > prevMessageCount.current &&
-        msgs[msgs.length - 1]?.user !== nickname
-      ) {
+      if (msgs.length > prevMessageCount.current && msgs[msgs.length - 1]?.user !== nickname) {
         messageSound.current?.play().catch(() => {});
       }
-
       prevMessageCount.current = msgs.length;
       setMessages(msgs);
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -77,7 +165,6 @@ export default function ChatWithFirestore() {
 
   const sendMessage = async () => {
     if (!input.trim() || !nickname) return;
-
     await addDoc(collection(db, "messages"), {
       user: nickname,
       content: input.trim(),
@@ -86,19 +173,36 @@ export default function ChatWithFirestore() {
     setInput("");
   };
 
-  if (!nickname) {
-    return <div className="fixed inset-0 flex items-center justify-center">로그인 필요</div>;
-  }
+  // 🔹 계약 미가입 처리
+ const alwaysAllowed = ["관리자", "나율", "프레드"];
+
+if (!nickname) return <div>로딩중...</div>;
+
+if (!alwaysAllowed.includes(nickname) && isContracted === false) {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+      <p className="mb-4 text-lg">계약 회원만 이용할 수 있습니다.</p>
+      <button
+        onClick={() => window.location.href="/contract"}
+        className="px-4 py-2 rounded bg-amber-400 font-bold"
+      >
+        계약하러 가기
+      </button>
+    </div>
+  );
+}
+
+
+  if (!nickname || isContracted === null) return <div>로딩중...</div>;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white">
+    <div className="flex flex-col fixed inset-0 bg-white">
 
       {/* 상단 */}
       <div className="bg-amber-100 border-b">
         <div className="h-12 flex items-center justify-center font-extrabold">
           천왁즈 · {category}
         </div>
-
         <div className="flex justify-around pb-2">
           {["공부", "미술", "노래/댄스", "얼굴"].map((t) => (
             <button
@@ -113,13 +217,9 @@ export default function ChatWithFirestore() {
           ))}
         </div>
 
-     {category === "미술" && (
-  <div className="px-4 py-2">
-    <ArtBoard roomId="global-room" />
-  </div>
-)}
-
-
+        {category === "미술" && (
+          <ArtBoard roomId="global-room" nickname={nickname} />
+        )}
       </div>
 
       {/* 채팅 */}
@@ -145,6 +245,7 @@ export default function ChatWithFirestore() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           className="flex-1 rounded-xl px-4 py-2 border"
+          placeholder="메시지 입력..."
         />
         <button
           onClick={sendMessage}
