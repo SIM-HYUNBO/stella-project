@@ -7,12 +7,12 @@ import {
   getDoc,
   collection,
   addDoc,
+  deleteDoc,
   updateDoc,
+  serverTimestamp,
   query,
   orderBy,
   onSnapshot,
-  serverTimestamp,
-  arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
 
@@ -30,16 +30,16 @@ export default function ChatWithRooms() {
   const [contractUsers, setContractUsers] = useState<string[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
-  const [longPressedRoomId, setLongPressedRoomId] = useState<string | null>(null);
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [inviteUsers, setInviteUsers] = useState<string[]>([]);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [showRoomActions, setShowRoomActions] = useState<string | null>(null);
 
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+  const clickCount = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageSound = useRef<HTMLAudioElement | null>(null);
 
   const alwaysDisplayed = ["관리자", "나율", "프레드"];
 
-  // 로그인 + 계약 확인
   useEffect(() => {
     return auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -52,12 +52,10 @@ export default function ChatWithRooms() {
         const nick = snap.data().nickname || "유저";
         setNickname(nick);
         setIsContracted(!!snap.data().isContracted);
-
-        // 계약 회원 목록 가져오기
         const usersSnap = await getDoc(doc(db, "meta", "contractUsers"));
         if (usersSnap.exists()) {
           const allUsers: string[] = usersSnap.data().users || [];
-          setContractUsers(Array.from(new Set(allUsers))); // 중복 제거
+          setContractUsers(Array.from(new Set(allUsers)));
         }
       } else {
         setNickname("유저");
@@ -70,7 +68,6 @@ export default function ChatWithRooms() {
     messageSound.current = new Audio("/sounds/message.mp3");
   }, []);
 
-  // 방 목록 구독
   useEffect(() => {
     const q = query(collection(db, "rooms"));
     const unsub = onSnapshot(q, (snap) => {
@@ -84,9 +81,12 @@ export default function ChatWithRooms() {
     return () => unsub();
   }, []);
 
-  // 메시지 구독
   useEffect(() => {
     if (!currentRoomId) return;
+    const localMessages = localStorage.getItem(`chat_${currentRoomId}`);
+    if (localMessages) setMessages(JSON.parse(localMessages));
+    else setMessages([]);
+
     const q = query(
       collection(db, "rooms", currentRoomId, "messages"),
       orderBy("createdAt", "asc")
@@ -98,21 +98,85 @@ export default function ChatWithRooms() {
         content: d.data().content,
         createdAt: d.data().createdAt,
       }));
-      messageSound.current?.play().catch(() => {});
+      if (msgs.length > 0) messageSound.current?.play().catch(() => {});
       setMessages(msgs);
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(msgs));
     });
     return () => unsub();
   }, [currentRoomId]);
 
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentRoomId) return;
-    await addDoc(collection(db, "rooms", currentRoomId, "messages"), {
+    const newMsg: Message = {
+      id: Date.now().toString(),
       user: nickname,
       content: input.trim(),
+      createdAt: new Date(),
+    };
+    const updated = [...messages, newMsg];
+    setMessages(updated);
+    localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(updated));
+    setInput("");
+    await addDoc(collection(db, "rooms", currentRoomId, "messages"), {
+      user: nickname,
+      content: newMsg.content,
       createdAt: serverTimestamp(),
     });
-    setInput("");
+  };
+
+  const deleteMessage = async (msg: Message) => {
+    if (msg.user !== nickname || msg.user === "system") return;
+    const updated = messages.filter((m) => m.id !== msg.id);
+    setMessages(updated);
+    localStorage.setItem(`chat_${currentRoomId!}`, JSON.stringify(updated));
+    try {
+      const docRef = doc(db, "rooms", currentRoomId!, "messages", msg.id);
+      await deleteDoc(docRef);
+    } catch (e) {
+      console.warn("Firestore 메시지 삭제 실패", e);
+    }
+    setSelectedMessageId(null);
+  };
+
+  const leaveRoom = async (roomId: string) => {
+    if (!nickname) return;
+    const docRef = doc(db, "rooms", roomId);
+    await updateDoc(docRef, {
+      members: arrayRemove(nickname),
+    });
+
+    // 방 혼자 남으면 삭제
+    const roomSnap = await getDoc(docRef);
+    if (roomSnap.exists()) {
+      const members: string[] = roomSnap.data().members || [];
+      if (members.length <= 1) {
+        try {
+          // Firestore 방 삭제
+          await deleteDoc(docRef);
+        } catch {}
+      }
+    }
+
+    if (currentRoomId === roomId) setCurrentRoomId(null);
+    setShowRoomActions(null);
+  };
+
+  const handleRoomClick = (roomId: string) => {
+    clickCount.current += 1;
+    if (clickTimeout.current) clearTimeout(clickTimeout.current);
+
+    clickTimeout.current = setTimeout(() => {
+      if (clickCount.current === 1) {
+        // 한 번 클릭 → 채팅 시작
+        setCurrentRoomId(roomId);
+        setShowRoomActions(null);
+      } else if (clickCount.current === 2) {
+        // 두 번 클릭 → 탈퇴/초대 버튼 표시
+        setShowRoomActions(roomId);
+      }
+      clickCount.current = 0;
+    }, 250);
   };
 
   const alwaysAllowed = ["관리자", "나율", "프레드"];
@@ -131,7 +195,6 @@ export default function ChatWithRooms() {
     );
   }
 
-  // 새 방 생성
   const createRoom = async () => {
     if (!nickname) return;
     const members = [nickname, ...selectedUsers];
@@ -139,57 +202,19 @@ export default function ChatWithRooms() {
       name: newRoomName || "천왁즈",
       members,
     });
-
-    // 입장 메시지
     await addDoc(collection(db, "rooms", docRef.id, "messages"), {
       user: "system",
       content: `${nickname} 님이 입장하였습니다`,
       createdAt: serverTimestamp(),
     });
-
     setCurrentRoomId(docRef.id);
     setSelectedUsers([]);
     setNewRoomName("");
     setIsCreateModalOpen(false);
   };
 
-  // 방 탈퇴
-  const leaveRoom = async (roomId: string) => {
-    if (!nickname) return;
-    await updateDoc(doc(db, "rooms", roomId), {
-      members: arrayRemove(nickname),
-    });
-    await addDoc(collection(db, "rooms", roomId, "messages"), {
-      user: "system",
-      content: `${nickname} 님이 탈퇴하였습니다`,
-      createdAt: serverTimestamp(),
-    });
-    if (currentRoomId === roomId) setCurrentRoomId(null);
-    setLongPressedRoomId(null);
-  };
-
-  // 초대
-  const inviteToRoom = async () => {
-    if (!nickname || !longPressedRoomId) return;
-    const docRef = doc(db, "rooms", longPressedRoomId);
-    for (const user of inviteUsers) {
-      await updateDoc(docRef, {
-        members: arrayUnion(user),
-      });
-      await addDoc(collection(docRef, "messages"), {
-        user: "system",
-        content: `${user} 님이 초대되었습니다`,
-        createdAt: serverTimestamp(),
-      });
-    }
-    setInviteUsers([]);
-    setInviteModalOpen(false);
-    setLongPressedRoomId(null);
-  };
-
   return (
     <div className="flex fixed inset-0 bg-white">
-      {/* 사이드바 */}
       <div className="w-64 border-r p-4 flex flex-col gap-4">
         <button
           className="px-3 py-2 bg-amber-400 rounded font-bold hover:bg-amber-500"
@@ -198,7 +223,6 @@ export default function ChatWithRooms() {
           새 방 만들기
         </button>
 
-        {/* 방 생성 모달 */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white p-4 rounded shadow-md w-80 flex flex-col gap-3">
@@ -210,7 +234,6 @@ export default function ChatWithRooms() {
                 onChange={(e) => setNewRoomName(e.target.value)}
                 className="px-3 py-2 border rounded"
               />
-
               <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
                 {alwaysDisplayed.map((user) => (
                   <label key={user} className="flex items-center gap-2 font-semibold text-gray-700">
@@ -225,7 +248,6 @@ export default function ChatWithRooms() {
                     {user} (항상 표시)
                   </label>
                 ))}
-
                 {contractUsers
                   .filter((u) => !alwaysDisplayed.includes(u))
                   .map((user) => (
@@ -242,7 +264,6 @@ export default function ChatWithRooms() {
                     </label>
                   ))}
               </div>
-
               <div className="flex justify-end gap-2 mt-2">
                 <button
                   className="px-3 py-1 bg-gray-300 rounded"
@@ -261,7 +282,6 @@ export default function ChatWithRooms() {
           </div>
         )}
 
-        {/* 내 방 목록 */}
         <div className="mt-4 font-semibold">내 방 목록</div>
         <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
           {rooms
@@ -269,14 +289,13 @@ export default function ChatWithRooms() {
             .map((r) => (
               <div
                 key={r.id}
-                onMouseDown={() => setLongPressedRoomId(r.id)}
-                onMouseUp={() => setTimeout(() => setLongPressedRoomId(null), 2000)}
+                onClick={() => handleRoomClick(r.id)}
                 className={`px-2 py-1 rounded hover:bg-gray-200 cursor-pointer ${
                   r.id === currentRoomId ? "bg-gray-300" : ""
                 }`}
               >
                 {r.name}
-                {longPressedRoomId === r.id && (
+                {showRoomActions === r.id && (
                   <div className="flex gap-2 mt-1">
                     <button
                       className="px-2 py-1 bg-red-300 rounded text-xs"
@@ -284,97 +303,69 @@ export default function ChatWithRooms() {
                     >
                       탈퇴
                     </button>
-                    <button
-                      className="px-2 py-1 bg-green-300 rounded text-xs"
-                      onClick={() => setInviteModalOpen(true)}
-                    >
-                      초대
-                    </button>
                   </div>
                 )}
               </div>
             ))}
         </div>
-
-        {/* 초대 모달 */}
-        {inviteModalOpen && longPressedRoomId && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white p-4 rounded shadow-md w-80 flex flex-col gap-2">
-              <h3 className="font-bold">회원 초대</h3>
-              <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
-                {contractUsers
-                  .filter((u) => !rooms.find(r => r.id === longPressedRoomId)?.members.includes(u))
-                  .map((user) => (
-                    <label key={user} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={inviteUsers.includes(user)}
-                        onChange={(e) => {
-                          if (e.target.checked)
-                            setInviteUsers([...inviteUsers, user]);
-                          else
-                            setInviteUsers(inviteUsers.filter((u) => u !== user));
-                        }}
-                      />
-                      {user}
-                    </label>
-                  ))}
-              </div>
-              <div className="flex justify-end gap-2 mt-2">
-                <button
-                  className="px-3 py-1 bg-gray-300 rounded"
-                  onClick={() => setInviteModalOpen(false)}
-                >
-                  취소
-                </button>
-                <button
-                  className="px-3 py-1 bg-green-400 rounded font-bold"
-                  onClick={inviteToRoom}
-                >
-                  초대
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* 채팅 영역 */}
       <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`max-w-xs px-3 py-2 rounded-xl ${
-                m.user === nickname
-                  ? "self-end bg-red-100"
-                  : m.user === "system"
-                  ? "self-center bg-gray-300 font-semibold text-sm"
-                  : "self-start bg-gray-200"
-              }`}
-            >
-              {m.user !== "system" && <div className="text-xs font-semibold opacity-70">{m.user}</div>}
-              {m.content}
+          {currentRoomId ? (
+            messages.map((m) => (
+              <div
+                key={m.id}
+                className={`max-w-xs px-3 py-2 rounded-xl relative ${
+                  m.user === nickname
+                    ? "self-end bg-red-100"
+                    : m.user === "system"
+                    ? "self-center bg-gray-300 font-semibold text-sm"
+                    : "self-start bg-gray-200"
+                }`}
+                onClick={() =>
+                  m.user === nickname && m.user !== "system"
+                    ? setSelectedMessageId(m.id === selectedMessageId ? null : m.id)
+                    : null
+                }
+              >
+                {m.user !== "system" && <div className="text-xs font-semibold opacity-70">{m.user}</div>}
+                {m.content}
+                {selectedMessageId === m.id && m.user === nickname && (
+                  <button
+                    onClick={() => deleteMessage(m)}
+                    className="absolute -top-2 -right-2 bg-red-400 text-white text-xs px-2 py-1 rounded"
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-gray-400 text-lg">
+              방을 선택해 주세요
             </div>
-          ))}
+          )}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="flex p-4 border-t gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            className="flex-1 rounded-xl px-4 py-2 border"
-            placeholder="메시지 입력..."
-          />
-          <button
-            onClick={sendMessage}
-            className="px-5 py-2 rounded-xl bg-yellow-200 font-semibold"
-          >
-            전송
-          </button>
-        </div>
+        {currentRoomId && (
+          <div className="flex p-4 border-t gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              className="flex-1 rounded-xl px-4 py-2 border"
+              placeholder="메시지 입력..."
+            />
+            <button
+              onClick={sendMessage}
+              className="px-5 py-2 rounded-xl bg-yellow-200 font-semibold"
+            >
+              전송
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
