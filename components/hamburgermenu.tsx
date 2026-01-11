@@ -187,8 +187,7 @@ export default function HamburgerMenuWithDelete() {
             { href: "/m-home", label: "🏠 Home" },
             { href: "/clip", label: "🎬 Clips" },
             { href: "/study2", label: "📚 Study" },
-            { href: "/edu", label: "🎓 Education" },
-            { href: "/contact2", label: "📩 Contact" },
+            { href: "/edu", label: "🎓 Education" }
           ].map(({ href, label }) => (
             <Link
               key={href}

@@ -179,8 +179,7 @@ export default function HamburgerMenuWithDelete() {
             ["/home", "🏠 Home"],
             ["/Clips", "🎬 Clips"],
             ["/Notes", "📝 Notes"],
-            ["/study", "📚 Study"],
-            ["/contact", "📩 Contact"],
+            ["/study", "📚 Study"]
           ].map(([href, label]) => (
             <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
               {label}

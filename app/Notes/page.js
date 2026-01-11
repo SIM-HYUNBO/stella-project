@@ -53,11 +53,11 @@ function Contact() {
       <PageContainer>
         <div className="flex w-full h-screen">
           <div className="flex-1 p-8 overflow-auto">
-            <h1 className="text-5xl text-orange-400 dark:text-white mb-8">
+            <h1 className="text-[2rem] text-orange-400 dark:text-white mb-8">
               Write important info.
             </h1>
             <HamburgerMenu />
-            <h2 className="text-2xl text-orange-900 dark:text-white mb-8">
+            <h2 className="text-lg text-orange-900 dark:text-white mb-8">
               button here
             </h2>
 

@@ -37,12 +37,12 @@ export default function Study() {
       <PageContainer>
         <div className="flex w-full min-h-screen">
           <div className="flex-1">
-            <h1 className="text-5xl text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
+            <h1 className="text-[2rem] text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
               Check the tips.
             </h1>
             <HamburgerMenu />
 
-            <h1 className="text-2xl text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
+            <h1 className="text-lg text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
               Click the buttons and check each subjects.
             </h1>
             <button

@@ -17,14 +17,14 @@ export default function Contact() {
       {loading && <CenterSpinner />}
       <PageContainer>
         <div className="items-start justify-start p-6">
-          <h1 className="text-5xl text-orange-400 dark:text-white mb-4">
+          <h1 className="text-[2rem] text-orange-400 dark:text-white mb-4">
             Visit us again!
           </h1>
           <HamburgerMenu />
-          <h2 className="text-3xl font-semibold text-orange-300 dark:text-gray-300 mt-5">
+          <h2 className="text-2xl font-semibold text-orange-300 dark:text-gray-300 mt-5">
             Contact Us
           </h2>
-          <h3 className="text-2xl text-orange-900 dark:text-gray-300 mt-2">
+          <h3 className="text-lg text-orange-900 dark:text-gray-300 mt-2">
             {`We'd love to hear from you anytime.`}
           </h3>
           <div className="w-full">

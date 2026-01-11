@@ -168,18 +168,17 @@ export default function EducationPage() {
 
   return (
     <PageContainer>
-      <div className="min-h-screen p-8 space-y-8 flex flex-col justify-start">
-        <h1 className="text-5xl text-orange-400 text-left">
-          Upload a formula.
-        </h1>
+      <div className="flex flex-col w-full min-h-full">
+          <div className="flex-1">
+            <h1 className="text-[2rem] text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
+              Upload a formula.
+            </h1>
+            <HamburgerMenu />
 
-        <div className="flex flex-col items-start">
-          <HamburgerMenu />
-        </div>
-
-        <h1 className="text-xl text-orange-900 text-left">
-          Share a formula, boost your knowledge.
-        </h1>
+            <h1 className="text-lg text-orange-900 dark:text-white ml-11 mt-5 w-full text-left">
+             Share a formula, boost your knowledge.
+            </h1>
+</div>
 
         {/* 수학 */}
         <Section title="📐 수학">
@@ -192,6 +191,7 @@ export default function EducationPage() {
               disabled={!canUploadMath}
             />
           </div>
+          
 
           {showMath && (
             <Card>
