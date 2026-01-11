@@ -1,66 +1,106 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { db } from "@/app/firebase";
+import { db, auth } from "@/app/firebase";
 import {
   collection,
+  doc,
+  setDoc,
   addDoc,
   onSnapshot,
+  serverTimestamp,
   query,
   orderBy,
-  serverTimestamp,
-  getDocs,
-  deleteDoc,
 } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
-type Stroke = {
-  x: number;
-  y: number;
-  color: string;
-  size: number;
+type User = {
+  uid: string;
+  nickname: string;
 };
 
-type Props = {
-  roomId: string;
-};
+export default function ArtBoard({ roomId }: { roomId: string }) {
+  const [me, setMe] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
 
-export default function ArtBoard({ roomId }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-
-  const [drawing, setDrawing] = useState(false);
-  const [color, setColor] = useState("#000000");
-  const [size, setSize] = useState(4);
-
-  /* ===============================
-     캔버스 초기화
-  =============================== */
+  /* 로그인 */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    return onAuthStateChanged(auth, async (u) => {
+      if (!u) return;
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
+      const nickname = u.displayName || "익명";
+      setMe({ uid: u.uid, nickname });
 
-    resize();
-    window.addEventListener("resize", resize);
+      await setDoc(
+        doc(db, "artRooms", roomId, "users", u.uid),
+        { nickname },
+        { merge: true }
+      );
+    });
+  }, [roomId]);
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  /* 유저 목록 */
+  useEffect(() => {
+    const q = collection(db, "artRooms", roomId, "users");
+    return onSnapshot(q, (snap) => {
+      setUsers(
+        snap.docs.map((d) => ({
+          uid: d.id,
+          nickname: d.data().nickname,
+        }))
+      );
+    });
+  }, [roomId]);
+
+  if (!me) return null;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2 bg-amber-50">
+      {users.map((u) => (
+        <UserCanvas
+          key={u.uid}
+          roomId={roomId}
+          user={u}
+          isMe={u.uid === me.uid}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ================= 캔버스 ================= */
+
+function UserCanvas({
+  roomId,
+  user,
+  isMe,
+}: {
+  roomId: string;
+  user: User;
+  isMe: boolean;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const drawing = useRef(false);
+
+  /* canvas 초기화 */
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 260;
+
+    const ctx = canvas.getContext("2d")!;
+    ctx.lineWidth = 3;
     ctx.lineCap = "round";
-    ctxRef.current = ctx;
+    ctx.strokeStyle = "#000";
 
-    return () => window.removeEventListener("resize", resize);
+    ctxRef.current = ctx;
   }, []);
 
-  /* ===============================
-     실시간 그림 수신
-  =============================== */
+  /* stroke 수신 */
   useEffect(() => {
     const q = query(
-      collection(db, "art", roomId, "strokes"),
+      collection(db, "artRooms", roomId, "users", user.uid, "strokes"),
       orderBy("createdAt", "asc")
     );
 
@@ -68,124 +108,72 @@ export default function ArtBoard({ roomId }: Props) {
       const ctx = ctxRef.current;
       if (!ctx) return;
 
-      snap.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const p = change.doc.data() as Stroke;
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = p.size;
+      snap.docChanges().forEach((c) => {
+        const { x, y, type } = c.doc.data();
+        if (type === "start") {
           ctx.beginPath();
-          ctx.lineTo(p.x, p.y);
+          ctx.moveTo(x, y);
+        }
+        if (type === "draw") {
+          ctx.lineTo(x, y);
           ctx.stroke();
         }
       });
     });
-  }, [roomId]);
+  }, [roomId, user.uid]);
 
-  /* ===============================
-     좌표 계산 (모바일 + PC)
-  =============================== */
-  const getPos = (e: any) => {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
+  /* 좌표 */
+  const pos = (e: any) => {
+    const r = canvasRef.current!.getBoundingClientRect();
+    const t = e.touches?.[0];
     return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
+      x: (t ? t.clientX : e.clientX) - r.left,
+      y: (t ? t.clientY : e.clientY) - r.top,
     };
   };
 
-  /* ===============================
-     그리기
-  =============================== */
-  const start = (e: any) => {
+  const start = async (e: any) => {
+    if (!isMe) return;
     e.preventDefault();
-    setDrawing(true);
-  };
+    drawing.current = true;
+    const { x, y } = pos(e);
 
-  const end = () => setDrawing(false);
+    await addDoc(
+      collection(db, "artRooms", roomId, "users", user.uid, "strokes"),
+      { x, y, type: "start", createdAt: serverTimestamp() }
+    );
+  };
 
   const move = async (e: any) => {
-    if (!drawing) return;
+    if (!drawing.current || !isMe) return;
+    e.preventDefault();
+    const { x, y } = pos(e);
 
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-
-    const { x, y } = getPos(e);
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = size;
-    ctx.beginPath();
-    ctx.lineTo(x, y);
-    ctx.stroke();
-
-    await addDoc(collection(db, "art", roomId, "strokes"), {
-      x,
-      y,
-      color,
-      size,
-      createdAt: serverTimestamp(),
-    });
-  };
-
-  /* ===============================
-     🔥 전체 지우기
-  =============================== */
-  const clearAll = async () => {
-    const snap = await getDocs(
-      collection(db, "art", roomId, "strokes")
+    await addDoc(
+      collection(db, "artRooms", roomId, "users", user.uid, "strokes"),
+      { x, y, type: "draw", createdAt: serverTimestamp() }
     );
-
-    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
-
-    const ctx = ctxRef.current;
-    const canvas = canvasRef.current;
-    if (ctx && canvas) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
   };
 
-  /* ===============================
-     UI
-  =============================== */
+  const end = () => (drawing.current = false);
+
   return (
-    <div className="px-3 pb-3">
-      {/* 도구 */}
-      <div className="flex items-center gap-2 mb-2">
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-        />
-        <input
-          type="range"
-          min={2}
-          max={20}
-          value={size}
-          onChange={(e) => setSize(Number(e.target.value))}
-        />
-        <button
-          onClick={clearAll}
-          className="ml-auto px-3 py-1 text-sm bg-red-500 text-white rounded-lg"
-        >
-          전체 지우기
-        </button>
+    <div className="bg-white rounded-xl p-2 shadow">
+      <div className="text-xs mb-1 font-bold text-center">
+        {user.nickname} {isMe && "(나)"}
       </div>
 
-      {/* 캔버스 */}
-      <div className="w-full h-64 bg-white border rounded-xl overflow-hidden touch-none">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full"
-          onMouseDown={start}
-          onMouseMove={move}
-          onMouseUp={end}
-          onMouseLeave={end}
-          onTouchStart={start}
-          onTouchMove={move}
-          onTouchEnd={end}
-        />
-      </div>
+      <canvas
+        ref={canvasRef}
+        className="w-full rounded border touch-none"
+        onMouseDown={start}
+        onMouseMove={move}
+        onMouseUp={end}
+        onMouseLeave={end}
+        onTouchStart={start}
+        onTouchMove={move}
+        onTouchEnd={end}
+      />
     </div>
   );
 }
