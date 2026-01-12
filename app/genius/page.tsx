@@ -233,22 +233,29 @@ export default function ChatWithSidebar() {
 
         <div className="mt-4 font-semibold">내 방 목록</div>
         <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
-          {rooms.filter(r => r.members.includes(nickname!)).map(r => (
-            <div
-              key={r.id}
-              onClick={() => { setCurrentRoomId(r.id); if (window.innerWidth <= 768) setIsMobileChatOpen(true); }}
-              onDoubleClick={() => setLongPressedRoomId(r.id)}
-              className={`px-2 py-1 rounded hover:bg-gray-200 cursor-pointer ${r.id === currentRoomId ? "bg-gray-300" : ""}`}
-            >
-              {r.name}
-              {longPressedRoomId === r.id && (
-                <div className="flex gap-2 mt-1">
-                  <button className="px-2 py-1 bg-red-300 rounded text-xs" onClick={() => leaveRoom(r.id)}>탈퇴</button>
-                  <button className="px-2 py-1 bg-green-300 rounded text-xs" onClick={() => setInviteModalOpen(true)}>초대</button>
-                </div>
-              )}
-            </div>
-          ))}
+          {rooms.filter(r => r.members.includes(nickname!)).map(r => {
+            let touchTimer: NodeJS.Timeout;
+            return (
+              <div
+                key={r.id}
+                className={`px-2 py-1 rounded hover:bg-gray-200 cursor-pointer ${r.id === currentRoomId ? "bg-gray-300" : ""}`}
+                onClick={() => { setCurrentRoomId(r.id); if (window.innerWidth <= 768) setIsMobileChatOpen(true); }}
+                onDoubleClick={() => setLongPressedRoomId(r.id)}
+                onTouchStart={() => {
+                  touchTimer = setTimeout(() => setLongPressedRoomId(r.id), 600);
+                }}
+                onTouchEnd={() => clearTimeout(touchTimer)}
+              >
+                {r.name}
+                {longPressedRoomId === r.id && (
+                  <div className="flex gap-2 mt-1">
+                    <button className="px-2 py-1 bg-red-300 rounded text-xs" onClick={() => leaveRoom(r.id)}>탈퇴</button>
+                    <button className="px-2 py-1 bg-green-300 rounded text-xs" onClick={() => setInviteModalOpen(true)}>초대</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* 초대 모달 */}
