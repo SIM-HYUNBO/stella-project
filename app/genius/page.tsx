@@ -69,7 +69,7 @@ export default function ChatWithSidebar() {
   // 메시지 사운드 초기화
   useEffect(() => {
     messageSound.current = new Audio("/sounds/message.mp3");
-    messageSound.current.volume = 0.5;
+    messageSound.current.volume = 1;
   }, []);
 
   // 브라우저 정책 대응: 첫 클릭/터치 후 재생 허용
