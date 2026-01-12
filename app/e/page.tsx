@@ -141,7 +141,7 @@ export default function SongCommunity() {
           />
 
           {/* 파일 선택 */}
-          <label className="border px-4 py-2 rounded bg-gray-100 cursor-pointer flex-none min-w-[80px] text-center relative overflow-hidden">
+          <label className="border px-4 py-2 rounded bg-gray-100 cursor-pointer flex-none min-w-[80px] text-center relative">
             파일 선택
             <input
               type="file"
