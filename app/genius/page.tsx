@@ -44,6 +44,7 @@ export default function ChatWithSidebar() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageSound = useRef<HTMLAudioElement | null>(null);
   const userInteracted = useRef(false);
+  const prevLastMsgId = useRef<string | null>(null);
 
   const alwaysDisplayed = ["관리자", "나율", "프레드"];
 
@@ -69,7 +70,7 @@ export default function ChatWithSidebar() {
   // 메시지 사운드 초기화
   useEffect(() => {
     messageSound.current = new Audio("/sounds/message.mp3");
-    messageSound.current.volume = 1;
+    messageSound.current.volume = 1; // 최대 볼륨
   }, []);
 
   // 브라우저 정책 대응: 첫 클릭/터치 후 재생 허용
@@ -120,25 +121,26 @@ export default function ChatWithSidebar() {
         createdAt: d.data().createdAt,
       }));
 
+      setMessages(msgs);
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(msgs));
+
+      // 마지막 메시지 소리 재생
       const lastMsg = msgs[msgs.length - 1];
       if (
         lastMsg &&
         lastMsg.user !== nickname &&
+        lastMsg.id !== prevLastMsgId.current &&
         userInteracted.current &&
         messageSound.current
       ) {
         messageSound.current.currentTime = 0;
-        messageSound.current
-          .play()
-          .catch(() =>
-            console.log("자동 재생 차단됨, 사용자 클릭 후 테스트 필요")
-          );
+        messageSound.current.play().catch(() => console.log("소리 재생 실패"));
       }
 
-      setMessages(msgs);
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(msgs));
+      prevLastMsgId.current = lastMsg?.id || null;
     });
+
     return () => unsub();
   }, [currentRoomId, nickname]);
 
@@ -270,9 +272,7 @@ export default function ChatWithSidebar() {
                 className={`px-2 py-1 rounded hover:bg-gray-200 cursor-pointer ${r.id === currentRoomId ? "bg-gray-300" : ""}`}
                 onClick={() => { setCurrentRoomId(r.id); if (window.innerWidth <= 768) setIsMobileChatOpen(true); }}
                 onDoubleClick={() => setLongPressedRoomId(r.id)}
-                onTouchStart={() => {
-                  touchTimer = setTimeout(() => setLongPressedRoomId(r.id), 600);
-                }}
+                onTouchStart={() => { touchTimer = setTimeout(() => setLongPressedRoomId(r.id), 600); }}
                 onTouchEnd={() => clearTimeout(touchTimer)}
               >
                 {r.name}
