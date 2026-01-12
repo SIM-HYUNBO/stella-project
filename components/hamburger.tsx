@@ -154,7 +154,7 @@ export default function HamburgerMenuWithDelete() {
                     onClick={() => router.push("/genius")}
                     className="w-full text-left"
                   >
-                  🗨️ 와기 Chat
+                  💬 와기 Chat
                   </button>
                   <button
                     onClick={() => signOut(auth)}
