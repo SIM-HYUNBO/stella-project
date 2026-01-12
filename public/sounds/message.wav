@@ -1,1 +1,0 @@
-ffmpeg -i old.mp3 -c:a libmp3lame -b:a 128k message.mp3

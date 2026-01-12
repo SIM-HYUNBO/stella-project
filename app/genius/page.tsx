@@ -43,6 +43,7 @@ export default function ChatWithSidebar() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageSound = useRef<HTMLAudioElement | null>(null);
+  const userInteracted = useRef(false);
 
   const alwaysDisplayed = ["관리자", "나율", "프레드"];
 
@@ -65,9 +66,25 @@ export default function ChatWithSidebar() {
     fetchUsers();
   }, []);
 
-  // 메시지 사운드
+  // 메시지 사운드 초기화
   useEffect(() => {
     messageSound.current = new Audio("/sounds/message.mp3");
+    messageSound.current.volume = 0.5;
+  }, []);
+
+  // 브라우저 정책 대응: 첫 클릭/터치 후 재생 허용
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      userInteracted.current = true;
+      window.removeEventListener("click", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+    };
+    window.addEventListener("click", handleUserInteraction);
+    window.addEventListener("touchstart", handleUserInteraction);
+    return () => {
+      window.removeEventListener("click", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+    };
   }, []);
 
   // 방 목록 구독
@@ -84,7 +101,7 @@ export default function ChatWithSidebar() {
     return () => unsub();
   }, []);
 
-  // 메시지 구독
+  // 메시지 구독 + 알림음 재생
   useEffect(() => {
     if (!currentRoomId) return;
 
@@ -102,10 +119,22 @@ export default function ChatWithSidebar() {
         content: d.data().content,
         createdAt: d.data().createdAt,
       }));
+
       const lastMsg = msgs[msgs.length - 1];
-      if (lastMsg && lastMsg.user !== nickname) {
-        messageSound.current?.play().catch(() => {});
+      if (
+        lastMsg &&
+        lastMsg.user !== nickname &&
+        userInteracted.current &&
+        messageSound.current
+      ) {
+        messageSound.current.currentTime = 0;
+        messageSound.current
+          .play()
+          .catch(() =>
+            console.log("자동 재생 차단됨, 사용자 클릭 후 테스트 필요")
+          );
       }
+
       setMessages(msgs);
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       localStorage.setItem(`chat_${currentRoomId}`, JSON.stringify(msgs));
