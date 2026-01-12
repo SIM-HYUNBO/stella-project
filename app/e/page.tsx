@@ -125,13 +125,13 @@ export default function SongCommunity() {
 
   return (
     <PageContainer>
-      <section className="py-8 px-2">
-        <h2 className="text-3xl text-center mb-8 text-orange-400">
+      <section className="py-8 px-4">
+        <h2 className="text-3xl text-center mb-6 text-orange-400">
           노래 좀 부른다? 당장 업로드!
         </h2>
 
         {/* 업로드 박스 */}
-        <div className="bg-white rounded-xl shadow mb-6 w-full flex flex-wrap justify-center gap-2 p-2">
+        <div className="bg-white rounded-xl shadow mb-6 w-full max-w-md mx-auto flex flex-wrap justify-center gap-2 p-3">
           {/* 제목 */}
           <input
             className="border px-2 py-2 rounded flex-1 min-w-[120px]"
@@ -141,16 +141,15 @@ export default function SongCommunity() {
           />
 
           {/* 파일 선택 */}
-          <label className="border px-4 py-2 rounded bg-gray-100 cursor-pointer flex-none min-w-[80px] text-center">
+          <label className="border px-4 py-2 rounded bg-gray-100 cursor-pointer flex-none min-w-[80px] text-center relative overflow-hidden">
             파일 선택
             <input
               type="file"
               accept="audio/*"
-              className="hidden"
+              className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
               onChange={async (e) => {
-                if (e.target.files?.[0]) {
+                if (e.target.files?.[0])
                   setAudio(await fileToBase64(e.target.files[0]));
-                }
               }}
             />
           </label>
@@ -167,7 +166,10 @@ export default function SongCommunity() {
         {/* 게시글 목록 */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {songs.map((s) => (
-            <div key={s.id} className="bg-white p-3 rounded-xl shadow flex flex-col">
+            <div
+              key={s.id}
+              className="bg-white p-3 rounded-xl shadow flex flex-col"
+            >
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold">{s.title}</h3>
                 {user?.uid === s.uid && (
@@ -194,7 +196,10 @@ export default function SongCommunity() {
               {/* 댓글 */}
               <div className="mt-2">
                 {s.comments.map((c) => (
-                  <div key={c.id} className="text-sm flex justify-between mb-1">
+                  <div
+                    key={c.id}
+                    className="text-sm flex justify-between mb-1"
+                  >
                     <span>
                       <b>{c.username}</b>: {c.content}
                     </span>
@@ -209,7 +214,11 @@ export default function SongCommunity() {
                   </div>
                 ))}
 
-                {user && <CommentInput onSubmit={(text) => handleAddComment(s, text)} />}
+                {user && (
+                  <CommentInput
+                    onSubmit={(text) => handleAddComment(s, text)}
+                  />
+                )}
               </div>
             </div>
           ))}
