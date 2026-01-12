@@ -2,16 +2,8 @@
 
 import PageContainer from "@/components/PageContainer";
 import { useEffect, useState } from "react";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
-import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/app/firebase";
 
 /* ---------- 타입 ---------- */
 type Comment = {
@@ -31,26 +23,28 @@ type SongPost = {
   comments: Comment[];
 };
 
-export default function SongCommunity() {
-  const [songs, setSongs] = useState<SongPost[]>([]);
+export default function SongCommunityLocalAuth() {
   const [user, setUser] = useState<User | null>(null);
+  const [songs, setSongs] = useState<SongPost[]>([]);
   const [title, setTitle] = useState("");
   const [audio, setAudio] = useState<string>("");
 
   /* ---------- Auth ---------- */
   useEffect(() => {
-    return onAuthStateChanged(auth, setUser);
+    return onAuthStateChanged(auth, (u) => setUser(u));
   }, []);
 
-  /* ---------- Firestore 구독 ---------- */
+  /* ---------- 로컬스토리지 불러오기 ---------- */
   useEffect(() => {
-    return onSnapshot(collection(db, "songs"), (snap) => {
-      const list = snap.docs.map(
-        (d) => ({ id: d.id, ...d.data() } as SongPost)
-      );
-      setSongs(list.reverse());
-    });
+    const stored = localStorage.getItem("songs");
+    if (stored) setSongs(JSON.parse(stored));
   }, []);
+
+  /* ---------- 로컬스토리지 저장 ---------- */
+  const saveToLocal = (data: SongPost[]) => {
+    localStorage.setItem("songs", JSON.stringify(data));
+    setSongs(data);
+  };
 
   /* ---------- Base64 변환 ---------- */
   const fileToBase64 = (file: File) =>
@@ -65,79 +59,81 @@ export default function SongCommunity() {
   const handleUpload = async () => {
     if (!user || !user.displayName || !title || !audio) return;
 
-    await addDoc(collection(db, "songs"), {
+    const newSong: SongPost = {
+      id: Date.now().toString(),
       uid: user.uid,
       username: user.displayName,
       title,
       audioBase64: audio,
       likes: [],
       comments: [],
-      createdAt: Date.now(),
-    });
+    };
 
+    saveToLocal([newSong, ...songs]);
     setTitle("");
     setAudio("");
   };
 
-  /* ---------- 좋아요 (중복 방지) ---------- */
- const handleLike = async (song: SongPost) => {
-  if (!user) return;
+  /* ---------- 좋아요 ---------- */
+  const handleLike = (song: SongPost) => {
+    if (!user) return;
+    if (song.likes.includes(user.uid)) return;
 
-  const likes = Array.isArray(song.likes) ? song.likes : [];
-
-  if (likes.includes(user.uid)) return;
-
-  await updateDoc(doc(db, "songs", song.id), {
-    likes: [...likes, user.uid],
-  });
-};
-
+    const updated = songs.map((s) =>
+      s.id === song.id ? { ...s, likes: [...s.likes, user.uid] } : s
+    );
+    saveToLocal(updated);
+  };
 
   /* ---------- 게시글 삭제 ---------- */
-  const handleDeleteSong = async (song: SongPost) => {
-    if (!user || user.uid !== song.uid) return;
-    await deleteDoc(doc(db, "songs", song.id));
+  const handleDeleteSong = (song: SongPost) => {
+    if (!user || song.uid !== user.uid) return;
+    const updated = songs.filter((s) => s.id !== song.id);
+    saveToLocal(updated);
   };
 
   /* ---------- 댓글 추가 ---------- */
-  const handleAddComment = async (song: SongPost, text: string) => {
+  const handleAddComment = (song: SongPost, text: string) => {
     if (!user || !user.displayName || !text) return;
-
     const newComment: Comment = {
       id: Date.now().toString(),
       uid: user.uid,
       username: user.displayName,
       content: text,
     };
-
-    await updateDoc(doc(db, "songs", song.id), {
-      comments: [...song.comments, newComment],
-    });
+    const updated = songs.map((s) =>
+      s.id === song.id ? { ...s, comments: [...s.comments, newComment] } : s
+    );
+    saveToLocal(updated);
   };
 
   /* ---------- 댓글 삭제 ---------- */
-  const handleDeleteComment = async (song: SongPost, commentId: string) => {
+  const handleDeleteComment = (song: SongPost, commentId: string) => {
     if (!user) return;
-
-    await updateDoc(doc(db, "songs", song.id), {
-      comments: song.comments.filter(
-        (c) => !(c.id === commentId && c.uid === user.uid)
-      ),
-    });
+    const updated = songs.map((s) =>
+      s.id === song.id
+        ? {
+            ...s,
+            comments: s.comments.filter(
+              (c) => !(c.id === commentId && c.uid === user.uid)
+            ),
+          }
+        : s
+    );
+    saveToLocal(updated);
   };
 
   return (
     <PageContainer>
-      <section className="py-12">
-        <h2 className="text-4xl text-center mb-10 text-orange-400">
+      <section className="py-8 px-2">
+        <h2 className="text-3xl text-center mb-8 text-orange-400">
           노래 좀 부른다? 당장 업로드!
         </h2>
-   
-      {/* 업로드 */}
-    <div className="bg-white rounded-xl shadow mb-10 w-full flex justify-center py-4 px-2">
-  <div className="flex gap-2">
+
+        {/* 업로드 */}
+        <div className="bg-white rounded-xl shadow mb-6 w-full flex flex-wrap justify-center gap-2 p-2">
           <input
-            className="border px-3 py-2 rounded w-64"
+            className="border px-2 py-1 rounded flex-1 min-w-[120px]"
             placeholder="노래 제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -153,70 +149,62 @@ export default function SongCommunity() {
           />
           <button
             onClick={handleUpload}
-            className="bg-blue-500 text-white px-4 rounded"
+            className="bg-blue-500 text-white px-3 py-1 rounded"
           >
             업로드
           </button>
         </div>
-      </div>
 
-      {/* 목록 */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {songs.map((s) => (
-          <div key={s.id} className="bg-white p-4 rounded-xl shadow">
-            <div className="flex justify-between">
-              <h3 className="font-bold">{s.title}</h3>
-              {user?.uid === s.uid && (
-                <button
-                  onClick={() => handleDeleteSong(s)}
-                  className="text-red-500 text-sm"
-                >
-                  삭제
-                </button>
-              )}
+        {/* 목록 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {songs.map((s) => (
+            <div key={s.id} className="bg-white p-3 rounded-xl shadow flex flex-col">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold">{s.title}</h3>
+                {user?.uid === s.uid && (
+                  <button
+                    onClick={() => handleDeleteSong(s)}
+                    className="text-red-500 text-sm"
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
+
+              <p className="text-sm text-gray-500 mb-2">by {s.username}</p>
+
+              <audio controls src={s.audioBase64} className="w-full mb-2" />
+
+              <button
+                onClick={() => handleLike(s)}
+                className="text-red-500 font-bold mb-2"
+              >
+                ❤️ {s.likes.length}
+              </button>
+
+              {/* 댓글 */}
+              <div className="mt-2">
+                {s.comments.map((c) => (
+                  <div key={c.id} className="text-sm flex justify-between mb-1">
+                    <span>
+                      <b>{c.username}</b>: {c.content}
+                    </span>
+                    {user?.uid === c.uid && (
+                      <button
+                        onClick={() => handleDeleteComment(s, c.id)}
+                        className="text-xs text-red-400"
+                      >
+                        삭제
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {user && <CommentInput onSubmit={(text) => handleAddComment(s, text)} />}
+              </div>
             </div>
-
-            <p className="text-sm text-gray-500 mb-2">
-              by {s.username}
-            </p>
-
-            <audio controls src={s.audioBase64} className="w-full mb-2" />
-
-            <button
-              onClick={() => handleLike(s)}
-              className="text-red-500 font-bold"
-            >
-              ❤️ {Array.isArray(s.likes) ? s.likes.length : s.likes || 0}
-
-            </button>
-
-            {/* 댓글 */}
-            <div className="mt-3">
-              {s.comments.map((c) => (
-                <div key={c.id} className="text-sm flex justify-between">
-                  <span>
-                    <b>{c.username}</b>: {c.content}
-                  </span>
-                  {user?.uid === c.uid && (
-                    <button
-                      onClick={() => handleDeleteComment(s, c.id)}
-                      className="text-xs text-red-400"
-                    >
-                      삭제
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {user && (
-                <CommentInput
-                  onSubmit={(text) => handleAddComment(s, text)}
-                />
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       </section>
     </PageContainer>
   );
@@ -227,9 +215,9 @@ function CommentInput({ onSubmit }: { onSubmit: (t: string) => void }) {
   const [text, setText] = useState("");
 
   return (
-    <div className="flex gap-2 mt-2">
+    <div className="flex gap-2 mt-1 flex-wrap">
       <input
-        className="border rounded px-2 py-1 text-sm flex-1"
+        className="border rounded px-2 py-1 text-sm flex-1 min-w-[80px]"
         placeholder="댓글 달기"
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -239,7 +227,7 @@ function CommentInput({ onSubmit }: { onSubmit: (t: string) => void }) {
           onSubmit(text);
           setText("");
         }}
-        className="bg-green-500 text-white px-2 rounded text-sm"
+        className="bg-green-500 text-white px-2 py-1 rounded text-sm"
       >
         등록
       </button>
