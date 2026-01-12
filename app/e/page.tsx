@@ -134,10 +134,10 @@ export default function SongCommunity() {
         </h2>
    
       {/* 업로드 */}
-      <div className="bg-white p-6 rounded-xl shadow mb-10">
-        <div className="flex gap-3">
+    <div className="bg-white rounded-xl shadow mb-10 w-full flex justify-center py-4 px-2">
+  <div className="flex gap-2">
           <input
-            className="border px-3 py-2 rounded flex-1"
+            className="border px-3 py-2 rounded w-64"
             placeholder="노래 제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
