@@ -19,11 +19,11 @@ type SongPost = {
   username: string;
   title: string;
   audioBase64: string;
-  likes: string[]; // 👍 uid 배열 (중복 방지)
+  likes: string[];
   comments: Comment[];
 };
 
-export default function SongCommunityLocalAuth() {
+export default function SongCommunity() {
   const [user, setUser] = useState<User | null>(null);
   const [songs, setSongs] = useState<SongPost[]>([]);
   const [title, setTitle] = useState("");
@@ -56,7 +56,7 @@ export default function SongCommunityLocalAuth() {
     });
 
   /* ---------- 업로드 ---------- */
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!user || !user.displayName || !title || !audio) return;
 
     const newSong: SongPost = {
@@ -130,32 +130,41 @@ export default function SongCommunityLocalAuth() {
           노래 좀 부른다? 당장 업로드!
         </h2>
 
-        {/* 업로드 */}
+        {/* 업로드 박스 */}
         <div className="bg-white rounded-xl shadow mb-6 w-full flex flex-wrap justify-center gap-2 p-2">
+          {/* 제목 */}
           <input
-            className="border px-2 py-1 rounded flex-1 min-w-[120px]"
+            className="border px-2 py-2 rounded flex-1 min-w-[120px]"
             placeholder="노래 제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={async (e) => {
-              if (e.target.files?.[0]) {
-                setAudio(await fileToBase64(e.target.files[0]));
-              }
-            }}
-          />
+
+          {/* 파일 선택 */}
+          <label className="border px-4 py-2 rounded bg-gray-100 cursor-pointer flex-none min-w-[80px] text-center">
+            파일 선택
+            <input
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={async (e) => {
+                if (e.target.files?.[0]) {
+                  setAudio(await fileToBase64(e.target.files[0]));
+                }
+              }}
+            />
+          </label>
+
+          {/* 업로드 버튼 */}
           <button
             onClick={handleUpload}
-            className="bg-blue-500 text-white px-3 py-1 rounded"
+            className="bg-blue-500 text-white px-4 py-2 rounded flex-none min-w-[80px]"
           >
             업로드
           </button>
         </div>
 
-        {/* 목록 */}
+        {/* 게시글 목록 */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {songs.map((s) => (
             <div key={s.id} className="bg-white p-3 rounded-xl shadow flex flex-col">
