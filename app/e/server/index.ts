@@ -1,73 +1,43 @@
 import http from "http";
 import { Server } from "socket.io";
-import crypto from "crypto";
 
 const server = http.createServer();
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
-type Room = {
-  id: string;
-  title: string;
-  owner: string;
-  users: string[];
-  queue: string[];
-  chat: { user: string; msg: string }[];
+const rooms: any = {
+  main: { queue: [], chat: [] } // 단일 방
 };
 
-const rooms: Record<string, Room> = {};
-
 io.on("connection", (socket) => {
-  console.log("🔥 연결:", socket.id);
+  const roomId = "main";
+  socket.join(roomId);
 
-  socket.on("get-rooms", () => {
-    socket.emit("rooms", Object.values(rooms));
-  });
-
-  socket.on("create-room", ({ title, user }) => {
-    const id = crypto.randomUUID();
-    rooms[id] = {
-      id,
-      title,
-      owner: user,
-      users: [user],
-      queue: [],
-      chat: [],
-    };
-    io.emit("rooms", Object.values(rooms));
-  });
-
-  socket.on("join-room", ({ roomId, user }) => {
+  // 손 들기
+  socket.on("raise-hand", ({ user }) => {
     const room = rooms[roomId];
-    if (!room) return;
-
-    socket.join(roomId);
-    if (!room.users.includes(user)) room.users.push(user);
-
-    io.to(roomId).emit("room-update", room);
+    if (!room.queue.includes(user)) room.queue.push(user);
+    io.to(roomId).emit("queue-update", room.queue);
   });
 
-  socket.on("raise-hand", ({ roomId, user }) => {
+  // 손 내리기
+  socket.on("lower-hand", ({ user }) => {
     const room = rooms[roomId];
-    if (!room.queue.includes(user)) {
-      room.queue.push(user);
-      io.to(roomId).emit("queue-update", room.queue);
-    }
+    room.queue = room.queue.filter((u: string) => u !== user);
+    io.to(roomId).emit("queue-update", room.queue);
   });
 
-  socket.on("send-chat", ({ roomId, user, msg }) => {
+  // 채팅
+  socket.on("send-chat", ({ user, msg }) => {
     const room = rooms[roomId];
-    room.chat.push({ user, msg });
+    const chat = { user, msg };
+    room.chat.push(chat);
     io.to(roomId).emit("chat-update", room.chat);
   });
 
-  // WebRTC signaling (라이브용)
-  socket.on("offer", (d) => socket.to(d.roomId).emit("offer", d));
-  socket.on("answer", (d) => socket.to(d.roomId).emit("answer", d));
-  socket.on("ice", (d) => socket.to(d.roomId).emit("ice", d));
+  // WebRTC signaling
+  socket.on("offer", (d) => socket.to(d.to).emit("offer", d));
+  socket.on("answer", (d) => socket.to(d.to).emit("answer", d));
+  socket.on("ice", (d) => socket.to(d.to).emit("ice", d));
 });
 
-server.listen(4000, () => {
-  console.log("🔥 socket server 4000");
-});
+server.listen(4000, () => console.log("🔥 Socket Server running on 4000"));

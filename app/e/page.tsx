@@ -58,7 +58,7 @@ export default function LiveKaraoke() {
       socket.disconnect();
       Object.values(peersRef.current).forEach((pc) => pc.close());
     };
-  }, [nickname]);
+  }, []);
 
   // ---------------- 로컬 비디오 ----------------
   useEffect(() => {
@@ -84,9 +84,10 @@ export default function LiveKaraoke() {
       if (e.candidate) socketRef.current?.emit("ice", { to: userId, candidate: e.candidate });
     };
     pc.ontrack = (e) => {
-      if (!remoteVideoRefs.current[userId]) return;
-      remoteVideoRefs.current[userId]!.srcObject = e.streams[0];
-      remoteVideoRefs.current[userId]!.play().catch(() => {});
+      const videoEl = remoteVideoRefs.current[userId];
+      if (!videoEl) return;
+      videoEl.srcObject = e.streams[0];
+      videoEl.play().catch(() => {});
     };
     return pc;
   };
@@ -123,12 +124,22 @@ export default function LiveKaraoke() {
       </button>
 
       <div style={styles.videoContainer}>
-        <video ref={localVideoRef} style={styles.video} muted />
+        <video
+          ref={(el) => {
+            localVideoRef.current = el;
+          }}
+          style={styles.video}
+          muted
+          autoPlay
+          playsInline
+        />
         {queue.map((user) =>
           user === nickname ? null : (
             <video
               key={user}
-              ref={(el) => { remoteVideoRefs.current[user] = el ?? null }}
+              ref={(el) => {
+                remoteVideoRefs.current[user] = el ?? null;
+              }}
               style={styles.remoteVideo}
               autoPlay
               playsInline
@@ -149,6 +160,7 @@ export default function LiveKaraoke() {
 
         <div style={styles.chatInput}>
           <input
+            type="text"
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             placeholder="채팅 입력..."
