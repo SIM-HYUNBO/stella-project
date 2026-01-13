@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 type Chat = { user: string; msg: string };
+type PeerConnections = { [key: string]: RTCPeerConnection };
 
-export default function LivePage() {
-  const roomId = "main"; // 단일 방
+export default function LiveKaraoke() {
+  const roomId = "main";
   const [nickname] = useState("user_" + Math.floor(Math.random() * 1000));
   const [queue, setQueue] = useState<string[]>([]);
   const [chat, setChat] = useState<Chat[]>([]);
@@ -15,27 +16,56 @@ export default function LivePage() {
 
   const socketRef = useRef<Socket | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const peersRef = useRef<PeerConnections>({});
 
-  // ---------------- 소켓 연결 ----------------
- useEffect(() => {
-  const socket = io("http://localhost:4000");
-  socketRef.current = socket;
+  // ---------------- Socket 연결 ----------------
+  useEffect(() => {
+    const socket = io("http://localhost:4000");
+    socketRef.current = socket;
 
-  // 이벤트 등록
-  socket.on("chat-update", setChat);
+    socket.emit("join-room", { roomId, user: nickname });
+    socket.on("queue-update", setQueue);
+    socket.on("chat-update", setChat);
 
-  // cleanup 함수
-  return () => {
-    socket.disconnect(); // ✅ 여기서는 Socket 객체 반환하지 않음
-  };
-}, []);
+    // WebRTC signaling
+    socket.on("offer", async ({ from, sdp }) => {
+      if (peersRef.current[from]) return;
+      const pc = createPeerConnection(from);
+      peersRef.current[from] = pc;
+      if (!localStreamRef.current) return;
+      localStreamRef.current.getTracks().forEach((t) => pc.addTrack(t, localStreamRef.current!));
+      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit("answer", { to: from, sdp: answer });
+    });
 
+    socket.on("answer", async ({ from, sdp }) => {
+      const pc = peersRef.current[from];
+      if (!pc) return;
+      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    });
+
+    socket.on("ice", ({ from, candidate }) => {
+      const pc = peersRef.current[from];
+      if (!pc) return;
+      pc.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+
+    return () => {
+      socket.disconnect();
+      Object.values(peersRef.current).forEach((pc) => pc.close());
+    };
+  }, [nickname]);
 
   // ---------------- 로컬 비디오 ----------------
   useEffect(() => {
     const initLocalStream = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStreamRef.current = stream;
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
           localVideoRef.current.play().catch(() => {});
@@ -47,10 +77,33 @@ export default function LivePage() {
     initLocalStream();
   }, []);
 
+  // ---------------- WebRTC Helper ----------------
+  const createPeerConnection = (userId: string) => {
+    const pc = new RTCPeerConnection();
+    pc.onicecandidate = (e) => {
+      if (e.candidate) socketRef.current?.emit("ice", { to: userId, candidate: e.candidate });
+    };
+    pc.ontrack = (e) => {
+      if (!remoteVideoRefs.current[userId]) return;
+      remoteVideoRefs.current[userId]!.srcObject = e.streams[0];
+      remoteVideoRefs.current[userId]!.play().catch(() => {});
+    };
+    return pc;
+  };
+
   // ---------------- 이벤트 ----------------
   const raiseHand = () => {
-    socketRef.current?.emit("raise-hand", { roomId, user: nickname });
-    setIsHandRaised(true);
+    if (!socketRef.current) return;
+
+    if (!isHandRaised) {
+      // 손 들기 → 노래 시작
+      socketRef.current.emit("raise-hand", { roomId, user: nickname });
+      setIsHandRaised(true);
+    } else {
+      // 손 내리기 → 노래 취소
+      socketRef.current.emit("lower-hand", { roomId, user: nickname });
+      setIsHandRaised(false);
+    }
   };
 
   const sendChat = () => {
@@ -59,9 +112,7 @@ export default function LivePage() {
     setMsg("");
   };
 
-  const sendRating = (emoji: string) => {
-    alert(`당신이 보낸 평가: ${emoji}`);
-  };
+  const sendRating = (emoji: string) => alert(`평가: ${emoji}`);
 
   const currentSinger = queue[0];
 
@@ -79,6 +130,17 @@ export default function LivePage() {
         <div style={styles.singIndicator}>
           {currentSinger === nickname ? "🎤 지금 노래 중!" : "🎶 노래 대기중"}
         </div>
+
+        {/* 다른 사람 얼굴 */}
+        {queue.slice(1).map((user) => (
+          <video
+            key={user}
+            ref={(el) => { remoteVideoRefs.current[user] = el ?? null; }}
+            style={styles.remoteVideo}
+            autoPlay
+            playsInline
+          />
+        ))}
       </div>
 
       <div style={styles.chatArea}>
@@ -112,111 +174,19 @@ export default function LivePage() {
 
 // ---------------- 스타일 ----------------
 const styles: any = {
-  page: {
-    minHeight: "100vh",
-    background: "#111",
-    color: "#fff",
-    fontFamily: "sans-serif",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: 20,
-  },
+  page: { minHeight: "100vh", background: "#111", color: "#fff", fontFamily: "sans-serif", display: "flex", flexDirection: "column", alignItems: "center", padding: 20 },
   title: { fontSize: 36, color: "#ff79b1", textShadow: "0 0 10px #ff4081" },
-  handBtn: {
-    padding: "12px 30px",
-    fontSize: 20,
-    borderRadius: 12,
-    background: "#ff4081",
-    border: "none",
-    color: "#fff",
-    cursor: "pointer",
-    marginTop: 15,
-    boxShadow: "0 0 20px #ff79b1, 0 0 40px #ff4081",
-    transition: "0.3s",
-  },
-  videoContainer: {
-    marginTop: 25,
-    textAlign: "center",
-    position: "relative",
-    width: 440,
-    boxShadow: "0 0 30px 10px #ff79b1, 0 0 60px 20px #ff4081",
-    borderRadius: 16,
-    transition: "box-shadow 0.3s ease-in-out",
-  },
-  video: {
-    width: "100%",
-    borderRadius: 12,
-    border: "3px solid #ff79b1",
-    filter: "brightness(1.1) contrast(1.2)",
-  },
-  liveBadge: {
-    position: "absolute",
-    top: 10,
-    left: "50%",
-    transform: "translateX(-50%)",
-    fontSize: 26,
-    color: "red",
-    fontWeight: "bold",
-    textShadow: "0 0 10px #ff0000, 0 0 20px #ff79b1",
-  },
-  singIndicator: {
-    marginTop: 12,
-    fontSize: 22,
-    color: "#ff79b1",
-    textShadow: "0 0 8px #ff79b1",
-    fontWeight: "bold",
-  },
-  chatArea: {
-    marginTop: 25,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    width: "70%",
-  },
-  chat: {
-    background: "#111",
-    padding: 16,
-    borderRadius: 16,
-    maxHeight: 220,
-    overflowY: "auto",
-    width: "100%",
-    boxShadow: "0 0 20px 5px #ff79b1",
-  },
-  chatInput: {
-    display: "flex",
-    gap: 10,
-    marginTop: 10,
-    width: "100%",
-  },
-  chatInputField: {
-    flex: 1,
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "2px solid #ff79b1",
-    background: "#222",
-    color: "#fff",
-  },
-  sendBtn: {
-    padding: "10px 20px",
-    borderRadius: 12,
-    border: "none",
-    background: "#ff4081",
-    color: "#fff",
-    cursor: "pointer",
-    boxShadow: "0 0 10px #ff79b1",
-  },
-  ratingBox: {
-    display: "flex",
-    gap: 30,
-    justifyContent: "center",
-    marginTop: 15,
-  },
-  ratingBtn: {
-    fontSize: 36,
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    transition: "0.2s",
-  },
+  handBtn: { padding: "12px 30px", fontSize: 20, borderRadius: 12, background: "#ff4081", border: "none", color: "#fff", cursor: "pointer", marginTop: 15, boxShadow: "0 0 20px #ff79b1, 0 0 40px #ff4081", transition: "0.3s" },
+  videoContainer: { marginTop: 25, textAlign: "center", position: "relative", width: 440, boxShadow: "0 0 30px 10px #ff79b1, 0 0 60px 20px #ff4081", borderRadius: 16, transition: "box-shadow 0.3s ease-in-out" },
+  video: { width: "100%", borderRadius: 12, border: "3px solid #ff79b1", filter: "brightness(1.1) contrast(1.2)" },
+  remoteVideo: { width: 200, borderRadius: 12, marginTop: 10, border: "2px solid #ff79b1" },
+  liveBadge: { position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)", fontSize: 26, color: "red", fontWeight: "bold", textShadow: "0 0 10px #ff0000, 0 0 20px #ff79b1" },
+  singIndicator: { marginTop: 12, fontSize: 22, color: "#ff79b1", textShadow: "0 0 8px #ff79b1", fontWeight: "bold" },
+  chatArea: { marginTop: 25, display: "flex", flexDirection: "column", alignItems: "center", width: "70%" },
+  chat: { background: "#111", padding: 16, borderRadius: 16, maxHeight: 220, overflowY: "auto", width: "100%", boxShadow: "0 0 20px 5px #ff79b1" },
+  chatInput: { display: "flex", gap: 10, marginTop: 10, width: "100%" },
+  chatInputField: { flex: 1, padding: "10px 14px", borderRadius: 12, border: "2px solid #ff79b1", background: "#222", color: "#fff" },
+  sendBtn: { padding: "10px 20px", borderRadius: 12, border: "none", background: "#ff4081", color: "#fff", cursor: "pointer", boxShadow: "0 0 10px #ff79b1" },
+  ratingBox: { display: "flex", gap: 30, justifyContent: "center", marginTop: 15 },
+  ratingBtn: { fontSize: 36, background: "transparent", border: "none", cursor: "pointer", transition: "0.2s" },
 };
