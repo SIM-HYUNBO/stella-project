@@ -1,121 +1,118 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-export default function LiveSing() {
-  const [isHost, setIsHost] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const remoteAudioRef = useRef<HTMLAudioElement>(null);
+type Song = {
+  id: string;
+  title: string;
+  singer: string;
+  url?: string;
+  comments?: { user: string; msg: string }[];
+};
+
+// ---------------- Firebase 초기화 ----------------
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_SENDER",
+  appId: "YOUR_APP_ID",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+// ---------------- 페이지 ----------------
+export default function HomePage() {
+  const router = useRouter();
+  const user = auth.currentUser;
+  const nickname = user?.displayName || "Anonymous";
+
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [newTitle, setNewTitle] = useState("");
+  const [newFile, setNewFile] = useState<File | null>(null);
 
   useEffect(() => {
-    wsRef.current = new WebSocket("ws://localhost:3001");
-
-    wsRef.current.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
-      if (!pcRef.current) return;
-
-      switch (data.type) {
-        case "host-offer":
-          // 청취자 입장
-          const pc = new RTCPeerConnection();
-          pcRef.current = pc;
-
-          pc.ontrack = (event) => {
-            if (remoteAudioRef.current) remoteAudioRef.current.srcObject = event.streams[0];
-          };
-
-          pc.onicecandidate = (event) => {
-            if (event.candidate) {
-              wsRef.current?.send(JSON.stringify({ type: "ice-candidate", candidate: event.candidate }));
-            }
-          };
-
-          await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          wsRef.current?.send(JSON.stringify({ type: "client-answer", sdp: answer }));
-          setConnected(true);
-          break;
-
-        case "client-answer":
-          await pcRef.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
-          setConnected(true);
-          break;
-
-        case "ice-candidate":
-          try {
-            await pcRef.current.addIceCandidate(data.candidate);
-          } catch (err) {
-            console.warn("ICE candidate error", err);
-          }
-          break;
-      }
-    };
+    const q = query(collection(db, "songs"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const list: Song[] = [];
+      snap.forEach((doc) => list.push({ ...doc.data(), id: doc.id } as Song));
+      setSongs(list);
+    });
+    return () => unsub();
   }, []);
 
-  const startHosting = async () => {
-    setIsHost(true);
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    localStreamRef.current = stream;
+  const uploadSong = async () => {
+    if (!newTitle || !newFile) return;
+    const fileRef = ref(storage, `songs/${Date.now()}_${newFile.name}`);
+    await uploadBytes(fileRef, newFile);
+    const url = await getDownloadURL(fileRef);
 
-    const pc = new RTCPeerConnection();
-    pcRef.current = pc;
+    await addDoc(collection(db, "songs"), {
+      title: newTitle,
+      singer: nickname,
+      url,
+      comments: [],
+      createdAt: serverTimestamp(),
+    });
 
-    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        wsRef.current?.send(JSON.stringify({ type: "ice-candidate", candidate: event.candidate }));
-      }
-    };
-
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "connected") setConnected(true);
-    };
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    wsRef.current?.send(JSON.stringify({ type: "host-offer", sdp: offer }));
-  };
-
-  const stopHosting = () => {
-    pcRef.current?.close();
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
-    pcRef.current = null;
-    localStreamRef.current = null;
-    setIsHost(false);
-    setConnected(false);
+    setNewTitle("");
+    setNewFile(null);
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">실시간 노래 라이브</h1>
+    <div style={styles.page}>
+      <h1 style={styles.title}>🎵 추천 노래 & 업로드</h1>
 
-      {!isHost ? (
-        <button
-          className="px-6 py-2 text-white text-3xl rounded mb-2"
-          onClick={startHosting}
-        >
-          🎤
+      <div style={styles.upload}>
+        <input
+          placeholder="노래 제목"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          style={styles.input}
+        />
+        <input
+          type="file"
+          onChange={(e) => setNewFile(e.target.files?.[0] || null)}
+        />
+        <button style={styles.button} onClick={uploadSong}>
+          업로드
         </button>
-      ) : (
-        <button
-          className="px-6 py-2 text-white text-3xl rounded mb-2"
-          onClick={stopHosting}
-        >
-          ❌
-        </button>
-      )}
-
-      <div className="mt-4">
-        <audio ref={remoteAudioRef} autoPlay controls />
       </div>
 
-      {connected && <p className="mt-2 text-green-600">연결 완료!</p>}
+      <div style={styles.songList}>
+        {songs.map((song) => (
+          <div key={song.id} style={styles.card}>
+            <h3>{song.title}</h3>
+            <p>부른 사람: {song.singer}</p>
+            {song.url && <audio src={song.url} controls style={{ width: "100%" }} />}
+            {/* 댓글은 나중에 Firestore 서브컬렉션 연결 */}
+          </div>
+        ))}
+      </div>
+
+      <button style={styles.gameBtn} onClick={() => router.push("/game")}>
+        게임하기
+      </button>
     </div>
   );
 }
+
+const styles: any = {
+  page: { padding: 30, background: "#fff", minHeight: "100vh", color: "#222", fontFamily: "sans-serif" },
+  title: { fontSize: 36, marginBottom: 20 },
+  upload: { display: "flex", gap: 10, marginBottom: 20, alignItems: "center" },
+  input: { padding: 8, fontSize: 16, flex: 1, borderRadius: 6, border: "1px solid #ccc" },
+  button: { padding: "8px 16px", background: "#ff4081", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" },
+  songList: { display: "flex", flexDirection: "column", gap: 20 },
+  card: { padding: 16, borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: "#f9f9f9" },
+  gameBtn: { marginTop: 40, fontSize: 24, padding: "15px 30px", borderRadius: 12, background: "#ff4081", color: "#fff", border: "none", cursor: "pointer" },
+};

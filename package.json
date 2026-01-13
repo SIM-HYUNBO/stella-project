@@ -23,12 +23,14 @@
     "react-dom": "^18",
     "react-lottie": "^1.2.10",
     "react-player": "^2.16.1",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "three": "^0.181.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/dom-mediacapture-record": "^1.0.22",
-    "@types/node": "24.7.2",
+    "@types/node": "^24.7.2",
     "@types/react": "19.2.2",
     "@types/three": "^0.181.0",
     "@types/uuid": "^10.0.0",
