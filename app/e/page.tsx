@@ -1,118 +1,237 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
-type Song = {
-  id: string;
-  title: string;
-  singer: string;
-  url?: string;
-  comments?: { user: string; msg: string }[];
-};
+type Chat = { user: string; msg: string };
 
-// ---------------- Firebase 초기화 ----------------
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER",
-  appId: "YOUR_APP_ID",
-};
+export default function LivePage() {
+  const [nickname] = useState("user_" + Math.floor(Math.random() * 1000));
+  const [chat, setChat] = useState<Chat[]>([]);
+  const [msg, setMsg] = useState("");
+  const [isHandRaised, setIsHandRaised] = useState(false);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
+  const socketRef = useRef<Socket | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
-// ---------------- 페이지 ----------------
-export default function HomePage() {
-  const router = useRouter();
-  const user = auth.currentUser;
-  const nickname = user?.displayName || "Anonymous";
-
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [newTitle, setNewTitle] = useState("");
-  const [newFile, setNewFile] = useState<File | null>(null);
-
+  // ---------------- 소켓 연결 ----------------
   useEffect(() => {
-    const q = query(collection(db, "songs"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const list: Song[] = [];
-      snap.forEach((doc) => list.push({ ...doc.data(), id: doc.id } as Song));
-      setSongs(list);
-    });
-    return () => unsub();
+    const socket = io("http://localhost:4000");
+    socketRef.current = socket;
+
+    socket.on("chat-update", setChat);
+
+    // cleanup
+    return () => {
+      socket.disconnect();
+    };
+  }, []); // ✅ 여기서 Socket 객체를 반환하지 않음
+
+  // ---------------- WebRTC (로컬 비디오) ----------------
+  useEffect(() => {
+    const initLocalStream = async () => {
+      try {
+        localStreamRef.current = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        });
+        if (localVideoRef.current && localStreamRef.current) {
+          localVideoRef.current.srcObject = localStreamRef.current;
+          localVideoRef.current.play().catch(() => {});
+        }
+      } catch (err) {
+        console.error("WebRTC 초기화 실패:", err);
+      }
+    };
+    initLocalStream();
   }, []);
 
-  const uploadSong = async () => {
-    if (!newTitle || !newFile) return;
-    const fileRef = ref(storage, `songs/${Date.now()}_${newFile.name}`);
-    await uploadBytes(fileRef, newFile);
-    const url = await getDownloadURL(fileRef);
+  // ---------------- 이벤트 ----------------
+  const raiseHand = () => setIsHandRaised(!isHandRaised);
 
-    await addDoc(collection(db, "songs"), {
-      title: newTitle,
-      singer: nickname,
-      url,
-      comments: [],
-      createdAt: serverTimestamp(),
-    });
-
-    setNewTitle("");
-    setNewFile(null);
+  const sendChat = () => {
+    if (!msg) return;
+    socketRef.current?.emit("send-chat", { user: nickname, msg });
+    setMsg("");
   };
 
+  const sendRating = (emoji: string) => {
+    socketRef.current?.emit("rating", { user: nickname, emoji });
+    alert(`당신이 보낸 평가: ${emoji}`);
+  };
+
+  // ---------------- UI ----------------
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>🎵 추천 노래 & 업로드</h1>
+      <div style={styles.bgLights}></div>
 
-      <div style={styles.upload}>
-        <input
-          placeholder="노래 제목"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          style={styles.input}
-        />
-        <input
-          type="file"
-          onChange={(e) => setNewFile(e.target.files?.[0] || null)}
-        />
-        <button style={styles.button} onClick={uploadSong}>
-          업로드
-        </button>
-      </div>
-
-      <div style={styles.songList}>
-        {songs.map((song) => (
-          <div key={song.id} style={styles.card}>
-            <h3>{song.title}</h3>
-            <p>부른 사람: {song.singer}</p>
-            {song.url && <audio src={song.url} controls style={{ width: "100%" }} />}
-            {/* 댓글은 나중에 Firestore 서브컬렉션 연결 */}
-          </div>
-        ))}
-      </div>
-
-      <button style={styles.gameBtn} onClick={() => router.push("/game")}>
-        게임하기
+      {/* 손들기 버튼 */}
+      <button style={styles.handBtn} onClick={raiseHand}>
+        {isHandRaised ? "✋ 내 손 내림" : "✋ 손 들기"}
       </button>
+
+      {/* 얼굴 화면 */}
+      <div style={styles.videoContainer}>
+        <video ref={localVideoRef} style={styles.video} muted />
+        {isHandRaised && <div style={styles.liveBadge}>🔴 LIVE</div>}
+        <div style={styles.singIndicator}>
+          {isHandRaised ? "🎤 지금 노래 중!" : "🎶 노래 부르기!"}
+        </div>
+      </div>
+
+      {/* 채팅 + 평가 버튼 */}
+      <div style={styles.chatArea}>
+        <div style={styles.chat}>
+          {chat.map((c, i) => (
+            <div key={i}>
+              <b>{c.user}</b>: {c.msg}
+            </div>
+          ))}
+        </div>
+        <div style={styles.chatInput}>
+          <input
+            value={msg}
+            onChange={(e) => setMsg(e.target.value)}
+            style={styles.input}
+            placeholder="채팅 입력..."
+          />
+          <button style={styles.button} onClick={sendChat}>전송</button>
+        </div>
+        <div style={styles.ratingBox}>
+          {["😍", "🤩", "❤️"].map((e) => (
+            <button key={e} style={styles.ratingBtn} onClick={() => sendRating(e)}>
+              {e}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
+// ---------------- 스타일 ----------------
 const styles: any = {
-  page: { padding: 30, background: "#fff", minHeight: "100vh", color: "#222", fontFamily: "sans-serif" },
-  title: { fontSize: 36, marginBottom: 20 },
-  upload: { display: "flex", gap: 10, marginBottom: 20, alignItems: "center" },
-  input: { padding: 8, fontSize: 16, flex: 1, borderRadius: 6, border: "1px solid #ccc" },
-  button: { padding: "8px 16px", background: "#ff4081", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" },
-  songList: { display: "flex", flexDirection: "column", gap: 20 },
-  card: { padding: 16, borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", background: "#f9f9f9" },
-  gameBtn: { marginTop: 40, fontSize: 24, padding: "15px 30px", borderRadius: 12, background: "#ff4081", color: "#fff", border: "none", cursor: "pointer" },
+  page: {
+    minHeight: "100vh",
+    background: "#111",
+    color: "#fff",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    fontFamily: "sans-serif",
+    position: "relative",
+    padding: 20,
+    overflow: "hidden",
+  },
+  bgLights: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: "radial-gradient(circle at top, #444 0%, #111 70%)",
+    zIndex: -1,
+    animation: "pulse 3s infinite alternate",
+  },
+  handBtn: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    padding: "12px 24px",
+    fontSize: 18,
+    borderRadius: 12,
+    border: "none",
+    background: "linear-gradient(45deg,#ff4081,#ff79b1)",
+    color: "#fff",
+    cursor: "pointer",
+    boxShadow: "0 4px 20px rgba(255,64,129,0.5)",
+    zIndex: 1,
+  },
+  videoContainer: {
+    marginTop: 40,
+    textAlign: "center",
+    position: "relative",
+  },
+  video: {
+    width: 500,
+    maxWidth: "90vw",
+    borderRadius: 20,
+    border: "5px solid #ff4081",
+    boxShadow: "0 0 30px rgba(255,64,129,0.7)",
+  },
+  liveBadge: {
+    position: "absolute",
+    top: 10,
+    left: "50%",
+    transform: "translateX(-50%)",
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#ff0000",
+    textShadow: "0 0 10px #ff0000, 0 0 20px #ff5555",
+    animation: "pulseLive 1s infinite alternate",
+  },
+  singIndicator: {
+    position: "absolute",
+    bottom: -50,
+    left: "50%",
+    transform: "translateX(-50%)",
+    fontSize: 28,
+    color: "#ff77b1",
+    textShadow: "0 0 15px #ff77b1, 0 0 30px #ff4081",
+  },
+  chatArea: {
+    position: "absolute",
+    bottom: 20,
+    width: "90%",
+    maxWidth: 600,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  chat: {
+    width: "100%",
+    maxHeight: 250,
+    overflowY: "auto",
+    background: "rgba(0,0,0,0.6)",
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 10,
+    boxShadow: "0 0 20px rgba(255,64,129,0.5)",
+  },
+  chatInput: { display: "flex", gap: 10, width: "100%", marginBottom: 10 },
+  input: { flex: 1, padding: 10, borderRadius: 12, border: "1px solid #ccc" },
+  button: {
+    padding: "10px 16px",
+    borderRadius: 12,
+    background: "linear-gradient(45deg,#ff4081,#ff79b1)",
+    border: "none",
+    color: "#fff",
+    cursor: "pointer",
+    fontWeight: "bold",
+  },
+  ratingBox: { display: "flex", gap: 20, justifyContent: "center" },
+  ratingBtn: {
+    fontSize: 36,
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    transition: "transform 0.2s",
+  },
 };
+
+// ---------------- 애니메이션 ----------------
+if (typeof window !== "undefined") {
+  const styleEl = document.createElement("style");
+  styleEl.innerHTML = `
+    @keyframes pulse {
+      0% { background-position: 0 0; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0 0; }
+    }
+    @keyframes pulseLive {
+      0% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.1); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+    button:hover { transform: scale(1.2); }
+  `;
+  document.head.appendChild(styleEl);
+}
