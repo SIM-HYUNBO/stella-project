@@ -7,20 +7,35 @@ type Chat = { user: string; msg: string };
 
 export default function LivePage() {
   // ---------------- 닉네임 ----------------
-  const [nickname, setNickname] = useState(() => {
-    const saved = localStorage.getItem("nickname");
-    if (saved) return saved;
-    const n = "user_" + Math.floor(Math.random() * 1000);
-    localStorage.setItem("nickname", n);
-    return n;
-  });
+  const [nickname, setNickname] = useState<string | null>(null);
+
+useEffect(() => {
+  let saved = localStorage.getItem("nickname");
+  if (!saved) {
+    saved = "user_" + Math.floor(Math.random() * 1000);
+    localStorage.setItem("nickname", saved);
+  }
+  setNickname(saved);
+}, []);
+
 
   // ---------------- 상태 ----------------
-  const [chat, setChat] = useState<Chat[]>(() => {
-    const saved = localStorage.getItem("chat");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [msg, setMsg] = useState("");
+ const [chat, setChat] = useState<Chat[]>([]); // 초기값은 빈 배열
+const [msg, setMsg] = useState("");
+
+// 브라우저에서만 불러오기
+useEffect(() => {
+  const saved = localStorage.getItem("chat");
+  if (saved) {
+    setChat(JSON.parse(saved));
+  }
+}, []);
+
+// chat이 바뀔 때마다 저장
+useEffect(() => {
+  localStorage.setItem("chat", JSON.stringify(chat));
+}, [chat]);
+
   const [isHandRaised, setIsHandRaised] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
