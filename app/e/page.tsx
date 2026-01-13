@@ -6,8 +6,20 @@ import { io, Socket } from "socket.io-client";
 type Chat = { user: string; msg: string };
 
 export default function LivePage() {
-  const [nickname] = useState("user_" + Math.floor(Math.random() * 1000));
-  const [chat, setChat] = useState<Chat[]>([]);
+  // ---------------- 닉네임 ----------------
+  const [nickname, setNickname] = useState(() => {
+    const saved = localStorage.getItem("nickname");
+    if (saved) return saved;
+    const n = "user_" + Math.floor(Math.random() * 1000);
+    localStorage.setItem("nickname", n);
+    return n;
+  });
+
+  // ---------------- 상태 ----------------
+  const [chat, setChat] = useState<Chat[]>(() => {
+    const saved = localStorage.getItem("chat");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [msg, setMsg] = useState("");
   const [isHandRaised, setIsHandRaised] = useState(false);
 
@@ -15,20 +27,22 @@ export default function LivePage() {
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
 
-  // ---------------- 소켓 연결 ----------------
-  useEffect(() => {
-    const socket = io("http://localhost:4000");
-    socketRef.current = socket;
+  // ---------------- 소켓 ----------------
+ useEffect(() => {
+  const socket = io("http://localhost:4000", { reconnection: true });
+  socketRef.current = socket;
 
-    socket.on("chat-update", (chats: Chat[]) => setChat(chats));
+  socket.on("chat-update", setChat);
 
-    // cleanup
-    return () => {
-      socket.disconnect();
-    };
-  }, []); // ✅ 반환값 없음
+  // ❌ 절대 return socket 하지 마!
+  // ✅ cleanup 함수만 return
+  return () => {
+    socket.disconnect();
+  };
+}, []);
 
-  // ---------------- WebRTC (로컬 비디오) ----------------
+
+  // ---------------- WebRTC ----------------
   useEffect(() => {
     const initLocalStream = async () => {
       try {
@@ -52,12 +66,14 @@ export default function LivePage() {
 
   const sendChat = () => {
     if (!msg) return;
-    socketRef.current?.emit("send-chat", { user: nickname, msg });
+    const newChat = [...chat, { user: nickname, msg }];
+    setChat(newChat);
+    localStorage.setItem("chat", JSON.stringify(newChat)); // 로컬 저장
+    socketRef.current?.emit("send-chat", { user: nickname, msg }); // 다른 사람에게도 보냄
     setMsg("");
   };
 
   const sendRating = (emoji: string) => {
-    socketRef.current?.emit("rating", { user: nickname, emoji });
     alert(`당신이 보낸 평가: ${emoji}`);
   };
 
@@ -73,18 +89,14 @@ export default function LivePage() {
 
       {/* 얼굴 화면 */}
       <div style={styles.videoContainer}>
-        <video
-          ref={(el: HTMLVideoElement | null) => { localVideoRef.current = el; }}
-          style={styles.video}
-          muted
-        />
+        <video ref={localVideoRef} style={styles.video} muted />
         {isHandRaised && <div style={styles.liveBadge}>🔴 LIVE</div>}
         <div style={styles.singIndicator}>
           {isHandRaised ? "🎤 지금 노래 중!" : "🎶 노래 부르기!"}
         </div>
       </div>
 
-      {/* 채팅 + 평가 버튼 */}
+      {/* 채팅 + 평가 */}
       <div style={styles.chatArea}>
         <div style={styles.chat}>
           {chat.map((c, i) => (
@@ -101,11 +113,17 @@ export default function LivePage() {
             style={styles.input}
             placeholder="채팅 입력..."
           />
-          <button style={styles.button} onClick={sendChat}>전송</button>
+          <button style={styles.button} onClick={sendChat}>
+            전송
+          </button>
         </div>
         <div style={styles.ratingBox}>
           {["😍", "🤩", "❤️"].map((e) => (
-            <button key={e} style={styles.ratingBtn} onClick={() => sendRating(e)}>
+            <button
+              key={e}
+              style={styles.ratingBtn}
+              onClick={() => sendRating(e)}
+            >
               {e}
             </button>
           ))}
@@ -115,7 +133,7 @@ export default function LivePage() {
   );
 }
 
-// ---------------- 스타일 ----------------
+// ---------------- 스타일 (기존 유지) ----------------
 const styles: any = {
   page: {
     minHeight: "100vh",
@@ -131,7 +149,10 @@ const styles: any = {
   },
   bgLights: {
     position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     background: "radial-gradient(circle at top, #444 0%, #111 70%)",
     zIndex: -1,
     animation: "pulse 3s infinite alternate",

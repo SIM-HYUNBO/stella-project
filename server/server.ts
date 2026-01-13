@@ -1,25 +1,27 @@
-// server.ts
+import http from "http";
 import { Server } from "socket.io";
 
-const io = new Server(4000, {
-  cors: { origin: "*" },
-});
+const server = http.createServer();
+const io = new Server(server, { cors: { origin: "*" } });
 
-const chats: { user: string; msg: string }[] = [];
+interface Chat { user: string; msg: string; }
+const chatHistory: Chat[] = [];
 
 io.on("connection", (socket) => {
-  console.log("🔥 New connection");
+  console.log("🔥 New connection", socket.id);
 
-  // 기존 채팅 보내기
-  socket.on("send-chat", (data: { user: string; msg: string }) => {
-    chats.push(data);
-    io.emit("chat-update", chats); // 모든 클라이언트에 broadcast
+  // 채팅
+  socket.on("send-chat", (data: Chat) => {
+    chatHistory.push(data);
+    io.emit("chat-update", chatHistory);
   });
 
-  // 연결 해제
-  socket.on("disconnect", () => {
-    console.log("❌ Disconnected");
-  });
+  // WebRTC 신호
+  socket.on("offer", (data) => socket.to(data.to).emit("offer", data));
+  socket.on("answer", (data) => socket.to(data.to).emit("answer", data));
+  socket.on("ice", (data) => socket.to(data.to).emit("ice", data));
+
+  socket.on("disconnect", () => console.log("❌ Disconnected", socket.id));
 });
 
-console.log("Socket.IO server running on :4000");
+server.listen(4000, () => console.log("🔥 Socket.IO server running on :4000"));
