@@ -144,7 +144,7 @@ export default function HamburgerMenuWithDelete() {
                 <div
                   ref={profileRef}
                   className="bg-amber-100 dark:bg-slate-600 w-full rounded-xl px-4 py-3 space-y-3 shadow-inner"
-                >
+                > 
                   <button
                     onClick={() => {
                       router.push("/profile/edit");
@@ -153,6 +153,12 @@ export default function HamburgerMenuWithDelete() {
                     className="w-full text-left font-medium"
                   >
                     ✏️ 편집
+                  </button>
+                      <button
+                    onClick={() => router.push("/foot")}
+                    className="w-full text-left"
+                  >
+                    🏠 마이룸
                   </button>
                     <button
                     onClick={() => router.push("/genius")}
@@ -188,22 +194,19 @@ export default function HamburgerMenuWithDelete() {
             </button>
           )}
 
-          {/* 공통 메뉴 */}
+            {/* 공통 메뉴 */}
           {[
-            { href: "/m-home", label: "🏠 Home" },
-            { href: "/clip", label: "🎬 Clips" },
-            { href: "/study2", label: "📚 Study" },
-            { href: "/edu", label: "🎓 Education" }
-          ].map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMenuOpen(false)}
-              className="font-medium hover:underline"
-            >
+            ["/home", "🏠 Home"],
+            ["/Clips", "🎬 Clips"],
+            ["/Notes", "📝 Notes"],
+            ["/study", "📚 Study"],
+            ["/game", "🎮 Game"]
+          ].map(([href, label]) => (
+            <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
               {label}
             </Link>
           ))}
+
 
           <button
             onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}

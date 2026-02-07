@@ -144,11 +144,18 @@ export default function HamburgerMenuWithDelete() {
                   ref={profileRef}
                   className="bg-amber-100 dark:bg-slate-600 rounded-xl px-4 py-3 space-y-2"
                 >
+                  
                   <button
                     onClick={() => router.push("/profile/edit")}
                     className="w-full text-left"
                   >
                     ✏️ 편집
+                  </button>
+                   <button
+                    onClick={() => router.push("/foot")}
+                    className="w-full text-left"
+                  >
+                    🏠 마이룸
                   </button>
                     <button
                     onClick={() => router.push("/genius")}
@@ -185,7 +192,8 @@ export default function HamburgerMenuWithDelete() {
             ["/home", "🏠 Home"],
             ["/Clips", "🎬 Clips"],
             ["/Notes", "📝 Notes"],
-            ["/study", "📚 Study"]
+            ["/study", "📚 Study"],
+            ["/game", "🎮 Game"]
           ].map(([href, label]) => (
             <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
               {label}

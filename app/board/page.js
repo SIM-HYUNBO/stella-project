@@ -15,7 +15,7 @@ export default function BoardPage() {
           GENIUS 게시판
         </h1>
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/home")}
           className="px-5 py-2.5 bg-transparent text-white rounded-lg transition-all"
         >
           🏠

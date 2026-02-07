@@ -68,7 +68,7 @@ export default function EditProfile() {
     await updateDoc(doc(db, "users", user.uid), { nickname, profileImage });
 
     alert("프로필이 저장되었습니다!");
-    router.push("/");
+    router.push("/home");
   };
 
   return (
