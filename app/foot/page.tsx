@@ -35,7 +35,6 @@ export default function UltimateStudyRoomStable() {
   useEffect(() => {
     const raw = localStorage.getItem("ultimate-study-room-stable");
     if (!raw) return;
-
     try {
       const s: SaveData = JSON.parse(raw);
       setDecos(s.decos || []);
@@ -47,12 +46,7 @@ export default function UltimateStudyRoomStable() {
 
   /* ===================== 저장 ===================== */
   const saveAll = () => {
-    const data: SaveData = {
-      decos,
-      lampOn,
-      windowOpen,
-      canvasImage,
-    };
+    const data: SaveData = { decos, lampOn, windowOpen, canvasImage };
     localStorage.setItem("ultimate-study-room-stable", JSON.stringify(data));
   };
 
@@ -94,39 +88,43 @@ export default function UltimateStudyRoomStable() {
     ctx.fill();
   };
 
-  const stopDraw = () => {
-  drawing.current = false;
-  if (!canvasRef.current) return;
-
-  // 현재 그린 이미지 저장
-  const data = canvasRef.current.toDataURL("image/png");
-  setCanvasImage(data);
-
-  // 10초 후 자동 삭제
-  setTimeout(() => {
-    if (!canvasRef.current) return;
+  const drawTouch = (e: React.TouchEvent) => {
+    if (!drawing.current || !canvasRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    setCanvasImage(null);  // 저장도 초기화
-    saveAll();             // 자동 저장
-  }, 10000); // 10000ms = 10초
-};
+    const rect = canvasRef.current.getBoundingClientRect();
+    for (let i = 0; i < e.touches.length; i++) {
+      const touch = e.touches[i];
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      ctx.beginPath();
+      ctx.arc(touch.clientX - rect.left, touch.clientY - rect.top, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
+  const stopDraw = () => {
+    drawing.current = false;
+    if (!canvasRef.current) return;
+    const data = canvasRef.current.toDataURL("image/png");
+    setCanvasImage(data);
+
+    // 10초 후 자동 삭제
+    setTimeout(() => {
+      if (!canvasRef.current) return;
+      const ctx = canvasRef.current.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      setCanvasImage(null);
+      saveAll();
+    }, 10000);
+  };
 
   /* ===================== 장식 추가 ===================== */
   const addDeco = (type: DecoType) => {
     const room = roomRef.current;
     if (!room) return;
     const h = room.offsetHeight;
-    setDecos((p) => [
-      ...p,
-      {
-        id: Date.now(),
-        type,
-        x: 200 + Math.random() * 300,
-        y: h - 260,
-      },
-    ]);
+    setDecos((p) => [...p, { id: Date.now(), type, x: 200 + Math.random() * 300, y: h - 260 }]);
   };
 
   /* ===================== 하늘 ===================== */
@@ -178,17 +176,14 @@ export default function UltimateStudyRoomStable() {
 
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 cursor-crosshair"
+            className="absolute inset-0 cursor-crosshair touch-none"
             onMouseDown={() => (drawing.current = true)}
-            onMouseUp={() => {
-              stopDraw();
-              saveAll();
-            }}
-            onMouseLeave={() => {
-              stopDraw();
-              saveAll();
-            }}
+            onMouseUp={() => { stopDraw(); saveAll(); }}
+            onMouseLeave={() => { stopDraw(); saveAll(); }}
             onMouseMove={draw}
+            onTouchStart={(e) => { e.preventDefault(); drawing.current = true; drawTouch(e); }}
+            onTouchMove={(e) => { e.preventDefault(); drawTouch(e); }}
+            onTouchEnd={(e) => { e.preventDefault(); stopDraw(); saveAll(); }}
           />
         </div>
       </div>
@@ -222,16 +217,7 @@ export default function UltimateStudyRoomStable() {
 
       {/* 컨트롤 */}
       <div className="absolute top-8 right-8 space-y-3 text-sm">
-        <button
-          onClick={() => {
-            setLampOn((v) => !v);
-            saveAll();
-          }}
-          className="block"
-        >
-          💡 조명
-        </button>
-       
+        <button onClick={() => { setLampOn((v) => !v); saveAll(); }} className="block">💡 조명</button>
         <div className="flex gap-2 pt-2">
           <button onClick={() => { addDeco("plant"); saveAll(); }}>🌿</button>
           <button onClick={() => { addDeco("book"); saveAll(); }}>📚</button>
