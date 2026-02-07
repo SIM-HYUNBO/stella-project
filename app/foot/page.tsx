@@ -201,20 +201,25 @@ export default function UltimateStudyRoomStable() {
     e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
+    const origX = d.x;
+    const origY = d.y;
+    
     const move = (ev: PointerEvent) => {
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
+      const newX = origX + (ev.clientX - startX);
+      const newY = origY + (ev.clientY - startY);
       setDecos((p) =>
         p.map((i) =>
-          i.id === d.id ? { ...i, x: i.x + dx, y: i.y + dy } : i
+          i.id === d.id ? { ...i, x: newX, y: newY } : i
         )
       );
     };
+
     const up = () => {
       saveAll();
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
     };
+
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   }}
