@@ -193,26 +193,38 @@ export default function UltimateStudyRoomStable() {
 
       {/* 장식 */}
       {decos.map((d) => (
-        <div
-          key={d.id}
-          draggable
-          onDragEnd={(e) => {
-            const room = roomRef.current;
-            if (!room) return;
-            const rect = room.getBoundingClientRect();
-            const x = e.clientX - rect.left - 24;
-            const y = e.clientY - rect.top - 24;
-            setDecos((p) => p.map((i) => (i.id === d.id ? { ...i, x, y } : i)));
-            saveAll();
-          }}
-          className="absolute text-5xl cursor-grab select-none"
-          style={{ left: d.x, top: d.y }}
-        >
-          {d.type === "plant" && "🌿"}
-          {d.type === "book" && "📚"}
-          {d.type === "coffee" && "☕"}
-          {d.type === "photo" && "🖼️"}
-        </div>
+       <div
+  key={d.id}
+  style={{ left: d.x, top: d.y }}
+  className="absolute text-5xl select-none touch-none"
+  onPointerDown={(e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      setDecos((p) =>
+        p.map((i) =>
+          i.id === d.id ? { ...i, x: i.x + dx, y: i.y + dy } : i
+        )
+      );
+    };
+    const up = () => {
+      saveAll();
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }}
+>
+  {d.type === "plant" && "🌿"}
+  {d.type === "book" && "📚"}
+  {d.type === "coffee" && "☕"}
+  {d.type === "photo" && "🖼️"}
+</div>
+
       ))}
 
       {/* 컨트롤 */}
