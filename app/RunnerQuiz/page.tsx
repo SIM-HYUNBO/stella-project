@@ -335,9 +335,7 @@ export default function StoryGameLong() {
     );
   }
 
-  /* =========================
-     일반 화면
-  ========================= */
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-black text-white">
       <div className="max-w-xl w-full p-8 rounded-2xl bg-slate-900 shadow-2xl">
