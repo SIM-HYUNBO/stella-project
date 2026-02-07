@@ -2,10 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-const FullscreenFlashlightMaze: React.FC = () => {
+const FullscreenFlashlightMazeMobile: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // 탈출 가능한 미로
   const map = [
     "####################",
     "#S       #        E#",
@@ -28,7 +27,7 @@ const FullscreenFlashlightMaze: React.FC = () => {
 
   const keys = useRef<{ [key: string]: boolean }>({});
 
-  // 키 입력
+  // 키보드 입력 (PC용)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => keys.current[e.key.toLowerCase()] = true;
     const handleKeyUp = (e: KeyboardEvent) => keys.current[e.key.toLowerCase()] = false;
@@ -40,7 +39,7 @@ const FullscreenFlashlightMaze: React.FC = () => {
     };
   }, []);
 
-  // 화면 크기 맞추기
+  // 화면 크기 조정
   useEffect(() => {
     const resizeCanvas = () => {
       const canvas = canvasRef.current;
@@ -69,7 +68,7 @@ const FullscreenFlashlightMaze: React.FC = () => {
   }, [player, tileSize, showFullMap, escaped]);
 
   const update = () => {
-    if (showFullMap || escaped) return; // 전체 미로 보기/탈출 성공 시 이동 금지
+    if (showFullMap || escaped) return;
 
     let newX = player.x;
     let newY = player.y;
@@ -85,7 +84,6 @@ const FullscreenFlashlightMaze: React.FC = () => {
 
     setPlayer({ ...player });
 
-    // 탈출 체크
     if (map[Math.floor(player.y)][Math.floor(player.x)] === "E") {
       setEscaped(true);
     }
@@ -97,6 +95,23 @@ const FullscreenFlashlightMaze: React.FC = () => {
     return map[tileY][tileX] === "#";
   };
 
+  const movePlayer = (dir: "up" | "down" | "left" | "right") => {
+    switch (dir) {
+      case "up": keys.current["w"] = true; break;
+      case "down": keys.current["s"] = true; break;
+      case "left": keys.current["a"] = true; break;
+      case "right": keys.current["d"] = true; break;
+    }
+    setTimeout(() => { // 잠시 키 누른 효과
+      switch (dir) {
+        case "up": keys.current["w"] = false; break;
+        case "down": keys.current["s"] = false; break;
+        case "left": keys.current["a"] = false; break;
+        case "right": keys.current["d"] = false; break;
+      }
+    }, 100);
+  };
+
   const draw = (ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -106,7 +121,7 @@ const FullscreenFlashlightMaze: React.FC = () => {
         const dy = (y + 0.5) * tileSize - player.y * tileSize;
         const dist = Math.sqrt(dx * dx + dy * dy) / tileSize;
 
-        if (showFullMap || dist < 5) { // 손전등 범위
+        if (showFullMap || dist < 5) {
           if (map[y][x] === "#") ctx.fillStyle = "gray";
           else if (map[y][x] === "E") ctx.fillStyle = "gold";
           else ctx.fillStyle = "#222";
@@ -116,7 +131,6 @@ const FullscreenFlashlightMaze: React.FC = () => {
     }
 
     if (!showFullMap && !escaped) {
-      // 플레이어
       ctx.fillStyle = "red";
       ctx.beginPath();
       ctx.arc(player.x * tileSize + tileSize / 2, player.y * tileSize + tileSize / 2, tileSize / 4, 0, Math.PI * 2);
@@ -133,6 +147,7 @@ const FullscreenFlashlightMaze: React.FC = () => {
   return (
     <div>
       <canvas ref={canvasRef} style={{ display: "block" }} />
+
       {/* 항복 버튼 */}
       <button
         style={{
@@ -166,19 +181,36 @@ const FullscreenFlashlightMaze: React.FC = () => {
         >
           <h1>탈출 성공!</h1>
           <button
-            style={{
-              marginTop: "20px",
-              padding: "10px 20px",
-              fontSize: "16px"
-            }}
+            style={{ marginTop: "20px", padding: "10px 20px", fontSize: "16px" }}
             onClick={resetGame}
           >
             다시 하기
           </button>
         </div>
       )}
+
+      {/* 모바일 방향 버튼 */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 30,
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          zIndex: 10
+        }}
+      >
+        <button style={{ padding: "15px 25px" }} onClick={() => movePlayer("up")}>▲</button>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+          <button style={{ padding: "15px 25px" }} onClick={() => movePlayer("left")}>◀</button>
+          <button style={{ padding: "15px 25px" }} onClick={() => movePlayer("down")}>▼</button>
+          <button style={{ padding: "15px 25px" }} onClick={() => movePlayer("right")}>▶</button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default FullscreenFlashlightMaze;
+export default FullscreenFlashlightMazeMobile;
