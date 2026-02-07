@@ -36,6 +36,13 @@ export default function Home() {
         >
           🧠 시뮬레이션
         </button>
+        <button
+          onClick={() => router.push("/stair")}
+          className="px-8 py-5 rounded-2xl bg-yellow-300 hover:bg-yellow-400
+            text-2xl transition shadow-lg"
+        >
+           🔦 손전등 미로
+        </button>
       </div>
 
       {/* 설명 */}
