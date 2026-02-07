@@ -29,9 +29,8 @@ type Node = {
   default?: string;
 };
 
-
 /* =========================
-   스토리 데이터 (초장편)
+   스토리 데이터
 ========================= */
 const story = {
   start: "awakening",
@@ -48,12 +47,6 @@ const story = {
       text: `
 눈을 뜨자 희미한 푸른 빛의 화면이 보인다.
 너는 지금 '학습 시뮬레이션 시스템' 내부에 접속해 있다.
-
-이곳은 단순한 공부 페이지가 아니다.
-여기서의 선택은 사용자의 학습 의지, 이해도, 심지어 이탈 여부까지 결정한다.
-
-시스템 로그가 깜빡인다.
-"초기 학습 페이지 로딩 완료"
 
 첫 화면을 어떻게 구성할 것인가?
       `,
@@ -75,7 +68,6 @@ const story = {
         },
       ],
     },
-
     theory_room: {
       title: "이론 구역",
       text: `
@@ -85,9 +77,6 @@ const story = {
 하지만…
 텍스트가 길다.
 너무 길다.
-
-사용자의 눈동자가 점점 위아래로 흔들린다.
-집중력이 시험대에 오른다.
       `,
       choices: [
         {
@@ -107,7 +96,6 @@ const story = {
         },
       ],
     },
-
     theory_focus: {
       title: "강조된 이론",
       text: `
@@ -116,8 +104,6 @@ const story = {
 핵심 요약.
 
 사용자의 스크롤 속도가 다시 안정된다.
-"아… 이거구나."
-
 신뢰도가 조금 오른다.
       `,
       choices: [
@@ -133,7 +119,6 @@ const story = {
         },
       ],
     },
-
     theory_overload: {
       title: "과부하",
       text: `
@@ -156,7 +141,6 @@ const story = {
         },
       ],
     },
-
     example_room: {
       title: "예제 구역",
       text: `
@@ -179,7 +163,6 @@ const story = {
         },
       ],
     },
-
     deep_example: {
       title: "심화 예제",
       text: `
@@ -196,15 +179,11 @@ const story = {
         },
       ],
     },
-
     quiz_room: {
       title: "퀴즈",
       text: `
 문제가 등장한다.
 사용자는 잠시 멈칫한다.
-
-맞출 수 있을까?
-틀리면 여기서 흥미를 잃을지도 모른다.
       `,
       choices: [
         {
@@ -219,14 +198,11 @@ const story = {
         },
       ],
     },
-
     quiz_result: {
       title: "결과",
       text: `
 문제는 제출되었다.
 결과가 화면에 표시된다.
-
-이 경험은 사용자의 기억에 남을 것이다.
       `,
       choices: [
         {
@@ -241,7 +217,6 @@ const story = {
         },
       ],
     },
-
     recovery: {
       title: "회복",
       text: `
@@ -259,7 +234,6 @@ const story = {
         },
       ],
     },
-
     check: {
       title: "최종 평가",
       text: `
@@ -302,6 +276,9 @@ export default function StoryGameLong() {
 
   const node = story.nodes[current];
 
+  /* =========================
+     선택 적용
+  ========================= */
   const applyChoice = (choice: Choice) => {
     const newState = { ...state };
     Object.entries(choice.effects).forEach(([k, v]) => {
@@ -311,31 +288,32 @@ export default function StoryGameLong() {
     setCurrent(choice.next);
   };
 
-  const checkEnding = () => {
-  if (!node.endings) return;
+  /* =========================
+     엔딩 자동 체크
+  ========================= */
   useEffect(() => {
-  if (ending) return;
-  if (node.endings) {
-    checkEnding();
-  }
-}, [current, state]);
+    if (ending) return;
 
-
-  for (const e of node.endings) {
-    const ok = Object.entries(e.condition).every(
-      ([k, v]) => state[k as keyof State] >= (v as number)
-    );
-    if (ok) {
-      setEnding(story.endings[e.result]);
-      return;
+    if (node.endings) {
+      for (const e of node.endings) {
+        const ok = Object.entries(e.condition).every(
+          ([k, v]) => state[k as keyof State] >= (v as number)
+        );
+        if (ok) {
+          setEnding(story.endings[e.result]);
+          return;
+        }
+      }
     }
-  }
 
-  if (node.default) {
-    setEnding(story.endings[node.default]);
-  }
-};
+    if (node.default) {
+      setEnding(story.endings[node.default]);
+    }
+  }, [current, state, node.endings, ending]);
 
+  /* =========================
+     엔딩 화면
+  ========================= */
   if (ending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
@@ -357,6 +335,9 @@ export default function StoryGameLong() {
     );
   }
 
+  /* =========================
+     일반 화면
+  ========================= */
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-black text-white">
       <div className="max-w-xl w-full p-8 rounded-2xl bg-slate-900 shadow-2xl">
