@@ -1,52 +1,48 @@
 // server.js
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+import { createServer } from "http";
+import { Server } from "socket.io";
 
-const app = express();
-const server = http.createServer(app);
+const httpServer = createServer();
+const io = new Server(httpServer, { cors: { origin: "*" } });
 
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
+const rooms = {}; // 방별 참여자 관리
 
-let chatLog = [];
-
-// 연결
 io.on("connection", (socket) => {
-  console.log("🔥 New connection:", socket.id);
+  console.log("사용자 접속:", socket.id);
 
-  socket.on("join", ({ nickname }) => {
-    console.log(`${nickname} joined`);
-    // 기존 채팅 보내기
-    socket.emit("chat-update", chatLog);
-
-    // 다른 사람에게 새 유저 알리기
-    socket.broadcast.emit("user-joined", socket.id);
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+    if (!rooms[roomId]) rooms[roomId] = [];
+    rooms[roomId].push(socket.id);
+    // 방 참여자에게 기존 참여자 목록 전달
+    const otherPeers = rooms[roomId].filter((id) => id !== socket.id);
+    socket.emit("allUsers", otherPeers);
   });
 
-  // 채팅
-  socket.on("send-chat", (msg) => {
-    chatLog.push(msg);
-    io.emit("chat-update", chatLog); // 공용 채팅
+  socket.on("offer", (payload) => {
+    io.to(payload.target).emit("offer", { sdp: payload.sdp, caller: payload.caller });
   });
 
-  // WebRTC 시그널링
-  socket.on("offer", ({ to, offer }) => {
-    io.to(to).emit("offer", { from: socket.id, offer });
+  socket.on("answer", (payload) => {
+    io.to(payload.target).emit("answer", { sdp: payload.sdp, caller: payload.caller });
   });
 
-  socket.on("answer", ({ to, answer }) => {
-    io.to(to).emit("answer", { answer });
+  socket.on("ice-candidate", (payload) => {
+    io.to(payload.target).emit("ice-candidate", payload.candidate);
   });
 
-  socket.on("ice-candidate", ({ to, candidate }) => {
-    io.to(to).emit("ice-candidate", { candidate });
+  // 채팅/찬반
+  socket.on("newComment", ({ roomId, comment }) => {
+    io.to(roomId).emit("updateComments", comment);
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ Disconnected:", socket.id);
+    console.log("사용자 나감:", socket.id);
+    // 방에서 제거
+    for (let roomId in rooms) {
+      rooms[roomId] = rooms[roomId].filter((id) => id !== socket.id);
+    }
   });
 });
 
-server.listen(4000, () => console.log("Server running on http://localhost:4000"));
+httpServer.listen(3001, () => console.log("Socket.IO + WebRTC signaling 서버 3001 포트 실행"));
