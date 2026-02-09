@@ -3,246 +3,228 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-interface Peer {
-  connection: RTCPeerConnection;
-  nickname: string;
-  streamEl: HTMLVideoElement;
-}
-
 const socket = io("http://localhost:3001");
 
-export default function RealtimeDebate() {
-  const [roomId, setRoomId] = useState("room1");
-  const [nickname, setNickname] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [comments, setComments] = useState<any[]>([]);
-  const [input, setInput] = useState("");
-  const [side, setSide] = useState<"찬성" | "반대">("찬성");
-  const [peers, setPeers] = useState<{ [id: string]: Peer }>({});
+type Side = "찬성" | "반대";
 
-  const localStreamRef = useRef<MediaStream | null>(null);
+interface Peer {
+  pc: RTCPeerConnection;
+  video: HTMLVideoElement;
+  nickname: string;
+  side: Side;
+}
+
+export default function RealtimeDebate() {
+  const [joined, setJoined] = useState(false);
+  const [nickname, setNickname] = useState("");
+  const [side, setSide] = useState<Side>("찬성");
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+
+  const peersRef = useRef<Record<string, Peer>>({});
+
+  const proRef = useRef<HTMLDivElement>(null);
+  const conRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!joined) return;
 
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then((stream) => {
-      localStreamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        localStreamRef.current = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
 
-      socket.emit("joinRoom", { roomId, nickname });
+        socket.emit("joinRoom", {
+          roomId: "room1",
+          nickname,
+          side,
+        });
 
-      socket.on("allUsers", (users: { id: string; nickname: string }[]) => {
-        users.forEach((user) => createPeer(user.id, user.nickname, stream, true));
+        socket.on("allUsers", (users) => {
+          users.forEach((u) =>
+            createPeer(u.id, u.nickname, u.side, true)
+          );
+        });
+
+        socket.on("newUser", (u) => {
+          createPeer(u.id, u.nickname, u.side, false);
+        });
+
+        socket.on("offer", handleOffer);
+        socket.on("answer", handleAnswer);
+        socket.on("ice-candidate", handleIce);
+        socket.on("userLeft", handleLeave);
       });
-
-      socket.on("newUser", ({ id, nickname }: { id: string; nickname: string }) => {
-        createPeer(id, nickname, stream, false);
-      });
-
-      socket.on("offer", async ({ sdp, caller }) => {
-        await handleOffer(sdp, caller, stream);
-      });
-
-      socket.on("answer", ({ sdp, caller }) => {
-        peers[caller]?.connection.setRemoteDescription(new RTCSessionDescription(sdp));
-      });
-
-      socket.on("ice-candidate", ({ candidate, from }) => {
-        peers[from]?.connection.addIceCandidate(new RTCIceCandidate(candidate));
-      });
-
-      socket.on("updateComments", (comment) => {
-        setComments((prev) => [...prev, comment]);
-      });
-
-      socket.on("userLeft", ({ id }) => {
-        const el = peers[id]?.streamEl;
-        if (el?.parentElement) el.parentElement.remove();
-        const newPeers = { ...peers };
-        delete newPeers[id];
-        setPeers(newPeers);
-      });
-    });
   }, [joined]);
 
-  const createPeer = (id: string, nickname: string, stream: MediaStream, initiator: boolean) => {
+  const createPeer = (
+    id: string,
+    name: string,
+    peerSide: Side,
+    initiator: boolean
+  ) => {
+    if (peersRef.current[id]) return;
+
     const pc = new RTCPeerConnection();
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
-    const videoEl = document.createElement("video");
-    videoEl.autoplay = true;
-    videoEl.playsInline = true;
-    videoEl.width = 220;
-    videoEl.height = 160;
-    videoEl.style.borderRadius = "16px";
-    videoEl.style.margin = "8px";
-    videoEl.style.objectFit = "cover";
-    videoEl.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
-    videoEl.title = nickname;
+    localStreamRef.current!
+      .getTracks()
+      .forEach((t) => pc.addTrack(t, localStreamRef.current!));
 
-    const container = document.createElement("div");
-    container.style.position = "relative";
-    container.style.display = "inline-block";
-    container.appendChild(videoEl);
+    const video = document.createElement("video");
+    video.autoplay = true;
+    video.playsInline = true;
+    video.width = 220;
+    video.height = 160;
+    video.className = "rounded-xl shadow object-cover";
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "relative m-2";
+    wrapper.appendChild(video);
 
     const label = document.createElement("div");
-    label.innerText = nickname;
-    label.style.position = "absolute";
-    label.style.bottom = "6px";
-    label.style.left = "6px";
-    label.style.padding = "2px 6px";
-    label.style.backgroundColor = "rgba(0,0,0,0.65)";
-    label.style.color = "white";
-    label.style.borderRadius = "6px";
-    label.style.fontSize = "0.85rem";
-    label.style.fontWeight = "bold";
-    container.appendChild(label);
+    label.innerText = `${name} · ${peerSide}`;
+    label.className =
+      "absolute bottom-1 left-1 text-white text-xs px-2 rounded " +
+      (peerSide === "찬성" ? "bg-green-600" : "bg-red-600");
+    wrapper.appendChild(label);
 
-    document.getElementById("video-container")?.appendChild(container);
+    (peerSide === "찬성" ? proRef.current : conRef.current)
+      ?.appendChild(wrapper);
 
     pc.ontrack = (e) => {
-      videoEl.srcObject = e.streams[0];
+      video.srcObject = e.streams[0];
     };
 
     pc.onicecandidate = (e) => {
-      if (e.candidate) socket.emit("ice-candidate", { candidate: e.candidate, target: id, from: socket.id });
+      if (e.candidate) {
+        socket.emit("ice-candidate", {
+          target: id,
+          from: socket.id,
+          candidate: e.candidate,
+        });
+      }
+    };
+
+    peersRef.current[id] = {
+      pc,
+      video,
+      nickname: name,
+      side: peerSide,
     };
 
     if (initiator) {
       pc.createOffer().then((offer) => {
-        pc.setLocalDescription(offer).then(() => {
-          socket.emit("offer", { sdp: offer, target: id, caller: socket.id });
+        pc.setLocalDescription(offer);
+        socket.emit("offer", {
+          sdp: offer,
+          target: id,
+          caller: socket.id,
         });
       });
     }
-
-    setPeers((prev) => ({ ...prev, [id]: { connection: pc, nickname, streamEl: videoEl } }));
   };
 
-  const handleOffer = async (sdp: RTCSessionDescriptionInit, caller: string, stream: MediaStream) => {
-    const pc = new RTCPeerConnection();
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+  const handleOffer = async ({ sdp, caller, nickname, side }) => {
+    createPeer(caller, nickname, side, false);
 
-    const videoEl = document.createElement("video");
-    videoEl.autoplay = true;
-    videoEl.playsInline = true;
-    videoEl.width = 220;
-    videoEl.height = 160;
-    videoEl.style.borderRadius = "16px";
-    videoEl.style.margin = "8px";
-    videoEl.style.objectFit = "cover";
-    videoEl.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+    const peer = peersRef.current[caller];
+    await peer.pc.setRemoteDescription(
+      new RTCSessionDescription(sdp)
+    );
 
-    const container = document.createElement("div");
-    container.style.position = "relative";
-    container.style.display = "inline-block";
-    container.appendChild(videoEl);
+    const answer = await peer.pc.createAnswer();
+    await peer.pc.setLocalDescription(answer);
 
-    const label = document.createElement("div");
-    label.innerText = "참가자";
-    label.style.position = "absolute";
-    label.style.bottom = "6px";
-    label.style.left = "6px";
-    label.style.padding = "2px 6px";
-    label.style.backgroundColor = "rgba(0,0,0,0.65)";
-    label.style.color = "white";
-    label.style.borderRadius = "6px";
-    label.style.fontSize = "0.85rem";
-    label.style.fontWeight = "bold";
-    container.appendChild(label);
-
-    document.getElementById("video-container")?.appendChild(container);
-
-    pc.ontrack = (e) => (videoEl.srcObject = e.streams[0]);
-    pc.onicecandidate = (e) => {
-      if (e.candidate) socket.emit("ice-candidate", { candidate: e.candidate, target: caller, from: socket.id });
-    };
-
-    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socket.emit("answer", { sdp: answer, target: caller, caller: socket.id });
-
-    setPeers((prev) => ({ ...prev, [caller]: { connection: pc, nickname: "참가자", streamEl: videoEl } }));
+    socket.emit("answer", {
+      sdp: answer,
+      target: caller,
+      caller: socket.id,
+    });
   };
 
-  const sendComment = () => {
-    if (!input.trim()) return;
-    const comment = { text: input, side, nickname };
-    socket.emit("newComment", { roomId, comment });
-    setInput("");
+  const handleAnswer = ({ sdp, caller }) => {
+    peersRef.current[caller]?.pc.setRemoteDescription(
+      new RTCSessionDescription(sdp)
+    );
   };
+
+  const handleIce = ({ candidate, from }) => {
+    peersRef.current[from]?.pc.addIceCandidate(
+      new RTCIceCandidate(candidate)
+    );
+  };
+
+  const handleLeave = ({ id }) => {
+    const peer = peersRef.current[id];
+    if (!peer) return;
+    peer.video.parentElement?.remove();
+    peer.pc.close();
+    delete peersRef.current[id];
+  };
+
+  if (!joined) {
+    return (
+      <div className="p-10 flex flex-col gap-4 items-center">
+        <input
+          className="border px-3 py-2 rounded"
+          placeholder="닉네임"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+        />
+
+        <select
+          value={side}
+          onChange={(e) => setSide(e.target.value as Side)}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="찬성">찬성</option>
+          <option value="반대">반대</option>
+        </select>
+
+        <button
+          onClick={() => setJoined(true)}
+          className="px-6 py-2 bg-purple-600 text-white rounded"
+        >
+          토론 입장
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex flex-col items-center">
-      {!joined ? (
-        <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 animate-fade-in">
-          <input
-            placeholder="닉네임 입력"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="border px-3 py-2 rounded-lg w-60 focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-          <button
-            onClick={() => nickname && setJoined(true)}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition-transform"
-          >
-            참가
-          </button>
+    <div className="p-6 grid grid-cols-2 gap-6">
+      <div>
+        <h2 className="font-bold mb-2 text-green-600">찬성</h2>
+        <div ref={proRef} className="flex flex-wrap">
+          {side === "찬성" && (
+            <video
+              ref={localVideoRef}
+              autoPlay
+              muted
+              className="w-[220px] h-[160px] m-2 rounded-xl"
+            />
+          )}
         </div>
-      ) : (
-        <>
-          <h2 className="text-2xl font-bold text-purple-700 mb-4">실시간 영상 토론</h2>
+      </div>
 
-          <div
-            id="video-container"
-            className="flex flex-wrap justify-center mb-4"
-          >
-            <div className="relative inline-block m-2">
-              <video
-                ref={localVideoRef}
-                autoPlay
-                muted
-                playsInline
-                width={220}
-                height={160}
-                className="rounded-2xl object-cover shadow-lg"
-              />
-              <div className="absolute bottom-2 left-2 bg-purple-700 bg-opacity-70 text-white px-2 py-0.5 rounded font-semibold text-sm">
-                {nickname} (나)
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-4 mb-4">
-            <button
-              onClick={() => setSide("찬성")}
-              className={`px-4 py-2 rounded-xl font-semibold transition ${
-                side === "찬성"
-                  ? "bg-green-500 text-white shadow-lg"
-                  : "bg-gray-200 hover:bg-green-200"
-              }`}
-            >
-              찬성
-            </button>
-            <button
-              onClick={() => setSide("반대")}
-              className={`px-4 py-2 rounded-xl font-semibold transition ${
-                side === "반대"
-                  ? "bg-red-500 text-white shadow-lg"
-                  : "bg-gray-200 hover:bg-red-200"
-              }`}
-            >
-              반대
-            </button>
-          </div>
-
-     
-        </>
-      )}
+      <div>
+        <h2 className="font-bold mb-2 text-red-600">반대</h2>
+        <div ref={conRef} className="flex flex-wrap">
+          {side === "반대" && (
+            <video
+              ref={localVideoRef}
+              autoPlay
+              muted
+              className="w-[220px] h-[160px] m-2 rounded-xl"
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
