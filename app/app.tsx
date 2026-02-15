@@ -9,7 +9,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
         <div className="loader border-4 border-blue-500 border-t-transparent rounded-full w-12 h-12 animate-spin"></div>
       </div>
     );

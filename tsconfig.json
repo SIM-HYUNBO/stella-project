@@ -14,7 +14,8 @@
     "jsx": "preserve",
     "plugins": [{ "name": "next" }],
     "baseUrl": ".",
-    "paths": { "@/*": ["./*"] }
+    "paths": { "@/*": ["./*"] },
+     "types": ["@react-three/fiber"]
   },
   "include": [
     "next-env.d.ts",

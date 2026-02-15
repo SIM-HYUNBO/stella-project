@@ -196,10 +196,10 @@ export default function HamburgerMenuWithDelete() {
 
             {/* 공통 메뉴 */}
           {[
-            ["/home", "🏠 Home"],
+            ["/m-home", "🏠 Home"],
             ["/Clips", "🎬 Clips"],
-            ["/Notes", "📝 Notes"],
             ["/study", "📚 Study"],
+             ["/edu", "🎓 Education"],
             ["/game", "🎮 Game"]
           ].map(([href, label]) => (
             <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
@@ -208,21 +208,15 @@ export default function HamburgerMenuWithDelete() {
           ))}
 
 
-          <button
-            onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
-            className="mt-2 py-2 rounded-xl bg-amber-200 dark:bg-slate-500 font-semibold"
-          >
-            {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
-          </button>
        
        
-  <Link
+    <Link
             href="/home"
-            className="text-center text-orange-400 hover:underline"
+            className="text-center text-orange-400 hover:underline w-40"
           >
             초등 와기로 이동
           </Link>
-           </div>
+        </div>
       )}
        
       {/* 계정 탈퇴 모달 */}

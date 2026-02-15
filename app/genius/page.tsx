@@ -46,8 +46,6 @@ export default function ChatWithSidebar() {
   const userInteracted = useRef(false);
   const prevLastMsgId = useRef<string | null>(null);
 
-  const alwaysDisplayed = ["관리자", "나율", "프레드"];
-
   // 로그인 상태 추적
   useEffect(() => {
     const unsub = watchAuthState(async (user) => {
@@ -293,7 +291,7 @@ export default function ChatWithSidebar() {
             <div className="bg-white p-4 rounded shadow-md w-80 flex flex-col gap-2">
               <h3 className="font-bold">회원 초대</h3>
               <div className="flex flex-col max-h-64 overflow-y-auto border p-2 rounded gap-1">
-                {[...alwaysDisplayed, ...allUsers]
+                {[...allUsers]
                   .filter(u => !rooms.find(r => r.id === longPressedRoomId)?.members.includes(u))
                   .map(user => (
                     <label key={user} className="flex items-center gap-2">

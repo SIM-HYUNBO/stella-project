@@ -120,7 +120,7 @@ export default function HamburgerMenuWithDelete() {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-20 right-4 w-60 bg-amber-50 dark:bg-slate-700 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
+          className="flex flex-col fixed top-20 right-4 w-60 bg-amber-50 dark:bg-slate-700 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
           {/* 로그인 상태 */}
           {user ? (
@@ -200,19 +200,12 @@ export default function HamburgerMenuWithDelete() {
             </Link>
           ))}
 
-          <button
-            onClick={() =>
-              setTheme(currentTheme === "dark" ? "light" : "dark")
-            }
-            className="py-2 rounded-xl bg-amber-200 dark:bg-slate-500"
-          >
-            {currentTheme === "dark" ? "☀️ 라이트 모드" : "🌙 다크 모드"}
-          </button>
+        
 
           {/* ⭐ 중등 와기 이동 */}
           <Link
             href="/m-home"
-            className="text-center text-orange-400 hover:underline"
+            className="text-center text-orange-400 hover:underline w-40"
           >
             중등 와기로 이동
           </Link>

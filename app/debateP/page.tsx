@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import PageContainer from "components/PageContainer";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import HamburgerMenu from "components/hamburgermenu";
 import Link from "next/link";
 import { watchAuthState } from "../authService";
 import { User } from "firebase/auth";
 import CommentBox from "components/CommentBox";
+import { useRouter } from "next/navigation";
 
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function Home() {
+   const router = useRouter()
   const { theme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,13 +80,13 @@ export default function Home() {
 
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-          <h1 className="text-[2rem]  text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
-            WAGIE Debate
+          <h1 className="text-[2rem]  text-orange-400  ml-11 mt-5 max-w-3xl">
+           WAGIE - My Home 
           </h1>
 
-        
+         
 
-          <h2 className="text-lg text-orange-900 dark:text-white ml-11 mt-5">
+          <h2 className="text-lg text-orange-900  ml-11 mt-5">
             Good Luck! You found our page.
             <br />
             You can check the tips about studying here. Be a genius!
@@ -100,13 +101,13 @@ export default function Home() {
               className="ml-10 mt-3 mb-3 rounded-xl"
             />
 
-            <Link
-              href="/debate"
-              className="ml-10 inline-block px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-400"
-            >
-              토의/토론하러 가기
-            </Link>
+            
           </div>
+           <button
+           onClick={() => router.push("/SG")}
+           className="text-white text-lg bg-yellow-300 ml-14 px-5 py-2 rounded-xl">
+             마법의 집
+           </button>
 
           <div className="mt-7 ml-10">
             <CommentBox

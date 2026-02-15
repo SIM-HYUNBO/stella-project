@@ -71,25 +71,17 @@ export default function Home() {
   return (
     <PageContainer>
       {/* 오른쪽 버튼 영역 */}
-      <div className="fixed top-5 right-20 z-50 flex items-center gap-2 mt-2">
-        {user && (
-          <Link href="/pro">
-            <span className="px-3 py-2 text-sm bg-red-50 text-red-900 rounded-3xl border border-red-400">
-              Pro 구입
-            </span>
-          </Link>
-        )}
-      </div>
+      
 
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
-          <h1 className="text-[2rem] text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
+          <h1 className="text-[2rem] text-orange-400 ml-11 mt-5 max-w-3xl">
             We are Genius in Everything.
           </h1>
 
           <HamburgerMenu />
 
-          <h2 className="text-lg text-orange-900 dark:text-white ml-11 mt-5">
+          <h2 className="text-lg text-orange-900 ml-11 mt-5">
             Good Luck! You found our page.
             <br />
             You can check the tips about studying here. Be a genius!

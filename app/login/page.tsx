@@ -105,13 +105,13 @@ export default function LoginPage() {
                 onClick={handleEnterhome}
                 className="px-4 py-3 bg-green-500 text-white rounded-xl shadow hover:scale-105 transition transform"
               >
-                공부 페이지
+                공부
               </button>
               <button
                 onClick={handleEnterDebate}
                 className="px-4 py-3 bg-blue-500 text-white rounded-xl shadow hover:scale-105 transition transform"
               >
-                회의방
+                마음 기록
               </button>
             </div>
           </div>
