@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -12,10 +16,18 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
-    "paths": { "@/*": ["./*"] },
-     "types": ["@react-three/fiber"]
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+   
   },
   "include": [
     "next-env.d.ts",
@@ -23,7 +35,10 @@
     "**/*.ts",
     "**/*.tsx",
     "app/board/page.js",
-    "app/m/page.ts"
-, ".next/server/pages/_document.tsx"  ],
-  "exclude": ["node_modules"]
+    "app/m/page.ts",
+    ".next/server/pages/_document.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

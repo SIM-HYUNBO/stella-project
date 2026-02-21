@@ -36,18 +36,13 @@ export default function Home() {
         >
           🧠 시뮬레이션
         </button>
-        <button
-          onClick={() => router.push("/stair")}
-          className="px-8 py-5 rounded-2xl bg-yellow-300 hover:bg-yellow-400
+          <button
+          onClick={() => router.push("/live")}
+          className="px-8 py-5 rounded-2xl bg-purple-300 hover:bg-purple-400
             text-2xl transition shadow-lg"
         >
-           🔦 손전등 미로
+            🌈 파티클 정원
         </button>
-      </div>
-
-      {/* 설명 */}
-      <div className="mt-6 opacity-50 text-sm">
-        숲은 힐링 · 시뮬레이션은 집중
       </div>
     </div>
   );

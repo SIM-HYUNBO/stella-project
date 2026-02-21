@@ -1,140 +1,126 @@
 "use client";
+import { useEffect, useRef } from "react";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  doc,
-  setDoc,
-  onSnapshot,
-  serverTimestamp,
-  deleteDoc,
-} from "firebase/firestore";
-import { db } from "../firebase";
+const MadLab: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-/**
- * ✅ WebRTC LIVE (TS 오류 + signalingState 오류 수정 최종판)
- * - role 비교 TS2367 해결
- * - host / viewer 상태 안전 분기
- */
-
-const ROOM_ID = "room1";
-
-type Role = "host" | "viewer" | "idle";
-
-export default function LiveStudyWebRTC() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-
-  const [role, setRole] = useState<Role>("idle");
-
-  /* ================= 공통 Peer ================= */
-  const createPeer = () =>
-    new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    });
-
-  /* ================= 👑 HOST ================= */
-  const startLive = async () => {
-    if (role !== "idle") return;
-    setRole("host");
-
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    streamRef.current = stream;
-    if (videoRef.current) videoRef.current.srcObject = stream;
-
-    const pc = createPeer();
-    pcRef.current = pc;
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    await setDoc(doc(db, "liveRooms", ROOM_ID, "webrtc", "offer"), {
-      sdp: offer,
-      createdAt: serverTimestamp(),
-    });
-
-    // answer 수신 (host 전용)
-    onSnapshot(doc(db, "liveRooms", ROOM_ID, "webrtc", "answer"), async (snap) => {
-      const data = snap.data();
-      if (!data) return;
-      if (pc.signalingState !== "have-local-offer") return;
-      await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    });
-  };
-
-  /* ================= 👀 VIEWER ================= */
   useEffect(() => {
-    if (role === "host") return;
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    const unsub = onSnapshot(doc(db, "liveRooms", ROOM_ID, "webrtc", "offer"), async (snap) => {
-      const data = snap.data();
-      if (!data) return;
-      if (role !== "idle") return;
+    class Particle {
+      x: number;
+      y: number;
+      dx: number;
+      dy: number;
+      color: string;
+      size: number;
+      life: number;
+      constructor(x: number, y: number, dx: number, dy: number, color: string, size: number) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.color = color;
+        this.size = size;
+        this.life = 100;
+      }
+      update() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.life--;
+      }
+      draw(ctx: CanvasRenderingContext2D) {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
-      setRole("viewer");
+    const particles: Particle[] = [];
+    const colors = ["#ff4f4f", "#4fff9b", "#4fc6ff", "#ffff4f", "#ff84ff"];
 
-      const pc = createPeer();
-      pcRef.current = pc;
+    const randomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
-      pc.ontrack = (e) => {
-        if (videoRef.current) videoRef.current.srcObject = e.streams[0];
-      };
+    const spawnParticles = (x: number, y: number, count: number) => {
+      for (let i = 0; i < count; i++) {
+        const dx = (Math.random() - 0.5) * 8;
+        const dy = (Math.random() - 0.5) * 8;
+        const size = Math.random() * 8 + 2;
+        particles.push(new Particle(x, y, dx, dy, randomColor(), size));
+      }
+    };
 
-      if (pc.signalingState !== "stable") return;
+    const playSound = () => {
+      const ctxAudio = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctxAudio.createOscillator();
+      osc.type = "square";
+      osc.frequency.value = 200 + Math.random() * 600;
+      osc.connect(ctxAudio.destination);
+      osc.start();
+      osc.stop(ctxAudio.currentTime + 0.1);
+    };
 
-      await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+    const handleClick = (e: MouseEvent) => {
+      spawnParticles(e.clientX, e.clientY, 20);
+      playSound();
+    };
 
-      await setDoc(doc(db, "liveRooms", ROOM_ID, "webrtc", "answer"), {
-        sdp: answer,
-        createdAt: serverTimestamp(),
-      });
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.buttons === 1) spawnParticles(e.clientX, e.clientY, 5);
+    };
+
+    const handleTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        spawnParticles(touch.clientX, touch.clientY, 10);
+        playSound();
+      }
+    };
+
+    const animate = () => {
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw(ctx);
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+
+      requestAnimationFrame(animate);
+    };
+
+    canvas.addEventListener("click", handleClick);
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("touchstart", handleTouch, { passive: false });
+    canvas.addEventListener("touchmove", handleTouch, { passive: false });
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     });
 
-    return () => unsub();
-  }, [role]);
+    animate();
 
-  /* ================= 정리 ================= */
-  useEffect(() => {
     return () => {
-      pcRef.current?.close();
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      deleteDoc(doc(db, "liveRooms", ROOM_ID, "webrtc", "offer"));
-      deleteDoc(doc(db, "liveRooms", ROOM_ID, "webrtc", "answer"));
+      canvas.removeEventListener("click", handleClick);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("touchstart", handleTouch);
+      canvas.removeEventListener("touchmove", handleTouch);
     };
   }, []);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white">
-      <div className="relative w-72 h-72 rounded-full overflow-hidden shadow-[0_0_60px_rgba(99,102,241,0.6)]">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted={role === "host"}
-          className="w-full h-full object-cover"
-        />
-        {role !== "idle" && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-red-600 text-xs rounded-full">
-            LIVE
-          </div>
-        )}
-      </div>
-
-      {role === "idle" && (
-        <button
-          onClick={startLive}
-          className="mt-8 px-6 py-3 rounded-full bg-indigo-600 hover:bg-indigo-500"
-        >
-          🎥 라이브 시작
-        </button>
-      )}
-
-      {role === "viewer" && (
-        <div className="mt-6 text-sm text-neutral-400">라이브 시청 중 👀</div>
-      )}
-    </div>
+    <>
+    
+      <canvas ref={canvasRef} style={{ display: "block", background: "#111", cursor: "pointer" }} />
+    </>
   );
-}
+};
+
+export default MadLab;

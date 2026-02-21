@@ -81,7 +81,7 @@ export default function Home() {
       <div className="flex w-full min-h-screen">
         <div className="flex-1">
           <h1 className="text-[2rem]  text-orange-400  ml-11 mt-5 max-w-3xl">
-           WAGIE - My Home 
+           WAGIE - My Room 
           </h1>
 
          
@@ -106,7 +106,7 @@ export default function Home() {
            <button
            onClick={() => router.push("/SG")}
            className="text-white text-lg bg-yellow-300 ml-14 px-5 py-2 rounded-xl">
-             마법의 집
+             마이룸
            </button>
 
           <div className="mt-7 ml-10">
