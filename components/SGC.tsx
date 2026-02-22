@@ -8,7 +8,7 @@ import { io } from "socket.io-client";
 // 🔹 Firebase 설정
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_DOMAIN",
+  authDomain: "YOUR_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
 };
 const app = initializeApp(firebaseConfig);
@@ -30,23 +30,34 @@ export default function StudyRoomClient() {
   const peersRef = useRef<any[]>([]);
   const socketRef = useRef<any>(null);
 
-  // 방 참여 / WebRTC 연결
-  const joinRoom = async () => {
+  // -----------------------
+  // 1️⃣ joinRoom 버튼 클릭 시 상태 변경
+  // -----------------------
+  const joinRoom = () => {
     if (!username || !room) return;
+    setJoined(true);
+  };
+
+  // -----------------------
+  // 2️⃣ Firestore 구독 + WebRTC 연결
+  // -----------------------
+  useEffect(() => {
+    if (!joined) return;
 
     // Firestore 방 생성/불러오기
     const roomRef = doc(db, "rooms", room);
-    const roomSnap = await getDoc(roomRef);
-    if (!roomSnap.exists()) await setDoc(roomRef, { checklist: [], messages: [], timer: 0 });
-    else {
-      const data = roomSnap.data();
-      setChecklist(data.checklist || []);
-      setMessages(data.messages || []);
-      setStudyTime(data.timer || 0);
-    }
+    getDoc(roomRef).then((snap) => {
+      if (!snap.exists()) setDoc(roomRef, { checklist: [], messages: [], timer: 0 });
+      else {
+        const data = snap.data();
+        setChecklist(data?.checklist || []);
+        setMessages(data?.messages || []);
+        setStudyTime(data?.timer || 0);
+      }
+    });
 
     // Firestore 실시간 구독
-    onSnapshot(roomRef, (snap) => {
+    const unsubscribe = onSnapshot(roomRef, (snap) => {
       const data = snap.data();
       if (!data) return;
       setChecklist(data.checklist || []);
@@ -54,18 +65,33 @@ export default function StudyRoomClient() {
       setStudyTime(data.timer || 0);
     });
 
-    // WebRTC + signaling
+    // WebRTC 연결
     socketRef.current = io("http://localhost:3001");
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-    // 브라우저 API는 useEffect 안에서
-    useEffect(() => {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-        socketRef.current.emit("join-room", room, socketRef.current.id);
+      socketRef.current.emit("join-room", room, socketRef.current.id);
 
-        socketRef.current.on("user-connected", (userId: string) => {
-          const peer = new Peer({ initiator: true, trickle: false, stream });
-          peer.on("signal", (signal) => socketRef.current.emit("signal", { target: userId, signal }));
+      // 새 유저 연결
+      socketRef.current.on("user-connected", (userId: string) => {
+        const peer = new Peer({ initiator: true, trickle: false, stream });
+        peer.on("signal", (signal) => socketRef.current.emit("signal", { target: userId, signal }));
+        peer.on("stream", (remoteStream) => {
+          const videoEl = document.createElement("video");
+          videoEl.srcObject = remoteStream;
+          videoEl.autoplay = true;
+          videoEl.playsInline = true;
+          document.getElementById("remote-videos")?.appendChild(videoEl);
+        });
+        peersRef.current.push({ peer, id: userId });
+      });
+
+      socketRef.current.on("signal", ({ signal, sender }: any) => {
+        const item = peersRef.current.find((p) => p.id === sender);
+        if (item) item.peer.signal(signal);
+        else {
+          const peer = new Peer({ initiator: false, trickle: false, stream });
+          peer.on("signal", (s) => socketRef.current.emit("signal", { target: sender, signal: s }));
           peer.on("stream", (remoteStream) => {
             const videoEl = document.createElement("video");
             videoEl.srcObject = remoteStream;
@@ -73,33 +99,18 @@ export default function StudyRoomClient() {
             videoEl.playsInline = true;
             document.getElementById("remote-videos")?.appendChild(videoEl);
           });
-          peersRef.current.push({ peer, id: userId });
-        });
-
-        socketRef.current.on("signal", ({ signal, sender }: any) => {
-          const item = peersRef.current.find((p) => p.id === sender);
-          if (item) item.peer.signal(signal);
-          else {
-            const peer = new Peer({ initiator: false, trickle: false, stream });
-            peer.on("signal", (s) => socketRef.current.emit("signal", { target: sender, signal: s }));
-            peer.on("stream", (remoteStream) => {
-              const videoEl = document.createElement("video");
-              videoEl.srcObject = remoteStream;
-              videoEl.autoplay = true;
-              videoEl.playsInline = true;
-              document.getElementById("remote-videos")?.appendChild(videoEl);
-            });
-            peer.signal(signal);
-            peersRef.current.push({ peer, id: sender });
-          }
-        });
+          peer.signal(signal);
+          peersRef.current.push({ peer, id: sender });
+        }
       });
-    }, []);
+    });
 
-    setJoined(true);
-  };
+    return () => unsubscribe();
+  }, [joined, room]);
 
-  // 메시지 보내기
+  // -----------------------
+  // 3️⃣ 메시지 보내기
+  // -----------------------
   const sendMessage = async () => {
     if (!message) return;
     const roomRef = doc(db, "rooms", room);
@@ -107,7 +118,9 @@ export default function StudyRoomClient() {
     setMessage("");
   };
 
-  // 체크리스트 토글
+  // -----------------------
+  // 4️⃣ 체크리스트
+  // -----------------------
   const toggleChecklist = async (idx: number) => {
     const newList = [...checklist];
     newList[idx] = newList[idx].includes("✅") ? newList[idx].replace("✅ ", "") : "✅ " + newList[idx];
@@ -115,8 +128,6 @@ export default function StudyRoomClient() {
     const roomRef = doc(db, "rooms", room);
     await updateDoc(roomRef, { checklist: newList });
   };
-
-  // 새 목표 추가
   const addGoal = async () => {
     if (!newGoal) return;
     const updatedList = [...checklist, newGoal];
@@ -126,7 +137,9 @@ export default function StudyRoomClient() {
     await updateDoc(roomRef, { checklist: updatedList });
   };
 
-  // 타이머
+  // -----------------------
+  // 5️⃣ 타이머
+  // -----------------------
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timerOn && joined) {
@@ -142,6 +155,9 @@ export default function StudyRoomClient() {
     return () => clearInterval(interval);
   }, [timerOn, joined, room]);
 
+  // -----------------------
+  // 6️⃣ 렌더링
+  // -----------------------
   return (
     <div className="p-4 max-w-xl mx-auto flex flex-col gap-4 font-sans">
       {!joined ? (
