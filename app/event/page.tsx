@@ -1,304 +1,195 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
+import Peer from "simple-peer";
 
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
-import { auth, db } from "@/app/firebase";
-
-/* ======================
-   타입
-====================== */
-type Post = {
-  id: number;
-  uid: string;
-  title: string;
-  description: string;
-  image?: string;
-  nickname: string;
-  likedBy: string[]; // 👍 좋아요
+// Firebase 설정
+const firebaseConfig = {
+ apiKey: "AIzaSyDqcX5pqShT7RXM4JHfCWOfZ9HBKIWON5o",
+  authDomain: "commentandlogin-2cc40.firebaseapp.com",
+  projectId: "commentandlogin-2cc40"
 };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-type UserProfile = {
-  uid: string;
-  nickname: string;
-};
+export default function App() {
+  const [username, setUsername] = useState("");
+  const [room, setRoom] = useState("");
+  const [joined, setJoined] = useState(false);
 
-type SnowFlake = {
-  id: number;
-  left: number;
-  size: number;
-  duration: number;
-};
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const [checklist, setChecklist] = useState([]);
+  const [newGoal, setNewGoal] = useState("");
+  const [studyTime, setStudyTime] = useState(0);
+  const [timerOn, setTimerOn] = useState(false);
 
-const STORAGE_KEY = "wagie_event_posts";
+  const localVideoRef = useRef(null);
+  const peersRef = useRef([]);
+  const socketRef = useRef(null);
 
-/* ======================
-   UTF-8 안전 인코딩
-====================== */
-const encode = (v: any) =>
-  btoa(unescape(encodeURIComponent(JSON.stringify(v))));
-const decode = (v: string) =>
-  JSON.parse(decodeURIComponent(escape(atob(v))));
+  const joinRoom = async () => {
+    if (!username || !room) return;
 
-export default function WagieChristmasEventPage() {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
+    // Firestore 방 생성/불러오기
+    const roomRef = doc(db, "rooms", room);
+    const roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) await setDoc(roomRef, { checklist: [], messages: [], timer: 0 });
+    else {
+      const data = roomSnap.data();
+      setChecklist(data.checklist || []);
+      setMessages(data.messages || []);
+      setStudyTime(data.timer || 0);
+    }
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [image, setImage] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-
-  const [flakes, setFlakes] = useState<SnowFlake[]>([]);
-
-  /* ======================
-     로그인 + 닉네임
-  ====================== */
-  useEffect(() => {
-    return onAuthStateChanged(auth, async (user) => {
-      if (!user) return setUserProfile(null);
-
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-
-      if (!snap.exists()) {
-        const nickname = user.displayName || `와기${user.uid.slice(0, 5)}`;
-        await setDoc(ref, {
-          uid: user.uid,
-          nickname,
-          createdAt: Timestamp.now(),
-        });
-        setUserProfile({ uid: user.uid, nickname });
-      } else {
-        setUserProfile(snap.data() as UserProfile);
-      }
+    // Firestore 실시간 구독
+    onSnapshot(roomRef, (snap) => {
+      const data = snap.data();
+      if (!data) return;
+      setChecklist(data.checklist || []);
+      setMessages(data.messages || []);
+      setStudyTime(data.timer || 0);
     });
-  }, []);
 
-  /* ======================
-     로컬 저장 로드
-  ====================== */
+    // WebRTC 신호 연결
+    socketRef.current = io("http://localhost:3001");
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+      localVideoRef.current.srcObject = stream;
+      socketRef.current.emit("join-room", room, socketRef.current.id);
+
+      socketRef.current.on("user-connected", (userId) => {
+        const peer = new Peer({ initiator: true, trickle: false, stream });
+        peer.on("signal", (signal) => socketRef.current.emit("signal", { target: userId, signal }));
+        peer.on("stream", (remoteStream) => {
+          const videoEl = document.createElement("video");
+          videoEl.srcObject = remoteStream;
+          videoEl.autoplay = true;
+          videoEl.playsInline = true;
+          document.getElementById("remote-videos").appendChild(videoEl);
+        });
+        peersRef.current.push({ peer, id: userId });
+      });
+
+      socketRef.current.on("signal", ({ signal, sender }) => {
+        const item = peersRef.current.find((p) => p.id === sender);
+        if (item) item.peer.signal(signal);
+        else {
+          const peer = new Peer({ initiator: false, trickle: false, stream });
+          peer.on("signal", (s) => socketRef.current.emit("signal", { target: sender, signal: s }));
+          peer.on("stream", (remoteStream) => {
+            const videoEl = document.createElement("video");
+            videoEl.srcObject = remoteStream;
+            videoEl.autoplay = true;
+            videoEl.playsInline = true;
+            document.getElementById("remote-videos").appendChild(videoEl);
+          });
+          peer.signal(signal);
+          peersRef.current.push({ peer, id: sender });
+        }
+      });
+    });
+
+    setJoined(true);
+  };
+
+  // 메시지 보내기
+  const sendMessage = async () => {
+    if (!message) return;
+    const roomRef = doc(db, "rooms", room);
+    await updateDoc(roomRef, { messages: arrayUnion({ user: username, text: message }) });
+    setMessage("");
+  };
+
+  // 체크리스트 토글
+  const toggleChecklist = async (idx) => {
+    const newList = [...checklist];
+    newList[idx] = newList[idx].includes("✅") ? newList[idx].replace("✅ ", "") : "✅ " + newList[idx];
+    setChecklist(newList);
+    const roomRef = doc(db, "rooms", room);
+    await updateDoc(roomRef, { checklist: newList });
+  };
+
+  // 새 목표 추가
+  const addGoal = async () => {
+    if (!newGoal) return;
+    const updatedList = [...checklist, newGoal];
+    setChecklist(updatedList);
+    setNewGoal("");
+    const roomRef = doc(db, "rooms", room);
+    await updateDoc(roomRef, { checklist: updatedList });
+  };
+
+  // 타이머
   useEffect(() => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return;
-
-    const parsed = decode(data).map((p: any) => ({
-      ...p,
-      likedBy: Array.isArray(p.likedBy) ? p.likedBy : [],
-    }));
-
-    setPosts(parsed);
-  }, []);
-
-  const save = (list: Post[]) =>
-    localStorage.setItem(STORAGE_KEY, encode(list));
-
-  /* ======================
-     ❄️ 눈 생성 (크기 랜덤)
-  ====================== */
-  useEffect(() => {
-    const i = setInterval(() => {
-      setFlakes((p) => [
-        ...p.slice(-60),
-        {
-          id: Date.now() + Math.random(),
-          left: Math.random() * window.innerWidth,
-          size: Math.random() * 14 + 10,
-          duration: Math.random() * 5 + 6,
-        },
-      ]);
-    }, 200);
-    return () => clearInterval(i);
-  }, []);
-
-  /* ======================
-     이미지 업로드
-  ====================== */
-  const handleImage = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  /* ======================
-     등록
-  ====================== */
-  const addPost = () => {
-    if (!userProfile) return alert("로그인이 필요합니다.");
-    if (!title || !description) return alert("제목과 설명을 입력하세요.");
-
-    const post: Post = {
-      id: Date.now(),
-      uid: userProfile.uid,
-      title,
-      description,
-      image: image || undefined,
-      nickname: userProfile.nickname,
-      likedBy: [],
-    };
-
-    const updated = [post, ...posts];
-    setPosts(updated);
-    save(updated);
-
-    setTitle("");
-    setDescription("");
-    setImage(null);
-    setShowForm(false);
-  };
-
-  /* ======================
-     삭제
-  ====================== */
-  const deletePost = (id: number) => {
-    if (!confirm("삭제하시겠습니까?")) return;
-    const updated = posts.filter((p) => p.id !== id);
-    setPosts(updated);
-    save(updated);
-  };
-
-  /* ======================
-     좋아요
-  ====================== */
-  const toggleLike = (id: number) => {
-    if (!userProfile) return alert("로그인이 필요합니다.");
-
-    const updated = posts.map((p) =>
-      p.id === id
-        ? {
-            ...p,
-            likedBy: p.likedBy.includes(userProfile.uid)
-              ? p.likedBy.filter((uid) => uid !== userProfile.uid)
-              : [...p.likedBy, userProfile.uid],
-          }
-        : p
-    );
-
-    setPosts(updated);
-    save(updated);
-  };
+    let interval;
+    if (timerOn && joined) {
+      interval = setInterval(async () => {
+        setStudyTime((prev) => {
+          const newTime = prev + 1;
+          const roomRef = doc(db, "rooms", room);
+          updateDoc(roomRef, { timer: newTime });
+          return newTime;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerOn, joined, room]);
 
   return (
-    <div className="min-h-screen bg-red-50 relative overflow-hidden">
-      {/* ❄️ 눈 */}
-      {flakes.map((f) => (
-        <span
-          key={f.id}
-          className="absolute top-0 pointer-events-none"
-          style={{
-            left: f.left,
-            fontSize: f.size,
-            animation: `fall ${f.duration}s linear forwards`,
-          }}
-        >
-          ❄️
-        </span>
-      ))}
-
-      <div className="max-w-2xl mx-auto p-4 relative z-10">
-        <h1 className="text-3xl font-bold text-center text-red-600 mb-4">
-          🎨 와기 새해 이벤트
-        </h1>
-
-        <div className="flex justify-end mb-3">
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="w-10 h-10 bg-red-500 text-white rounded-full text-xl"
-          >
-            +
-          </button>
+    <div className="p-4 max-w-xl mx-auto font-sans flex flex-col gap-4">
+      {!joined ? (
+        <div className="flex flex-col gap-2">
+          <input className="border p-2 rounded" placeholder="이름" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <input className="border p-2 rounded" placeholder="방 이름" value={room} onChange={(e) => setRoom(e.target.value)} />
+          <button className="bg-blue-500 text-white p-2 rounded" onClick={joinRoom}>참여</button>
         </div>
+      ) : (
+        <>
+          <h2 className="text-xl font-bold text-center">방: {room}</h2>
 
-        {showForm && (
-          <div className="bg-white p-4 rounded shadow mb-4">
-            <input
-              className="w-full border p-2 mb-2"
-              placeholder="제목"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-
-            <textarea
-              className="w-full border p-2 mb-2"
-              placeholder="설명 (작품 설명, 콘셉트 등)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-
-            <input
-              type="file"
-              accept="image/*"
-              className="mb-2"
-              onChange={(e) =>
-                e.target.files && handleImage(e.target.files[0])
-              }
-            />
-
-            {image && (
-              <img src={image} className="max-h-60 rounded mb-2 mx-auto" />
-            )}
-
-            <button
-              onClick={addPost}
-              className="bg-red-500 text-white px-4 py-2 rounded w-full"
-            >
-              등록
-            </button>
+          {/* 영상 영역 */}
+          <div className="flex gap-2 overflow-x-scroll">
+            <video ref={localVideoRef} autoPlay playsInline muted className="w-40 h-32 rounded" />
+            <div id="remote-videos" className="flex gap-2"></div>
           </div>
-        )}
 
-        {posts.map((p) => {
-          const liked = userProfile
-            ? p.likedBy.includes(userProfile.uid)
-            : false;
-
-          return (
-            <div key={p.id} className="bg-white p-4 mb-4 rounded shadow">
-              <div className="flex justify-between mb-1">
-                <p className="text-sm text-gray-500">🎨 {p.nickname}</p>
-
-                {userProfile?.uid === p.uid && (
-                  <button
-                    onClick={() => deletePost(p.id)}
-                    className="text-xs text-red-500 hover:underline"
-                  >
-                    삭제
-                  </button>
-                )}
-              </div>
-
-              <h2 className="font-bold mb-1">{p.title}</h2>
-              <p className="mb-2">{p.description}</p>
-
-              {p.image && (
-                <img src={p.image} className="rounded max-h-72 mx-auto" />
-              )}
-
-              <button
-                onClick={() => toggleLike(p.id)}
-                className={`mt-2 text-sm ${
-                  liked ? "text-red-500" : "text-gray-400"
-                }`}
-              >
-                ❤️ {p.likedBy.length}
-              </button>
+          {/* 체크리스트 */}
+          <div className="border rounded p-2 shadow-sm">
+            <h3 className="font-semibold mb-2 text-center">오늘 목표</h3>
+            <div className="flex gap-2 mb-2">
+              <input className="border p-1 rounded flex-1" placeholder="새 목표" value={newGoal} onChange={(e) => setNewGoal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addGoal()} />
+              <button className="bg-green-500 text-white p-1 rounded" onClick={addGoal}>추가</button>
             </div>
-          );
-        })}
-      </div>
+            <ul className="list-disc ml-4">
+              {checklist.map((item, idx) => (
+                <li key={idx} onClick={() => toggleChecklist(idx)} className="cursor-pointer select-none">{item}</li>
+              ))}
+            </ul>
+          </div>
 
-      <style jsx>{`
-        @keyframes fall {
-          0% {
-            transform: translateY(-10px);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh);
-            opacity: 0;
-          }
-        }
-      `}</style>
+          {/* 채팅 */}
+          <div className="border rounded p-2 shadow-sm flex flex-col gap-2">
+            <h3 className="font-semibold text-center">채팅</h3>
+            <div className="overflow-y-scroll h-40 border rounded p-2">
+              {messages.map((m, idx) => (<div key={idx}><b>{m.user}:</b> {m.text}</div>))}
+            </div>
+            <div className="flex gap-2">
+              <input className="border p-1 rounded flex-1" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="메시지 입력" />
+              <button className="bg-green-500 text-white p-1 rounded" onClick={sendMessage}>보내기</button>
+            </div>
+          </div>
+
+          {/* 타이머 */}
+          <div className="flex flex-col items-center border rounded p-2 shadow-sm">
+            <h3 className="font-semibold mb-2">공부 시간</h3>
+            <div className="text-3xl mb-2">{Math.floor(studyTime/60)}:{studyTime%60<10?'0':''}{studyTime%60}</div>
+            <button className="bg-blue-500 text-white p-2 mb-1 rounded" onClick={() => setTimerOn(!timerOn)}>{timerOn?'일시정지':'시작'}</button>
+            <button className="bg-gray-500 text-white p-2 rounded" onClick={() => setStudyTime(0)}>초기화</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
