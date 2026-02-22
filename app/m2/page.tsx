@@ -202,12 +202,6 @@ export default function MiniTestPage() {
               >
                 오답노트 쓰기
               </button>
-              <button
-                onClick={() => router.push("/ppt")}
-                className="px-5 py-2 bg-orange-300 text-white rounded-lg hover:bg-orange-400"
-              >
-                PPT 쓰기
-              </button>
             </div>
           </div>
         )}

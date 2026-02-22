@@ -161,13 +161,13 @@ export default function HamburgerMenuWithDelete() {
                     onClick={() => router.push("/genius")}
                     className="w-full text-left"
                   >
-                  💬 와기 Chat
+                    💬 왁챗
                   </button>
                    <button
                     onClick={() => router.push("/SG")}
                     className="w-full text-left"
                   >
-                  👥 스터디그룹 
+                  👥 와글와글 
                   </button>
                   <button
                     onClick={() => signOut(auth)}
