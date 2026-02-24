@@ -10,11 +10,7 @@ body {
   color: black;
 }
 
-/* 다크 모드 스타일 */
-body.dark {
-  background-color: #2d3748;
-  color: white;
-}
+
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

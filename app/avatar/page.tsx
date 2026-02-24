@@ -61,7 +61,7 @@ export default function PixelAvatar() {
       </div>
 
       {/* 아바타 미리보기 */}
-      <div className="relative w-64 h-64 bg-gray-100 dark:bg-gray-800 rounded p-4 flex justify-center items-center">
+      <div className="relative w-64 h-64 bg-gray-100 rounded p-4 flex justify-center items-center">
         <svg width="128" height="128" viewBox="0 0 32 32">
           {/* 피부 */}
           <rect x="12" y="4" width="8" height="8" fill={colors.skin} />
