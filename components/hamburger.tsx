@@ -169,6 +169,12 @@ export default function HamburgerMenuWithDelete() {
                   >
                   👥 와글와글 
                   </button>
+                   <button
+                    onClick={() => router.push("/mbti")}
+                    className="w-full text-left"
+                  >
+                  Ⓜ️ MBTI 테스트
+                  </button>
                   <button
                     onClick={() => signOut(auth)}
                     className="w-full text-left text-red-500"
