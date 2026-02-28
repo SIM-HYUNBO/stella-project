@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
 import { Do_Hyeon, Nanum_Brush_Script } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -7,13 +8,13 @@ const geistSans = localFont({
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
 });
 
-// 👇 귀여운 폰트 2개 추가
 const doHyeon = Do_Hyeon({
   subsets: ["latin"],
   weight: "400",
@@ -33,11 +34,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${doHyeon.variable} ${nanumBrush.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"     // ⭐ 기본 다크모드
+          enableSystem={false}    // 시스템 설정 무시
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
