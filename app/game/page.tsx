@@ -43,6 +43,13 @@ export default function Home() {
         >
             🌈 파티클 정원
         </button>
+         <button
+          onClick={() => router.push("/mbti")}
+          className="px-8 py-5 rounded-2xl bg-zinc-500 hover:bg-zinc-600
+            text-2xl transition shadow-lg"
+        >
+            ⚫ 오목
+        </button>
       </div>
     </div>
   );

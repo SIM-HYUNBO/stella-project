@@ -1,10 +1,14 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 
 export default function LiveSTTWithHeader() {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  const [summary, setSummary] = useState("");
+  const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
+
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -13,7 +17,7 @@ export default function LiveSTTWithHeader() {
       (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("브라우저가 Web Speech API를 지원하지 않습니다.");
+      alert("Web Speech API 미지원");
       return;
     }
 
@@ -23,74 +27,78 @@ export default function LiveSTTWithHeader() {
     recognition.interimResults = true;
 
     recognition.onresult = (event: any) => {
-      let interimText = "";
       let finalText = "";
-      for (let i = 0; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += transcript + " ";
-        else interimText += transcript;
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalText += event.results[i][0].transcript + " ";
+        }
       }
-      setText(finalText + interimText);
+
+      setText((prev) => prev + finalText);
     };
 
     recognitionRef.current = recognition;
   }, []);
 
   const startListening = () => {
-  if (listening) return; // 이미 듣고 있으면 무시
-  recognitionRef.current?.start();
-  setListening(true);
-};
+    if (listening) return;
+    recognitionRef.current?.start();
+    setListening(true);
+  };
 
   const stopListening = () => {
-  if (!listening) return; // 이미 멈춰있으면 무시
-  recognitionRef.current?.stop();
-  setListening(false);
-};
-  return (
-    <div className="flex flex-col h-screen p-4 bg-gray-50">
-      {/* 설명 텍스트 */}
-      <p className="mb-4 text-orange-400 text-2xl font-bold">
-        와글와글 토의방
-      </p>
+    recognitionRef.current?.stop();
+    setListening(false);
+  };
 
-      {/* 제목 입력 */}
+  // ⭐ Server Action 호출
+  const summarizeMeeting = async () => {
+    setLoading(true);
+
+    const res = await fetch("/api/summarize-inline", {
+      method: "POST",
+      body: JSON.stringify({ title, text }),
+    });
+
+    const data = await res.json();
+    setSummary(data.summary);
+    setLoading(false);
+  };
+
+  return (
+    <div className="p-4 flex flex-col h-screen">
+      <h1 className="text-2xl font-bold mb-3">🗣 와글와글 토의방</h1>
+
       <input
-        type="text"
-        placeholder="제목을 입력하세요"
+        className="border p-2 mb-3 rounded"
+        placeholder="회의 제목"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="mb-4 p-2 text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
-      {/* 상태 표시 */}
-      <div className="flex items-center mb-4">
-        <div
-          className={`w-4 h-4 rounded-full mr-2 ${
-            listening ? "bg-red-500 animate-pulse" : "bg-gray-400"
-          }`}
-        />
-        <span>{listening ? "듣는 중..." : "일시정지"}</span>
+      <div className="flex-1 border rounded p-3 overflow-auto">
+        {text || "음성이 여기에 표시됩니다."}
       </div>
 
-      {/* 받아쓰기 텍스트 */}
-      <div className="flex-1 overflow-y-auto p-2 bg-white rounded-lg border border-gray-200 text-lg">
-        {text || "말씀하신 내용이 여기에 표시됩니다."}
+      <div className="mt-3 border rounded p-3 bg-blue-50">
+        <b>📌 AI 요약</b>
+        <p className="mt-2">
+          {loading ? "요약 중..." : summary || "요약 결과"}
+        </p>
       </div>
 
-      {/* 버튼 */}
-      <div className="flex justify-around mt-4">
-        <button
-          onClick={startListening}
-          className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md"
-        >
-          ▶ 시작
+      <div className="flex gap-3 mt-3">
+        <button onClick={startListening} className="bg-green-500 text-white px-4 py-2 rounded">
+          시작
         </button>
-        <button
-          onClick={stopListening}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-md"
-        >
-          ⏹ 중지
+
+        <button onClick={stopListening} className="bg-red-500 text-white px-4 py-2 rounded">
+          중지
+        </button>
+
+        <button onClick={summarizeMeeting} className="bg-blue-500 text-white px-4 py-2 rounded">
+          회의 요약
         </button>
       </div>
     </div>
