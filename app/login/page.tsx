@@ -94,26 +94,10 @@ export default function LoginPage() {
             </p>
           </div>
         ) : (
-          // ✅ 로그인 성공 후 선택 화면
+          
           <div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg flex flex-col gap-6 animate-fade-in">
-            <h2 className="text-2xl font-bold text-center text-purple-700">
-              {nickname}님, 어디로 가시겠습니까?
-            </h2>
-
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={handleEnterhome}
-                className="px-4 py-3 bg-green-500 text-white rounded-xl shadow hover:scale-105 transition transform"
-              >
-                공부
-              </button>
-              <button
-                onClick={handleEnterDebate}
-                className="px-4 py-3 bg-blue-500 text-white rounded-xl shadow hover:scale-105 transition transform"
-              >
-                마음 기록
-              </button>
-            </div>
+          
+            
           </div>
         )}
       </div>

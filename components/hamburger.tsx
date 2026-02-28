@@ -34,6 +34,10 @@ export default function HamburgerMenuWithDelete() {
 
   useEffect(() => setMounted(true), []);
 
+  const toggleDarkMode = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -99,7 +103,6 @@ export default function HamburgerMenuWithDelete() {
   };
 
   if (!mounted) return null;
-  const currentTheme = theme || "light";
 
   return (
     <>
@@ -120,7 +123,7 @@ export default function HamburgerMenuWithDelete() {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="flex flex-col fixed top-20 right-4 w-60 bg-amber-50 dark:bg-slate-700 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
+          className="fixed top-20 right-4 w-60 bg-amber-50 dark:bg-slate-700 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
           {/* 로그인 상태 */}
           {user ? (
@@ -144,41 +147,22 @@ export default function HamburgerMenuWithDelete() {
                   ref={profileRef}
                   className="bg-amber-100 dark:bg-slate-600 rounded-xl px-4 py-3 space-y-2"
                 >
-                  
-                  <button
-                    onClick={() => router.push("/profile/edit")}
-                    className="w-full text-left"
-                  >
+                  <button onClick={() => router.push("/profile/edit")} className="w-full text-left">
                     ✏️ 편집
                   </button>
-                   <button
-                    onClick={() => router.push("/foot")}
-                    className="w-full text-left"
-                  >
+                  <button onClick={() => router.push("/foot")} className="w-full text-left">
                     🏠 마이룸
                   </button>
-                    <button
-                    onClick={() => router.push("/genius")}
-                    className="w-full text-left"
-                  >
+                  <button onClick={() => router.push("/genius")} className="w-full text-left">
                     💬 왁챗
                   </button>
-                   <button
-                    onClick={() => router.push("/SG")}
-                    className="w-full text-left"
-                  >
-                  👥 와글와글 
+                  <button onClick={() => router.push("/SG")} className="w-full text-left">
+                    👥 와글와글
                   </button>
-                  <button
-                    onClick={() => signOut(auth)}
-                    className="w-full text-left text-red-500"
-                  >
+                  <button onClick={() => signOut(auth)} className="w-full text-left text-red-500">
                     🚪 로그아웃
                   </button>
-                  <button
-                    onClick={() => setConfirmDeleteOpen(true)}
-                    className="w-full text-left text-red-700"
-                  >
+                  <button onClick={() => setConfirmDeleteOpen(true)} className="w-full text-left text-red-700">
                     🛑 계정 탈퇴
                   </button>
                 </div>
@@ -199,19 +183,24 @@ export default function HamburgerMenuWithDelete() {
             ["/Clips", "🎬 Clips"],
             ["/Notes", "📝 Notes"],
             ["/study", "📚 Study"],
-            ["/game", "🎮 Game"]
+            ["/game", "🎮 Game"],
           ].map(([href, label]) => (
-            <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
+            <Link
+              key={href}
+              href={href}
+              className="p-2 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-600"
+            >
               {label}
             </Link>
           ))}
 
-        
+          {/* 🌙 다크모드 토글 (중등 와기 위) */}
+          
 
-          {/* ⭐ 중등 와기 이동 */}
+          {/* ⭐ 중등 와기로 이동 */}
           <Link
             href="/m-home"
-            className="text-center text-orange-400 hover:underline w-40"
+            className="text-center text-orange-400 hover:underline"
           >
             중등 와기로 이동
           </Link>
