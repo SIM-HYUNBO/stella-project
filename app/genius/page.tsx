@@ -174,7 +174,7 @@ const inviteUser=async(room:Room)=>{
  if(!name)return
 
  if(room.members.includes(name)){
-  alert("이미 있음")
+  alert("이미 방 이용중!")
   return
  }
 
@@ -217,7 +217,7 @@ return(
 className="bg-yellow-200 p-2 rounded"
 onClick={createRoom}
 >
-새방 만들기
+새 방 만들기
 </button>
 
 {rooms
