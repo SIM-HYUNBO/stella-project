@@ -77,7 +77,7 @@ export default function Home() {
       
      
 
-      <div className="flex w-full min-h-screen">
+      <div className="flex w-full min-h-screen bg-white">
         <div className="flex-1">
           <h1 className="text-[2rem]  text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl">
             We are Genius in Everything.

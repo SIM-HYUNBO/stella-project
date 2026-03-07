@@ -181,7 +181,7 @@ export default function FaceGeniusPage() {
   /* ================= UI ================= */
   return (
     <PageContainer>
-      <div className="flex flex-col w-full min-h-screen p-8 gap-12">
+      <div className="flex flex-col w-full min-h-screen p-8 gap-12 bg-white">
 
         <h1 className="text-4xl text-orange-400 text-center">
             내 얼굴이 좀 생겼다? 당장 업로드!

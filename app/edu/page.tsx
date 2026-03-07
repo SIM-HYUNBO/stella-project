@@ -168,7 +168,7 @@ export default function EducationPage() {
 
   return (
     <PageContainer>
-      <div className="flex flex-col w-full min-h-full">
+      <div className="flex flex-col w-full min-h-full bg-white">
           <div className="flex-1">
             <h1 className="text-[2rem] text-orange-400 dark:text-white ml-11 mt-5 max-w-3xl w-full text-left">
               Upload a formula.

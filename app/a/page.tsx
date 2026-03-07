@@ -92,7 +92,7 @@ export default function ArtPage() {
 
   return (
     <PageContainer>
-      <div className="min-h-screen p-8 flex flex-col gap-12">
+      <div className="min-h-screen p-8 flex flex-col gap-12 bg-white">
         <h1 className="text-4xl text-orange-400 text-center">
           내 미술 작품, 소개할 만 하다? 당장 소개!
         </h1>

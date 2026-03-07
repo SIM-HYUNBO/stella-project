@@ -203,7 +203,6 @@ export default function HamburgerMenuWithDelete() {
             {/* 공통 메뉴 */}
           {[
             ["/m-home", "🏠 Home"],
-            ["/clip", "🎬 Clips"],
             ["/study2", "📚 Study"],
              ["/edu", "🎓 Education"],
             ["/game", "🎮 Game"]

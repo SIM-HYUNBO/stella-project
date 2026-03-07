@@ -73,7 +73,7 @@ export default function Home() {
       {/* 오른쪽 버튼 영역 */}
       
 
-      <div className="flex w-full min-h-screen">
+      <div className="flex w-full min-h-screen bg-white">
         <div className="flex-1">
           <h1 className="text-[2rem] text-orange-400 ml-11 mt-5 max-w-3xl">
             We are Genius in Everything.

@@ -207,7 +207,7 @@ const studySubjects = [
 
   return (
     <PageContainer>
-      <div className="flex flex-col min-h-screen p-8 gap-12">
+      <div className="flex flex-col min-h-screen p-8 gap-12 bg-white">
         <div className="max-w-3xl mx-auto space-y-8">
 
           <h1 className="text-4xl text-orange-400 text-center">

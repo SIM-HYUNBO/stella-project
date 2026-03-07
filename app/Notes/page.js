@@ -51,7 +51,7 @@ function Contact() {
     <>
       {loading && <CenterSpinner />}
       <PageContainer>
-        <div className="flex w-full h-screen">
+        <div className="flex w-full h-screen bg-white">
           <div className="flex-1 p-8 overflow-auto">
             <h1 className="text-[2rem] text-orange-400 dark:text-white mb-8">
               Write important info.

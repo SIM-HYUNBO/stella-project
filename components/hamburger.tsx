@@ -181,7 +181,6 @@ export default function HamburgerMenuWithDelete() {
           {/* 공통 메뉴 */}
           {[
             ["/home", "🏠 Home"],
-            ["/Clips", "🎬 Clips"],
             ["/Notes", "📝 Notes"],
             ["/study", "📚 Study"],
             ["/game", "🎮 Game"],
