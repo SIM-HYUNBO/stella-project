@@ -44,7 +44,7 @@ const messagesEndRef=useRef<HTMLDivElement|null>(null)
 const formatDate=(ts:any)=>{
  if(!ts)return ""
  const d=ts?.toDate?ts.toDate():new Date(ts)
- return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
+ return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`
 }
 
 /* 시간 */
