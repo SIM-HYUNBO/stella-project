@@ -9,7 +9,7 @@ const jua = Jua({
 
 const Header = () => {
   return (
-    <header className="bg-white dark:bg-slate-700 z-50 sticky top-0 right-0 w-full flex justify-between items-center px-6 py-4">
+    <header className="bg-white z-50 sticky top-0 right-0 w-full flex justify-between items-center px-6 py-4">
       {/* 로고 + 전구 */}
       <Link href="/home" className="flex items-center gap-3">
        

@@ -110,7 +110,7 @@ export default function HamburgerMenuWithDelete() {
           setProfileMenuOpen(false);
           setConfirmDeleteOpen(false);
         }}
-        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 dark:bg-slate-600 border rounded-xl shadow-md hover:shadow-xl transition z-50"
+        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 border rounded-xl shadow-md hover:shadow-xl transition z-50"
       >
         <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded" />
         <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded" />
@@ -121,7 +121,7 @@ export default function HamburgerMenuWithDelete() {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-20 right-4 bg-amber-50 dark:bg-slate-700 shadow-xl rounded-2xl px-6 py-5 z-40 flex flex-col gap-4 w-60 border"
+          className="fixed top-20 right-4 bg-amber-50 shadow-xl rounded-2xl px-6 py-5 z-40 flex flex-col gap-4 w-60 border"
         >
           {/* 로그인 상태 */}
           {user ? (
@@ -143,7 +143,7 @@ export default function HamburgerMenuWithDelete() {
               {profileMenuOpen && (
                 <div
                   ref={profileRef}
-                  className="bg-amber-100 dark:bg-slate-600 w-full rounded-xl px-4 py-3 space-y-3 shadow-inner"
+                  className="bg-amber-100 w-full rounded-xl px-4 py-3 space-y-3 shadow-inner"
                 > 
                   <button
                     onClick={() => {
@@ -227,7 +227,7 @@ export default function HamburgerMenuWithDelete() {
       {/* 계정 탈퇴 모달 */}
       {confirmDeleteOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-700 rounded-xl p-6 w-80 space-y-4">
+          <div className="bg-white rounded-xl p-6 w-80 space-y-4">
             <h2 className="text-xl font-bold text-red-600">
               정말로 탈퇴하시겠습니까?
             </h2>
