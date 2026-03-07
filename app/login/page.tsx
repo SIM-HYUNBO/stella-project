@@ -12,14 +12,12 @@ export default function LoginPage() {
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loginSuccess, setLoginSuccess] = useState(false); // ✅ 로그인 성공 후 선택 화면 표시
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      // Firestore에서 닉네임으로 이메일 찾기
       const q = query(collection(db, "users"), where("nickname", "==", nickname));
       const snapshot = await getDocs(q);
 
@@ -31,75 +29,63 @@ export default function LoginPage() {
       const userData = snapshot.docs[0].data();
       const email = userData.email;
 
-      // 이메일 + 비밀번호로 로그인
       await signInWithEmailAndPassword(auth, email, password);
 
-      setLoginSuccess(true); // ✅ 로그인 성공
+      // 로그인 성공하면 홈으로 이동
+      router.push("/home");
+
     } catch (err: any) {
       console.error("로그인 오류:", err);
       setError("로그인에 실패했습니다. 닉네임 또는 비밀번호를 확인하세요.");
     }
   };
 
-  const handleEnterhome = () => {
-    router.push("/home");
-  };
-
-  const handleEnterDebate = () => {
-    router.push("/debateP");
-  };
-
   return (
     <PageContainer>
       <div className="flex justify-center items-center min-h-screen">
-        {!loginSuccess ? (
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg animate-fade-in">
-            <h1 className="text-3xl font-bold text-center text-blue-400 mb-6">
+        <div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg animate-fade-in">
+          <h1 className="text-3xl font-bold text-center text-blue-400 mb-6">
+            로그인
+          </h1>
+
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="닉네임"
+              className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="비밀번호"
+              className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              className="mt-4 px-6 py-3 bg-blue-400 text-white rounded-xl shadow hover:bg-blue-500 transition"
+            >
               로그인
-            </h1>
+            </button>
+          </form>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
-              <input
-                type="text"
-                placeholder="닉네임"
-                className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="비밀번호"
-                className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-              <button
-                type="submit"
-                className="mt-4 px-6 py-3 bg-blue-400 text-white rounded-xl shadow hover:bg-blue-500 transition"
-              >
-                로그인
-              </button>
-            </form>
-
-            <p className="mt-6 text-center text-gray-600 dark:text-gray-300">
-              계정이 없으신가요?{" "}
-              <a href="/signup" className="text-green-400 hover:underline">
-                회원가입
-              </a>
-            </p>
-          </div>
-        ) : (
-          
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg flex flex-col gap-6 animate-fade-in">
-          
-            
-          </div>
-        )}
+          <p className="mt-6 text-center text-gray-600 dark:text-gray-300">
+            계정이 없으신가요?{" "}
+            <a href="/signup" className="text-green-400 hover:underline">
+              회원가입
+            </a>
+          </p>
+        </div>
       </div>
     </PageContainer>
   );
