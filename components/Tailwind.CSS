@@ -12,7 +12,7 @@
 // components/OrbitDotsSpinner.tsx
 export default function OrbitDotsSpinner() {
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-white/60 dark:bg-gray-900/60 z-50">
+    <div className="fixed inset-0 flex justify-center items-center bg-white/60 z-50">
       <div className="relative w-16 h-16">
         {[...Array(8)].map((_, i) => (
           <div

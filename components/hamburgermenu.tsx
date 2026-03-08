@@ -112,9 +112,9 @@ export default function HamburgerMenuWithDelete() {
         }}
         className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 border rounded-xl shadow-md hover:shadow-xl transition z-50"
       >
-        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded" />
-        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded" />
-        <span className="block h-1 w-full bg-[#4a342a] dark:bg-white rounded" />
+        <span className="block h-1 w-full bg-[#4a342a] rounded" />
+        <span className="block h-1 w-full bg-[#4a342a] rounded" />
+        <span className="block h-1 w-full bg-[#4a342a] rounded" />
       </button>
 
       {/* 메뉴 */}
@@ -135,7 +135,7 @@ export default function HamburgerMenuWithDelete() {
                   size={48}
                   profileImage={profileImage}
                 />
-                <span className="text-[#4a342a] dark:text-white text-lg font-semibold">
+                <span className="text-[#4a342a] text-lg font-semibold">
                   {nickname || "유저"}
                 </span>
               </button>

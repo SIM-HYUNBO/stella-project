@@ -43,7 +43,7 @@ export default function LoginPage() {
   return (
     <PageContainer>
       <div className="flex justify-center items-center min-h-screen">
-        <div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg animate-fade-in">
+        <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-lg animate-fade-in">
           <h1 className="text-3xl font-bold text-center text-blue-400 mb-6">
             로그인
           </h1>
@@ -52,7 +52,7 @@ export default function LoginPage() {
             <input
               type="text"
               placeholder="닉네임"
-              className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               required
@@ -61,7 +61,7 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="비밀번호"
-              className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -81,7 +81,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-gray-600 dark:text-gray-300">
+          <p className="mt-6 text-center text-gray-600">
             계정이 없으신가요?{" "}
             <a href="/signup" className="text-green-400 hover:underline">
               회원가입

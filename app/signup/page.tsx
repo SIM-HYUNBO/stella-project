@@ -124,7 +124,7 @@ export default function SignupPage() {
 
 <div className="flex justify-center items-center min-h-screen">
 
-<div className="w-full max-w-md bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-lg">
+<div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-lg">
 
 <h1 className="text-3xl font-bold text-center text-green-400 mb-6">
 회원가입

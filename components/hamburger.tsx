@@ -116,9 +116,9 @@ export default function HamburgerMenuWithDelete() {
         }}
         className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 border rounded-xl shadow-md z-50"
       >
-        <span className="h-1 bg-[#4a342a] dark:bg-white rounded" />
-        <span className="h-1 bg-[#4a342a] dark:bg-white rounded" />
-        <span className="h-1 bg-[#4a342a] dark:bg-white rounded" />
+        <span className="h-1 bg-[#4a342a] rounded" />
+        <span className="h-1 bg-[#4a342a] rounded" />
+        <span className="h-1 bg-[#4a342a] rounded" />
       </button>
 
       {menuOpen && (
