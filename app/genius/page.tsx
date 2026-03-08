@@ -40,6 +40,17 @@ const [selectedMessageId,setSelectedMessageId]=useState<string|null>(null)
 
 const messagesEndRef=useRef<HTMLDivElement|null>(null)
 
+
+// 알림 권한 요청
+useEffect(()=>{
+
+ if(Notification.permission!=="granted"){
+  Notification.requestPermission()
+ }
+
+},[])
+
+
 /* 날짜 */
 const formatDate=(ts:any)=>{
  if(!ts)return ""
@@ -99,6 +110,23 @@ useEffect(()=>{
   setMessages(msgs)
 
   msgs.forEach(markAsRead)
+
+  // 🔔 알림 처리
+  const last=msgs[msgs.length-1]
+
+  if(
+   last &&
+   last.user!==nickname &&
+   Notification.permission==="granted" &&
+   document.hidden
+  ){
+
+   new Notification(last.user,{
+    body:last.content,
+    icon:"/icon.png"
+   })
+
+  }
 
   setTimeout(()=>{
    messagesEndRef.current?.scrollIntoView({behavior:"smooth"})
@@ -260,9 +288,6 @@ const prev=messages[i-1]
 const showDate=!prev||formatDate(prev.createdAt)!==formatDate(m.createdAt)
 const showUser=!prev||prev.user!==m.user
 
-const room=rooms.find(r=>r.id===currentRoomId)
-
-
 return(
 
 <div key={m.id} className="flex flex-col">
@@ -273,21 +298,12 @@ return(
 </div>
 )}
 
-{m.user==="system"?(
-
-<div className="text-center text-xs text-gray-400">
-system : {m.content}
-</div>
-
-):( 
-
 <div
 className={`flex flex-col max-w-xs ${
  m.user===nickname
  ?"self-end items-end"
  :"self-start items-start"
 }`}
-onClick={()=>m.user===nickname&&setSelectedMessageId(m.id)}
 >
 
 {showUser&&(
@@ -307,18 +323,12 @@ className={`px-3 py-2 rounded-2xl ${
 </div>
 
 <div className="flex gap-1 text-[10px] text-gray-400">
-
-
-
 <span>
 {formatTime(m.createdAt)}
 </span>
-
 </div>
 
 </div>
-
-)}
 
 </div>
 
@@ -356,5 +366,4 @@ onClick={sendMessage}
 </div>
 
 )
-
 }
