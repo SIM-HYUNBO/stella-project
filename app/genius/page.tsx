@@ -4,29 +4,29 @@ import { useEffect, useState, useRef } from "react";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
-  collection,
-  doc,
-  addDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  updateDoc
+ collection,
+ doc,
+ addDoc,
+ deleteDoc,
+ query,
+ orderBy,
+ onSnapshot,
+ serverTimestamp,
+ updateDoc
 } from "firebase/firestore";
 
 type Message = {
-  id: string;
-  user: string;
-  content: string;
-  createdAt?: any;
-  readBy?: string[];
+ id: string;
+ user: string;
+ content: string;
+ createdAt?: any;
+ readBy?: string[];
 };
 
 type Room = {
-  id: string;
-  name: string;
-  members: string[];
+ id: string;
+ name: string;
+ members: string[];
 };
 
 export default function Chat(){
@@ -36,12 +36,12 @@ const [rooms,setRooms]=useState<Room[]>([])
 const [currentRoomId,setCurrentRoomId]=useState<string|null>(null)
 const [messages,setMessages]=useState<Message[]>([])
 const [input,setInput]=useState("")
-const [selectedMessageId,setSelectedMessageId]=useState<string|null>(null)
 
 const messagesEndRef=useRef<HTMLDivElement|null>(null)
+const lastNotifiedId=useRef<string|null>(null)
 
 
-// 알림 권한 요청
+// 🔔 알림 권한 요청
 useEffect(()=>{
 
  if(Notification.permission!=="granted"){
@@ -112,21 +112,32 @@ useEffect(()=>{
   msgs.forEach(markAsRead)
 
   // 🔔 알림 처리
-  const last=msgs[msgs.length-1]
+  snap.docChanges().forEach(change=>{
 
-  if(
-   last &&
-   last.user!==nickname &&
-   Notification.permission==="granted" &&
-   document.hidden
-  ){
+   if(change.type==="added"){
 
-   new Notification(last.user,{
-    body:last.content,
-    icon:"/favicon.ico"
-   })
+    const data=change.doc.data()
+    const id=change.doc.id
 
-  }
+    if(
+     data.user!==nickname &&
+     Notification.permission==="granted" &&
+     document.hidden &&
+     id!==lastNotifiedId.current
+    ){
+
+     lastNotifiedId.current=id
+
+     new Notification(data.user,{
+      body:data.content,
+      icon:"/favicon.ico"
+     })
+
+    }
+
+   }
+
+  })
 
   setTimeout(()=>{
    messagesEndRef.current?.scrollIntoView({behavior:"smooth"})
@@ -177,7 +188,6 @@ const sendMessage=async()=>{
 const deleteMessage=async(msg:Message)=>{
  if(!currentRoomId)return
  await deleteDoc(doc(db,"rooms",currentRoomId,"messages",msg.id))
- setSelectedMessageId(null)
 }
 
 /* 방 만들기 */
@@ -236,7 +246,6 @@ return(
 <div className="flex h-screen">
 
 {/* 사이드바 */}
-
 <div className="w-60 border-r p-4 flex flex-col gap-2">
 
 <div className="font-bold">채팅방</div>
@@ -276,7 +285,6 @@ onDoubleClick={()=>{
 </div>
 
 {/* 채팅 */}
-
 <div className="flex-1 flex flex-col">
 
 <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
@@ -322,10 +330,8 @@ className={`px-3 py-2 rounded-2xl ${
 {m.content}
 </div>
 
-<div className="flex gap-1 text-[10px] text-gray-400">
-<span>
+<div className="text-[10px] text-gray-400">
 {formatTime(m.createdAt)}
-</span>
 </div>
 
 </div>
@@ -341,7 +347,6 @@ className={`px-3 py-2 rounded-2xl ${
 </div>
 
 {/* 입력 */}
-
 <div className="flex border-t p-3 gap-2">
 
 <input
