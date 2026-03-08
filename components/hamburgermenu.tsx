@@ -160,6 +160,12 @@ export default function HamburgerMenuWithDelete() {
                   >
                     ⚙️ 내 정보
                   </button>
+                      <button 
+                    onClick={() => router.push("/admintalk")} 
+                    className="w-full text-left"
+                  >
+                    👩‍💼 관리자 톡 
+                  </button>
                     <button
                     onClick={() => router.push("/genius")}
                     className="w-full text-left"
