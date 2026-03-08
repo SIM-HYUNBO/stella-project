@@ -172,6 +172,9 @@ export default function HamburgerMenuWithDelete() {
                   >
                     💬 왁챗
                   </button>
+                   <button onClick={() => router.push("/AI")} className="w-full text-left">
+                    🤖 AI 대화
+                  </button>
                    <button
                     onClick={() => router.push("/SG")}
                     className="w-full text-left"
