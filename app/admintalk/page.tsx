@@ -41,9 +41,7 @@ export default function ChatPage() {
   const lastNotifiedId = useRef<string | null>(null);
 
   const ADMIN_NAME = "관리자";
-  const USER_ROOM_ID = "관리자 톡"; // 유저가 항상 사용하는 방 ID
 
-  // 알림 권한
   useEffect(() => {
     if (Notification.permission !== "granted") Notification.requestPermission();
   }, []);
@@ -73,7 +71,7 @@ export default function ChatPage() {
     if (!nickname) return;
 
     const initRooms = async () => {
-      const roomsRef = collection(db, "arooms");
+      const roomsRef = collection(db, "aroom");
 
       if (nickname === ADMIN_NAME) {
         // 관리자: 모든 유저 방 목록
@@ -93,20 +91,22 @@ export default function ChatPage() {
         });
         return unsub;
       } else {
-        // 유저: 관리자 톡 1개
-        const roomRef = doc(db, "arooms", USER_ROOM_ID);
+        // 유저: 단일 관리자 톡
+        const roomId = nickname; // 유저닉네임 기반 방 ID
+        const roomRef = doc(db, "aroom", roomId);
         const docSnap = await getDoc(roomRef);
+
         if (!docSnap.exists()) {
-          // 처음 접속 시 방 생성
-          await setDoc(roomRef, { name: USER_ROOM_ID, members: [nickname, ADMIN_NAME] });
+          await setDoc(roomRef, { name: "관리자 톡", members: [nickname, ADMIN_NAME] });
         } else {
           const data = docSnap.data();
           if (!data.members.includes(nickname)) {
             await updateDoc(roomRef, { members: [...data.members, nickname] });
           }
         }
-        setRooms([{ id: USER_ROOM_ID, name: USER_ROOM_ID, members: [nickname, ADMIN_NAME] }]);
-        setCurrentRoomId(USER_ROOM_ID);
+
+        setRooms([{ id: roomId, name: "관리자 톡", members: [nickname, ADMIN_NAME] }]);
+        setCurrentRoomId(roomId); // 항상 동일 방
       }
     };
 
@@ -118,7 +118,7 @@ export default function ChatPage() {
     if (!currentRoomId || !nickname) return;
 
     const q = query(
-      collection(db, "rooms", currentRoomId, "messages"),
+      collection(db, "aroom", currentRoomId, "messages"),
       orderBy("createdAt", "asc")
     );
 
@@ -134,7 +134,6 @@ export default function ChatPage() {
       setMessages(msgs);
       msgs.forEach(markAsRead);
 
-      // 알림
       snap.docChanges().forEach((change) => {
         if (
           change.type === "added" &&
@@ -160,14 +159,14 @@ export default function ChatPage() {
   const markAsRead = async (msg: Message) => {
     if (!nickname || !currentRoomId) return;
     if (msg.readBy?.includes(nickname)) return;
-    await updateDoc(doc(db, "rooms", currentRoomId, "messages", msg.id), {
+    await updateDoc(doc(db, "aroom", currentRoomId, "messages", msg.id), {
       readBy: [...(msg.readBy || []), nickname],
     });
   };
 
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentRoomId) return;
-    await addDoc(collection(db, "rooms", currentRoomId, "messages"), {
+    await addDoc(collection(db, "aroom", currentRoomId, "messages"), {
       user: nickname,
       content: input.trim(),
       createdAt: serverTimestamp(),
