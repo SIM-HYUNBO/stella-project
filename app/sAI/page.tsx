@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 
-export default function FriendChat({ userId }) {
+export default function Page() {
+  const userId = "user_123"; // 여기에 바로 정의
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
