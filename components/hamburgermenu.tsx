@@ -158,7 +158,7 @@ export default function HamburgerMenuWithDelete() {
                     onClick={() => router.push("/foot")}
                     className="w-full text-left"
                   >
-                    🏠 마이룸
+                    ⚙️ 내 정보
                   </button>
                     <button
                     onClick={() => router.push("/genius")}
