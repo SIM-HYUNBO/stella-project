@@ -1,9 +1,18 @@
-"use client"; // ✅ 반드시 맨 위에
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 
-export default function FriendChat({ userId }: { userId: string }) {
-  const [messages, setMessages] = useState([]);
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface FriendChatProps {
+  userId: string;
+}
+
+export default function FriendChat({ userId }: FriendChatProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userWinCount, setUserWinCount] = useState(0);
@@ -15,7 +24,7 @@ export default function FriendChat({ userId }: { userId: string }) {
         const res = await fetch("/api/ai-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, messages: [] })
+          body: JSON.stringify({ userId, messages: [] }),
         });
         const data = await res.json();
         setMessages(data.messages || []);
@@ -33,7 +42,7 @@ export default function FriendChat({ userId }: { userId: string }) {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const userMessage = { role: "user", content: input };
+    const userMessage: Message = { role: "user", content: input };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
@@ -43,7 +52,7 @@ export default function FriendChat({ userId }: { userId: string }) {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, messages: newMessages })
+        body: JSON.stringify({ userId, messages: newMessages }),
       });
       const data = await res.json();
       setMessages([...newMessages, { role: "assistant", content: data.text }]);
@@ -56,16 +65,21 @@ export default function FriendChat({ userId }: { userId: string }) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-white rounded-lg">
+    <div className="flex flex-col h-full p-2 space-y-2 bg-white rounded-lg">
       <div className="mb-2 font-medium text-gray-700">
-        AI친구 오로라와의 승부욕 경쟁
+        AI친구 오로라와의 승부욕 경쟁 (승점: {userWinCount})
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-white rounded-lg">
+      <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50 rounded-lg">
         {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`px-3 py-2 max-w-xs rounded-lg break-words 
-              ${m.role === "user" ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-800"}`}>
+          <div
+            key={i}
+            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`px-3 py-2 max-w-xs rounded-lg break-words 
+                ${m.role === "user" ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-800"}`}
+            >
               {m.content}
             </div>
           </div>
