@@ -41,7 +41,7 @@ export default function ChatPage() {
   const lastNotifiedId = useRef<string | null>(null);
 
   const ADMIN_NAME = "관리자";
-  const USER_ROOM_ID = "관리자 챗 룸"; // 유저가 항상 사용하는 방 ID
+  const USER_ROOM_ID = "관리자 톡"; // 유저가 항상 사용하는 방 ID
 
   // 알림 권한
   useEffect(() => {
