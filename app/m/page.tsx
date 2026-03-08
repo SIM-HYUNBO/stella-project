@@ -214,21 +214,7 @@ const studySubjects = [
             내 머리 좀 좋다? 바로 테스트!
           </h1>
           
-        <div className="flex flex-wrap gap-2 mb-6">
-  {studySubjects.map((subj) => (
-    <button
-      key={subj.path}
-      onClick={() => router.push(subj.path)}
-      style={{
-        backgroundColor: "#FFEDD5", // 채도가 낮은 민트
-        color: "#000",           // 글자 대비
-      }}
-      className="px-4 py-2 rounded hover:darkness-110"
-    >
-      {subj.name}
-    </button>
-  ))}
-</div>
+      
 
           {/* 체크리스트 */}
           <section className="p-6 bg-white/80 rounded-2xl shadow">

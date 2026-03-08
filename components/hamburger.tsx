@@ -194,13 +194,7 @@ export default function HamburgerMenuWithDelete() {
             </Link>
           ))}
 
-          {/* 🌙 다크모드 토글 (중등 와기 위) */}
-           <button
-      onClick={toggleDarkMode}
-      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-black dark:text-white rounded"
-    >
-      {isDark ? "라이트 모드" : "다크 모드"}
-    </button>
+         
 
           {/* ⭐ 중등 와기로 이동 */}
           <Link
