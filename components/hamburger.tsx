@@ -131,7 +131,7 @@ export default function HamburgerMenuWithDelete() {
             <>
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-600"
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-amber-100"
               >
                 <TextAvatar
                   nickname={nickname || "유저"}
@@ -191,7 +191,7 @@ export default function HamburgerMenuWithDelete() {
             <Link
               key={href}
               href={href}
-              className="p-2 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-600"
+              className="p-2 rounded-xl hover:bg-amber-100"
             >
               {label}
             </Link>

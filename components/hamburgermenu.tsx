@@ -128,7 +128,7 @@ export default function HamburgerMenuWithDelete() {
             <>
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="w-full flex items-center gap-3 hover:bg-amber-100 dark:hover:bg-slate-600 p-2 rounded-xl transition"
+                className="w-full flex items-center gap-3 hover:bg-amber-100 p-2 rounded-xl transition"
               >
                 <TextAvatar
                   nickname={nickname || "유저"}
