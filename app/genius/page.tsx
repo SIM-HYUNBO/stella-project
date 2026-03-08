@@ -123,7 +123,7 @@ useEffect(()=>{
 
    new Notification(last.user,{
     body:last.content,
-    icon:"/icon.png"
+    icon:"/favicon.ico"
    })
 
   }
