@@ -1,13 +1,13 @@
-"use client";
+"use client"; // ✅ 반드시 맨 위에
 
 import { useState, useEffect, useRef } from "react";
 
-export default function FriendChat({ userId }) {
+export default function FriendChat({ userId }: { userId: string }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userWinCount, setUserWinCount] = useState(0);
-  const chatEndRef = useRef(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -56,9 +56,9 @@ export default function FriendChat({ userId }) {
   };
 
   return (
-  <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-white rounded-lg">
+    <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-white rounded-lg">
       <div className="mb-2 font-medium text-gray-700">
-        AI친구 오로라와의 승부욕 경쟁<span className="font-bold"></span>
+        AI친구 오로라와의 승부욕 경쟁
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-white rounded-lg">
