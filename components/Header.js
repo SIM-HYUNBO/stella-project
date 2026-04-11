@@ -14,7 +14,7 @@ const Header = () => {
       <Link href="/home" className="flex items-center gap-3">
        
         <span
-          className={`${jua.className} text-[2.75rem] bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 ml-5 tracking-tight `}
+          className={`${jua.className} text-4xl bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500 ml-5 tracking-tight `}
         >
           WAGIE
         </span>

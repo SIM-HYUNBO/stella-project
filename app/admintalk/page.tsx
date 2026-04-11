@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
@@ -178,6 +179,7 @@ export default function ChatPage() {
   if (!nickname) return <div>로딩중...</div>;
 
   return (
+     <PageContainer>
     <div className="flex h-screen">
       {/* 사이드바 */}
       <div className="w-60 border-r p-4 flex flex-col gap-2 bg-gray-50">
@@ -250,5 +252,6 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+    </PageContainer>
   );
 }

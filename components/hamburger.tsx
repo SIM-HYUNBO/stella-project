@@ -176,8 +176,7 @@ export default function HamburgerMenuWithDelete() {
 
           {/* 공통 메뉴 */}
           {[
-            ["/admintalk", "관리자와 챗하기"],
-           
+            ["/admintalk", "관리자 톡"],
            
           ].map(([href, label]) => (
             <Link

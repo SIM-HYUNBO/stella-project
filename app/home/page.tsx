@@ -6,18 +6,21 @@ import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection,
-  doc,
   addDoc,
   query,
   orderBy,
   onSnapshot,
   serverTimestamp,
   getDocs,
+  updateDoc,
+  doc,
 } from "firebase/firestore";
 
+/* 타입 */
 type Message = {
   id: string;
-  user: string;
+  from: string;
+  to: string;
   content: string;
   createdAt?: any;
   readBy?: string[];
@@ -38,7 +41,7 @@ export default function Chat() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // 로그인
+  /* 로그인 */
   useEffect(() => {
     const unsub = watchAuthState((user) => {
       if (user) setNickname(user.displayName || "유저");
@@ -46,8 +49,10 @@ export default function Chat() {
     return () => unsub();
   }, []);
 
-  // 모든 유저 목록 불러오기 (자기 자신 제외)
+  /* 유저 목록 */
   useEffect(() => {
+    if (!nickname) return;
+
     const fetchUsers = async () => {
       const snap = await getDocs(collection(db, "users"));
       const list: User[] = snap.docs.map((d) => ({
@@ -56,29 +61,51 @@ export default function Chat() {
       }));
       setUsers(list.filter((u) => u.nickname !== nickname));
     };
+
     fetchUsers();
   }, [nickname]);
 
-  // 메시지 구독
+  /* 메시지 구독 + 읽음 처리 */
   useEffect(() => {
     if (!currentChatUser || !nickname) return;
 
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
 
-    const unsub = onSnapshot(q, (snap) => {
-      const msgs = snap.docs
-        .map((d) => ({
+    const unsub = onSnapshot(q, async (snap) => {
+      const msgs: Message[] = [];
+
+      for (const d of snap.docs) {
+        const data = d.data();
+
+        const m: Message = {
           id: d.id,
-          user: d.data().user,
-          content: d.data().content,
-          createdAt: d.data().createdAt,
-          readBy: d.data().readBy || [],
-        }))
-        .filter(
-          (m) =>
-            (m.user === nickname && m.readBy?.includes(currentChatUser.nickname)) ||
-            (m.user === currentChatUser.nickname && m.readBy?.includes(nickname))
-        );
+          from: data.from,
+          to: data.to,
+          content: data.content,
+          createdAt: data.createdAt,
+          readBy: data.readBy || [],
+        };
+
+        /* 🔥 1:1 필터 */
+        const isMyChat =
+          (m.from === nickname && m.to === currentChatUser.nickname) ||
+          (m.from === currentChatUser.nickname && m.to === nickname);
+
+        if (!isMyChat) continue;
+
+        /* 읽음 처리 */
+        if (
+          m.from !== nickname &&
+          !m.readBy?.includes(nickname)
+        ) {
+          await updateDoc(doc(db, "messages", m.id), {
+            readBy: [...(m.readBy || []), nickname],
+          });
+          m.readBy = [...(m.readBy || []), nickname];
+        }
+
+        msgs.push(m);
+      }
 
       setMessages(msgs);
 
@@ -90,15 +117,16 @@ export default function Chat() {
     return () => unsub();
   }, [currentChatUser, nickname]);
 
-  // 메시지 보내기
+  /* 메시지 전송 */
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentChatUser) return;
 
     await addDoc(collection(db, "messages"), {
-      user: nickname,
+      from: nickname,
+      to: currentChatUser.nickname, // 🔥 핵심
       content: input.trim(),
       createdAt: serverTimestamp(),
-      readBy: [nickname, currentChatUser.nickname],
+      readBy: [nickname],
     });
 
     setInput("");
@@ -106,116 +134,175 @@ export default function Chat() {
 
   if (!nickname) return <div>로딩중...</div>;
 
+  /* 채팅 UI */
+  const renderChat = () => (
+    <>
+      {/* 모바일 헤더 */}
+      <div className="md:hidden flex items-center gap-2 p-3 border-b">
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="text-lg"
+        >
+          ←
+        </button>
+        <div className="font-semibold">
+          {currentChatUser?.nickname}
+        </div>
+      </div>
+
+      {/* 메시지 */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+        {messages.map((m, i) => {
+          const prev = messages[i - 1];
+          const showDate =
+            !prev ||
+            formatDate(prev.createdAt) !== formatDate(m.createdAt);
+          const showUser = !prev || prev.from !== m.from;
+
+          const isMine = m.from === nickname;
+          const isRead = (m.readBy?.length || 0) >= 2;
+
+          return (
+            <div key={m.id} className="flex flex-col">
+              {showDate && (
+                <div className="text-center text-xs text-gray-400 my-4">
+                  ───── {formatDate(m.createdAt)} ─────
+                </div>
+              )}
+
+              <div
+                className={`flex flex-col max-w-xs ${
+                  isMine
+                    ? "self-end items-end"
+                    : "self-start items-start"
+                }`}
+              >
+                {showUser && (
+                  <div className="text-xs text-gray-500 mb-1">
+                    {m.from}
+                  </div>
+                )}
+
+                <div
+                  className={`px-3 py-2 rounded-2xl ${
+                    isMine
+                      ? "bg-red-100"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  {m.content}
+                </div>
+
+                <div className="text-[10px] text-gray-400 flex items-center gap-1">
+                  {formatTime(m.createdAt)}
+                  {isMine && <span>{isRead ? "✓" : "1"}</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* 입력 */}
+      <div className="flex border-t p-3 gap-2">
+        <input
+          className="flex-1 border rounded-xl px-3 py-2"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="메시지 입력"
+        />
+
+        <button
+          className="px-4 py-2 bg-yellow-200 rounded-xl"
+          onClick={sendMessage}
+        >
+          전송
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <PageContainer>
-      <div className="flex h-screen">
-        {/* 모바일: 메뉴만 보이거나 채팅창만 보이도록 */}
-        <div className="w-full md:w-60 border-r p-4 flex flex-col gap-2 md:block">
+      <div className="h-screen flex">
+
+        {/* 모바일 */}
+        <div className="md:hidden w-full h-full">
           {isMobileMenuOpen && (
-            <>
+            <div className="w-full h-full p-4 flex flex-col gap-2">
               <div className="font-bold">회원 목록</div>
               {users.map((u) => (
                 <div
                   key={u.id}
-                  className={`p-2 rounded cursor-pointer ${
-                    currentChatUser?.id === u.id
-                      ? "bg-gray-300"
-                      : "hover:bg-gray-200"
-                  }`}
+                  className="p-3 rounded bg-gray-100"
                   onClick={() => {
                     setCurrentChatUser(u);
-                    setIsMobileMenuOpen(false); // 모바일에서는 메뉴 닫고 채팅창만 보이게
+                    setIsMobileMenuOpen(false);
                   }}
                 >
                   {u.nickname}
                 </div>
               ))}
-            </>
+            </div>
+          )}
+
+          {!isMobileMenuOpen && currentChatUser && (
+            <div className="w-full h-full flex flex-col">
+              {renderChat()}
+            </div>
           )}
         </div>
 
-        {/* 채팅창 */}
-        {!isMobileMenuOpen && currentChatUser && (
-          <div className="flex-1 flex flex-col w-full">
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-              {messages.map((m, i) => {
-                const prev = messages[i - 1];
-                const showDate =
-                  !prev || formatDate(prev.createdAt) !== formatDate(m.createdAt);
-                const showUser = !prev || prev.user !== m.user;
-
-                return (
-                  <div key={m.id} className="flex flex-col">
-                    {showDate && (
-                      <div className="text-center text-xs text-gray-400 my-4">
-                        ───── {formatDate(m.createdAt)} ─────
-                      </div>
-                    )}
-                    <div
-                      className={`flex flex-col max-w-xs ${
-                        m.user === nickname
-                          ? "self-end items-end"
-                          : "self-start items-start"
-                      }`}
-                    >
-                      {showUser && (
-                        <div className="text-xs text-gray-500 mb-1">{m.user}</div>
-                      )}
-                      <div
-                        className={`px-3 py-2 rounded-2xl ${
-                          m.user === nickname ? "bg-red-100" : "bg-gray-200"
-                        }`}
-                      >
-                        {m.content}
-                      </div>
-                      <div className="text-[10px] text-gray-400">
-                        {formatTime(m.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* 입력창 */}
-            <div className="flex border-t p-3 gap-2">
-              <button
-                className="md:hidden px-4 py-2 bg-gray-300 rounded"
-                onClick={() => setIsMobileMenuOpen(true)}
+        {/* PC */}
+        <div className="hidden md:flex w-full h-full">
+          <div className="w-60 border-r p-4 flex flex-col gap-2">
+            <div className="font-bold">회원 목록</div>
+            {users.map((u) => (
+              <div
+                key={u.id}
+                className={`p-2 rounded cursor-pointer ${
+                  currentChatUser?.id === u.id
+                    ? "bg-gray-300"
+                    : "hover:bg-gray-200"
+                }`}
+                onClick={() => setCurrentChatUser(u)}
               >
-                ← 메뉴로
-              </button>
-              <input
-                className="flex-1 border rounded-xl px-3 py-2"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                placeholder="메시지 입력"
-              />
-              <button
-                className="px-4 py-2 bg-yellow-200 rounded-xl"
-                onClick={sendMessage}
-              >
-                전송
-              </button>
-            </div>
+                {u.nickname}
+              </div>
+            ))}
           </div>
-        )}
+
+          <div className="flex-1 flex flex-col">
+            {currentChatUser ? (
+              renderChat()
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-400">
+                채팅 상대를 선택해 주세요☺️
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </PageContainer>
   );
 }
 
-/* 날짜/시간 포맷 */
+/* 날짜 */
 const formatDate = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
 };
 
+/* 시간 */
 const formatTime = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };

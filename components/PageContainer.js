@@ -13,7 +13,6 @@ const PageContainer = ({ children }) => {
           <div className="flex-1 w-full">
             <Header />
             <main className="w-full p-4">{children}</main>
-            <Footer />
           </div>
         </div>
       </ThemeProvider>
