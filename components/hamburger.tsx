@@ -126,7 +126,7 @@ export default function HamburgerMenuWithDelete() {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-20 right-4 w-60 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
+          className="fixed top-20 bg-white right-4 w-60 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
           {/* 로그인 상태 */}
           {user ? (
