@@ -15,6 +15,7 @@ import {
   onSnapshot,
   serverTimestamp,
   updateDoc,
+  getDoc,
   getDocs,
 } from "firebase/firestore";
 
@@ -44,52 +45,42 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const lastNotifiedId = useRef<string | null>(null);
 
-  // 🔔 알림 권한 요청
-  useEffect(() => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  /* 로그인 */
+  // 로그인 후 내 닉네임/전화번호 가져오기
   useEffect(() => {
     const unsub = watchAuthState(async (user) => {
       if (user) {
         setNickname(user.displayName || "유저");
-        // Firestore에서 내 전화번호 가져오기
-        const userDoc = await getDocs(
-          query(collection(db, "users"), where("id", "==", user.uid))
-        );
-        userDoc.forEach((docSnap) => {
-          setPhoneNumber(docSnap.data().phoneNumber);
-        });
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setPhoneNumber(userDoc.data().phoneNumber);
+        }
       }
     });
     return () => unsub();
   }, []);
 
-  /* 주소록 매칭 */
+  // 내 주소록과 Firestore 매칭
   useEffect(() => {
     if (!phoneNumber) return;
 
-    // 예시: 내 폰 주소록을 직접 배열로 관리 (실제 앱에서는 기기 주소록을 불러와야 함)
-    const myContacts = ["010-1111-2222", "010-3333-4444"];
-
+    // 실제 앱에서는 기기 주소록 API로 가져온 번호 배열을 사용해야 함
+    // 여기서는 Firestore에 등록된 모든 유저 중 내가 가진 번호만 필터링
     const fetchContacts = async () => {
-      const q = query(collection(db, "users"), where("phoneNumber", "in", myContacts));
-      const snap = await getDocs(q);
-      const list: User[] = snap.docs.map((d) => ({
-        id: d.id,
-        nickname: d.data().nickname,
-        phoneNumber: d.data().phoneNumber,
-      }));
+      const snap = await getDocs(collection(db, "users"));
+      const list: User[] = snap.docs
+        .map((d) => ({
+          id: d.id,
+          nickname: d.data().nickname,
+          phoneNumber: d.data().phoneNumber,
+        }))
+        .filter((u) => u.phoneNumber !== phoneNumber); // 자기 자신 제외
       setContacts(list);
     };
 
     fetchContacts();
   }, [phoneNumber]);
 
-  /* 메시지 */
+  // 메시지 구독
   useEffect(() => {
     if (!currentChat || !phoneNumber) return;
 
@@ -114,27 +105,6 @@ export default function Chat() {
       setMessages(msgs);
       msgs.forEach(markAsRead);
 
-      // 🔔 알림 처리
-      snap.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data();
-          const id = change.doc.id;
-
-          if (
-            data.user !== nickname &&
-            Notification.permission === "granted" &&
-            document.hidden &&
-            id !== lastNotifiedId.current
-          ) {
-            lastNotifiedId.current = id;
-            new Notification(data.user, {
-              body: data.content,
-              icon: "/favicon.ico",
-            });
-          }
-        }
-      });
-
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 50);
@@ -143,17 +113,16 @@ export default function Chat() {
     return () => unsub();
   }, [currentChat, phoneNumber]);
 
-  /* 읽음 처리 */
+  // 읽음 처리
   const markAsRead = async (msg: Message) => {
-    if (!nickname || !phoneNumber) return;
+    if (!phoneNumber) return;
     if (msg.readBy?.includes(phoneNumber)) return;
-
     await updateDoc(doc(db, "messages", msg.id), {
       readBy: [...(msg.readBy || []), phoneNumber],
     });
   };
 
-  /* 메시지 보내기 */
+  // 메시지 보내기
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !phoneNumber || !currentChat) return;
 
@@ -168,7 +137,7 @@ export default function Chat() {
     setInput("");
   };
 
-  /* 메시지 삭제 */
+  // 메시지 삭제
   const deleteMessage = async (msg: Message) => {
     await deleteDoc(doc(db, "messages", msg.id));
   };
@@ -194,7 +163,7 @@ export default function Chat() {
           ))}
         </div>
 
-        {/* 채팅 */}
+        {/* 채팅창 */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((m, i) => {
@@ -237,7 +206,7 @@ export default function Chat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 입력 */}
+          {/* 입력창 */}
           <div className="flex border-t p-3 gap-2 bg-white">
             <input
               className="flex-1 border rounded px-3 py-2"
@@ -259,7 +228,7 @@ export default function Chat() {
   );
 }
 
-/* 날짜/시간 포맷 함수 */
+/* 날짜/시간 포맷 */
 const formatDate = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
