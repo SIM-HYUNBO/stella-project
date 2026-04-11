@@ -56,12 +56,11 @@ export default function Study() {
             >
               그림 천재
             </button>
-         
-            <button
+             <button
               onClick={() => router.push("/k")}
               className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
             >
-              얼굴 천재
+              메모장
             </button>
             <div className="w-full">
               <div className="min-h-full p-6"></div>

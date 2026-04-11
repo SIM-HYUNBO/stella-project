@@ -12,7 +12,7 @@ export default function BoardPage() {
       {/* 제목 + 홈버튼 한 줄 배치 */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-bold text-orange-400">
-          GENIUS 게시판
+          WAGIE 게시판
         </h1>
         <button
           onClick={() => router.push("/home")}

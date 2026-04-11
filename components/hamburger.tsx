@@ -114,24 +114,26 @@ export default function HamburgerMenuWithDelete() {
           setProfileMenuOpen(false);
           setConfirmDeleteOpen(false);
         }}
-        className="fixed top-4 right-4 w-12 h-12 flex flex-col justify-between p-2 bg-amber-200 border rounded-xl shadow-md z-50"
+        className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl shadow-md z-50"
       >
-        <span className="h-1 bg-[#4a342a] rounded" />
-        <span className="h-1 bg-[#4a342a] rounded" />
-        <span className="h-1 bg-[#4a342a] rounded" />
+         <div className="flex flex-col justify-center items-center gap-1 cursor-pointer">
+      <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+      <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+      <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+    </div>
       </button>
 
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-20 right-4 w-60 bg-amber-50 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
+          className="fixed top-20 right-4 w-60 rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
           {/* 로그인 상태 */}
           {user ? (
             <>
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-amber-100"
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100"
               >
                 <TextAvatar
                   nickname={nickname || "유저"}
@@ -146,25 +148,13 @@ export default function HamburgerMenuWithDelete() {
               {profileMenuOpen && (
                 <div
                   ref={profileRef}
-                  className="bg-amber-100 rounded-xl px-4 py-3 space-y-2"
+                  className="bg-gray-100 rounded-xl px-4 py-3 space-y-2"
                 >
                   <button onClick={() => router.push("/profile/edit")} className="w-full text-left">
                     ✏️ 편집
                   </button>
                   <button onClick={() => router.push("/foot")} className="w-full text-left">
                     ⚙️ 내 정보
-                  </button>
-                  <button onClick={() => router.push("/admintalk")} className="w-full text-left">
-                    👩‍💼 관리자 톡 
-                  </button>
-                  <button onClick={() => router.push("/genius")} className="w-full text-left">
-                    💬 왁챗
-                  </button>
-                  <button onClick={() => router.push("/AI")} className="w-full text-left">
-                    🤖 AI 대화
-                  </button>
-                  <button onClick={() => router.push("/SG")} className="w-full text-left">
-                    👥 와글와글
                   </button>
                   <button onClick={() => signOut(auth)} className="w-full text-left text-red-500">
                     🚪 로그아웃
@@ -178,7 +168,7 @@ export default function HamburgerMenuWithDelete() {
           ) : (
             <button
               onClick={() => router.push("/login")}
-              className="px-6 py-2 rounded-2xl bg-amber-300 font-semibold"
+              className="px-6 py-2 rounded-2xl font-semibold"
             >
               🔐 로그인
             </button>
@@ -186,15 +176,14 @@ export default function HamburgerMenuWithDelete() {
 
           {/* 공통 메뉴 */}
           {[
-            ["/home", "🏠 Home"],
-            ["/Notes", "📝 Notes"],
-            ["/study", "📚 Study"],
-            ["/game", "🎮 Game"],
+            ["/admintalk", "관리자와 챗하기"],
+           
+           
           ].map(([href, label]) => (
             <Link
               key={href}
               href={href}
-              className="p-2 rounded-xl hover:bg-amber-100"
+              className="p-2 rounded-xl hover:bg-gray-100"
             >
               {label}
             </Link>
@@ -202,13 +191,7 @@ export default function HamburgerMenuWithDelete() {
 
          
 
-          {/* ⭐ 중등 와기로 이동 */}
-          <Link
-            href="/m-home"
-            className="text-center text-orange-400 hover:underline"
-          >
-            중등 와기로 이동
-          </Link>
+         
         </div>
       )}
 

@@ -14,17 +14,11 @@ export default function LandingPage() {
 
       {/* 문구 */}
       <p className="text-lg text-gray-600 mb-12 text-center">
-        Become the only genius that stands out.
+        친구들과 채팅하세요.
       </p>
 
       {/* 버튼 */}
       <div className="flex gap-2">
-          <Link
-          href="/home"
-          className="px-8 py-3 border border-black text-black hover:bg-black hover:text-white transition"
-        >
-          Try WAGIE
-        </Link>
        
         <Link
           href="/login"

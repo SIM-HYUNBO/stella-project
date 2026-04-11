@@ -7,8 +7,7 @@ import CommentBox from "/components/CommentBox";
 import { CenterSpinner } from "/components/CenterSpinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import HamburgerMenu from "/components/hamburgermenu";
-import SlideEditor from "/components/SlideEditor";
+import HamburgerMenu from "/components/hamburger";
 
 export default function Study() {
   const router = useRouter();
@@ -49,7 +48,7 @@ export default function Study() {
               onClick={() => router.push("/m2")}
               className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
             >
-              공부 천재
+              공부하기
             </button>
             <button
               onClick={() => router.push("/a")}
@@ -57,18 +56,16 @@ export default function Study() {
             >
               그림 천재
             </button>
-            <button
+             <button
               onClick={() => router.push("/k")}
               className="px-5 py-2.5 bg-orange-300 text-white ml-12 mt-5 rounded-lg transition-all hover:bg-orange-400"
             >
-              얼굴 천재
+              메모장
             </button>
             <div className="w-full">
               <div className="min-h-full p-6"></div>
             </div>
           </div>
-         
-         
         </div>
       </PageContainer>
     </>

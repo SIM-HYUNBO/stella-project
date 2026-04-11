@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Jua } from 'next/font/google';
-
+import HamburgerMenu from "/components/hamburger";
 const jua = Jua({
   weight: "400",
   subsets: ["latin"],
@@ -26,7 +26,12 @@ const Header = () => {
 
       {/* 오른쪽 끝 영역 */}
       <div className="flex justify-start">
-        {/* 버튼들 들어갈 자리 */}
+        {/* 오른쪽 끝 영역 */}
+<div className="flex justify-start">
+  {/* 햄버거 버튼 */}
+   <HamburgerMenu />
+</div>
+
       </div>
     </header>
   );

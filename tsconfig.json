@@ -37,7 +37,7 @@
     "app/board/page.js",
     "app/m/page.ts",
     ".next/server/pages/_document.tsx"
-  ],
+, "app/study/page.js"  ],
   "exclude": [
     "node_modules"
   ]

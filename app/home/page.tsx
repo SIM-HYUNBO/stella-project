@@ -1,159 +1,273 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PageContainer from "../../components/PageContainer";
-import Image from "next/image";
-import { useTheme } from "next-themes";
-import HamburgerMenu from "../../components/hamburger";
-import Link from "next/link";
+import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
-import { User } from "firebase/auth";
-import CommentBox from "../../components/CommentBox";
+import {
+  collection,
+  doc,
+  addDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  getDocs,
+} from "firebase/firestore";
 
-import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { db } from "../firebase";
+type Message = {
+  id: string;
+  user: string;
+  content: string;
+  createdAt?: any;
+  readBy?: string[];
+  participants: string[];
+};
 
-export default function Home() {
-  const { theme } = useTheme();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showAuthCard, setShowAuthCard] = useState(false);
+type User = {
+  id: string;
+  nickname: string;
+  phoneNumber: string;
+};
 
-  // ✅ 로그인된 일반 유저 수
-  const [onlineUserCount, setOnlineUserCount] = useState(0);
+export default function Chat() {
+  const [nickname, setNickname] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
+  const [contacts, setContacts] = useState<User[]>([]);
+  const [currentChat, setCurrentChat] = useState<User | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
 
-  // ✅ 로그인 상태 추적
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const lastNotifiedId = useRef<string | null>(null);
+
+  // 🔔 알림 권한 요청
   useEffect(() => {
-    const unsubscribe = watchAuthState((u) => {
-      setUser(u);
-    });
-    return () => unsubscribe();
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
   }, []);
 
-  // ✅ 로그인된 유저 수 실시간 감지
+  /* 로그인 */
   useEffect(() => {
-    const q = query(
-      collection(db, "users"),
-      where("online", "==", true)
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      const normalUsers = snap.docs.filter(
-        (doc) => doc.data().nickname !== "관리자"
-      );
-      setOnlineUserCount(normalUsers.length);
+    const unsub = watchAuthState(async (user) => {
+      if (user) {
+        setNickname(user.displayName || "유저");
+        // Firestore에서 내 전화번호 가져오기
+        const userDoc = await getDocs(
+          query(collection(db, "users"), where("id", "==", user.uid))
+        );
+        userDoc.forEach((docSnap) => {
+          setPhoneNumber(docSnap.data().phoneNumber);
+        });
+      }
     });
-
     return () => unsub();
   }, []);
 
-  // ✅ 로딩 처리
+  /* 주소록 매칭 */
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!phoneNumber) return;
 
-  // ✅ 홈 진입 시 자동 카드 표시
+    // 예시: 내 폰 주소록을 직접 배열로 관리 (실제 앱에서는 기기 주소록을 불러와야 함)
+    const myContacts = ["010-1111-2222", "010-3333-4444"];
+
+    const fetchContacts = async () => {
+      const q = query(collection(db, "users"), where("phoneNumber", "in", myContacts));
+      const snap = await getDocs(q);
+      const list: User[] = snap.docs.map((d) => ({
+        id: d.id,
+        nickname: d.data().nickname,
+        phoneNumber: d.data().phoneNumber,
+      }));
+      setContacts(list);
+    };
+
+    fetchContacts();
+  }, [phoneNumber]);
+
+  /* 메시지 */
   useEffect(() => {
-    if (!loading && !user) {
-      setShowAuthCard(true);
-    }
-  }, [loading, user]);
+    if (!currentChat || !phoneNumber) return;
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-white">
-        Loading...
-      </div>
+    const q = query(
+      collection(db, "messages"),
+      where("participants", "array-contains", phoneNumber),
+      orderBy("createdAt", "asc")
     );
-  }
+
+    const unsub = onSnapshot(q, (snap) => {
+      const msgs = snap.docs
+        .map((d) => ({
+          id: d.id,
+          user: d.data().user,
+          content: d.data().content,
+          createdAt: d.data().createdAt,
+          readBy: d.data().readBy || [],
+          participants: d.data().participants,
+        }))
+        .filter((m) => m.participants.includes(currentChat.phoneNumber));
+
+      setMessages(msgs);
+      msgs.forEach(markAsRead);
+
+      // 🔔 알림 처리
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const id = change.doc.id;
+
+          if (
+            data.user !== nickname &&
+            Notification.permission === "granted" &&
+            document.hidden &&
+            id !== lastNotifiedId.current
+          ) {
+            lastNotifiedId.current = id;
+            new Notification(data.user, {
+              body: data.content,
+              icon: "/favicon.ico",
+            });
+          }
+        }
+      });
+
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    });
+
+    return () => unsub();
+  }, [currentChat, phoneNumber]);
+
+  /* 읽음 처리 */
+  const markAsRead = async (msg: Message) => {
+    if (!nickname || !phoneNumber) return;
+    if (msg.readBy?.includes(phoneNumber)) return;
+
+    await updateDoc(doc(db, "messages", msg.id), {
+      readBy: [...(msg.readBy || []), phoneNumber],
+    });
+  };
+
+  /* 메시지 보내기 */
+  const sendMessage = async () => {
+    if (!input.trim() || !nickname || !phoneNumber || !currentChat) return;
+
+    await addDoc(collection(db, "messages"), {
+      participants: [phoneNumber, currentChat.phoneNumber],
+      user: nickname,
+      content: input.trim(),
+      createdAt: serverTimestamp(),
+      readBy: [phoneNumber],
+    });
+
+    setInput("");
+  };
+
+  /* 메시지 삭제 */
+  const deleteMessage = async (msg: Message) => {
+    await deleteDoc(doc(db, "messages", msg.id));
+  };
+
+  if (!nickname) return <div>로딩중...</div>;
 
   return (
     <PageContainer>
-      {/* 오른쪽 버튼 영역 */}
-      
-
-      <div className="flex w-full min-h-screen bg-white">
-        <div className="flex-1">
-          <h1 className="text-[2rem] text-orange-400 ml-11 mt-5 max-w-3xl">
-            We are Genius in Everything.
-          </h1>
-
-          <HamburgerMenu />
-
-          <h2 className="text-lg text-orange-900 ml-11 mt-5">
-            Good Luck! You found our page.
-            <br />
-            You can check the tips about studying here. Be a genius!
-          </h2>
-
-          <div className="w-full">
-            <Image
-              src="/images/sim.gif"
-              alt="설명 텍스트"
-              width={300}
-              height={300}
-              className="ml-10 mt-3 mb-3 rounded-xl"
-            />
-
-            <Link
-              href="/board"
-              className="ml-10 inline-block px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-400"
+      <div className="flex h-screen">
+        {/* 사이드바 */}
+        <div className="w-60 border-r p-4 flex flex-col gap-3 bg-amber-50">
+          <div className="font-bold text-lg mb-2">내 연락처</div>
+          {contacts.map((c) => (
+            <div
+              key={c.id}
+              className={`p-2 rounded cursor-pointer ${
+                currentChat?.id === c.id ? "bg-amber-200" : "hover:bg-amber-100"
+              }`}
+              onClick={() => setCurrentChat(c)}
             >
-              WAGIE 게시판 가는 길
-            </Link>
+              {c.nickname}
+            </div>
+          ))}
+        </div>
+
+        {/* 채팅 */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((m, i) => {
+              const prev = messages[i - 1];
+              const showDate =
+                !prev || formatDate(prev.createdAt) !== formatDate(m.createdAt);
+              const showUser = !prev || prev.user !== m.user;
+
+              return (
+                <div key={m.id} className="flex flex-col">
+                  {showDate && (
+                    <div className="text-center text-xs text-gray-400 my-2">
+                      {formatDate(m.createdAt)}
+                    </div>
+                  )}
+                  <div
+                    className={`flex flex-col max-w-xs ${
+                      m.user === nickname
+                        ? "self-end items-end"
+                        : "self-start items-start"
+                    }`}
+                  >
+                    {showUser && (
+                      <div className="text-xs text-gray-500 mb-1">{m.user}</div>
+                    )}
+                    <div
+                      className={`px-3 py-2 rounded-xl ${
+                        m.user === nickname ? "bg-amber-200" : "bg-gray-200"
+                      }`}
+                    >
+                      {m.content}
+                    </div>
+                    <div className="text-[10px] text-gray-400">
+                      {formatTime(m.createdAt)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
           </div>
 
-          <div className="mt-7 ml-10">
-            <CommentBox
-              postId="home"
-              userProfile={
-                user
-                  ? {
-                      uid: user.uid,
-                      nickname: user.displayName || "익명",
-                    }
-                  : null
-              }
+          {/* 입력 */}
+          <div className="flex border-t p-3 gap-2 bg-white">
+            <input
+              className="flex-1 border rounded px-3 py-2"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="메시지 입력"
             />
+            <button
+              className="px-4 py-2 bg-amber-300 text-black rounded hover:bg-amber-400"
+              onClick={sendMessage}
+            >
+              전송
+            </button>
           </div>
         </div>
       </div>
-
-      {/* 로그인 유도 카드 */}
-      {!user && showAuthCard && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-[360px] text-center">
-            <h2 className="text-lg font-bold mb-4 text-orange-900">
-              WAGIE를 무제한으로 이용하고 싶다고요?
-            </h2>
-            <h2 className="text-sm mb-4 text-orange-900">
-              로그인하여 더 많은 것을 누려보세요!
-            </h2>
-
-            <div className="flex flex-col gap-3">
-              <Link href="/login">
-                <span className="py-3 rounded-xl bg-orange-300 text-white hover:bg-orange-400 block">
-                  로그인
-                </span>
-              </Link>
-
-              <Link href="/signup">
-                <span className="py-3 rounded-xl bg-red-100 text-orange-900 border border-red-400 hover:bg-red-200 block">
-                  회원가입
-                </span>
-              </Link>
-
-              <button
-                onClick={() => setShowAuthCard(false)}
-                className="py-3 text-orange-800 hover:underline"
-              >
-                로그아웃 상태 유지
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </PageContainer>
   );
 }
+
+/* 날짜/시간 포맷 함수 */
+const formatDate = (ts: any) => {
+  if (!ts) return "";
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+};
+
+const formatTime = (ts: any) => {
+  if (!ts) return "";
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+};

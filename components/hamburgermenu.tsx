@@ -172,9 +172,6 @@ export default function HamburgerMenuWithDelete() {
                   >
                     💬 왁챗
                   </button>
-                   <button onClick={() => router.push("/AI")} className="w-full text-left">
-                    🤖 AI 대화
-                  </button>
                    <button
                     onClick={() => router.push("/SG")}
                     className="w-full text-left"
@@ -214,7 +211,8 @@ export default function HamburgerMenuWithDelete() {
             ["/m-home", "🏠 Home"],
             ["/study2", "📚 Study"],
              ["/edu", "🎓 Education"],
-            ["/game", "🎮 Game"]
+            ["/game", "🎮 Game"],
+         
           ].map(([href, label]) => (
             <Link key={href} href={href} className="p-2 rounded-xl hover:bg-amber-100">
               {label}
