@@ -5,13 +5,14 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCjhPd01r11xqHVJeQDgH2Di2dlAfk5Ifo",
-  authDomain: "commentandlogin-a7482.firebaseapp.com",
-  projectId: "commentandlogin-a7482",
-  storageBucket: "commentandlogin-a7482.appspot.com",
-  messagingSenderId: "1035365924254",
-  appId: "1:1035365924254:web:ee578f90e6159e83cdea8f",
+
+ const firebaseConfig = {
+  apiKey: "AIzaSyBBSM0axgA9iVrTpqpF31dmBSARajf6Xic",
+  authDomain: "wagchat-e17ae.firebaseapp.com",
+  projectId: "wagchat-e17ae",
+  storageBucket: "wagchat-e17ae.firebasestorage.app",
+  messagingSenderId: "321656715514",
+  appId: "1:321656715514:web:4eda4a7375b846a939b143"
 };
 
 // Firebase 앱 초기화 (중복 초기화 방지)

@@ -1,1 +1,8 @@
-/// <reference types="@react-three/fiber" />
+export {};
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+    confirmationResult: any;
+  }
+}
