@@ -1,8 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 
-export default function LandingPage() {
+export default function RootPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/home"); // 로그인됨
+      } else {
+        router.replace("/login"); // 로그인 안됨
+      }
+    });
+
+    return () => unsub();
+  }, []);
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-white">
       {/* WAGIE */}

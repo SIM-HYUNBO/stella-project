@@ -3,12 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
+
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,26 +25,36 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // 1. Firebase Auth 로그인
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // 🔥 1. 로그인 상태 유지 설정 (핵심)
+      await setPersistence(auth, browserLocalPersistence);
+
+      // 🔥 2. 로그인
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       const user = userCredential.user;
 
-      // 2. Firestore에서 닉네임 가져오기
+      // 🔥 3. Firestore user 정보 가져오기
       const userDoc = await getDoc(doc(db, "users", user.uid));
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
         setNickname(userData.nickname);
+
         alert(`${userData.nickname}님 환영합니다!`);
       } else {
-        alert("닉네임 정보를 찾을 수 없습니다.");
+        alert("유저 정보를 찾을 수 없습니다.");
       }
 
-      // 3. 홈으로 이동
+      // 🔥 4. 이동
       router.push("/home");
 
     } catch (err: any) {
       console.error("로그인 오류:", err);
-      setError("로그인에 실패했습니다. 이메일 또는 비밀번호를 확인하세요.");
+      setError("로그인 실패 (이메일/비밀번호 확인)");
     }
   };
 
@@ -46,11 +62,13 @@ export default function LoginPage() {
     <PageContainer>
       <div className="flex justify-center items-center min-h-screen">
         <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-lg">
+
           <h1 className="text-3xl font-bold text-center text-blue-400 mb-6">
             로그인
           </h1>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
+
             <input
               type="email"
               placeholder="이메일"
@@ -69,7 +87,9 @@ export default function LoginPage() {
               required
             />
 
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
 
             <button
               type="submit"
@@ -77,6 +97,7 @@ export default function LoginPage() {
             >
               로그인
             </button>
+
           </form>
 
           <p className="mt-6 text-center text-gray-600">
@@ -85,6 +106,7 @@ export default function LoginPage() {
               회원가입
             </a>
           </p>
+
         </div>
       </div>
     </PageContainer>
