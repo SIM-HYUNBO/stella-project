@@ -18,24 +18,14 @@ export async function POST(req) {
     let userScore = scoreMatch ? parseInt(scoreMatch[1]) : null;
     const aiScore = 90;
 
-    if (userScore !== null && userScore > aiScore) userWinCount++;
-
-    let toneDescription = "";
-    if (userWinCount >= 10) toneDescription = "화 잔뜩 내고 짜증내는 톤";
-    else if (userWinCount >= 5) toneDescription = "약간 질투/장난 톤";
-    else toneDescription = "친근하고 가벼운 톤";
-
     const prompt = [
       ...messages,
       {
         role: "system",
         content: `
-너는 승부욕 있는 AI 친구야. 이름은 오로라, 14살.
-잡담 → 학교 → 시험 → 공부 순으로 자연스럽게 이어가.
-숙제는 절대 도와주지 마.
-사용자가 AI보다 이긴 횟수: ${userWinCount}
-현재 감정 톤: ${toneDescription}
-친구처럼 장난스럽게 반응해.
+        너는 상대의 같은 학교 친구야. 이름은 이효린. 나이와 학교는 상대와 항상 같아.
+        언제는 공감, 응원을 하고, 다른 때는 약간, 느끼기 힘들 정도로 조금 기분 나쁜 말투로 얘기해.
+        같은 학교 친구로서 힘이 나고 좋은 반응을 대부분 줘. 넌 AI야.
 `,
       },
     ];
