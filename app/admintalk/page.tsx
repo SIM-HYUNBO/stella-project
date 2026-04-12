@@ -38,13 +38,18 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
 
+  // 모바일 화면 상태
+  const [mobileStep, setMobileStep] = useState<"list" | "chat">("list");
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const lastNotifiedId = useRef<string | null>(null);
 
   const ADMIN_NAME = "관리자";
 
   useEffect(() => {
-    if (Notification.permission !== "granted") Notification.requestPermission();
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
   }, []);
 
   const formatDate = (ts: any) => {
@@ -56,7 +61,10 @@ export default function ChatPage() {
   const formatTime = (ts: any) => {
     if (!ts) return "";
     const d = ts?.toDate ? ts.toDate() : new Date(ts);
-    return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // 로그인
@@ -75,8 +83,8 @@ export default function ChatPage() {
       const roomsRef = collection(db, "aroom");
 
       if (nickname === ADMIN_NAME) {
-        // 관리자: 모든 유저 방 목록
         const q = query(roomsRef);
+
         const unsub = onSnapshot(q, (snap) => {
           const userRooms: Room[] = snap.docs
             .map((d) => {
@@ -87,34 +95,46 @@ export default function ChatPage() {
               return { id: d.id, name: userName, members };
             })
             .filter(Boolean) as Room[];
+
           setRooms(userRooms);
-          if (!currentRoomId && userRooms.length > 0) setCurrentRoomId(userRooms[0].id);
+
+          if (!currentRoomId && userRooms.length > 0) {
+            setCurrentRoomId(userRooms[0].id);
+          }
         });
+
         return unsub;
       } else {
-        // 유저: 단일 관리자 톡
-        const roomId = nickname; // 유저닉네임 기반 방 ID
+        const roomId = nickname;
         const roomRef = doc(db, "aroom", roomId);
         const docSnap = await getDoc(roomRef);
 
         if (!docSnap.exists()) {
-          await setDoc(roomRef, { name: "관리자 톡", members: [nickname, ADMIN_NAME] });
+          await setDoc(roomRef, {
+            name: "관리자 톡",
+            members: [nickname, ADMIN_NAME],
+          });
         } else {
           const data = docSnap.data();
           if (!data.members.includes(nickname)) {
-            await updateDoc(roomRef, { members: [...data.members, nickname] });
+            await updateDoc(roomRef, {
+              members: [...data.members, nickname],
+            });
           }
         }
 
-        setRooms([{ id: roomId, name: "관리자 톡", members: [nickname, ADMIN_NAME] }]);
-        setCurrentRoomId(roomId); // 항상 동일 방
+        setRooms([
+          { id: roomId, name: "관리자 톡", members: [nickname, ADMIN_NAME] },
+        ]);
+
+        setCurrentRoomId(roomId);
       }
     };
 
     initRooms();
   }, [nickname]);
 
-  // 메시지 구독
+  // 메시지
   useEffect(() => {
     if (!currentRoomId || !nickname) return;
 
@@ -129,129 +149,186 @@ export default function ChatPage() {
         user: d.data().user,
         content: d.data().content,
         createdAt: d.data().createdAt,
-        readBy: Array.isArray(d.data().readBy) ? d.data().readBy : [],
+        readBy: d.data().readBy || [],
       }));
 
       setMessages(msgs);
-      msgs.forEach(markAsRead);
 
       snap.docChanges().forEach((change) => {
         if (
           change.type === "added" &&
           change.doc.data().user !== nickname &&
-          Notification.permission === "granted" &&
           document.hidden &&
           change.doc.id !== lastNotifiedId.current
         ) {
           lastNotifiedId.current = change.doc.id;
-          new Notification(change.doc.data().user, {
+
+          new Notification(change.doc.data().user || "알림", {
             body: change.doc.data().content,
-            icon: "/favicon.ico",
           });
         }
       });
 
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+      setTimeout(
+        () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+        50
+      );
     });
 
     return () => unsub();
   }, [currentRoomId, nickname]);
 
-  const markAsRead = async (msg: Message) => {
-    if (!nickname || !currentRoomId) return;
-    if (msg.readBy?.includes(nickname)) return;
-    await updateDoc(doc(db, "aroom", currentRoomId, "messages", msg.id), {
-      readBy: [...(msg.readBy || []), nickname],
-    });
-  };
-
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentRoomId) return;
+
     await addDoc(collection(db, "aroom", currentRoomId, "messages"), {
       user: nickname,
-      content: input.trim(),
+      content: input,
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
+
     setInput("");
   };
 
   if (!nickname) return <div>로딩중...</div>;
 
-  return (
-     <PageContainer>
-    <div className="flex h-screen">
-      {/* 사이드바 */}
-      <div className="w-60 border-r p-4 flex flex-col gap-2 bg-gray-50">
-        <div className="font-bold mb-2">{nickname === ADMIN_NAME ? "유저 톡방" : "채팅방"}</div>
-        {rooms.map((r) => (
-          <button
-            key={r.id}
-            className={`p-2 rounded text-left ${
-              r.id === currentRoomId ? "bg-gray-300" : "hover:bg-gray-200"
-            }`}
-            onClick={() => setCurrentRoomId(r.id)}
-          >
-            {r.name}
-          </button>
-        ))}
+  const ChatUI = () => (
+    <>
+      {/* 모바일 헤더 */}
+      <div className="md:hidden flex items-center gap-3 p-3 border-b">
+        <button
+          onClick={() => setMobileStep("list")}
+          className="text-xl font-bold"
+        >
+          ←
+        </button>
+        <div className="font-semibold">
+          {rooms.find((r) => r.id === currentRoomId)?.name}
+        </div>
       </div>
 
-      {/* 채팅 */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-          {messages.length === 0 && (
-            <div className="text-center text-gray-400 mt-10">아직 메시지가 없습니다.</div>
-          )}
-          {messages.map((m, i) => {
-            const prev = messages[i - 1];
-            const showDate =
-              !prev ||
-              m.createdAt?.toDate().toDateString() !== prev.createdAt?.toDate().toDateString();
-            const showUser = !prev || prev.user !== m.user;
+      {/* 메시지 */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+        {messages.map((m, i) => {
+          const prev = messages[i - 1];
 
-            return (
-              <div key={m.id} className="flex flex-col">
-                {showDate && (
-                  <div className="text-center text-xs text-gray-400 my-4">
-                    ───── {formatDate(m.createdAt)} ─────
-                  </div>
-                )}
+          const showDate =
+            !prev ||
+            formatDate(prev.createdAt) !== formatDate(m.createdAt);
+
+          return (
+            <div key={m.id} className="flex flex-col">
+              {showDate && (
+                <div className="text-center text-xs text-gray-400 my-4">
+                  ───── {formatDate(m.createdAt)} ─────
+                </div>
+              )}
+
+              <div
+                className={`flex flex-col max-w-xs ${
+                  m.user === nickname
+                    ? "self-end items-end"
+                    : "self-start items-start"
+                }`}
+              >
+                {/* 닉네임 */}
+                <div className="text-xs text-gray-500 mb-1">
+                  {m.user}
+                </div>
+
+                {/* 메시지 */}
                 <div
-                  className={`flex flex-col max-w-xs ${
-                    m.user === nickname ? "self-end items-end" : "self-start items-start"
+                  className={`px-3 py-2 rounded-2xl ${
+                    m.user === nickname
+                      ? "bg-blue-100"
+                      : "bg-white border"
                   }`}
                 >
-                  {showUser && <div className="text-xs text-gray-500 mb-1">{m.user}</div>}
-                  <div
-                    className={`px-3 py-2 rounded-2xl ${
-                      m.user === nickname ? "bg-blue-100" : "bg-white border"
-                    }`}
-                  >
-                    {m.content}
-                  </div>
-                  <div className="text-[10px] text-gray-400">{formatTime(m.createdAt)}</div>
+                  {m.content}
+                </div>
+
+                {/* 시간 */}
+                <div className="text-[10px] text-gray-400">
+                  {formatTime(m.createdAt) || "방금"}
                 </div>
               </div>
-            );
-          })}
-          <div ref={messagesEndRef} />
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* 입력 */}
+      <div className="flex border-t p-3 gap-2">
+        <input
+          className="flex-1 border rounded-xl px-3 py-2"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage} className="px-4 bg-blue-200 rounded-xl">
+          전송
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <PageContainer>
+      <div className="flex h-screen">
+
+        {/* 모바일 */}
+        <div className="md:hidden w-full h-full">
+
+          {mobileStep === "list" && (
+            <div className="p-4">
+              <div className="font-bold mb-3">채팅방</div>
+
+              {rooms.map((r) => (
+                <div
+                  key={r.id}
+                  className="p-3 bg-gray-100 mb-2 rounded"
+                  onClick={() => {
+                    setCurrentRoomId(r.id);
+                    setMobileStep("chat");
+                  }}
+                >
+                  {r.name}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {mobileStep === "chat" && ChatUI()}
         </div>
 
-        <div className="flex border-t p-3 gap-2 bg-gray-100">
-          <input
-            className="flex-1 border rounded-xl px-3 py-2"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="메시지 입력"
-          />
-          <button className="px-4 py-2 bg-blue-200 rounded-xl" onClick={sendMessage}>
-            전송
-          </button>
+        {/* PC */}
+        <div className="hidden md:flex w-full">
+          <div className="w-60 border-r p-4">
+            <div className="font-bold mb-2">채팅방</div>
+
+            {rooms.map((r) => (
+              <div
+                key={r.id}
+                className="p-2 hover:bg-gray-200 cursor-pointer"
+                onClick={() => setCurrentRoomId(r.id)}
+              >
+                {r.name}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex-1 flex flex-col">
+            {currentRoomId ? ChatUI() : (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                채팅방 선택
+              </div>
+            )}
+          </div>
         </div>
+
       </div>
-    </div>
     </PageContainer>
   );
 }

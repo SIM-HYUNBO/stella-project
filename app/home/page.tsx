@@ -16,7 +16,9 @@ import {
   doc,
 } from "firebase/firestore";
 
-/* ================= 타입 ================= */
+import { getFcmToken } from "@/lib/fcm";
+
+/* 타입 */
 type Message = {
   id: string;
   from: string;
@@ -29,6 +31,7 @@ type Message = {
 type User = {
   id: string;
   nickname: string;
+  fcmToken?: string;
 };
 
 export default function Chat() {
@@ -49,24 +52,23 @@ export default function Chat() {
     return () => unsub();
   }, []);
 
-  /* ================= 🔥 브라우저 알림 권한 ================= */
+  /* ================= 2. FCM 토큰 저장 (🔥 핵심 3번) ================= */
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const saveToken = async () => {
+      if (!nickname) return;
 
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }, []);
+      const token = await getFcmToken();
+      if (!token) return;
 
-  /* ================= 🔥 알림 함수 ================= */
-  const showNotification = (text: string) => {
-    if (Notification.permission !== "granted") return;
+      await updateDoc(doc(db, "users", nickname), {
+        fcmToken: token,
+      });
 
-    new Notification("💬 새 메시지", {
-      body: text,
-      icon: "/icon.png",
-    });
-  };
+      console.log("🔥 FCM TOKEN 저장 완료");
+    };
+
+    saveToken();
+  }, [nickname]);
 
   /* ================= 3. 유저 목록 ================= */
   useEffect(() => {
@@ -85,39 +87,16 @@ export default function Chat() {
     fetchUsers();
   }, [nickname]);
 
-  /* ================= 4. 메시지 구독 + 알림 ================= */
+  /* ================= 4. 메시지 구독 + 읽음 ================= */
   useEffect(() => {
     if (!currentChatUser || !nickname) return;
 
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
 
-    const seen = new Set<string>();
-
     const unsub = onSnapshot(q, async (snap) => {
       const msgs: Message[] = [];
 
-      snap.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data();
-
-          const isChat =
-            (data.from === nickname && data.to === currentChatUser.nickname) ||
-            (data.from === currentChatUser.nickname && data.to === nickname);
-
-          if (!isChat) return;
-
-          if (!seen.has(change.doc.id)) {
-            seen.add(change.doc.id);
-
-            // 🔥 상대 메시지만 알림
-            if (data.from !== nickname) {
-              showNotification(data.content);
-            }
-          }
-        }
-      });
-
-      snap.forEach((d) => {
+      for (const d of snap.docs) {
         const data = d.data();
 
         const m: Message = {
@@ -129,14 +108,23 @@ export default function Chat() {
           readBy: data.readBy || [],
         };
 
+        /* 1:1 필터 */
         const isMyChat =
           (m.from === nickname && m.to === currentChatUser.nickname) ||
           (m.from === currentChatUser.nickname && m.to === nickname);
 
-        if (!isMyChat) return;
+        if (!isMyChat) continue;
+
+        /* 읽음 처리 */
+        if (m.from !== nickname && !m.readBy?.includes(nickname)) {
+          await updateDoc(doc(db, "messages", m.id), {
+            readBy: [...(m.readBy || []), nickname],
+          });
+          m.readBy = [...(m.readBy || []), nickname];
+        }
 
         msgs.push(m);
-      });
+      }
 
       setMessages(msgs);
 
@@ -170,9 +158,12 @@ export default function Chat() {
     <>
       <div className="md:hidden flex items-center gap-2 p-3 border-b">
         <button onClick={() => setIsMobileMenuOpen(true)}>←</button>
-        <div className="font-semibold">{currentChatUser?.nickname}</div>
+        <div className="font-semibold">
+          {currentChatUser?.nickname}
+        </div>
       </div>
 
+      {/* 메시지 */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages.map((m, i) => {
           const prev = messages[i - 1];
@@ -181,6 +172,7 @@ export default function Chat() {
             formatDate(prev.createdAt) !== formatDate(m.createdAt);
 
           const isMine = m.from === nickname;
+          const isRead = (m.readBy?.length || 0) >= 2;
 
           return (
             <div key={m.id} className="flex flex-col">
@@ -192,9 +184,13 @@ export default function Chat() {
 
               <div
                 className={`flex flex-col max-w-xs ${
-                  isMine ? "self-end" : "self-start"
+                  isMine ? "self-end items-end" : "self-start items-start"
                 }`}
               >
+                <div className="text-xs text-gray-500 mb-1">
+                  {m.from}
+                </div>
+
                 <div
                   className={`px-3 py-2 rounded-2xl ${
                     isMine ? "bg-red-100" : "bg-gray-200"
@@ -203,8 +199,9 @@ export default function Chat() {
                   {m.content}
                 </div>
 
-                <div className="text-[10px] text-gray-400">
+                <div className="text-[10px] text-gray-400 flex gap-1">
                   {formatTime(m.createdAt)}
+                  {isMine && <span>{isRead ? "✓" : "1"}</span>}
                 </div>
               </div>
             </div>
@@ -213,6 +210,7 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* 입력 */}
       <div className="flex border-t p-3 gap-2">
         <input
           className="flex-1 border rounded-xl px-3 py-2"
@@ -285,13 +283,14 @@ export default function Chat() {
   );
 }
 
-/* ================= utils ================= */
+/* 날짜 */
 const formatDate = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
 };
 
+/* 시간 */
 const formatTime = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
