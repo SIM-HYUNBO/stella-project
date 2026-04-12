@@ -28,8 +28,8 @@ const nanumBrush = Nanum_Brush_Script({
 });
 
 export const metadata = {
-  title: "WAGIE - We Are Genius In Everything",
-  description: "Become the Only Genius that Stands Out.",
+  title: "WAGIE",
+  description: "wagie",
 };
 
 export default function RootLayout({ children }) {
