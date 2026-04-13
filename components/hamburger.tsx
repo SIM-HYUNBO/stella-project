@@ -31,7 +31,8 @@ export default function HamburgerMenuWithDelete() {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
-  const [isDark, setIsDark] = useState(false);
+
+  const SPECIAL_USERS = ["관리자", "나율", "Fred"];
 
   useEffect(() => setMounted(true), []);
 
@@ -116,11 +117,11 @@ export default function HamburgerMenuWithDelete() {
         }}
         className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl shadow-md z-50"
       >
-         <div className="flex flex-col justify-center bg-white items-center gap-1 cursor-pointer">
-      <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
-      <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
-      <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
-    </div>
+        <div className="flex flex-col justify-center bg-white items-center gap-1 cursor-pointer">
+          <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+          <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+          <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+        </div>
       </button>
 
       {menuOpen && (
@@ -177,8 +178,7 @@ export default function HamburgerMenuWithDelete() {
           {/* 공통 메뉴 */}
           {[
             ["/admintalk", "관리자 톡"],
-             ["/AItalk", "이효린 챗"],
-           
+            ["/AItalk", "이효린 챗"],
           ].map(([href, label]) => (
             <Link
               key={href}
@@ -189,9 +189,23 @@ export default function HamburgerMenuWithDelete() {
             </Link>
           ))}
 
-         
+          {/* 🔥 특별 메뉴 */}
+          {SPECIAL_USERS.includes(nickname || "") && (
+            <>
+              <div className="border-t my-2"></div>
 
-         
+              <div className="text-xs text-gray-400 px-2">
+                🔒 특별 메뉴
+              </div>
+
+              <Link
+                href="/secret"
+                className="p-2 rounded-xl hover:bg-gray-100"
+              >
+                🧠 비밀 메뉴
+              </Link>
+            </>
+          )}
         </div>
       )}
 
