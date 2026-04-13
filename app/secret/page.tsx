@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { db } from "@/app/firebase";
+import { db, auth } from "@/app/firebase";
 import {
   collection,
   addDoc,
@@ -10,6 +10,7 @@ import {
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 type Message = {
   id: string;
@@ -22,6 +23,9 @@ export default function MeatChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
 
+  /* ================= 유저 ================= */
+  const [nickname, setNickname] = useState<string>("guest");
+
   /* ================= 고기 상태 ================= */
   const [startTime, setStartTime] = useState<number | null>(null);
   const [flipped, setFlipped] = useState(false);
@@ -29,9 +33,17 @@ export default function MeatChat() {
     "raw" | "grilling" | "perfect" | "burn"
   >("raw");
 
-  const me = "나율";
-
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  /* ================= 로그인 ================= */
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user?.displayName) setNickname(user.displayName);
+      else setNickname("guest");
+    });
+
+    return () => unsub();
+  }, []);
 
   /* ================= 채팅 ================= */
   useEffect(() => {
@@ -92,7 +104,7 @@ export default function MeatChat() {
     }
 
     await addDoc(collection(db, "meat_chat"), {
-      from: me,
+      from: nickname,   // 🔥 여기만 변경됨
       content: input,
       createdAt: serverTimestamp(),
     });
@@ -107,14 +119,14 @@ export default function MeatChat() {
     setFlipped(false);
 
     audioRef.current?.pause();
-    audioRef.current!.currentTime = 0;
+    if (audioRef.current) audioRef.current.currentTime = 0;
   };
 
   /* ================= 고기 표시 ================= */
   const getMeat = () => {
     if (state === "raw") return "🥩";
     if (state === "grilling") return flipped ? "🥩" : "🥩";
-    if (state === "perfect") return flipped? "🍖":"🍖";
+    if (state === "perfect") return flipped ? "🍖" : "🍖";
     return "🔥";
   };
 
@@ -124,7 +136,6 @@ export default function MeatChat() {
       {/* ================= 고기 영역 ================= */}
       <div className="flex-1 flex flex-col items-center justify-center">
 
-        {/* 고기 */}
         <div
           onClick={handleMeatClick}
           className={`text-[140px] cursor-pointer transition-transform duration-500 ${
@@ -134,7 +145,6 @@ export default function MeatChat() {
           {getMeat()}
         </div>
 
-        {/* 상태 텍스트 */}
         <div className="mt-4 text-center font-semibold text-gray-700">
           {state === "raw" && "🥩 고기 올림"}
           {state === "grilling" && "🔥 굽는 중 (60초 이상)"}
@@ -142,7 +152,6 @@ export default function MeatChat() {
           {state === "burn" && "🔥 탔다..."}
         </div>
 
-        {/* 다시 시작 버튼 */}
         {state === "burn" && (
           <button
             onClick={resetGame}
@@ -151,6 +160,11 @@ export default function MeatChat() {
             🔄 다시 굽기
           </button>
         )}
+
+        {/* 🔥 현재 유저 표시 (옵션, UI 안 건드림 느낌 유지) */}
+        <div className="mt-2 text-xs text-gray-500">
+          {nickname}
+        </div>
 
       </div>
 
