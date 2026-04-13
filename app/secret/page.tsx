@@ -49,7 +49,7 @@ export default function MeatChat() {
 
   /* ================= 소리 ================= */
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/sizzle.mp3");
+    audioRef.current = new Audio("/sounds/sizzles.mp3");
     audioRef.current.loop = true;
   }, []);
 
