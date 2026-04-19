@@ -16,6 +16,7 @@ import {
   updateDoc,
   doc,
   setDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 /* 타입 */
@@ -41,8 +42,8 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  /* 🔥 모바일 체크 (추가만) */
+  
+  /* 🔥 모바일 체크 */
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -53,68 +54,49 @@ export default function Chat() {
 
   /* 🔥 VIP 상태 */
   const [isMyVIP, setIsMyVIP] = useState(false);
-
   useEffect(() => {
     const vip = localStorage.getItem("vip") === "true";
     setIsMyVIP(vip);
   }, []);
 
-  /* 🔥 AI 요약 ON/OFF 상태 */
+  /* 🔥 AI 요약 */
   const [aiSummaryOn, setAiSummaryOn] = useState(false);
-
   useEffect(() => {
-    const enabled = localStorage.getItem("ai_summary") === "true";
-    setAiSummaryOn(enabled);
+    setAiSummaryOn(localStorage.getItem("ai_summary") === "true");
   }, []);
 
-  /* 🔥 AI 요약 결과 */
   const [summary, setSummary] = useState("");
 
-  /* 🔔 알림음 */
+  /* 🔥 타이핑 */
+  const [isTyping, setIsTyping] = useState(false);
+
+  /* 🔥 선택된 메시지 */
+  const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
+
+  /* 🔥 마지막 메시지 */
+  const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
+
+  /* 🔔 알림 */
   const playNotificationSound = () => {
-    const saved = localStorage.getItem("alarmSound") || "1";
-
-    const map: Record<string, string> = {
-      "1": "/sounds/alert1.mp3",
-      "2": "/sounds/alert2.mp3",
-      "3": "/sounds/alert3.mp3",
-      "4": "/sounds/alert4.mp3",
-      "5": "/sounds/alert5.mp3",
-      "6": "/sounds/alert6.mp3",
-      "7": "/sounds/alert7.mp3",
-      "8": "/sounds/alert8.mp3",
-      "9": "/sounds/alert9.mp3",
-      "10": "/sounds/alert10.mp3",
-    };
-
-    const audio = new Audio(map[saved]);
+    const audio = new Audio("/sounds/alert1.mp3");
     audio.play();
   };
 
   /* 🔥 AI 요약 */
   const runSummary = async () => {
-    const enabled = localStorage.getItem("ai_summary") === "true";
-    if (!enabled) return;
-    if (!currentChatUser) return;
+    if (!aiSummaryOn || !currentChatUser) return;
 
     const res = await fetch("/api/ai-summary", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ messages }),
     });
 
     const data = await res.json();
-
     setSummary(data.summary);
 
     await setDoc(
       doc(db, "chat_summaries", currentChatUser.id),
-      {
-        summary: data.summary,
-        updatedAt: new Date(),
-      },
+      { summary: data.summary, updatedAt: new Date() },
       { merge: true }
     );
   };
@@ -151,6 +133,7 @@ export default function Chat() {
 
     const unsub = onSnapshot(q, async (snap) => {
       const msgs: Message[] = [];
+      let lastMsg = "";
 
       for (const d of snap.docs) {
         const data = d.data();
@@ -170,6 +153,8 @@ export default function Chat() {
 
         if (!isMyChat) continue;
 
+        lastMsg = m.content;
+
         if (m.from !== nickname && !m.readBy?.includes(nickname)) {
           await updateDoc(doc(db, "messages", m.id), {
             readBy: [...(m.readBy || []), nickname],
@@ -185,6 +170,11 @@ export default function Chat() {
       }
 
       setMessages(msgs);
+
+      setLastMessages((prev) => ({
+        ...prev,
+        [currentChatUser.id]: lastMsg,
+      }));
 
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -207,6 +197,25 @@ export default function Chat() {
     });
 
     setInput("");
+    setIsTyping(false);
+  };
+
+  /* 삭제 */
+  const deleteMessage = async (id: string) => {
+    await deleteDoc(doc(db, "messages", id));
+    setSelectedMsgId(null);
+  };
+
+  /* 수정 */
+  const editMessage = async (id: string) => {
+    const text = prompt("수정할 내용");
+    if (!text) return;
+
+    await updateDoc(doc(db, "messages", id), {
+      content: text,
+    });
+
+    setSelectedMsgId(null);
   };
 
   if (!nickname) return <div>로딩중...</div>;
@@ -222,6 +231,13 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages.map((m, i) => {
+
+          /* 🔥 추가 (날짜 구분) */
+          const currentDate = formatDateLabel(m.createdAt);
+          const prevDate =
+            i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
+          const showDate = currentDate !== prevDate;
+
           const prev = messages[i - 1];
           const showUser = !prev || prev.from !== m.from;
 
@@ -229,44 +245,82 @@ export default function Chat() {
           const isVIP = m.from === nickname && isMyVIP;
 
           return (
-            <div key={m.id} className="flex flex-col">
-              <div
-                className={`flex flex-col max-w-xs ${
-                  isMine ? "self-end items-end" : "self-start items-start"
-                }`}
-              >
-                {showUser && (
-                  <div className="text-xs mb-1 flex items-center gap-1">
-                    <span className={isVIP ? "text-yellow-600 font-semibold" : ""}>
-                      {m.from}
-                    </span>
-                    {isVIP && (
-                      <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
-                        VIP
-                      </span>
-                    )}
-                  </div>
-                )}
+            <>
+              {/* 🔥 날짜 표시 */}
+              {showDate && (
+<div className="flex items-center justify-center text-xs text-gray-400 w-full">
+  <div className="w-10 border-t" />
+  <span className="px-1">{currentDate}</span>
+  <div className="w-10 border-t" />
+</div>
+              )}
 
+              <div
+                key={m.id}
+                className="flex flex-col"
+                onDoubleClick={() => setSelectedMsgId(m.id)}
+              >
                 <div
-                  className={`px-3 py-2 rounded-2xl ${
-                    isMine
-                      ? isVIP
-                        ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
-                        : "bg-red-100"
-                      : "bg-gray-200"
+                  className={`flex flex-col max-w-xs ${
+                    isMine ? "self-end items-end" : "self-start items-start"
                   }`}
                 >
-                  {m.content}
-                </div>
+                  {showUser && (
+                    <div className="text-xs mb-1 flex items-center gap-1">
+                      <span
+                        className={isVIP ? "text-yellow-600 font-semibold" : ""}
+                      >
+                        {m.from}
+                      </span>
 
-                <div className="text-[10px] text-gray-400">
-                  {formatTime(m.createdAt)}
+                      {isVIP && (
+                        <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
+                          VIP
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div
+                    className={`px-3 py-2 rounded-2xl ${
+                      isMine
+                        ? isVIP
+                          ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
+                          : "bg-red-100"
+                        : "bg-gray-200"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+
+                  {isMine && (
+                    <div className="text-[10px] text-gray-400">
+                      {m.readBy?.length > 1 ? "✔" : "1"}
+                    </div>
+                  )}
+
+                  {selectedMsgId === m.id && isMine && (
+                    <div className="flex gap-2 text-xs">
+                      <button onClick={() => editMessage(m.id)}>수정</button>
+                      <button onClick={() => deleteMessage(m.id)}>삭제</button>
+                    </div>
+                  )}
+
+                  <div className="text-[10px] text-gray-400">
+                    {formatTime(m.createdAt)}
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           );
         })}
+
+        {isTyping && (
+          <div className="text-xs text-gray-400">
+            상대방 입력중...
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -274,7 +328,10 @@ export default function Chat() {
         <input
           className="flex-1 border rounded-xl px-3 py-2"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            setIsTyping(true);
+          }}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지 입력"
         />
@@ -307,13 +364,13 @@ export default function Chat() {
     </>
   );
 
-  /* 🔥 모바일 분기 (추가만) */
   if (isMobile) {
     if (!currentChatUser) {
       return (
         <PageContainer>
           <div className="h-screen p-4">
             <div className="text-xl font-bold mb-4">회원 목록</div>
+
             {users.map((u) => (
               <div
                 key={u.id}
@@ -321,6 +378,9 @@ export default function Chat() {
                 onClick={() => setCurrentChatUser(u)}
               >
                 {u.nickname}
+                <div className="text-xs text-gray-400">
+                  {lastMessages[u.id]}
+                </div>
               </div>
             ))}
           </div>
@@ -346,38 +406,28 @@ export default function Chat() {
     );
   }
 
-  /* 💻 기존 PC 그대로 */
   return (
     <PageContainer>
       <div className="h-screen flex">
         <div className="w-60 border-r p-4 flex flex-col gap-2">
           <div className="font-bold">회원 목록</div>
 
-          {users.map((u) => {
-            const isVIP = u.nickname === nickname && isMyVIP;
-
-            return (
-              <div
-                key={u.id}
-                className={`p-2 rounded cursor-pointer flex items-center gap-1 ${
-                  currentChatUser?.id === u.id
-                    ? "bg-gray-300"
-                    : "hover:bg-gray-200"
-                }`}
-                onClick={() => setCurrentChatUser(u)}
-              >
-                <span className={isVIP ? "text-yellow-600" : ""}>
-                  {u.nickname}
-                </span>
-
-                {isVIP && (
-                  <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
-                    VIP
-                  </span>
-                )}
+          {users.map((u) => (
+            <div
+              key={u.id}
+              className={`p-2 rounded cursor-pointer ${
+                currentChatUser?.id === u.id
+                  ? "bg-gray-300"
+                  : "hover:bg-gray-200"
+              }`}
+              onClick={() => setCurrentChatUser(u)}
+            >
+              {u.nickname}
+              <div className="text-xs text-gray-400">
+                {lastMessages[u.id]}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         <div className="flex-1 flex flex-col">
@@ -401,5 +451,24 @@ const formatTime = (ts: any) => {
   return d.toLocaleTimeString("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
+  });
+};
+
+/* 🔥 추가: 날짜 라벨 */
+const formatDateLabel = (ts: any) => {
+  if (!ts) return "";
+
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (d.toDateString() === today.toDateString()) return "오늘";
+  if (d.toDateString() === yesterday.toDateString()) return "어제";
+
+  return d.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 };
