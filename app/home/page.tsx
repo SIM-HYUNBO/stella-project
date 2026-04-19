@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
@@ -18,6 +18,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 
+/* 타입 */
 type Message = {
   id: string;
   from: string;
@@ -30,33 +31,40 @@ type Message = {
 type User = {
   id: string;
   nickname: string;
-  isVIP?: boolean;
 };
 
 export default function Chat() {
   const [nickname, setNickname] = useState<string | null>(null);
-  const [myVIP, setMyVIP] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [currentChatUser, setCurrentChatUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [summaryEnabled, setSummaryEnabled] = useState(false);
-  const [summary, setSummary] = useState("");
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryWidth, setSummaryWidth] = useState(256);
-
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const prevMessageIdsRef = useRef<Set<string>>(new Set());
-  const isResizing = useRef(false);
+
+  /* 🔥 VIP 상태 */
+  const [isMyVIP, setIsMyVIP] = useState(false);
 
   useEffect(() => {
-    setSummaryEnabled(localStorage.getItem("ai_summary") === "true");
+    const vip = localStorage.getItem("vip") === "true";
+    setIsMyVIP(vip);
   }, []);
 
-  /* 알림음 */
-  const playNotificationSound = useCallback(() => {
+  /* 🔥 AI 요약 ON/OFF 상태 */
+  const [aiSummaryOn, setAiSummaryOn] = useState(false);
+
+  useEffect(() => {
+    const enabled = localStorage.getItem("ai_summary") === "true";
+    setAiSummaryOn(enabled);
+  }, []);
+
+  /* 🔥 AI 요약 결과 */
+  const [summary, setSummary] = useState("");
+
+  /* 🔔 알림음 */
+  const playNotificationSound = () => {
     const saved = localStorage.getItem("alarmSound") || "1";
+
     const map: Record<string, string> = {
       "1": "/sounds/alert1.mp3",
       "2": "/sounds/alert2.mp3",
@@ -69,9 +77,41 @@ export default function Chat() {
       "9": "/sounds/alert9.mp3",
       "10": "/sounds/alert10.mp3",
     };
-    const audio = new Audio(map[saved] ?? "/sounds/alert1.mp3");
-    audio.play().catch(() => {});
-  }, []);
+
+    const audio = new Audio(map[saved]);
+    audio.play();
+  };
+
+  /* 🔥 AI 요약 */
+  const runSummary = async () => {
+    const enabled = localStorage.getItem("ai_summary") === "true";
+
+    // ❌ OFF면 완전 차단
+    if (!enabled) return;
+
+    if (!currentChatUser) return;
+
+    const res = await fetch("/api/ai-summary", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages }),
+    });
+
+    const data = await res.json();
+
+    setSummary(data.summary);
+
+    await setDoc(
+      doc(db, "chat_summaries", currentChatUser.id),
+      {
+        summary: data.summary,
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
+  };
 
   /* 로그인 */
   useEffect(() => {
@@ -81,7 +121,7 @@ export default function Chat() {
     return () => unsub();
   }, []);
 
-  /* 유저 목록 + 내 VIP 여부 */
+  /* 유저 목록 */
   useEffect(() => {
     if (!nickname) return;
 
@@ -90,29 +130,21 @@ export default function Chat() {
       const list: User[] = snap.docs.map((d) => ({
         id: d.id,
         nickname: d.data().nickname,
-        isVIP: d.data().isVIP === true,
       }));
-
-      const me = list.find((u) => u.nickname === nickname);
-      setMyVIP(me?.isVIP ?? false);
       setUsers(list.filter((u) => u.nickname !== nickname));
     };
 
     fetchUsers();
   }, [nickname]);
 
-  /* 메시지 구독 */
+  /* 메시지 */
   useEffect(() => {
     if (!currentChatUser || !nickname) return;
-
-    prevMessageIdsRef.current = new Set();
 
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
 
     const unsub = onSnapshot(q, async (snap) => {
       const msgs: Message[] = [];
-      const updatePromises: Promise<void>[] = [];
-      let hasNewIncoming = false;
 
       for (const d of snap.docs) {
         const data = d.data();
@@ -133,33 +165,19 @@ export default function Chat() {
         if (!isMyChat) continue;
 
         if (m.from !== nickname && !m.readBy?.includes(nickname)) {
-          updatePromises.push(
-            updateDoc(doc(db, "messages", m.id), {
-              readBy: [...(m.readBy || []), nickname],
-            })
-          );
+          await updateDoc(doc(db, "messages", m.id), {
+            readBy: [...(m.readBy || []), nickname],
+          });
           m.readBy = [...(m.readBy || []), nickname];
         }
 
-        /* 새로 들어온 상대방 메시지인지 확인 */
-        if (
-          m.from !== nickname &&
-          !prevMessageIdsRef.current.has(m.id)
-        ) {
-          hasNewIncoming = true;
-        }
-
         msgs.push(m);
+
+        if (m.from !== nickname) {
+          playNotificationSound();
+        }
       }
 
-      await Promise.all(updatePromises);
-
-      /* 새 메시지가 있을 때만 알림 1회 재생 */
-      if (hasNewIncoming && prevMessageIdsRef.current.size > 0) {
-        playNotificationSound();
-      }
-
-      prevMessageIdsRef.current = new Set(msgs.map((m) => m.id));
       setMessages(msgs);
 
       setTimeout(() => {
@@ -168,7 +186,7 @@ export default function Chat() {
     });
 
     return () => unsub();
-  }, [currentChatUser, nickname, playNotificationSound]);
+  }, [currentChatUser, nickname]);
 
   /* 메시지 전송 */
   const sendMessage = async () => {
@@ -185,61 +203,25 @@ export default function Chat() {
     setInput("");
   };
 
-  /* AI 요약 */
-  const runSummary = async () => {
-    if (!currentChatUser || summaryLoading) return;
-    setSummaryLoading(true);
-    try {
-      const res = await fetch("/api/ai-summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
-      });
-      const data = await res.json();
-      setSummary(data.summary);
-      await setDoc(
-        doc(db, "chat_summaries", currentChatUser.id),
-        { summary: data.summary, updatedAt: new Date() },
-        { merge: true }
-      );
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSummaryLoading(false);
-    }
-  };
-
-  const startResize = useCallback((e: React.MouseEvent) => {
-    isResizing.current = true;
-    const startX = e.clientX;
-    const startWidth = summaryWidth;
-
-    const onMove = (e: MouseEvent) => {
-      if (!isResizing.current) return;
-      const delta = startX - e.clientX;
-      setSummaryWidth(Math.min(480, Math.max(160, startWidth + delta)));
-    };
-
-    const onUp = () => {
-      isResizing.current = false;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }, [summaryWidth]);
-
   if (!nickname) return <div>로딩중...</div>;
 
+  /* 채팅 UI */
   const renderChat = () => (
     <>
+      {/* 🔥 요약 표시 (ON일 때만) */}
+      {aiSummaryOn && summary && (
+        <div className="p-3 bg-yellow-50 border text-sm">
+          🧠 {summary}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages.map((m, i) => {
           const prev = messages[i - 1];
           const showUser = !prev || prev.from !== m.from;
+
           const isMine = m.from === nickname;
-          const isVIP = users.find((u) => u.nickname === m.from)?.isVIP ?? false;
+          const isVIP = m.from === nickname && isMyVIP;
 
           return (
             <div key={m.id} className="flex flex-col">
@@ -253,6 +235,7 @@ export default function Chat() {
                     <span className={isVIP ? "text-yellow-600 font-semibold" : ""}>
                       {m.from}
                     </span>
+
                     {isVIP && (
                       <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
                         VIP
@@ -264,15 +247,17 @@ export default function Chat() {
                 <div
                   className={`px-3 py-2 rounded-2xl ${
                     isMine
-                      ? myVIP
+                      ? isVIP
                         ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
                         : "bg-red-100"
-                      : isVIP
-                      ? "bg-yellow-50 border border-yellow-300"
                       : "bg-gray-200"
                   }`}
                 >
                   {m.content}
+                </div>
+
+                <div className="text-[10px] text-gray-400">
+                  {formatTime(m.createdAt)}
                 </div>
               </div>
             </div>
@@ -287,6 +272,7 @@ export default function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="메시지 입력"
         />
 
         <button
@@ -296,13 +282,24 @@ export default function Chat() {
           전송
         </button>
 
-        <button
-          onClick={() => router.push("/vip")}
-          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow"
-        >
-          VIP 구매
-        </button>
+        {!isMyVIP && (
+          <button
+            onClick={() => router.push("/vip")}
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow"
+          >
+            VIP 구매
+          </button>
+        )}
 
+        {/* 🔥 ON일 때만 요약 버튼 */}
+        {isMyVIP && aiSummaryOn && (
+          <button
+            onClick={runSummary}
+            className="px-4 py-2 bg-blue-500 text-white rounded-xl"
+          >
+            채팅 요약
+          </button>
+        )}
       </div>
     </>
   );
@@ -313,22 +310,31 @@ export default function Chat() {
         <div className="w-60 border-r p-4 flex flex-col gap-2">
           <div className="font-bold">회원 목록</div>
 
-          {users.map((u) => (
-            <div
-              key={u.id}
-              className="p-2 rounded cursor-pointer flex items-center gap-1 hover:bg-gray-200"
-              onClick={() => setCurrentChatUser(u)}
-            >
-              <span className={u.isVIP ? "text-yellow-600" : ""}>
-                {u.nickname}
-              </span>
-              {u.isVIP && (
-                <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
-                  VIP
+          {users.map((u) => {
+            const isVIP = u.nickname === nickname && isMyVIP;
+
+            return (
+              <div
+                key={u.id}
+                className={`p-2 rounded cursor-pointer flex items-center gap-1 ${
+                  currentChatUser?.id === u.id
+                    ? "bg-gray-300"
+                    : "hover:bg-gray-200"
+                }`}
+                onClick={() => setCurrentChatUser(u)}
+              >
+                <span className={isVIP ? "text-yellow-600" : ""}>
+                  {u.nickname}
                 </span>
-              )}
-            </div>
-          ))}
+
+                {isVIP && (
+                  <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
+                    VIP
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex-1 flex flex-col">
@@ -340,40 +346,17 @@ export default function Chat() {
             </div>
           )}
         </div>
-
-        {/* AI 요약 사이드 패널 */}
-        {summaryEnabled && currentChatUser && (
-          <div style={{ width: summaryWidth }} className="border-l flex flex-col gap-3 bg-gray-50 relative flex-shrink-0">
-            {/* 드래그 핸들 */}
-            <div
-              onMouseDown={startResize}
-              className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400 transition-colors"
-            />
-
-            <div className="p-4 flex flex-col gap-3 h-full">
-              <div className="font-bold text-sm">🧠 AI 요약</div>
-
-              {summary ? (
-                <div className="text-xs leading-relaxed text-gray-700 bg-white border rounded-xl p-3 flex-1 overflow-y-auto">
-                  {summary}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-400 flex-1">
-                  요약 버튼을 눌러 대화를 요약하세요.
-                </div>
-              )}
-
-              <button
-                onClick={runSummary}
-                disabled={summaryLoading}
-                className="px-3 py-2 bg-blue-500 text-white text-sm rounded-xl disabled:opacity-50"
-              >
-                {summaryLoading ? "요약 중..." : "채팅 요약"}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </PageContainer>
   );
 }
+
+/* 시간 */
+const formatTime = (ts: any) => {
+  if (!ts) return "";
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};

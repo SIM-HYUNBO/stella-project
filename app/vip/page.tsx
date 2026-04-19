@@ -36,7 +36,6 @@ export default function VipPage() {
 
       {/* glow background */}
       <div className="absolute w-[500px] h-[500px] bg-purple-500 blur-[140px] opacity-30 rounded-full animate-pulse" />
-      <div className="absolute w-[400px] h-[400px] bg-pink-500 blur-[120px] opacity-20 rounded-full top-40 right-20 animate-pulse" />
 
       <div className="relative w-full max-w-xl rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl">
 

@@ -150,28 +150,49 @@ export default function HamburgerMenuWithDelete() {
                 </span>
               </button>
 
-              {profileMenuOpen && (
-                <div
-                  ref={profileRef}
-                  className="bg-gray-100 rounded-xl px-4 py-3 space-y-2"
-                >
-                  <button onClick={() => router.push("/profile/edit")}>
-                    ✏️ 편집
-                  </button>
-                  <button onClick={() => router.push("/foot")}>
-                    ⚙️ 내 정보
-                  </button>
-                  <button onClick={() => signOut(auth)} className="text-red-500">
-                    🚪 로그아웃
-                  </button>
-                  <button
-                    onClick={() => setConfirmDeleteOpen(true)}
-                    className="text-red-700"
-                  >
-                    🛑 계정 탈퇴
-                  </button>
-                </div>
-              )}
+            {profileMenuOpen && (
+  <div
+    ref={profileRef}
+    className="flex flex-col bg-gray-100 rounded-xl px-4 py-3 space-y-2 items-start"
+  >
+    <button onClick={() => router.push("/profile/edit")}>
+      ✏️ 편집
+    </button>
+
+    <button onClick={() => router.push("/foot")}>
+      ⚙️ 내 정보
+    </button>
+
+    <button onClick={() => signOut(auth)} className="text-red-500">
+      🚪 로그아웃
+    </button>
+
+    <button
+      onClick={() => setConfirmDeleteOpen(true)}
+      className="text-red-700"
+    >
+      🛑 계정 탈퇴
+    </button>
+
+    {/* 🔥 VIP 해제 (맨 마지막) */}
+    {isVip && (
+      <>
+        <div className="border-t w-full my-2"></div>
+
+        <button
+          onClick={() => {
+            localStorage.setItem("vip", "false");
+            alert("VIP 해제됨");
+            window.location.reload();
+          }}
+          className="text-yellow-700 font-semibold"
+        >
+          💎 VIP 해제
+        </button>
+      </>
+    )}
+  </div>
+)}
             </>
           ) : (
             <button
@@ -185,7 +206,7 @@ export default function HamburgerMenuWithDelete() {
           {/* 공통 메뉴 */}
           {[
             ["/admintalk", "관리자 톡"],
-            ["/AItalk", "AI 채팅"],
+            ["/AItalk", "이효린 챗"],
             ["/tools", "설정"],
           ].map(([href, label]) => (
             <Link

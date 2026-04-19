@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   collection,
   addDoc,
@@ -20,7 +21,7 @@ export default function AIChatPage() {
   const [input, setInput] = useState("");
   const [memory, setMemory] = useState<any>(null);
   const [isVip, setIsVip] = useState(false);
-
+   const router = useRouter();
   /* VIP 상태 */
   useEffect(() => {
     setIsVip(localStorage.getItem("vip") === "true");
@@ -128,6 +129,12 @@ export default function AIChatPage() {
 
       {/* 상단 정보 */}
       <div className="p-3 border-b text-sm flex justify-between">
+              <button
+          onClick={() => router.back()}
+          className="text-xl mr-2"
+        >
+          ←
+        </button>
         <div>🧠 AI Chat</div>
         <div className={isVip ? "text-yellow-500" : ""}>
           {isVip ? "VIP MODE" : "FREE MODE"}
