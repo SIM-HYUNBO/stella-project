@@ -42,16 +42,13 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [summaryEnabled, setSummaryEnabled] = useState(false);
   const [summary, setSummary] = useState("");
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryWidth, setSummaryWidth] = useState(256);
 
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const prevMessageIdsRef = useRef<Set<string>>(new Set());
-  const isResizing = useRef(false);
 
   useEffect(() => {
-    setSummaryEnabled(localStorage.getItem("ai_summary") === "true");
+    setSummaryEnabled(localStorage.getItem("as") === "true");
   }, []);
 
   /* 알림음 */
@@ -187,53 +184,34 @@ export default function Chat() {
 
   /* AI 요약 */
   const runSummary = async () => {
-    if (!currentChatUser || summaryLoading) return;
-    setSummaryLoading(true);
-    try {
-      const res = await fetch("/api/ai-summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
-      });
-      const data = await res.json();
-      setSummary(data.summary);
-      await setDoc(
-        doc(db, "chat_summaries", currentChatUser.id),
-        { summary: data.summary, updatedAt: new Date() },
-        { merge: true }
-      );
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSummaryLoading(false);
-    }
+    if (!currentChatUser) return;
+
+    const res = await fetch("/api/ai-summary", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+
+    const data = await res.json();
+    setSummary(data.summary);
+
+    await setDoc(
+      doc(db, "chat_summaries", currentChatUser.id),
+      { summary: data.summary, updatedAt: new Date() },
+      { merge: true }
+    );
   };
-
-  const startResize = useCallback((e: React.MouseEvent) => {
-    isResizing.current = true;
-    const startX = e.clientX;
-    const startWidth = summaryWidth;
-
-    const onMove = (e: MouseEvent) => {
-      if (!isResizing.current) return;
-      const delta = startX - e.clientX;
-      setSummaryWidth(Math.min(480, Math.max(160, startWidth + delta)));
-    };
-
-    const onUp = () => {
-      isResizing.current = false;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }, [summaryWidth]);
 
   if (!nickname) return <div>로딩중...</div>;
 
   const renderChat = () => (
     <>
+      {summaryEnabled && summary && (
+        <div className="p-2 bg-yellow-50 border text-xs">
+          🧠 {summary}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages.map((m, i) => {
           const prev = messages[i - 1];
@@ -303,6 +281,14 @@ export default function Chat() {
           VIP 구매
         </button>
 
+        {summaryEnabled && (
+          <button
+            onClick={runSummary}
+            className="px-4 py-2 bg-blue-500 text-white rounded-xl"
+          >
+            채팅 요약
+          </button>
+        )}
       </div>
     </>
   );
@@ -340,39 +326,6 @@ export default function Chat() {
             </div>
           )}
         </div>
-
-        {/* AI 요약 사이드 패널 */}
-        {summaryEnabled && currentChatUser && (
-          <div style={{ width: summaryWidth }} className="border-l flex flex-col gap-3 bg-gray-50 relative flex-shrink-0">
-            {/* 드래그 핸들 */}
-            <div
-              onMouseDown={startResize}
-              className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400 transition-colors"
-            />
-
-            <div className="p-4 flex flex-col gap-3 h-full">
-              <div className="font-bold text-sm">🧠 AI 요약</div>
-
-              {summary ? (
-                <div className="text-xs leading-relaxed text-gray-700 bg-white border rounded-xl p-3 flex-1 overflow-y-auto">
-                  {summary}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-400 flex-1">
-                  요약 버튼을 눌러 대화를 요약하세요.
-                </div>
-              )}
-
-              <button
-                onClick={runSummary}
-                disabled={summaryLoading}
-                className="px-3 py-2 bg-blue-500 text-white text-sm rounded-xl disabled:opacity-50"
-              >
-                {summaryLoading ? "요약 중..." : "채팅 요약"}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </PageContainer>
   );

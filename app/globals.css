@@ -1,21 +1,39 @@
-/* globals.css */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 기본 배경색과 텍스트 색 */
+/* 기본 */
 body {
-  background-color: white !important;
-  color: black !important;
+  background: transparent;
+  color: inherit;
 }
 
-
+/* 애니메이션 */
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin-slow {
   animation: spin-slow 1.2s linear infinite;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+/* 일반 hover */
+
+
+.vip button:hover {
+  background: linear-gradient(135deg, #FFD700, #FFB800) !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  transform: scale(1.02);
+}
+html {
+  transition: 0.2s;
 }

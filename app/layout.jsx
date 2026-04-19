@@ -28,8 +28,8 @@ const nanumBrush = Nanum_Brush_Script({
 });
 
 export const metadata = {
-  title: "WAGIE - We Are Genius In Everything",
-  description: "Become the Only Genius that Stands Out.",
+  title: "WAGIE",
+  description: "WAGIE",
 };
 
 export default function RootLayout({ children }) {
@@ -39,8 +39,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} ${doHyeon.variable} ${nanumBrush.variable} antialiased`}
       >
         <ThemeProvider
-          attribute="class"
-          defaultTheme="light"     
+          attribute="class"   
           enableSystem={false}    
         >
           {children}
