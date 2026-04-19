@@ -42,6 +42,15 @@ export default function Chat() {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  /* 🔥 모바일 체크 (추가만) */
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   /* 🔥 VIP 상태 */
   const [isMyVIP, setIsMyVIP] = useState(false);
 
@@ -85,10 +94,7 @@ export default function Chat() {
   /* 🔥 AI 요약 */
   const runSummary = async () => {
     const enabled = localStorage.getItem("ai_summary") === "true";
-
-    // ❌ OFF면 완전 차단
     if (!enabled) return;
-
     if (!currentChatUser) return;
 
     const res = await fetch("/api/ai-summary", {
@@ -208,7 +214,6 @@ export default function Chat() {
   /* 채팅 UI */
   const renderChat = () => (
     <>
-      {/* 🔥 요약 표시 (ON일 때만) */}
       {aiSummaryOn && summary && (
         <div className="p-3 bg-yellow-50 border text-sm">
           🧠 {summary}
@@ -235,7 +240,6 @@ export default function Chat() {
                     <span className={isVIP ? "text-yellow-600 font-semibold" : ""}>
                       {m.from}
                     </span>
-
                     {isVIP && (
                       <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
                         VIP
@@ -291,7 +295,6 @@ export default function Chat() {
           </button>
         )}
 
-        {/* 🔥 ON일 때만 요약 버튼 */}
         {isMyVIP && aiSummaryOn && (
           <button
             onClick={runSummary}
@@ -304,6 +307,46 @@ export default function Chat() {
     </>
   );
 
+  /* 🔥 모바일 분기 (추가만) */
+  if (isMobile) {
+    if (!currentChatUser) {
+      return (
+        <PageContainer>
+          <div className="h-screen p-4">
+            <div className="text-xl font-bold mb-4">회원 목록</div>
+            {users.map((u) => (
+              <div
+                key={u.id}
+                className="p-3 border rounded-xl mb-2"
+                onClick={() => setCurrentChatUser(u)}
+              >
+                {u.nickname}
+              </div>
+            ))}
+          </div>
+        </PageContainer>
+      );
+    }
+
+    return (
+      <PageContainer>
+        <div className="h-screen flex flex-col">
+          <div className="flex items-center gap-2 p-3 border-b">
+            <button onClick={() => setCurrentChatUser(null)}>←</button>
+            <div className="font-bold">
+              {currentChatUser.nickname}
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col">
+            {renderChat()}
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  /* 💻 기존 PC 그대로 */
   return (
     <PageContainer>
       <div className="h-screen flex">

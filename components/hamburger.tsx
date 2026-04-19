@@ -118,9 +118,9 @@ export default function HamburgerMenuWithDelete() {
           setProfileMenuOpen(false);
           setConfirmDeleteOpen(false);
         }}
-        className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl shadow-md z-50"
+        className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl shadow-md z-50 bg-white"
       >
-        <div className="flex flex-col justify-center items-center gap-1">
+        <div className="flex flex-col justify-center items-center gap-1 ">
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
