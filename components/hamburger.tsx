@@ -11,7 +11,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import TextAvatar from "./TextAvatar";
 import { useRouter } from "next/navigation";
 
@@ -28,19 +28,18 @@ export default function HamburgerMenuWithDelete() {
   const [user, setUser] = useState<any>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isVip, setIsVip] = useState(false);
 
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
+  // ✅ 하드코딩 유지
   const SPECIAL_USERS = ["관리자", "나율", "Fred"];
-
-  const isVip =
-    typeof window !== "undefined" &&
-    localStorage.getItem("vip") === "true";
 
   useEffect(() => setMounted(true), []);
 
+  /* 🔥 사용자 + VIP 로드 */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -48,19 +47,26 @@ export default function HamburgerMenuWithDelete() {
 
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists()) {
-          setNickname(userDoc.data().nickname);
-          setProfileImage(userDoc.data().profileImage || null);
+          const data = userDoc.data();
+
+          setNickname(data.nickname);
+          setProfileImage(data.profileImage || null);
+
+          // 🔥 VIP Firestore 기준
+          setIsVip(data.vip === true);
         }
       } else {
         setUser(null);
         setNickname(null);
         setProfileImage(null);
+        setIsVip(false);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
+  /* 외부 클릭 */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -79,6 +85,7 @@ export default function HamburgerMenuWithDelete() {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /* 계정 삭제 */
   const handleDeleteAccount = async () => {
     if (!user) return;
     if (!password) return alert("비밀번호를 입력해주세요.");
@@ -150,49 +157,58 @@ export default function HamburgerMenuWithDelete() {
                 </span>
               </button>
 
-            {profileMenuOpen && (
-  <div
-    ref={profileRef}
-    className="flex flex-col bg-gray-100 rounded-xl px-4 py-3 space-y-2 items-start"
-  >
-    <button onClick={() => router.push("/profile/edit")}>
-      ✏️ 편집
-    </button>
+              {profileMenuOpen && (
+                <div
+                  ref={profileRef}
+                  className="flex flex-col bg-gray-100 rounded-xl px-4 py-3 space-y-2 items-start"
+                >
+                  <button onClick={() => router.push("/profile/edit")}>
+                    ✏️ 편집
+                  </button>
 
-    <button onClick={() => router.push("/foot")}>
-      ⚙️ 내 정보
-    </button>
+                  <button onClick={() => router.push("/foot")}>
+                    ⚙️ 내 정보
+                  </button>
 
-    <button onClick={() => signOut(auth)} className="text-red-500">
-      🚪 로그아웃
-    </button>
+                  <button
+                    onClick={() => signOut(auth)}
+                    className="text-red-500"
+                  >
+                    🚪 로그아웃
+                  </button>
 
-    <button
-      onClick={() => setConfirmDeleteOpen(true)}
-      className="text-red-700"
-    >
-      🛑 계정 탈퇴
-    </button>
+                  <button
+                    onClick={() => setConfirmDeleteOpen(true)}
+                    className="text-red-700"
+                  >
+                    🛑 계정 탈퇴
+                  </button>
 
-    {/* 🔥 VIP 해제 (맨 마지막) */}
-    {isVip && (
-      <>
-        <div className="border-t w-full my-2"></div>
+                  {/* 🔥 VIP 해제 */}
+                  {isVip && (
+                    <>
+                      <div className="border-t w-full my-2"></div>
 
-        <button
-          onClick={() => {
-            localStorage.setItem("vip", "false");
-            alert("VIP 해제됨");
-            window.location.reload();
-          }}
-          className="text-yellow-700 font-semibold"
-        >
-          💎 VIP 해제
-        </button>
-      </>
-    )}
-  </div>
-)}
+                      <button
+                        onClick={async () => {
+                          if (!user) return;
+
+                          await updateDoc(
+                            doc(db, "users", user.uid),
+                            { vip: false }
+                          );
+
+                          setIsVip(false);
+                          alert("VIP 해제됨");
+                        }}
+                        className="text-yellow-700 font-semibold"
+                      >
+                        💎 VIP 해제
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             <button
@@ -229,25 +245,21 @@ export default function HamburgerMenuWithDelete() {
 
               <Link
                 href="/as"
-                className="p-2 rounded-xl hover:bg-gray-100 flex justify-between items-center"
+                className="p-2 rounded-xl hover:bg-gray-100"
               >
-                <span>AI 채팅 요약</span>
-                <span className="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">
-                  🔥NEW
-                </span>
+                AI 채팅 요약
               </Link>
 
               <Link
                 href="/ai-chat"
                 className="p-2 rounded-xl hover:bg-gray-100"
               >
-              AI 도우미
-                채팅
+                AI 도우미 채팅
               </Link>
             </>
           )}
 
-          {/* 특별 메뉴 */}
+          {/* 🔒 특별 메뉴 (하드코딩 유지) */}
           {SPECIAL_USERS.includes(nickname || "") && (
             <>
               <div className="border-t my-2"></div>

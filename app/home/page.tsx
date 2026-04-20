@@ -42,7 +42,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  
+
   /* 🔥 모바일 체크 */
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -52,12 +52,8 @@ export default function Chat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  /* 🔥 VIP 상태 */
-  const [isMyVIP, setIsMyVIP] = useState(false);
-  useEffect(() => {
-    const vip = localStorage.getItem("vip") === "true";
-    setIsMyVIP(vip);
-  }, []);
+  /* 🔥 VIP 전체 맵 */
+  const [userVipMap, setUserVipMap] = useState<Record<string, boolean>>({});
 
   /* 🔥 AI 요약 */
   const [aiSummaryOn, setAiSummaryOn] = useState(false);
@@ -109,17 +105,32 @@ export default function Chat() {
     return () => unsub();
   }, []);
 
-  /* 유저 목록 */
+  /* 🔥 유저 + VIP 로딩 */
   useEffect(() => {
     if (!nickname) return;
 
     const fetchUsers = async () => {
       const snap = await getDocs(collection(db, "users"));
-      const list: User[] = snap.docs.map((d) => ({
-        id: d.id,
-        nickname: d.data().nickname,
-      }));
+
+      const list: User[] = [];
+      const vipMap: Record<string, boolean> = {};
+
+      snap.docs.forEach((d) => {
+        const data = d.data();
+
+        const userItem = {
+          id: d.id,
+          nickname: data.nickname,
+        };
+
+        list.push(userItem);
+
+        // 🔥 핵심: nickname → vip 매핑
+        vipMap[data.nickname] = data.vip === true;
+      });
+
       setUsers(list.filter((u) => u.nickname !== nickname));
+      setUserVipMap(vipMap);
     };
 
     fetchUsers();
@@ -218,6 +229,8 @@ export default function Chat() {
     setSelectedMsgId(null);
   };
 
+  const isMyVIP = userVipMap[nickname || ""] === true;
+
   if (!nickname) return <div>로딩중...</div>;
 
   /* 채팅 UI */
@@ -231,8 +244,6 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages.map((m, i) => {
-
-          /* 🔥 추가 (날짜 구분) */
           const currentDate = formatDateLabel(m.createdAt);
           const prevDate =
             i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
@@ -242,33 +253,35 @@ export default function Chat() {
           const showUser = !prev || prev.from !== m.from;
 
           const isMine = m.from === nickname;
-          const isVIP = m.from === nickname && isMyVIP;
+          const isVIP = userVipMap[m.from] === true;
 
           return (
-            <>
-              {/* 🔥 날짜 표시 */}
+            <div key={m.id}>
               {showDate && (
-<div className="flex items-center justify-center text-xs text-gray-400 w-full">
-  <div className="w-10 border-t" />
-  <span className="px-1">{currentDate}</span>
-  <div className="w-10 border-t" />
-</div>
+                <div className="flex items-center justify-center text-xs text-gray-400 w-full">
+                  <div className="w-10 border-t" />
+                  <span className="px-1">{currentDate}</span>
+                  <div className="w-10 border-t" />
+                </div>
               )}
 
               <div
-                key={m.id}
                 className="flex flex-col"
                 onDoubleClick={() => setSelectedMsgId(m.id)}
               >
                 <div
                   className={`flex flex-col max-w-xs ${
-                    isMine ? "self-end items-end" : "self-start items-start"
+                    isMine
+                      ? "self-end items-end"
+                      : "self-start items-start"
                   }`}
                 >
                   {showUser && (
                     <div className="text-xs mb-1 flex items-center gap-1">
                       <span
-                        className={isVIP ? "text-yellow-600 font-semibold" : ""}
+                        className={
+                          isVIP ? "text-yellow-600 font-semibold" : ""
+                        }
                       >
                         {m.from}
                       </span>
@@ -301,8 +314,12 @@ export default function Chat() {
 
                   {selectedMsgId === m.id && isMine && (
                     <div className="flex gap-2 text-xs">
-                      <button onClick={() => editMessage(m.id)}>수정</button>
-                      <button onClick={() => deleteMessage(m.id)}>삭제</button>
+                      <button onClick={() => editMessage(m.id)}>
+                        수정
+                      </button>
+                      <button onClick={() => deleteMessage(m.id)}>
+                        삭제
+                      </button>
                     </div>
                   )}
 
@@ -311,15 +328,9 @@ export default function Chat() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           );
         })}
-
-        {isTyping && (
-          <div className="text-xs text-gray-400">
-            상대방 입력중...
-          </div>
-        )}
 
         <div ref={messagesEndRef} />
       </div>
@@ -346,7 +357,7 @@ export default function Chat() {
         {!isMyVIP && (
           <button
             onClick={() => router.push("/vip")}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow"
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl"
           >
             VIP 구매
           </button>
@@ -363,48 +374,6 @@ export default function Chat() {
       </div>
     </>
   );
-
-  if (isMobile) {
-    if (!currentChatUser) {
-      return (
-        <PageContainer>
-          <div className="h-screen p-4">
-            <div className="text-xl font-bold mb-4">회원 목록</div>
-
-            {users.map((u) => (
-              <div
-                key={u.id}
-                className="p-3 border rounded-xl mb-2"
-                onClick={() => setCurrentChatUser(u)}
-              >
-                {u.nickname}
-                <div className="text-xs text-gray-400">
-                  {lastMessages[u.id]}
-                </div>
-              </div>
-            ))}
-          </div>
-        </PageContainer>
-      );
-    }
-
-    return (
-      <PageContainer>
-        <div className="h-screen flex flex-col">
-          <div className="flex items-center gap-2 p-3 border-b">
-            <button onClick={() => setCurrentChatUser(null)}>←</button>
-            <div className="font-bold">
-              {currentChatUser.nickname}
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col">
-            {renderChat()}
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer>
@@ -454,21 +423,9 @@ const formatTime = (ts: any) => {
   });
 };
 
-/* 🔥 추가: 날짜 라벨 */
+/* 날짜 */
 const formatDateLabel = (ts: any) => {
   if (!ts) return "";
-
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  if (d.toDateString() === today.toDateString()) return "오늘";
-  if (d.toDateString() === yesterday.toDateString()) return "어제";
-
-  return d.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return d.toLocaleDateString("ko-KR");
 };
