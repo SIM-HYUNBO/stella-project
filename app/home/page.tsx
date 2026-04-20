@@ -43,7 +43,7 @@ export default function Chat() {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  /* 🔥 모바일 체크 */
+  /* 🔥 모바일 체크 (원본 유지) */
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -52,7 +52,7 @@ export default function Chat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  /* 🔥 VIP 전체 맵 */
+  /* 🔥 VIP 맵 (추가된 핵심) */
   const [userVipMap, setUserVipMap] = useState<Record<string, boolean>>({});
 
   /* 🔥 AI 요약 */
@@ -105,7 +105,7 @@ export default function Chat() {
     return () => unsub();
   }, []);
 
-  /* 🔥 유저 + VIP 로딩 */
+  /* 🔥 유저 + VIP 로딩 (핵심) */
   useEffect(() => {
     if (!nickname) return;
 
@@ -118,15 +118,13 @@ export default function Chat() {
       snap.docs.forEach((d) => {
         const data = d.data();
 
-        const userItem = {
+        list.push({
           id: d.id,
           nickname: data.nickname,
-        };
+        });
 
-        list.push(userItem);
-
-        // 🔥 핵심: nickname → vip 매핑
-        vipMap[data.nickname] = data.vip === true;
+        // ✅ 핵심: isVip 사용
+        vipMap[data.nickname] = data.isVip === true;
       });
 
       setUsers(list.filter((u) => u.nickname !== nickname));
@@ -229,11 +227,12 @@ export default function Chat() {
     setSelectedMsgId(null);
   };
 
+  /* 🔥 내 VIP */
   const isMyVIP = userVipMap[nickname || ""] === true;
 
   if (!nickname) return <div>로딩중...</div>;
 
-  /* 채팅 UI */
+  /* 채팅 UI (절대 안 건드림) */
   const renderChat = () => (
     <>
       {aiSummaryOn && summary && (
@@ -256,7 +255,7 @@ export default function Chat() {
           const isVIP = userVipMap[m.from] === true;
 
           return (
-            <div key={m.id}>
+            <>
               {showDate && (
                 <div className="flex items-center justify-center text-xs text-gray-400 w-full">
                   <div className="w-10 border-t" />
@@ -266,22 +265,19 @@ export default function Chat() {
               )}
 
               <div
+                key={m.id}
                 className="flex flex-col"
                 onDoubleClick={() => setSelectedMsgId(m.id)}
               >
                 <div
                   className={`flex flex-col max-w-xs ${
-                    isMine
-                      ? "self-end items-end"
-                      : "self-start items-start"
+                    isMine ? "self-end items-end" : "self-start items-start"
                   }`}
                 >
                   {showUser && (
                     <div className="text-xs mb-1 flex items-center gap-1">
                       <span
-                        className={
-                          isVIP ? "text-yellow-600 font-semibold" : ""
-                        }
+                        className={isVIP ? "text-yellow-600 font-semibold" : ""}
                       >
                         {m.from}
                       </span>
@@ -314,12 +310,8 @@ export default function Chat() {
 
                   {selectedMsgId === m.id && isMine && (
                     <div className="flex gap-2 text-xs">
-                      <button onClick={() => editMessage(m.id)}>
-                        수정
-                      </button>
-                      <button onClick={() => deleteMessage(m.id)}>
-                        삭제
-                      </button>
+                      <button onClick={() => editMessage(m.id)}>수정</button>
+                      <button onClick={() => deleteMessage(m.id)}>삭제</button>
                     </div>
                   )}
 
@@ -328,7 +320,7 @@ export default function Chat() {
                   </div>
                 </div>
               </div>
-            </div>
+            </>
           );
         })}
 
@@ -357,7 +349,7 @@ export default function Chat() {
         {!isMyVIP && (
           <button
             onClick={() => router.push("/vip")}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl"
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow"
           >
             VIP 구매
           </button>
@@ -374,6 +366,49 @@ export default function Chat() {
       </div>
     </>
   );
+
+  /* 🔥 모바일 / PC 구조 원본 유지 */
+  if (isMobile) {
+    if (!currentChatUser) {
+      return (
+        <PageContainer>
+          <div className="h-screen p-4">
+            <div className="text-xl font-bold mb-4">회원 목록</div>
+
+            {users.map((u) => (
+              <div
+                key={u.id}
+                className="p-3 border rounded-xl mb-2"
+                onClick={() => setCurrentChatUser(u)}
+              >
+                {u.nickname}
+                <div className="text-xs text-gray-400">
+                  {lastMessages[u.id]}
+                </div>
+              </div>
+            ))}
+          </div>
+        </PageContainer>
+      );
+    }
+
+    return (
+      <PageContainer>
+        <div className="h-screen flex flex-col">
+          <div className="flex items-center gap-2 p-3 border-b">
+            <button onClick={() => setCurrentChatUser(null)}>←</button>
+            <div className="font-bold">
+              {currentChatUser.nickname}
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col">
+            {renderChat()}
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
