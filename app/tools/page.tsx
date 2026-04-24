@@ -35,6 +35,13 @@ export default function TopButtons() {
           <span>알림</span>
           <span className="text-gray-400">›</span>
         </button>
+         <button
+          onClick={() => router.push("/fri")}
+          className="flex justify-between items-center px-4 py-4 border-b"
+        >
+          <span>친구</span>
+          <span className="text-gray-400">›</span>
+        </button>
  <div className="text-center mt-5 text-gray-500">
  더 많은 기능을 기대해 주세요~
  </div>

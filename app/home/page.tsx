@@ -17,6 +17,7 @@ import {
   doc,
   setDoc,
   deleteDoc,
+  where,
 } from "firebase/firestore";
 
 /* 타입 */
@@ -34,6 +35,92 @@ type User = {
   nickname: string;
 };
 
+function SwipeUserItem({ u, isActive, isBlocked, isNotifOff, lastMessage, onClick, onBlock, onHide, onNotif }: any) {
+  const BUTTON_WIDTH = 80;
+  const [offset, setOffset] = useState(0);
+  const [open, setOpen] = useState(false);
+  
+  const startX = useRef(0);
+  const isDragging = useRef(false);
+  const currentOffset = useRef(0); // 실시간 위치 추적용
+
+  const onMoveStart = (clientX: number) => {
+    startX.current = clientX - offset;
+    isDragging.current = true;
+  };
+
+  const onMove = (clientX: number) => {
+    if (!isDragging.current) return;
+    const newOffset = Math.min(0, Math.max(-BUTTON_WIDTH, clientX - startX.current));
+    setOffset(newOffset);
+    currentOffset.current = newOffset; // ref에 실시간 저장
+  };
+
+  const onMoveEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+
+    // 핵심: 왼쪽으로 30px만 밀려도 고정, 열린 상태에선 -150px 이상 밀어야 닫힘
+    if (!open) {
+      if (currentOffset.current < -50) {
+        setOffset(-BUTTON_WIDTH);
+        setOpen(true);
+      } else {
+        setOffset(0);
+      }
+    } else {
+      if (currentOffset.current > -50) {
+        setOffset(0);
+        setOpen(false);
+      } else {
+        setOffset(-BUTTON_WIDTH);
+      }
+    }
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl mb-2 select-none bg-gray-200">
+      {/* 배경 버튼들 (디자인 유지) */}
+      <div className="absolute right-0 top-0 h-full flex" style={{ width: BUTTON_WIDTH }}>
+      
+        <button onClick={(e) => { e.stopPropagation(); onBlock(); setOffset(0); setOpen(false); }} className={`flex-1 flex flex-col items-center justify-center text-white text-xs gap-1 ${isBlocked ? "bg-green-500" : "bg-red-500"}`}>
+          <span>{isBlocked ? "✅" : "🚫"}</span><span>차단</span>
+        </button>
+      </div>
+
+      {/* 실질적인 유저 아이템 레이어 */}
+      <div
+        className={`relative z-10 p-2 bg-white flex justify-between items-center cursor-pointer ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`}
+        style={{ 
+          transform: `translateX(${offset}px)`,
+          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)" 
+        }}
+        onMouseDown={(e) => onMoveStart(e.clientX)}
+        onMouseMove={(e) => onMove(e.clientX)}
+        onMouseUp={onMoveEnd}
+        onMouseLeave={onMoveEnd}
+        onTouchStart={(e) => onMoveStart(e.touches[0].clientX)}
+        onTouchMove={(e) => onMove(e.touches[0].clientX)}
+        onTouchEnd={onMoveEnd}
+        onClick={() => {
+          if (open) { 
+            setOffset(0); 
+            setOpen(false); 
+            currentOffset.current = 0;
+          } else if (offset === 0) {
+            onClick();
+          }
+        }}
+      >
+        <div className="flex-1 min-w-0 pointer-events-none">
+          <div className="font-bold text-gray-800">{u.nickname}</div>
+          <div className="text-xs text-gray-400 truncate">{lastMessage || "대화 없음"}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Chat() {
   const [nickname, setNickname] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -42,7 +129,8 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
+  const [blocked, setBlocked] = useState<any[]>([]);
+  const [notifOff, setNotifOff] = useState<any[]>([]);
   /* 🔥 모바일 체크 (원본 유지) */
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -71,11 +159,51 @@ export default function Chat() {
 
   /* 🔥 마지막 메시지 */
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
-
+  
   /* 🔔 알림 */
   const playNotificationSound = () => {
     const audio = new Audio("/sounds/alert1.mp3");
     audio.play();
+  };
+
+  const blockUser = async (targetNickname: string, targetId: string) => {
+    const exist = blocked.find((b) => b.target_id === targetId);
+    if (exist) {
+      await deleteDoc(doc(db, "blocked", exist.id));
+      alert("차단 해제");
+      return;
+    }
+    await addDoc(collection(db, "blocked"), {
+      user_id: nickname,
+      target_id: targetId,
+      target_name: targetNickname,
+      createdAt: serverTimestamp(),
+    });
+    alert("차단 완료");
+  };
+
+  const hideUser = async (targetNickname: string, targetId: string) => {
+    await addDoc(collection(db, "hidden"), {
+      user_id: nickname,
+      target_id: targetId,
+      target_name: targetNickname,
+    });
+    alert("숨김 완료");
+  };
+
+  /* 알림 끄기/켜기 */
+  const toggleNotif = async (targetNickname: string, targetId: string) => {
+    const exist = notifOff.find((n) => n.target_id === targetId);
+    if (exist) {
+      await deleteDoc(doc(db, "notif_off", exist.id));
+      return;
+    }
+    await addDoc(collection(db, "notif_off"), {
+      user_id: nickname,
+      target_id: targetId,
+      target_name: targetNickname,
+      createdAt: serverTimestamp(),
+    });
   };
 
   /* 🔥 AI 요약 */
@@ -104,6 +232,29 @@ export default function Chat() {
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    if (!nickname) return;
+    const q = query(collection(db, "blocked"), where("user_id", "==", nickname));
+    return onSnapshot(q, (snap) => {
+      const list: any[] = [];
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      setBlocked(list);
+    });
+  }, [nickname]);
+
+  /* 알림 끄기 목록 구독 */
+  useEffect(() => {
+    if (!nickname) return;
+    const q = query(collection(db, "notif_off"), where("user_id", "==", nickname));
+    return onSnapshot(q, (snap) => {
+      const list: any[] = [];
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      setNotifOff(list);
+    });
+  }, [nickname]);
+
+  const isBlocked = (id: string) => blocked.some((b) => b.target_id === id);
 
   /* 🔥 유저 + VIP 로딩 (핵심) */
   useEffect(() => {
@@ -242,7 +393,9 @@ export default function Chat() {
       )}
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-        {messages.map((m, i) => {
+        {messages
+  .filter(m => !isBlocked(currentChatUser?.id || "")) // 이 한 줄이 핵심! 차단된 상대면 메시지 안 보여줌
+  .map((m, i) => {
           const currentDate = formatDateLabel(m.createdAt);
           const prevDate =
             i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
@@ -376,16 +529,18 @@ export default function Chat() {
             <div className="text-xl font-bold mb-4">회원 목록</div>
 
             {users.map((u) => (
-              <div
+              <SwipeUserItem
                 key={u.id}
-                className="p-3 border rounded-xl mb-2"
+                u={u}
+                isActive={currentChatUser === u}
+                isBlocked={isBlocked(u.id)}
+                isNotifOff={notifOff.some((n) => n.target_id === u.id)}
+                lastMessage={lastMessages[u.id]}
                 onClick={() => setCurrentChatUser(u)}
-              >
-                {u.nickname}
-                <div className="text-xs text-gray-400">
-                  {lastMessages[u.id]}
-                </div>
-              </div>
+                onBlock={() => blockUser(u.nickname, u.id)}
+                onHide={() => hideUser(u.nickname, u.id)}
+                onNotif={() => toggleNotif(u.nickname, u.id)}
+              />
             ))}
           </div>
         </PageContainer>
@@ -417,20 +572,18 @@ export default function Chat() {
           <div className="font-bold">회원 목록</div>
 
           {users.map((u) => (
-            <div
+            <SwipeUserItem
               key={u.id}
-              className={`p-2 rounded cursor-pointer ${
-                currentChatUser?.id === u.id
-                  ? "bg-gray-300"
-                  : "hover:bg-gray-200"
-              }`}
+              u={u}
+              isActive={currentChatUser?.id === u.id}
+              isBlocked={isBlocked(u.id)}
+              isNotifOff={notifOff.some((n) => n.target_id === u.id)}
+              lastMessage={lastMessages[u.id]}
               onClick={() => setCurrentChatUser(u)}
-            >
-              {u.nickname}
-              <div className="text-xs text-gray-400">
-                {lastMessages[u.id]}
-              </div>
-            </div>
+              onBlock={() => blockUser(u.nickname, u.id)}
+              onHide={() => hideUser(u.nickname, u.id)}
+              onNotif={() => toggleNotif(u.nickname, u.id)}
+            />
           ))}
         </div>
 
