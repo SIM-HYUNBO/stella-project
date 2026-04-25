@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>삭발 귀요미 커스터마이징 - 저장 기능 추가</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Apple SD Gothic Neo', sans-serif; background: #e0e0e0; }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        canvas { width: 100%; height: 100%; display: block; }
+        
+        /* 커스텀 바 */
+        .custom-bar {
+            position: absolute; top: 20px; left: 20px; z-index: 10;
+            background: rgba(255, 255, 255, 0.85); padding: 15px; border-radius: 18px;
+            width: 160px; border: 1px solid #ccc; backdrop-filter: blur(8px);
+        }
+        .custom-section { margin-bottom: 12px; }
+        .custom-section label { display: block; font-size: 11px; font-weight: bold; color: #555; margin-bottom: 6px; }
+        .color-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+        .color-dot {
+            width: 22px; height: 22px; border-radius: 50%; border: 2px solid white;
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s;
+        }
+        .color-dot:hover { transform: scale(1.15); }
+
+        /* 저장 알림 메시지 */
+        #save-notice {
+            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6);
+            color: white; padding: 8px 15px; border-radius: 10px; font-size: 12px;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
+        }
+
+        /* 애니메이션 바 */
+        .anim-bar {
+            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 8px; z-index: 10; background: rgba(0, 0, 0, 0.6);
+            padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(4px);
+        }
+        .anim-bar button {
+            padding: 7px 14px; border-radius: 20px; border: none;
+            background: rgba(255, 255, 255, 0.2); color: white; cursor: pointer; font-size: 13px;
+        }
+        .anim-bar button:hover { background: rgba(255, 255, 255, 0.4); }
+        .anim-bar button.active { background: #fff; color: #000; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="save-notice">설정이 저장되었습니다!</div>
+    <canvas id="c"></canvas>
+    
+    <div class="custom-bar">
+        <div class="custom-section">
+            <label>SKIN</label>
+            <div class="color-grid">
+                <div class="color-dot" style="background:#FAD7B5" onclick="changeColor('skin','#FAD7B5')"></div>
+                <div class="color-dot" style="background:#E0AC69" onclick="changeColor('skin','#E0AC69')"></div>
+                <div class="color-dot" style="background:#8D5524" onclick="changeColor('skin','#8D5524')"></div>
+            </div>
+        </div>
+        <div class="custom-section">
+            <label>TOP</label>
+            <div class="color-grid">
+                <div class="color-dot" style="background:#ffffff" onclick="changeColor('shirt','#ffffff')"></div>
+                <div class="color-dot" style="background:#ff4444" onclick="changeColor('shirt','#ff4444')"></div>
+                <div class="color-dot" style="background:#44ff44" onclick="changeColor('shirt','#44ff44')"></div>
+                <div class="color-dot" style="background:#222222" onclick="changeColor('shirt','#222222')"></div>
+            </div>
+        </div>
+        <div class="custom-section">
+            <label>BOTTOM</label>
+            <div class="color-grid">
+                <div class="color-dot" style="background:#9FB7D3" onclick="changeColor('pants','#9FB7D3')"></div>
+                <div class="color-dot" style="background:#333333" onclick="changeColor('pants','#333333')"></div>
+                <div class="color-dot" style="background:#556b2f" onclick="changeColor('pants','#556b2f')"></div>
+                <div class="color-dot" style="background:#d2b48c" onclick="changeColor('pants','#d2b48c')"></div>
+            </div>
+        </div>
+        <button onclick="saveToLocal()" style="width:100%; padding:8px; border-radius:10px; border:none; background:#333; color:white; cursor:pointer; margin-top:5px; font-weight:bold;">설정 저장하기</button>
+    </div>
+
+    <div class="anim-bar">
+        <button onclick="setAnim('idle')" id="btn-idle">대기</button>
+        <button onclick="setAnim('walk')" id="btn-walk">걷기</button>
+        <button onclick="setAnim('wave')" id="btn-wave">인사</button>
+        <button onclick="setAnim('dance')" id="btn-dance">춤</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+camera.position.set(0, 2.3, 5.5);
+
+const resize = () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h); camera.aspect = w/h; camera.updateProjectionMatrix();
+};
+window.addEventListener('resize', resize); resize();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const sun = new THREE.DirectionalLight(0xfff5e0, 0.8);
+sun.position.set(4, 8, 5); sun.castShadow = true; scene.add(sun);
+
+const ground = new THREE.Mesh(
+    new THREE.CircleGeometry(2.8, 64),
+    new THREE.MeshStandardMaterial({color: 0xcccccc, roughness: 0.9})
+);
+ground.rotation.x = -Math.PI/2; 
+ground.position.y = 0.5;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const mats = {
+    skin: new THREE.MeshStandardMaterial({color: 0xFAD7B5, roughness: 0.5}),
+    shirt: new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.6}),
+    pants: new THREE.MeshStandardMaterial({color: 0x9FB7D3, roughness: 0.7}),
+    eye: new THREE.MeshStandardMaterial({color: 0x1a1a2e, roughness: 0.2}),
+    white: new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.1}),
+    shoe: new THREE.MeshStandardMaterial({color: 0xeeeeee, roughness: 0.8})
+};
+
+/* ===== 저장/불러오기 기능 시작 ===== */
+const currentConfig = { skin: '#FAD7B5', shirt: '#ffffff', pants: '#9FB7D3' };
+
+// 브라우저에서 데이터 불러오기
+function loadSavedData() {
+    const saved = localStorage.getItem('myGwiYomi');
+    if(saved) {
+        const data = JSON.parse(saved);
+        Object.keys(data).forEach(key => {
+            currentConfig[key] = data[key];
+            if(mats[key]) mats[key].color.set(data[key]);
+        });
+    }
+}
+
+// 명시적으로 저장하기 버튼 함수
+window.saveToLocal = () => {
+    localStorage.setItem('myGwiYomi', JSON.stringify(currentConfig));
+    const notice = document.getElementById('save-notice');
+    notice.style.opacity = 1;
+    setTimeout(() => { notice.style.opacity = 0; }, 1500);
+};
+
+window.changeColor = (part, hex) => { 
+    mats[part].color.set(hex); 
+    currentConfig[part] = hex; // 현재 설정값 업데이트
+};
+
+// 시작할 때 불러오기 실행
+loadSavedData();
+/* ===== 저장/불러오기 기능 끝 ===== */
+
+const sh = m => { m.castShadow = true; m.receiveShadow = true; return m; };
+const sph = (r, mat) => sh(new THREE.Mesh(new THREE.SphereGeometry(r, 32, 32), mat));
+const cyl = (rt, rb, h, mat) => sh(new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 16), mat));
+const bx = (w, h, d, mat) => sh(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat));
+
+const root = new THREE.Group();
+scene.add(root);
+
+const headG = new THREE.Group(); headG.position.y = 1.85; root.add(headG);
+headG.add(sph(0.38, mats.skin));
+const nose = sph(0.04, mats.skin); nose.position.set(0, -0.03, 0.37); headG.add(nose);
+const eyeL = sph(0.055, mats.eye); eyeL.position.set(-0.12, 0.06, 0.34); headG.add(eyeL);
+const eyeR = sph(0.055, mats.eye); eyeR.position.set(0.12, 0.06, 0.34); headG.add(eyeR);
+const hlL = sph(0.02, mats.white); hlL.position.set(-0.1, 0.09, 0.385); headG.add(hlL);
+const hlR = sph(0.02, mats.white); hlR.position.set(0.14, 0.09, 0.385); headG.add(hlR);
+
+const neck = cyl(0.12, 0.14, 0.1, mats.skin); neck.position.y = 1.48; root.add(neck);
+const torso = cyl(0.32, 0.34, 0.72, mats.shirt); torso.position.y = 1.08; root.add(torso);
+const collar = cyl(0.25, 0.28, 0.08, mats.shirt); collar.position.y = 1.42; root.add(collar);
+const hip = cyl(0.33, 0.30, 0.28, mats.pants); hip.position.y = 0.68; root.add(hip);
+
+function createArm(side) {
+    const group = new THREE.Group();
+    const isLeft = side === 'left';
+    group.position.set(isLeft ? -0.34 : 0.34, 1.38, 0);
+    const upper = cyl(0.1, 0.09, 0.38, mats.shirt);
+    upper.position.set(isLeft ? -0.08 : 0.08, -0.19, 0);
+    group.add(upper);
+    const elbowG = new THREE.Group();
+    elbowG.position.set(isLeft ? -0.08 : 0.08, -0.38, 0);
+    group.add(elbowG);
+    const fore = cyl(0.085, 0.075, 0.32, mats.skin);
+    fore.position.y = -0.16; elbowG.add(fore);
+    const hand = sph(0.1, mats.skin);
+    hand.position.y = -0.34; elbowG.add(hand);
+    const shoulderBall = sph(0.13, mats.shirt);
+    shoulderBall.position.set(isLeft ? -0.05 : 0.05, 0, 0);
+    group.add(shoulderBall);
+    return { group, elbow: elbowG };
+}
+const armL = createArm('left'); root.add(armL.group);
+const armR = createArm('right'); root.add(armR.group);
+
+function createLeg(isLeft) {
+    const group = new THREE.Group();
+    group.position.set(isLeft ? -0.17 : 0.17, 0.54, 0);
+    const thigh = cyl(0.13, 0.12, 0.38, mats.pants);
+    thigh.position.y = -0.19; group.add(thigh);
+    const kneeG = new THREE.Group();
+    kneeG.position.y = -0.38; group.add(kneeG);
+    const shin = cyl(0.11, 0.10, 0.36, mats.pants);
+    shin.position.y = -0.18; kneeG.add(shin);
+    const shoe = bx(0.18, 0.12, 0.3, mats.shoe);
+    shoe.position.set(0, -0.4, 0.06); kneeG.add(shoe);
+    return { group, knee: kneeG };
+}
+const legL = createLeg(true); root.add(legL.group);
+const legR = createLeg(false); root.add(legR.group);
+
+let currentAnim = 'idle', animTime = 0;
+window.setAnim = (name) => {
+    currentAnim = name; animTime = 0;
+    document.querySelectorAll('.anim-bar button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + name).classList.add('active');
+};
+setAnim('idle');
+
+function tick(dt) {
+    animTime += dt; const t = animTime;
+    [armL.group, armR.group, armL.elbow, armR.elbow, legL.group, legR.group, legL.knee, legR.knee, headG].forEach(g => g.rotation.set(0,0,0));
+    const baseHeight = 1.05;
+    root.position.y = baseHeight;
+
+    if(currentAnim === 'idle') {
+        root.position.y = baseHeight + Math.sin(t * 1.5) * 0.02;
+        armL.group.rotation.z = -0.15 + Math.sin(t * 1.5) * 0.03;
+        armR.group.rotation.z = 0.15 - Math.sin(t * 1.5) * 0.03;
+    } else if(currentAnim === 'walk') {
+        const s = Math.sin(t * 4.5);
+        root.position.y = baseHeight + Math.abs(Math.sin(t * 9)) * 0.045;
+        legL.group.rotation.x = s * 0.6; legR.group.rotation.x = -s * 0.6;
+        legL.knee.rotation.x = Math.max(0, -s) * 0.8; legR.knee.rotation.x = Math.max(0, s) * 0.8;
+        armL.group.rotation.x = -s * 0.4; armR.group.rotation.x = s * 0.4;
+    } else if(currentAnim === 'wave') {
+        armR.group.rotation.x = -1.6; armR.group.rotation.z = 0.4 + Math.sin(t * 5) * 0.2;
+        armR.elbow.rotation.x = -0.5;
+        headG.rotation.y = 0.2;
+    } else if(currentAnim === 'dance') {
+        const s = Math.sin(t * 5);
+        root.position.y = baseHeight + Math.abs(s) * 0.1;
+        root.rotation.y += dt * 2;
+        armL.group.rotation.z = -1; armR.group.rotation.z = 1;
+    }
+}
+
+let dragging = false, px = 0, rotY = 0.3;
+canvas.addEventListener('mousedown', e => { dragging = true; px = e.clientX; });
+window.addEventListener('mouseup', () => dragging = false);
+window.addEventListener('mousemove', e => { if(dragging) { rotY += (e.clientX - px) * 0.01; px = e.clientX; } });
+
+let last = performance.now();
+(function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    tick(dt);
+    root.rotation.y = rotY;
+    renderer.render(scene, camera);
+})(performance.now());
+</script>
+</body>
+</html>

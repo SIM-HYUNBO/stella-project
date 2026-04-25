@@ -169,6 +169,10 @@ export default function HamburgerMenuWithDelete() {
                   <button onClick={() => router.push("/foot")}>
                     ⚙️ 내 정보
                   </button>
+                   <button onClick={() => router.push("/play")}>
+                    👤 내 아바타
+                  </button>
+
 
                   <button
                     onClick={() => signOut(auth)}
