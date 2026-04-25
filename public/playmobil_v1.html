@@ -1,0 +1,182 @@
+
+<div style="width:100%;height:620px;position:relative;">
+<canvas id="c" style="width:100%;height:100%;display:block;position:absolute;top:0;left:0;"></canvas>
+<div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;z-index:10;">
+  <button onclick="setAnim('idle')" id="btn-idle" style="padding:6px 14px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer;font-size:13px;">대기</button>
+  <button onclick="setAnim('walk')" id="btn-walk" style="padding:6px 14px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer;font-size:13px;">걷기</button>
+  <button onclick="setAnim('wave')" id="btn-wave" style="padding:6px 14px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer;font-size:13px;">손흔들기</button>
+  <button onclick="setAnim('dance')" id="btn-dance" style="padding:6px 14px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer;font-size:13px;">춤추기</button>
+</div>
+<div style="position:absolute;top:12px;right:12px;font-size:12px;color:var(--color-text-secondary);z-index:10;pointer-events:none;">드래그로 회전</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+
+
+const camera = new THREE.PerspectiveCamera(42,1,0.1,100);
+camera.position.set(0,1.8,5.5);
+camera.lookAt(0,0.8,0);
+
+const resize = () => {
+  const w=canvas.parentElement.clientWidth, h=canvas.parentElement.clientHeight;
+  renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
+};
+resize(); window.addEventListener('resize',resize);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xfff5e0, 0.65);
+sun.position.set(4,8,5); sun.castShadow=true; scene.add(sun);
+const rim = new THREE.DirectionalLight(0x99aacc, 0.25);
+rim.position.set(-4,3,-3); scene.add(rim);
+
+
+const C = {
+  skin:  0xF0B878,
+  shirt: 0xDDDAD2,  // 약간 어두운 흰 티
+  pants: 0xB8A882,  // 어두운 베이지
+  shoe:  0xEEEBE4,  // 흰 운동화
+  soleS: 0xAAAAAA,  // 밑창
+  eye:   0x1a1a2e,
+  smile: 0xaa3311,
+};
+const std = (c,r=0.55) => new THREE.MeshStandardMaterial({color:c,roughness:r});
+const sh = m => { m.castShadow=true; m.receiveShadow=true; return m; };
+const sph = (r,c,rough=0.55) => sh(new THREE.Mesh(new THREE.SphereGeometry(r,32,32),std(c,rough)));
+const cyl = (rt,rb,h,c,seg=16) => sh(new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),std(c)));
+const bx  = (w,h,d,c) => sh(new THREE.Mesh(new THREE.BoxGeometry(w,h,d),std(c)));
+
+const root = new THREE.Group();
+scene.add(root);
+
+/* 머리 */
+const headG = new THREE.Group();
+headG.position.y = 1.85;
+root.add(headG);
+headG.add(sph(0.38,C.skin,0.45));
+
+const eyeL = sph(0.055,C.eye,0.3); eyeL.position.set(-0.12,0.06,0.34); headG.add(eyeL);
+const eyeR = sph(0.055,C.eye,0.3); eyeR.position.set(0.12,0.06,0.34);  headG.add(eyeR);
+const hlL  = sph(0.02,0xffffff,0.1); hlL.position.set(-0.1,0.09,0.385); headG.add(hlL);
+const hlR  = sph(0.02,0xffffff,0.1); hlR.position.set(0.14,0.09,0.385); headG.add(hlR);
+const smM = bx(0.1,0.022,0.01,C.smile); smM.position.set(0,-0.11,0.376); headG.add(smM);
+const nose = sph(0.03,0xd89060); nose.position.set(0,-0.03,0.375); headG.add(nose);
+
+/* 목 */
+const neck = cyl(0.12,0.14,0.1,C.skin); neck.position.y=1.48; root.add(neck);
+
+/* 몸통 */
+const torso = cyl(0.32,0.34,0.72,C.shirt); torso.position.y=1.08; root.add(torso);
+const collar = cyl(0.25,0.28,0.08,C.shirt); collar.position.y=1.42; root.add(collar);
+
+/* 하체 */
+const hip = cyl(0.33,0.30,0.28,C.pants); hip.position.y=0.68; root.add(hip);
+
+/* 팔 */
+const lShG = new THREE.Group(); lShG.position.set(-0.32,1.38,0); root.add(lShG);
+const lUA = cyl(0.1,0.09,0.38,C.shirt); lUA.position.set(-0.1,-0.19,0); lShG.add(lUA);
+const lElG = new THREE.Group(); lElG.position.set(-0.1,-0.38,0); lShG.add(lElG);
+cyl(0.085,0.075,0.32,C.skin).position.y=-0.16; lElG.add((() => { const m=cyl(0.085,0.075,0.32,C.skin); m.position.y=-0.16; return m; })());
+const lHand = sph(0.1,C.skin); lHand.position.y=-0.34; lElG.add(lHand);
+
+const rShG = new THREE.Group(); rShG.position.set(0.32,1.38,0); root.add(rShG);
+const rUA = cyl(0.1,0.09,0.38,C.shirt); rUA.position.set(0.1,-0.19,0); rShG.add(rUA);
+const rElG = new THREE.Group(); rElG.position.set(0.1,-0.38,0); rShG.add(rElG);
+lElG.add((() => { const m=cyl(0.085,0.075,0.32,C.skin); m.position.y=-0.16; return m; })());
+const rFAm = cyl(0.085,0.075,0.32,C.skin); rFAm.position.y=-0.16; rElG.add(rFAm);
+const rHand = sph(0.1,C.skin); rHand.position.y=-0.34; rElG.add(rHand);
+
+const lShBall = sph(0.13,C.shirt); lShBall.position.set(-0.37,1.38,0); root.add(lShBall);
+const rShBall = sph(0.13,C.shirt); rShBall.position.set(0.37,1.38,0);  root.add(rShBall);
+
+/* 다리 + 흰 운동화 */
+const lHipG = new THREE.Group(); lHipG.position.set(-0.17,0.54,0); root.add(lHipG);
+const lThigh = cyl(0.13,0.12,0.38,C.pants); lThigh.position.y=-0.19; lHipG.add(lThigh);
+const lKneeG = new THREE.Group(); lKneeG.position.y=-0.38; lHipG.add(lKneeG);
+const lShin = cyl(0.11,0.10,0.36,C.pants); lShin.position.y=-0.18; lKneeG.add(lShin);
+/* 흰 운동화: 몸체 + 밑창 */
+const lShoeBody = sh(new THREE.Mesh(new THREE.BoxGeometry(0.18,0.1,0.28),std(C.shoe))); lShoeBody.position.set(0,-0.41,0.05); lKneeG.add(lShoeBody);
+const lSole = sh(new THREE.Mesh(new THREE.BoxGeometry(0.19,0.04,0.29),std(C.soleS))); lSole.position.set(0,-0.47,0.05); lKneeG.add(lSole);
+
+const rHipG = new THREE.Group(); rHipG.position.set(0.17,0.54,0); root.add(rHipG);
+const rThigh = cyl(0.13,0.12,0.38,C.pants); rThigh.position.y=-0.19; rHipG.add(rThigh);
+const rKneeG = new THREE.Group(); rKneeG.position.y=-0.38; rHipG.add(rKneeG);
+const rShin = cyl(0.11,0.10,0.36,C.pants); rShin.position.y=-0.18; rKneeG.add(rShin);
+const rShoeBody = sh(new THREE.Mesh(new THREE.BoxGeometry(0.18,0.1,0.28),std(C.shoe))); rShoeBody.position.set(0,-0.41,0.05); rKneeG.add(rShoeBody);
+const rSole = sh(new THREE.Mesh(new THREE.BoxGeometry(0.19,0.04,0.29),std(C.soleS))); rSole.position.set(0,-0.47,0.05); rKneeG.add(rSole);
+
+let currentAnim='idle', animTime=0;
+function setAnim(name) {
+  currentAnim=name; animTime=0;
+  document.querySelectorAll('[id^=btn-]').forEach(b=>{b.style.background='var(--color-background-secondary)';b.style.color='var(--color-text-primary)';});
+  const btn=document.getElementById('btn-'+name);
+  if(btn){btn.style.background='#555';btn.style.color='#fff';}
+}
+setAnim('idle');
+
+function tick(dt) {
+  animTime+=dt; const t=animTime;
+  lShG.rotation.x=0; lShG.rotation.z=0;
+  rShG.rotation.x=0; rShG.rotation.z=0;
+  lElG.rotation.x=0; rElG.rotation.x=0;
+  lHipG.rotation.x=0; rHipG.rotation.x=0;
+  lKneeG.rotation.x=0; rKneeG.rotation.x=0;
+  headG.rotation.y=0; headG.rotation.z=0;
+  root.position.y=0;
+
+  if(currentAnim==='idle'){
+    root.position.y=Math.sin(t*1.5)*0.018;
+    lShG.rotation.z=-0.15+Math.sin(t*1.5)*0.03;
+    rShG.rotation.z= 0.15-Math.sin(t*1.5)*0.03;
+    headG.rotation.y=Math.sin(t*0.5)*0.1;
+  } else if(currentAnim==='walk'){
+    const s=Math.sin(t*4.5);
+    root.position.y=Math.abs(Math.sin(t*9))*0.045;
+    lHipG.rotation.x=s*0.55; rHipG.rotation.x=-s*0.55;
+    lKneeG.rotation.x=Math.max(0,-s)*0.7; rKneeG.rotation.x=Math.max(0,s)*0.7;
+    lShG.rotation.x=-s*0.35; rShG.rotation.x=s*0.35;
+    headG.rotation.y=s*0.08;
+  } else if(currentAnim==='wave'){
+    const s=Math.sin(t*5);
+    rShG.rotation.x=-1.5+s*0.25; rShG.rotation.z=0.3;
+    rElG.rotation.x=-0.5+s*0.35;
+    lShG.rotation.z=-0.15;
+    headG.rotation.y=0.35; headG.rotation.z=Math.sin(t*3)*0.07;
+  } else if(currentAnim==='dance'){
+    const s=Math.sin(t*5), c=Math.cos(t*5);
+    root.position.y=Math.abs(s)*0.08;
+    headG.rotation.z=s*0.2; headG.rotation.y=c*0.15;
+    lShG.rotation.x=-s*0.8; rShG.rotation.x=s*0.8;
+    lShG.rotation.z=-0.4-c*0.3; rShG.rotation.z=0.4+c*0.3;
+    lElG.rotation.x=s*0.6; rElG.rotation.x=-s*0.6;
+    lHipG.rotation.x=c*0.3; rHipG.rotation.x=-c*0.3;
+  }
+}
+
+let dragging=false, px=0, py=0, rotY=0.3, rotX=0.05;
+canvas.addEventListener('mousedown',e=>{dragging=true;px=e.clientX;py=e.clientY;});
+window.addEventListener('mouseup',()=>dragging=false);
+window.addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  rotY+=(e.clientX-px)*0.012; px=e.clientX;
+  rotX+=(e.clientY-py)*0.006; py=e.clientY;
+  rotX=Math.max(-0.3,Math.min(0.5,rotX));
+});
+canvas.addEventListener('touchstart',e=>{dragging=true;px=e.touches[0].clientX;});
+canvas.addEventListener('touchend',()=>dragging=false);
+canvas.addEventListener('touchmove',e=>{if(!dragging)return;rotY+=(e.touches[0].clientX-px)*0.012;px=e.touches[0].clientX;});
+
+let last=performance.now();
+(function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min((now-last)/1000,0.05); last=now;
+  tick(dt);
+  root.rotation.y=rotY;
+  camera.position.y=1.8+rotX*2;
+  camera.lookAt(0,0.8,0);
+  renderer.render(scene,camera);
+})();
+</script>

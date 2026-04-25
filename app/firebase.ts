@@ -1,22 +1,21 @@
-// /app/firebase.ts
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging, isSupported } from "firebase/messaging";
 import { getAuth } from "firebase/auth";
 const firebaseConfig = {
-   apiKey: "AIzaSyBBSM0axgA9iVrTpqpF31dmBSARajf6Xic",
+  apiKey: "AIzaSyBBSM0axgA9iVrTpqpF31dmBSARajf6Xic",
   authDomain: "wagchat-e17ae.firebaseapp.com",
   projectId: "wagchat-e17ae",
   storageBucket: "wagchat-e17ae.firebasestorage.app",
   messagingSenderId: "321656715514",
-  appId: "1:321656715514:web:4eda4a7375b846a939b143"
+  appId: "1:321656715514:web:4eda4a7375b846a939b143",
+  // 🚨 아래 줄이 없어서 에러가 났던 겁니다! 
+  databaseURL: "https://wagchat-e17ae-default-rtdb.firebaseio.com" 
 };
 
-const app = initializeApp(firebaseConfig);
+// 앱 초기화
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+// 데이터베이스 인스턴스 export
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-// FCM (웹 지원 체크)
-export const messagingPromise = isSupported().then((supported) =>
-  supported ? getMessaging(app) : null
-);
