@@ -192,6 +192,9 @@ function createLeg(isLeft) {
     const group = new THREE.Group();
     const thigh = cyl(0.13, 0.12, 0.38, mats.pants); thigh.position.y = -0.19; group.add(thigh);
     const kneeG = new THREE.Group(); kneeG.position.y = -0.38; group.add(kneeG);
+       const kneeBall = sph(0.11, mats.pants);
+    kneeBall.position.y = 0;
+    kneeG.add(kneeBall);
     const shin = cyl(0.11, 0.1, 0.36, mats.pants); shin.position.y = -0.18; kneeG.add(shin);
     const shoe = bx(0.18, 0.12, 0.3, mats.shoe); shoe.position.set(0, -0.4, 0.06); kneeG.add(shoe);
     return { group, knee: kneeG };
@@ -275,8 +278,10 @@ function tick(dt) {
         armR.group.rotation.z = 0.15 - Math.sin(t * 1.5) * 0.03;
     } else if(currentAnim === 'walk') {
         const s = Math.sin(t * 4.5);
-        root.position.y = baseH + Math.abs(Math.sin(t * 9)) * 0.045;
+        root.position.y = baseH + Math.abs(Math.sin(t * 4.5)) * 0.045;
         legL.group.rotation.x = s * 0.6; legR.group.rotation.x = -s * 0.6;
+        legL.group.rotation.z = Math.sin(t * 4.5) * 0.05;
+legR.group.rotation.z = -Math.sin(t * 4.5) * 0.05;
         legL.knee.rotation.x = Math.max(0, -s) * 0.8; legR.knee.rotation.x = Math.max(0, s) * 0.8;
         armL.group.rotation.x = -s * 0.4; armR.group.rotation.x = s * 0.4;
     } else if(currentAnim === 'wave') {

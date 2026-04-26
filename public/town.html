@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>삭발 귀요미 어드벤처 - 거대해진 집</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Apple SD Gothic Neo', sans-serif; background: #e0e0e0; touch-action: none; }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        canvas { width: 100%; height: 100%; display: block; }
+        
+        #joy-container {
+            position: absolute; bottom: 50px; left: 50px;
+            width: 100px; height: 100px; background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.5);
+            display: flex; align-items: center; justify-content: center; z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        #joy-stick {
+            width: 40px; height: 40px; background: #fff; border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="joy-container"><div id="joy-stick"></div></div>
+    <canvas id="c"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/** 1. 기본 씬 세팅 **/
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xb3e5fc); 
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 5, 12); // 집이 커졌으므로 카메라를 살짝 뒤로 뺌
+
+const resize = () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+};
+window.addEventListener('resize', resize); resize();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+const sun = new THREE.DirectionalLight(0xfff5e0, 0.8);
+sun.position.set(10, 20, 10); sun.castShadow = true; scene.add(sun);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({color: 0xcccccc}));
+ground.rotation.x = -Math.PI/2; ground.position.y = 0.5; ground.receiveShadow = true; scene.add(ground);
+
+/** 2. 재질 **/
+const mats = {
+    skin: new THREE.MeshStandardMaterial({color: 0xFAD7B5, roughness: 0.5}),
+    shirt: new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.6}),
+    pants: new THREE.MeshStandardMaterial({color: 0x9FB7D3, roughness: 0.7}),
+    eye: new THREE.MeshStandardMaterial({color: 0x1a1a2e, roughness: 0.2}),
+    white: new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.1}),
+    shoe: new THREE.MeshStandardMaterial({color: 0xeeeeee, roughness: 0.8}),
+    wall: new THREE.MeshStandardMaterial({color: 0xfffcf0, side: THREE.DoubleSide, transparent: true}),
+    roof: new THREE.MeshStandardMaterial({color: 0xff8a80, transparent: true})
+};
+
+const sph = (r, mat) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 32), mat); m.castShadow = true; return m; };
+const cyl = (rt, rb, h, mat) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 16), mat); m.castShadow = true; return m; };
+const bx = (w, h, d, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.castShadow = true; return m; };
+
+/** 3. 미니 하우스 (크기 확장 버전) **/
+const house = new THREE.Group();
+house.position.set(0, 0.5, -6); // 집이 커졌으므로 위치를 조금 더 뒤로
+scene.add(house);
+
+// 지붕 크기 확장
+const roof = new THREE.Mesh(new THREE.CylinderGeometry(0, 5, 3, 4), mats.roof);
+roof.rotation.y = Math.PI / 4; roof.position.y = 5.5; house.add(roof);
+
+const createWall = (w, h, d, x, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.wall);
+    m.position.set(x, h/2, z); m.castShadow = true; m.receiveShadow = true;
+    house.add(m);
+};
+
+// 벽 크기 확장 (높이 4, 너비 7 정도)
+createWall(7, 4, 0.1, 0, -3);    // 뒷벽
+createWall(0.1, 4, 6, -3.5, 0); // 좌벽
+createWall(0.1, 4, 6, 3.5, 0);  // 우벽
+createWall(2.5, 4, 0.1, -2.25, 3); // 앞벽(좌)
+createWall(2.5, 4, 0.1, 2.25, 3);  // 앞벽(우)
+createWall(2, 1.5, 0.1, 0, 3.25);  // 문 위쪽 벽
+
+/** 4. 캐릭터 (조형 유지) **/
+const root = new THREE.Group();
+scene.add(root);
+
+const headG = new THREE.Group(); root.add(headG);
+headG.add(sph(0.38, mats.skin));
+const nose = sph(0.04, mats.skin); nose.position.set(0, -0.03, 0.37); headG.add(nose);
+const eyeL = sph(0.055, mats.eye); eyeL.position.set(-0.12, 0.06, 0.34); headG.add(eyeL);
+const eyeR = sph(0.055, mats.eye); eyeR.position.set(0.12, 0.06, 0.34); headG.add(eyeR);
+const hlL = sph(0.02, mats.white); hlL.position.set(-0.1, 0.09, 0.385); headG.add(hlL);
+const hlR = sph(0.02, mats.white); hlR.position.set(0.14, 0.09, 0.385); headG.add(hlR);
+
+const neck = cyl(0.12, 0.14, 0.1, mats.skin); root.add(neck);
+const torso = cyl(0.32, 0.34, 0.72, mats.shirt); root.add(torso);
+const collar = cyl(0.25, 0.28, 0.08, mats.shirt); root.add(collar);
+const hip = cyl(0.33, 0.30, 0.28, mats.pants); root.add(hip);
+
+function createArm(isLeft) {
+    const group = new THREE.Group();
+    const upper = cyl(0.1, 0.09, 0.38, mats.shirt); upper.position.set(isLeft ? -0.08 : 0.08, -0.19, 0); group.add(upper);
+    const elbowG = new THREE.Group(); elbowG.position.set(isLeft ? -0.08 : 0.08, -0.38, 0); group.add(elbowG);
+    const fore = cyl(0.085, 0.075, 0.32, mats.skin); fore.position.y = -0.16; elbowG.add(fore);
+    const hand = sph(0.1, mats.skin); hand.position.y = -0.34; elbowG.add(hand);
+    const shBall = sph(0.13, mats.shirt); shBall.position.set(isLeft ? -0.05 : 0.05, 0, 0); group.add(shBall);
+    return { group, elbow: elbowG };
+}
+const armL = createArm(true); root.add(armL.group);
+const armR = createArm(false); root.add(armR.group);
+
+function createLeg(isLeft) {
+    const group = new THREE.Group();
+    const thigh = cyl(0.13, 0.12, 0.38, mats.pants); thigh.position.y = -0.19; group.add(thigh);
+    const kneeG = new THREE.Group(); kneeG.position.y = -0.38; group.add(kneeG);
+    kneeG.add(sph(0.11, mats.pants));
+    const shin = cyl(0.11, 0.1, 0.36, mats.pants); shin.position.y = -0.18; kneeG.add(shin);
+    const shoe = bx(0.18, 0.12, 0.3, mats.shoe); shoe.position.set(0, -0.4, 0.06); kneeG.add(shoe);
+    return { group, knee: kneeG };
+}
+const legL = createLeg(true); root.add(legL.group);
+const legR = createLeg(false); root.add(legR.group);
+
+/** 5. 조종 시스템 **/
+let input = { x: 0, z: 0 };
+const keys = {};
+window.onkeydown = (e) => keys[e.code] = true;
+window.onkeyup = (e) => keys[e.code] = false;
+
+const joyStick = document.getElementById('joy-stick');
+const joyContainer = document.getElementById('joy-container');
+let joyActive = false;
+
+const handleJoy = (e) => {
+    if (!joyActive) return;
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = joyContainer.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2, centerY = rect.top + rect.height / 2;
+    let dx = touch.clientX - centerX, dy = touch.clientY - centerY;
+    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
+    const angle = Math.atan2(dy, dx);
+    joyStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+    input.x = (Math.cos(angle) * dist) / 40; input.z = (Math.sin(angle) * dist) / 40;
+};
+
+joyContainer.addEventListener('pointerdown', () => joyActive = true);
+window.addEventListener('pointermove', handleJoy);
+window.addEventListener('pointerup', () => { joyActive = false; joyStick.style.transform = `translate(0,0)`; input = {x:0, z:0}; });
+
+/** 6. 애니메이션 & 틱 루프 **/
+let animTime = 0;
+function tick(dt) {
+    headG.position.set(0, 1.85, 0); neck.position.set(0, 1.48, 0); torso.position.set(0, 1.08, 0);
+    collar.position.set(0, 1.42, 0); hip.position.set(0, 0.68, 0); armL.group.position.set(-0.34, 1.38, 0);
+    armR.group.position.set(0.34, 1.38, 0); legL.group.position.set(-0.17, 0.54, 0); legR.group.position.set(0.17, 0.54, 0);
+    [armL.group, armR.group, armL.elbow, armR.elbow, legL.group, legR.group, legL.knee, legR.knee, headG].forEach(g => g.rotation.set(0,0,0));
+
+    let moveX = input.x, moveZ = input.z;
+    if (keys['ArrowUp'] || keys['KeyW']) moveZ = -1;
+    if (keys['ArrowDown'] || keys['KeyS']) moveZ = 1;
+    if (keys['ArrowLeft'] || keys['KeyA']) moveX = -1;
+    if (keys['ArrowRight'] || keys['KeyD']) moveX = 1;
+
+    const isMoving = Math.abs(moveX) > 0.1 || Math.abs(moveZ) > 0.1;
+    const baseH = 1.05;
+
+    if (isMoving) {
+        animTime += dt;
+        root.position.x += moveX * 0.1;
+        root.position.z += moveZ * 0.1;
+        root.rotation.y = THREE.MathUtils.lerp(root.rotation.y, Math.atan2(moveX, moveZ), 0.15);
+
+        const s = Math.sin(animTime * 10);
+        root.position.y = baseH + Math.abs(s) * 0.045;
+        legL.group.rotation.x = s * 0.6; legR.group.rotation.x = -s * 0.6;
+        legL.knee.rotation.x = Math.max(0, -s) * 0.8; legR.knee.rotation.x = Math.max(0, s) * 0.8;
+        armL.group.rotation.x = -s * 0.4; armR.group.rotation.x = s * 0.4;
+    } else {
+        animTime += dt;
+        root.position.y = baseH + Math.sin(animTime * 1.5) * 0.02;
+        armL.group.rotation.z = -0.15 + Math.sin(animTime * 1.5) * 0.03;
+        armR.group.rotation.z = 0.15 - Math.sin(animTime * 1.5) * 0.03;
+    }
+
+    // 집 입장 투명화 체크 (집이 커졌으므로 범위도 늘림)
+    const isInHouse = root.position.z < -3.2 && root.position.z > -8.5 && Math.abs(root.position.x) < 3.2;
+    const targetOp = isInHouse ? 0.2 : 1.0;
+    mats.wall.opacity = THREE.MathUtils.lerp(mats.wall.opacity, targetOp, 0.1);
+    mats.roof.opacity = THREE.MathUtils.lerp(mats.roof.opacity, targetOp, 0.1);
+
+    camera.position.lerp(new THREE.Vector3(root.position.x, 6, root.position.z + 12), 0.05);
+    camera.lookAt(root.position.x, 1.5, root.position.z);
+}
+
+let last = performance.now();
+(function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = (now - last) / 1000; last = now;
+    tick(dt);
+    renderer.render(scene, camera);
+})(performance.now());
+</script>
+</body>
+</html>

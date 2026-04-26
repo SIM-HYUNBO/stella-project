@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        /* 화면 전체를 쓰기 위한 설정 */
+        body { margin: 0; overflow: hidden; background: #f0ede0; font-family: sans-serif; }
+        #ui-layer {
+            position: absolute; top: 10px; width: 100%; 
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; 
+            z-index: 10; pointer-events: none; /* 버튼 외 영역 클릭 무시 */
+        }
+        button {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid #ccc;
+            background: rgba(255, 255, 255, 0.8); cursor: pointer; font-size: 13px;
+            pointer-events: auto; backdrop-filter: blur(4px);
+        }
+        canvas { display: block; width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+
+<div id="ui-layer">
+    <button id="bn-idle">앉기</button>
+    <button id="bn-walk">걷기</button>
+    <button id="bn-grooming">그루밍</button>
+    <button id="bn-happy">기쁨</button>
+</div>
+<canvas id="c"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+    renderer.setClearColor(0xf0ede0);
+    renderer.shadowMap.enabled = true;
+
+    const scene = new THREE.Scene();
+    
+    // 카메라 설정 (화면비 자동 대응)
+    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.5, 4.5);
+    camera.lookAt(0, 0.8, 0);
+
+    // 창 크기 조절 대응 함수
+    function onResize() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', onResize);
+    onResize();
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.7);
+    sun.position.set(3, 6, 4); sun.castShadow = true; scene.add(sun);
+
+    // 바닥도 화면에 맞춰 넉넉하게 확장
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({color: 0xc8c2b0}));
+    ground.rotation.x = -Math.PI / 2; scene.add(ground);
+
+    const mat = c => new THREE.MeshStandardMaterial({color: c, roughness: 0.6});
+    const sh = x => { x.castShadow = true; return x; };
+    const S = (r, c) => sh(new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), mat(c)));
+    const Cy = (a, b, h, c) => sh(new THREE.Mesh(new THREE.CylinderGeometry(a, b, h, 12), mat(c)));
+    const Co = (r, h, c) => sh(new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), mat(c)));
+    const Bx = (w, h, d, c) => sh(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)));
+    const BC = 0xE8C89A, BL = 0xF5E8D0, NS = 0xFFAAAA, EY = 0x3a8a3a, PU = 0x111111;
+
+    const root = new THREE.Group(); root.position.y = 0.6; scene.add(root);
+    const bodyG = new THREE.Group(); bodyG.position.set(0, 0.32, 0); root.add(bodyG);
+    const bm = sh(new THREE.Mesh(new THREE.SphereGeometry(0.38, 24, 18), mat(BC))); bm.scale.set(1, 0.85, 1.2); bodyG.add(bm);
+    const belly = sh(new THREE.Mesh(new THREE.SphereGeometry(0.26, 24, 18), mat(BL))); belly.scale.set(0.9, 0.7, 0.5); belly.position.set(0, 0, 0.22); bodyG.add(belly);
+
+    // 다리들
+    const lfG = new THREE.Group(); lfG.position.set(-0.2, 0, 0.3); bodyG.add(lfG);
+    lfG.add((() => { const m = Cy(0.07, 0.065, 0.28, BC); m.position.y = -0.14; return m; })());
+    lfG.add((() => { const m = S(0.09, BL); m.position.y = -0.3; return m; })());
+    const rfG = new THREE.Group(); rfG.position.set(0.2, 0, 0.3); bodyG.add(rfG);
+    rfG.add((() => { const m = Cy(0.07, 0.065, 0.28, BC); m.position.y = -0.14; return m; })());
+    rfG.add((() => { const m = S(0.09, BL); m.position.y = -0.3; return m; })());
+
+    const lbG = new THREE.Group(); lbG.position.set(-0.25, -0.05, -0.2); bodyG.add(lbG);
+    lbG.add((() => { const m = Cy(0.09, 0.08, 0.32, BC); m.position.y = -0.16; return m; })());
+    const lbKG = new THREE.Group(); lbKG.position.y = -0.32; lbG.add(lbKG);
+    lbKG.add((() => { const m = Cy(0.07, 0.065, 0.26, BC); m.position.y = -0.13; return m; })());
+    lbKG.add((() => { const m = S(0.09, BL); m.position.y = -0.28; return m; })());
+    const rbG = new THREE.Group(); rbG.position.set(0.25, -0.05, -0.2); bodyG.add(rbG);
+    rbG.add((() => { const m = Cy(0.09, 0.08, 0.32, BC); m.position.y = -0.16; return m; })());
+    const rbKG = new THREE.Group(); rbKG.position.y = -0.32; rbG.add(rbKG);
+    rbKG.add((() => { const m = Cy(0.07, 0.065, 0.26, BC); m.position.y = -0.13; return m; })());
+    rbKG.add((() => { const m = S(0.09, BL); m.position.y = -0.28; return m; })());
+
+    // 목과 머리
+    const neck = Cy(0.14, 0.16, 0.16, BC); neck.position.set(0, 0.54, 0.1); root.add(neck);
+    const hG = new THREE.Group(); hG.position.set(0, 0.78, 0.18); root.add(hG);
+    hG.add(S(0.3, BC));
+    [[-0.15], [0.15]].forEach(([x]) => { const c = S(0.14, BL); c.position.set(x, -0.06, 0.22); hG.add(c); });
+    [[-1], [1]].forEach(([sv]) => {
+        const e = Co(0.1, 0.2, BC); e.position.set(sv * 0.18, 0.28, 0); e.rotation.z = -sv * 0.3; hG.add(e);
+        const ei = Co(0.06, 0.13, 0xFFCCCC); ei.position.set(sv * 0.18, 0.28, 0.03); ei.rotation.z = -sv * 0.3; hG.add(ei);
+        const ey = S(0.065, EY); ey.position.set(sv * 0.1, 0.07, 0.27); hG.add(ey);
+        const pp = S(0.03, PU); pp.position.set(sv * 0.1, 0.07, 0.33); hG.add(pp);
+        const hl = S(0.015, 0xffffff); hl.position.set(sv * 0.1 + sv * 0.01, 0.09, 0.335); hG.add(hl);
+        const mb = Bx(0.055, 0.018, 0.01, 0x885533); mb.position.set(sv * 0.04, -0.1, 0.295); mb.rotation.z = -sv * 0.4; hG.add(mb);
+        [[0.01, 0.1], [-0.03, -0.05], [-0.07, -0.15]].forEach(([y, rz]) => {
+            const w = Bx(0.22, 0.01, 0.005, 0xccbbaa); w.position.set(sv * 0.28, y, 0.29); w.rotation.z = sv * rz; hG.add(w);
+        });
+    });
+    hG.add((() => { const m = S(0.04, NS); m.position.set(0, -0.04, 0.295); return m; })());
+
+    let anim = 'idle', at = 0;
+    const btns = ['idle', 'walk', 'grooming', 'happy'];
+    btns.forEach(n => {
+        document.getElementById('bn-' + n).onclick = () => {
+            anim = n; at = 0;
+            btns.forEach(id => {
+                const b = document.getElementById('bn-' + id);
+                b.style.background = id === n ? '#555' : 'rgba(255, 255, 255, 0.8)';
+                b.style.color = id === n ? '#fff' : '#333';
+            });
+        };
+    });
+
+    function tick(dt) {
+        at += dt; const t = at;
+        hG.rotation.set(0,0,0); bodyG.rotation.set(0,0,0); bodyG.scale.y = 1;
+        lfG.rotation.x = 0; rfG.rotation.x = 0; lbG.rotation.x = 0; rbG.rotation.x = 0;
+        lbKG.rotation.x = 0; rbKG.rotation.x = 0; root.position.y = 0.6;
+
+        if (anim === 'idle') {
+            root.position.y = 0.6 + Math.sin(t * 1.2) * 0.012;
+            hG.rotation.y = Math.sin(t * 0.6) * 0.12;
+            bodyG.scale.y = 1 + Math.sin(t * 1.2) * 0.015;
+        } else if (anim === 'walk') {
+            const s = Math.sin(t * 6);
+            root.position.y = 0.6 + Math.abs(Math.sin(t * 6)) * 0.03;
+            lfG.rotation.x = s * 0.6; rfG.rotation.x = -s * 0.6;
+            lbG.rotation.x = -s * 0.5; rbG.rotation.x = s * 0.5;
+            lbKG.rotation.x = Math.max(0, s) * 0.5; rbKG.rotation.x = Math.max(0, -s) * 0.5;
+        } else if (anim === 'grooming') {
+            const s = Math.sin(t * 3);
+            lfG.rotation.x = -1.8 + s * 0.3;
+            hG.rotation.x = -0.2 + s * 0.1; hG.rotation.z = s * 0.08;
+            bodyG.rotation.x = 0.15;
+        } else if (anim === 'happy') {
+            const b = Math.abs(Math.sin(t * 5));
+            root.position.y = 0.6 + b * 0.18;
+            hG.rotation.y = Math.sin(t * 5) * 0.2;
+            bodyG.rotation.z = Math.sin(t * 5) * 0.08;
+        }
+    }
+
+    let drag = false, px = 0, py = 0, rotY = 0.5, rotX = 0.1;
+    canvas.addEventListener('pointerdown', e => { drag = true; px = e.clientX; py = e.clientY; });
+    window.addEventListener('pointerup', () => drag = false);
+    window.addEventListener('pointermove', e => {
+        if (!drag) return;
+        rotY += (e.clientX - px) * 0.012; px = e.clientX;
+        rotX += (e.clientY - py) * 0.006; py = e.clientY;
+        rotX = Math.max(-0.2, Math.min(0.5, rotX));
+    });
+
+    let last = performance.now();
+    (function loop(now) {
+        requestAnimationFrame(loop);
+        const dt = Math.min((now - last) / 1000, 0.05); last = now;
+        tick(dt);
+        root.rotation.y = rotY;
+        renderer.render(scene, camera);
+    })(performance.now());
+</script>
+</body>
+</html>
