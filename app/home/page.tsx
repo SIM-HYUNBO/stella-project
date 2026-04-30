@@ -150,7 +150,7 @@ export default function Chat() {
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
 
   /* 🔔 푸시 구독 등록 (브라우저 종료 시에도 알림 수신) */
-  usePushSubscription(nickname);
+  const { requestAndSubscribe } = usePushSubscription(nickname);
   
   /* 🔔 앱 내 알림음 (브라우저 열려있을 때) */
   const playNotificationSound = () => {
@@ -432,7 +432,15 @@ export default function Chat() {
       return (
         <PageContainer>
           <div className="h-screen p-4">
-            <div className="text-xl font-bold mb-4">회원 목록</div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xl font-bold">회원 목록</div>
+              <button
+                onClick={requestAndSubscribe}
+                className="text-sm px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                🔔 알림 허용
+              </button>
+            </div>
             {users.map((u) => (
               <SwipeUserItem
                 key={u.id}
@@ -469,7 +477,16 @@ export default function Chat() {
     <PageContainer>
       <div className="h-screen flex">
         <div className="w-60 border-r p-4 flex flex-col gap-2">
-          <div className="font-bold">회원 목록</div>
+          <div className="flex items-center justify-between mb-1">
+            <div className="font-bold">회원 목록</div>
+            <button
+              onClick={requestAndSubscribe}
+              className="text-xs px-2 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
+              title="알림 허용"
+            >
+              🔔
+            </button>
+          </div>
           {users.map((u) => (
             <SwipeUserItem
               key={u.id}

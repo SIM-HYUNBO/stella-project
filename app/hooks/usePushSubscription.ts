@@ -19,38 +19,44 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export function usePushSubscription(nickname: string | null) {
+  // 서비스 워커만 미리 등록
   useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+
+  // 버튼 클릭 시 호출할 함수 반환
+  const requestAndSubscribe = async () => {
     if (!nickname || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
-    const register = async () => {
-      try {
-        // 서비스 워커 등록
-        const reg = await navigator.serviceWorker.register("/sw.js");
+    try {
+      const reg = await navigator.serviceWorker.ready;
 
-        // 알림 권한 요청
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") return;
-
-        // 기존 구독 확인 또는 새로 구독
-        let sub = await reg.pushManager.getSubscription();
-        if (!sub) {
-          sub = await reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-          });
-        }
-
-        // Firestore에 구독 정보 저장 (nickname 기준)
-        await setDoc(
-          doc(db, "push_subscriptions", nickname),
-          { subscription: JSON.stringify(sub), updatedAt: new Date() },
-          { merge: true }
-        );
-      } catch (e) {
-        console.error("푸시 구독 오류:", e);
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        alert("알림을 허용해야 푸시 알림을 받을 수 있어요.");
+        return;
       }
-    };
 
-    register();
-  }, [nickname]);
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+
+      await setDoc(
+        doc(db, "push_subscriptions", nickname),
+        { subscription: JSON.stringify(sub), updatedAt: new Date() },
+        { merge: true }
+      );
+
+      alert("알림이 설정됐어요! 🔔");
+    } catch (e) {
+      console.error("푸시 구독 오류:", e);
+    }
+  };
+
+  return { requestAndSubscribe };
 }
