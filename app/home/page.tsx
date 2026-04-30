@@ -19,6 +19,7 @@ import {
   deleteDoc,
   where,
 } from "firebase/firestore";
+import { usePushSubscription } from "@/app/hooks/usePushSubscription"; // ← 추가
 
 /* 타입 */
 type Message = {
@@ -42,7 +43,7 @@ function SwipeUserItem({ u, isActive, isBlocked, isNotifOff, lastMessage, onClic
   
   const startX = useRef(0);
   const isDragging = useRef(false);
-  const currentOffset = useRef(0); // 실시간 위치 추적용
+  const currentOffset = useRef(0);
 
   const onMoveStart = (clientX: number) => {
     startX.current = clientX - offset;
@@ -53,14 +54,13 @@ function SwipeUserItem({ u, isActive, isBlocked, isNotifOff, lastMessage, onClic
     if (!isDragging.current) return;
     const newOffset = Math.min(0, Math.max(-BUTTON_WIDTH, clientX - startX.current));
     setOffset(newOffset);
-    currentOffset.current = newOffset; // ref에 실시간 저장
+    currentOffset.current = newOffset;
   };
 
   const onMoveEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
 
-    // 핵심: 왼쪽으로 30px만 밀려도 고정, 열린 상태에선 -150px 이상 밀어야 닫힘
     if (!open) {
       if (currentOffset.current < -50) {
         setOffset(-BUTTON_WIDTH);
@@ -80,15 +80,12 @@ function SwipeUserItem({ u, isActive, isBlocked, isNotifOff, lastMessage, onClic
 
   return (
     <div className="relative overflow-hidden rounded-xl mb-2 select-none bg-gray-200">
-      {/* 배경 버튼들 (디자인 유지) */}
       <div className="absolute right-0 top-0 h-full flex" style={{ width: BUTTON_WIDTH }}>
-      
         <button onClick={(e) => { e.stopPropagation(); onBlock(); setOffset(0); setOpen(false); }} className={`flex-1 flex flex-col items-center justify-center text-white text-xs gap-1 ${isBlocked ? "bg-green-500" : "bg-red-500"}`}>
           <span>{isBlocked ? "✅" : "🚫"}</span><span>차단</span>
         </button>
       </div>
 
-      {/* 실질적인 유저 아이템 레이어 */}
       <div
         className={`relative z-10 p-2 bg-white flex justify-between items-center cursor-pointer ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`}
         style={{ 
@@ -131,7 +128,7 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [blocked, setBlocked] = useState<any[]>([]);
   const [notifOff, setNotifOff] = useState<any[]>([]);
-  /* 🔥 모바일 체크 (원본 유지) */
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -140,27 +137,22 @@ export default function Chat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  /* 🔥 VIP 맵 (추가된 핵심) */
   const [userVipMap, setUserVipMap] = useState<Record<string, boolean>>({});
 
-  /* 🔥 AI 요약 */
   const [aiSummaryOn, setAiSummaryOn] = useState(false);
   useEffect(() => {
     setAiSummaryOn(localStorage.getItem("ai_summary") === "true");
   }, []);
 
   const [summary, setSummary] = useState("");
-
-  /* 🔥 타이핑 */
   const [isTyping, setIsTyping] = useState(false);
-
-  /* 🔥 선택된 메시지 */
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
-
-  /* 🔥 마지막 메시지 */
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
+
+  /* 🔔 푸시 구독 등록 (브라우저 종료 시에도 알림 수신) */
+  usePushSubscription(nickname);
   
-  /* 🔔 알림 */
+  /* 🔔 앱 내 알림음 (브라우저 열려있을 때) */
   const playNotificationSound = () => {
     const audio = new Audio("/sounds/alert1.mp3");
     audio.play();
@@ -191,7 +183,6 @@ export default function Chat() {
     alert("숨김 완료");
   };
 
-  /* 알림 끄기/켜기 */
   const toggleNotif = async (targetNickname: string, targetId: string) => {
     const exist = notifOff.find((n) => n.target_id === targetId);
     if (exist) {
@@ -206,18 +197,14 @@ export default function Chat() {
     });
   };
 
-  /* 🔥 AI 요약 */
   const runSummary = async () => {
     if (!aiSummaryOn || !currentChatUser) return;
-
     const res = await fetch("/api/ai-summary", {
       method: "POST",
       body: JSON.stringify({ messages }),
     });
-
     const data = await res.json();
     setSummary(data.summary);
-
     await setDoc(
       doc(db, "chat_summaries", currentChatUser.id),
       { summary: data.summary, updatedAt: new Date() },
@@ -225,7 +212,6 @@ export default function Chat() {
     );
   };
 
-  /* 로그인 */
   useEffect(() => {
     const unsub = watchAuthState((user) => {
       if (user) setNickname(user.displayName || "유저");
@@ -243,7 +229,6 @@ export default function Chat() {
     });
   }, [nickname]);
 
-  /* 알림 끄기 목록 구독 */
   useEffect(() => {
     if (!nickname) return;
     const q = query(collection(db, "notif_off"), where("user_id", "==", nickname));
@@ -256,48 +241,31 @@ export default function Chat() {
 
   const isBlocked = (id: string) => blocked.some((b) => b.target_id === id);
 
-  /* 🔥 유저 + VIP 로딩 (핵심) */
   useEffect(() => {
     if (!nickname) return;
-
     const fetchUsers = async () => {
       const snap = await getDocs(collection(db, "users"));
-
       const list: User[] = [];
       const vipMap: Record<string, boolean> = {};
-
       snap.docs.forEach((d) => {
         const data = d.data();
-
-        list.push({
-          id: d.id,
-          nickname: data.nickname,
-        });
-
-        // ✅ 핵심: isVip 사용
+        list.push({ id: d.id, nickname: data.nickname });
         vipMap[data.nickname] = data.isVip === true;
       });
-
       setUsers(list.filter((u) => u.nickname !== nickname));
       setUserVipMap(vipMap);
     };
-
     fetchUsers();
   }, [nickname]);
 
-  /* 메시지 */
   useEffect(() => {
     if (!currentChatUser || !nickname) return;
-
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
-
     const unsub = onSnapshot(q, async (snap) => {
       const msgs: Message[] = [];
       let lastMsg = "";
-
       for (const d of snap.docs) {
         const data = d.data();
-
         const m: Message = {
           id: d.id,
           from: data.from,
@@ -306,45 +274,32 @@ export default function Chat() {
           createdAt: data.createdAt,
           readBy: data.readBy || [],
         };
-
         const isMyChat =
           (m.from === nickname && m.to === currentChatUser.nickname) ||
           (m.from === currentChatUser.nickname && m.to === nickname);
-
         if (!isMyChat) continue;
-
         lastMsg = m.content;
-
         if (m.from !== nickname && !m.readBy?.includes(nickname)) {
           await updateDoc(doc(db, "messages", m.id), {
             readBy: [...(m.readBy || []), nickname],
           });
           m.readBy = [...(m.readBy || []), nickname];
         }
-
         msgs.push(m);
-
         if (m.from !== nickname) {
           playNotificationSound();
         }
       }
-
       setMessages(msgs);
-
-      setLastMessages((prev) => ({
-        ...prev,
-        [currentChatUser.id]: lastMsg,
-      }));
-
+      setLastMessages((prev) => ({ ...prev, [currentChatUser.id]: lastMsg }));
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 50);
     });
-
     return () => unsub();
   }, [currentChatUser, nickname]);
 
-  /* 메시지 전송 */
+  /* 메시지 전송 - 푸시 알림 호출 추가 */
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentChatUser) return;
 
@@ -356,34 +311,37 @@ export default function Chat() {
       readBy: [nickname],
     });
 
+    /* 🔔 푸시 알림 전송 (상대방이 앱 밖에 있을 때) */
+    fetch("/api/push", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        toNickname: currentChatUser.nickname,
+        fromNickname: nickname,
+        message: input.trim(),
+      }),
+    }).catch(() => {}); // 실패해도 채팅엔 영향 없음
+
     setInput("");
     setIsTyping(false);
   };
 
-  /* 삭제 */
   const deleteMessage = async (id: string) => {
     await deleteDoc(doc(db, "messages", id));
     setSelectedMsgId(null);
   };
 
-  /* 수정 */
   const editMessage = async (id: string) => {
     const text = prompt("수정할 내용");
     if (!text) return;
-
-    await updateDoc(doc(db, "messages", id), {
-      content: text,
-    });
-
+    await updateDoc(doc(db, "messages", id), { content: text });
     setSelectedMsgId(null);
   };
 
-  /* 🔥 내 VIP */
   const isMyVIP = userVipMap[nickname || ""] === true;
 
   if (!nickname) return <div>로딩중...</div>;
 
-  /* 채팅 UI (절대 안 건드림) */
   const renderChat = () => (
     <>
       {aiSummaryOn && summary && (
@@ -394,89 +352,57 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages
-  .filter(m => !isBlocked(currentChatUser?.id || "")) // 이 한 줄이 핵심! 차단된 상대면 메시지 안 보여줌
-  .map((m, i) => {
-          const currentDate = formatDateLabel(m.createdAt);
-          const prevDate =
-            i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
-          const showDate = currentDate !== prevDate;
+          .filter(m => !isBlocked(currentChatUser?.id || ""))
+          .map((m, i) => {
+            const currentDate = formatDateLabel(m.createdAt);
+            const prevDate = i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
+            const showDate = currentDate !== prevDate;
+            const prev = messages[i - 1];
+            const showUser = !prev || prev.from !== m.from;
+            const isMine = m.from === nickname;
+            const isVIP = userVipMap[m.from] === true;
 
-          const prev = messages[i - 1];
-          const showUser = !prev || prev.from !== m.from;
-
-          const isMine = m.from === nickname;
-          const isVIP = userVipMap[m.from] === true;
-
-          return (
-            <>
-              {showDate && (
-                <div className="flex items-center justify-center text-xs text-gray-400 w-full">
-                  <div className="w-10 border-t" />
-                  <span className="px-1">{currentDate}</span>
-                  <div className="w-10 border-t" />
-                </div>
-              )}
-
-              <div
-                key={m.id}
-                className="flex flex-col"
-                onDoubleClick={() => setSelectedMsgId(m.id)}
-              >
+            return (
+              <>
+                {showDate && (
+                  <div className="flex items-center justify-center text-xs text-gray-400 w-full">
+                    <div className="w-10 border-t" />
+                    <span className="px-1">{currentDate}</span>
+                    <div className="w-10 border-t" />
+                  </div>
+                )}
                 <div
-                  className={`flex flex-col max-w-xs ${
-                    isMine ? "self-end items-end" : "self-start items-start"
-                  }`}
+                  key={m.id}
+                  className="flex flex-col"
+                  onDoubleClick={() => setSelectedMsgId(m.id)}
                 >
-                  {showUser && (
-                    <div className="text-xs mb-1 flex items-center gap-1">
-                      <span
-                        className={isVIP ? "text-yellow-600 font-semibold" : ""}
-                      >
-                        {m.from}
-                      </span>
-
-                      {isVIP && (
-                        <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">
-                          VIP
-                        </span>
-                      )}
+                  <div className={`flex flex-col max-w-xs ${isMine ? "self-end items-end" : "self-start items-start"}`}>
+                    {showUser && (
+                      <div className="text-xs mb-1 flex items-center gap-1">
+                        <span className={isVIP ? "text-yellow-600 font-semibold" : ""}>{m.from}</span>
+                        {isVIP && <span className="text-[10px] bg-yellow-400 text-white px-1 rounded">VIP</span>}
+                      </div>
+                    )}
+                    <div className={`px-3 py-2 rounded-2xl ${isMine ? isVIP ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400" : "bg-red-100" : "bg-gray-200"}`}>
+                      {m.content}
                     </div>
-                  )}
-
-                  <div
-                    className={`px-3 py-2 rounded-2xl ${
-                      isMine
-                        ? isVIP
-                          ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
-                          : "bg-red-100"
-                        : "bg-gray-200"
-                    }`}
-                  >
-                    {m.content}
-                  </div>
-
-                  {isMine && (
-                    <div className="text-[10px] text-gray-400">
-                      {m.readBy?.length > 1 ? "✔" : "1"}
-                    </div>
-                  )}
-
-                  {selectedMsgId === m.id && isMine && (
-                    <div className="flex gap-2 text-xs">
-                      <button onClick={() => editMessage(m.id)}>수정</button>
-                      <button onClick={() => deleteMessage(m.id)}>삭제</button>
-                    </div>
-                  )}
-
-                  <div className="text-[10px] text-gray-400">
-                    {formatTime(m.createdAt)}
+                    {isMine && (
+                      <div className="text-[10px] text-gray-400">
+                        {m.readBy?.length > 1 ? "✔" : "1"}
+                      </div>
+                    )}
+                    {selectedMsgId === m.id && isMine && (
+                      <div className="flex gap-2 text-xs">
+                        <button onClick={() => editMessage(m.id)}>수정</button>
+                        <button onClick={() => deleteMessage(m.id)}>삭제</button>
+                      </div>
+                    )}
+                    <div className="text-[10px] text-gray-400">{formatTime(m.createdAt)}</div>
                   </div>
                 </div>
-              </div>
-            </>
-          );
-        })}
-
+              </>
+            );
+          })}
         <div ref={messagesEndRef} />
       </div>
 
@@ -484,50 +410,29 @@ export default function Chat() {
         <input
           className="flex-1 border rounded-xl px-3 py-2"
           value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            setIsTyping(true);
-          }}
+          onChange={(e) => { setInput(e.target.value); setIsTyping(true); }}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지 입력"
         />
-
-        <button
-          onClick={sendMessage}
-          className="px-4 py-2 bg-yellow-200 rounded-xl"
-        >
-          전송
-        </button>
-
+        <button onClick={sendMessage} className="px-4 py-2 bg-yellow-200 rounded-xl">전송</button>
         {!isMyVIP && (
-          <button
-            onClick={() => router.push("/vip")}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow"
-          >
+          <button onClick={() => router.push("/vip")} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow">
             VIP 구매
           </button>
         )}
-
         {isMyVIP && aiSummaryOn && (
-          <button
-            onClick={runSummary}
-            className="px-4 py-2 bg-blue-500 text-white rounded-xl"
-          >
-            채팅 요약
-          </button>
+          <button onClick={runSummary} className="px-4 py-2 bg-blue-500 text-white rounded-xl">채팅 요약</button>
         )}
       </div>
     </>
   );
 
-  /* 🔥 모바일 / PC 구조 원본 유지 */
   if (isMobile) {
     if (!currentChatUser) {
       return (
         <PageContainer>
           <div className="h-screen p-4">
             <div className="text-xl font-bold mb-4">회원 목록</div>
-
             {users.map((u) => (
               <SwipeUserItem
                 key={u.id}
@@ -552,14 +457,9 @@ export default function Chat() {
         <div className="h-screen flex flex-col">
           <div className="flex items-center gap-2 p-3 border-b">
             <button onClick={() => setCurrentChatUser(null)}>←</button>
-            <div className="font-bold">
-              {currentChatUser.nickname}
-            </div>
+            <div className="font-bold">{currentChatUser.nickname}</div>
           </div>
-
-          <div className="flex-1 flex flex-col">
-            {renderChat()}
-          </div>
+          <div className="flex-1 flex flex-col">{renderChat()}</div>
         </div>
       </PageContainer>
     );
@@ -570,7 +470,6 @@ export default function Chat() {
       <div className="h-screen flex">
         <div className="w-60 border-r p-4 flex flex-col gap-2">
           <div className="font-bold">회원 목록</div>
-
           {users.map((u) => (
             <SwipeUserItem
               key={u.id}
@@ -586,11 +485,8 @@ export default function Chat() {
             />
           ))}
         </div>
-
         <div className="flex-1 flex flex-col">
-          {currentChatUser ? (
-            renderChat()
-          ) : (
+          {currentChatUser ? renderChat() : (
             <div className="flex-1 flex items-center justify-center text-gray-400">
               채팅 상대를 선택해 주세요☺️
             </div>
@@ -601,17 +497,12 @@ export default function Chat() {
   );
 }
 
-/* 시간 */
 const formatTime = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 };
 
-/* 날짜 */
 const formatDateLabel = (ts: any) => {
   if (!ts) return "";
   const d = ts?.toDate ? ts.toDate() : new Date(ts);
