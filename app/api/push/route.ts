@@ -4,13 +4,12 @@ import webpush from "web-push";
 import { db } from "@/app/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-webpush.setVapidDetails(
-  "mailto:your@email.com",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
 export async function POST(req: NextRequest) {
+  webpush.setVapidDetails(
+    "mailto:your@email.com",
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
   try {
     const { toNickname, fromNickname, message } = await req.json();
 
