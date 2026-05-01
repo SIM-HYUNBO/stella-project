@@ -36,7 +36,7 @@ type User = {
   nickname: string;
 };
 
-function SwipeUserItem({ u, isActive, isBlocked, isNotifOff, lastMessage, onClick, onBlock, onHide, onNotif }: any) {
+function SwipeUserItem({ u, isActive, isBlocked, lastMessage, onClick, onBlock }: any) {
   const BUTTON_WIDTH = 80;
   const [offset, setOffset] = useState(0);
   const [open, setOpen] = useState(false);
@@ -145,7 +145,6 @@ export default function Chat() {
   }, []);
 
   const [summary, setSummary] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
   const isInitialLoad = useRef(true);
@@ -215,6 +214,7 @@ export default function Chat() {
   useEffect(() => {
     const unsub = watchAuthState((user) => {
       if (user) setNickname(user.displayName || "유저");
+      else router.replace("/login");
     });
     return () => unsub();
   }, []);
@@ -325,7 +325,6 @@ export default function Chat() {
     }).catch(() => {}); // 실패해도 채팅엔 영향 없음
 
     setInput("");
-    setIsTyping(false);
   };
 
   const deleteMessage = async (id: string) => {
@@ -354,7 +353,7 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
         {messages
-          .filter(m => !isBlocked(currentChatUser?.id || ""))
+          .filter(() => !isBlocked(currentChatUser?.id || ""))
           .map((m, i) => {
             const currentDate = formatDateLabel(m.createdAt);
             const prevDate = i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
@@ -412,7 +411,7 @@ export default function Chat() {
         <input
           className="flex-1 border rounded-xl px-3 py-2"
           value={input}
-          onChange={(e) => { setInput(e.target.value); setIsTyping(true); }}
+          onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지 입력"
         />

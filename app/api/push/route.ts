@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       JSON.stringify({
         title: `${fromNickname}님의 메시지`,
         body: message,
-        url: "/chat",
+        url: "/home",
       })
     );
 

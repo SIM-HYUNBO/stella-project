@@ -3,7 +3,8 @@ const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
   skipWaiting: true,
-  customWorkerDir: "worker", // ← 커스텀 워커 폴더 지정
+  customWorkerDir: "worker",
+  disable: false, // 개발 모드에서도 서비스 워커 활성화
 });
 
 module.exports = withPWA({

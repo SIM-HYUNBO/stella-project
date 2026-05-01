@@ -1,5 +1,5 @@
-// public/sw-push.js
-// 이 파일을 public/sw-push.js 로 저장하세요
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
   const data = event.data?.json() ?? {};
@@ -9,7 +9,7 @@ self.addEventListener("push", (event) => {
       icon: "/icon.png",
       badge: "/icon.png",
       vibrate: [200, 100, 200],
-      data: { url: data.url || "/chat" },
+      data: { url: data.url || "/home" },
     })
   );
 });

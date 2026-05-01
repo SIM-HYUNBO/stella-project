@@ -21,12 +21,32 @@ function urlBase64ToUint8Array(base64String: string) {
 export function usePushSubscription(nickname: string | null) {
   const [isSubscribed, setIsSubscribed] = useState(false);
 
+  const getPushReg = async (): Promise<ServiceWorkerRegistration> => {
+    const reg = await navigator.serviceWorker.register("/sw-push.js", {
+      scope: "/push-notifications/",
+      updateViaCache: "none",
+    });
+    await reg.update();
+
+    // 서비스 워커가 active 상태가 될 때까지 대기
+    if (reg.active) return reg;
+    return new Promise((resolve) => {
+      const sw = reg.installing ?? reg.waiting;
+      if (!sw) { resolve(reg); return; }
+      sw.addEventListener("statechange", function handler() {
+        if (reg.active) {
+          sw.removeEventListener("statechange", handler);
+          resolve(reg);
+        }
+      });
+    });
+  };
+
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
     const init = async () => {
-      await navigator.serviceWorker.register("/sw.js");
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await getPushReg();
       const sub = await reg.pushManager.getSubscription();
       setIsSubscribed(!!sub && Notification.permission === "granted");
     };
@@ -35,35 +55,35 @@ export function usePushSubscription(nickname: string | null) {
   }, []);
 
   const toggle = async () => {
-    if (!nickname || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (!nickname) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      alert("이 브라우저는 푸쉬 알림을 지원하지 않아요.");
+      return;
+    }
 
     try {
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await getPushReg();
       const sub = await reg.pushManager.getSubscription();
 
       if (isSubscribed && sub) {
-        // 구독 취소
         await sub.unsubscribe();
         await deleteDoc(doc(db, "push_subscriptions", nickname));
         setIsSubscribed(false);
         return;
       }
 
-      // 권한 요청 먼저
-      const permission = await Notification.requestPermission();
-      
-      // 권한 결과 확인 후 처리
-      if (permission === "denied") {
-        alert("브라우저 설정에서 알림을 허용해주세요.");
-        return;
-      }
-
+      let permission = Notification.permission;
       if (permission === "default") {
-        // 사용자가 팝업을 닫은 경우
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission === "denied") {
+        alert("알림이 차단되어 있어요.\n브라우저 주소창 왼쪽 자물쇠 아이콘 → 알림 → 허용 으로 변경해주세요.");
         return;
       }
 
-      // granted인 경우만 구독
+      if (permission !== "granted") return;
+
       const newSub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
@@ -76,8 +96,9 @@ export function usePushSubscription(nickname: string | null) {
       );
 
       setIsSubscribed(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error("푸시 구독 오류:", e);
+      alert(`알림 설정 실패: ${e?.message ?? e}`);
     }
   };
 
