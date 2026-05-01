@@ -1,9 +1,9 @@
 // app/hooks/usePushSubscription.ts
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { db } from "@/app/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 
@@ -19,44 +19,67 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export function usePushSubscription(nickname: string | null) {
-  // 서비스 워커만 미리 등록
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+    const init = async () => {
+      await navigator.serviceWorker.register("/sw.js");
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      setIsSubscribed(!!sub && Notification.permission === "granted");
+    };
+
+    init().catch(() => {});
   }, []);
 
-  // 버튼 클릭 시 호출할 함수 반환
-  const requestAndSubscribe = async () => {
+  const toggle = async () => {
     if (!nickname || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
     try {
       const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
 
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        alert("알림을 허용해야 푸시 알림을 받을 수 있어요.");
+      if (isSubscribed && sub) {
+        // 구독 취소
+        await sub.unsubscribe();
+        await deleteDoc(doc(db, "push_subscriptions", nickname));
+        setIsSubscribed(false);
         return;
       }
 
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-        });
+      // 권한 요청 먼저
+      const permission = await Notification.requestPermission();
+      
+      // 권한 결과 확인 후 처리
+      if (permission === "denied") {
+        alert("브라우저 설정에서 알림을 허용해주세요.");
+        return;
       }
+
+      if (permission === "default") {
+        // 사용자가 팝업을 닫은 경우
+        return;
+      }
+
+      // granted인 경우만 구독
+      const newSub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
 
       await setDoc(
         doc(db, "push_subscriptions", nickname),
-        { subscription: JSON.stringify(sub), updatedAt: new Date() },
+        { subscription: JSON.stringify(newSub), updatedAt: new Date() },
         { merge: true }
       );
 
-      alert("알림이 설정됐어요! 🔔");
+      setIsSubscribed(true);
     } catch (e) {
       console.error("푸시 구독 오류:", e);
     }
   };
 
-  return { requestAndSubscribe };
+  return { isSubscribed, toggle };
 }
