@@ -9,7 +9,7 @@ self.addEventListener("push", (event) => {
       icon: "/icon.png",
       badge: "/icon.png",
       vibrate: [200, 100, 200],
-      data: { url: data.url || "/chat" },
+      data: { url: data.url || "/home" },
     })
   );
 });

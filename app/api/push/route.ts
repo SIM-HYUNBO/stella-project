@@ -6,7 +6,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 export async function POST(req: NextRequest) {
   webpush.setVapidDetails(
-    "mailto:your@email.com",
+    "mailto:hbsim0605@gmail.com",
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
     process.env.VAPID_PRIVATE_KEY!
   );

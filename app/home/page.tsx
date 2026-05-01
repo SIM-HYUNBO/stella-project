@@ -148,10 +148,10 @@ export default function Chat() {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
+  const isInitialLoad = useRef(true);
 
-  /* 🔔 푸시 구독 등록 (브라우저 종료 시에도 알림 수신) */
-  const { requestAndSubscribe } = usePushSubscription(nickname);
-  
+  const { isSubscribed, toggle } = usePushSubscription(nickname);
+
   /* 🔔 앱 내 알림음 (브라우저 열려있을 때) */
   const playNotificationSound = () => {
     const audio = new Audio("/sounds/alert1.mp3");
@@ -260,6 +260,7 @@ export default function Chat() {
 
   useEffect(() => {
     if (!currentChatUser || !nickname) return;
+    isInitialLoad.current = true;
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
     const unsub = onSnapshot(q, async (snap) => {
       const msgs: Message[] = [];
@@ -286,10 +287,11 @@ export default function Chat() {
           m.readBy = [...(m.readBy || []), nickname];
         }
         msgs.push(m);
-        if (m.from !== nickname) {
+        if (m.from !== nickname && !isInitialLoad.current) {
           playNotificationSound();
         }
       }
+      isInitialLoad.current = false;
       setMessages(msgs);
       setLastMessages((prev) => ({ ...prev, [currentChatUser.id]: lastMsg }));
       setTimeout(() => {
@@ -435,10 +437,10 @@ export default function Chat() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-xl font-bold">회원 목록</div>
               <button
-                onClick={requestAndSubscribe}
+                onClick={toggle}
                 className="text-sm px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                🔔 알림 허용
+                {isSubscribed ? "🔕 알림 끄기" : "🔔 알림 허용"}
               </button>
             </div>
             {users.map((u) => (
@@ -480,11 +482,11 @@ export default function Chat() {
           <div className="flex items-center justify-between mb-1">
             <div className="font-bold">회원 목록</div>
             <button
-              onClick={requestAndSubscribe}
+              onClick={toggle}
               className="text-xs px-2 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
-              title="알림 허용"
+              title={isSubscribed ? "알림 끄기" : "알림 허용"}
             >
-              🔔
+              {isSubscribed ? "🔕" : "🔔"}
             </button>
           </div>
           {users.map((u) => (
