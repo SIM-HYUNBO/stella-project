@@ -183,29 +183,7 @@ export default function HamburgerMenuWithDelete() {
                     🛑 계정 탈퇴
                   </button>
 
-                  {/* 🔥 VIP 해제 */}
-                  {isVip && (
-                    <>
-                      <div className="border-t w-full my-2"></div>
-
-                      <button
-                        onClick={async () => {
-                          if (!user) return;
-
-                          await updateDoc(
-                            doc(db, "users", user.uid),
-                            { vip: false }
-                          );
-
-                          setIsVip(false);
-                          alert("VIP 해제됨");
-                        }}
-                        className="text-yellow-700 font-semibold"
-                      >
-                        💎 VIP 해제
-                      </button>
-                    </>
-                  )}
+                 
                 </div>
               )}
             </>
@@ -233,9 +211,7 @@ export default function HamburgerMenuWithDelete() {
             </Link>
           ))}
 
-          {/* 🤖 VIP AI 메뉴 */}
-          {isVip && (
-            <>
+         
               <div className="border-t my-2"></div>
 
               <div className="text-xs text-gray-400 px-2">
@@ -255,8 +231,8 @@ export default function HamburgerMenuWithDelete() {
               >
                 AI 도우미 채팅
               </Link>
-            </>
-          )}
+          
+        
 
           {/* 🔒 특별 메뉴 (하드코딩 유지) */}
           {SPECIAL_USERS.includes(nickname || "") && (

@@ -415,6 +415,7 @@ export default function Chat() {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지 입력"
         />
+        <button onClick={sendMessage} className="px-4 py-2 bg-yellow-200 rounded-xl">전송</button>
        
         {isMyVIP && aiSummaryOn && (
           <button onClick={runSummary} className="px-4 py-2 bg-blue-500 text-white rounded-xl">채팅 요약</button>
