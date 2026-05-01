@@ -6,7 +6,10 @@
       "Bash(git push *)",
       "Bash(Get-ChildItem -Path . -Depth 2)",
       "Bash(Select-Object FullName, PSIsContainer)",
-      "Bash(Format-List)"
+      "Bash(Format-List)",
+      "Bash(Get-ChildItem -Path . -Force -Recurse)",
+      "Bash(Select-Object -First 50)",
+      "Bash(grep -E \"\\\\.\\(png|jpg|jpeg|ico|webp|svg\\)$\")"
     ]
   }
 }

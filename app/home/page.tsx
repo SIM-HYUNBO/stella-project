@@ -415,12 +415,7 @@ export default function Chat() {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지 입력"
         />
-        <button onClick={sendMessage} className="px-4 py-2 bg-yellow-200 rounded-xl">전송</button>
-        {!isMyVIP && (
-          <button onClick={() => router.push("/vip")} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow">
-            VIP 구매
-          </button>
-        )}
+       
         {isMyVIP && aiSummaryOn && (
           <button onClick={runSummary} className="px-4 py-2 bg-blue-500 text-white rounded-xl">채팅 요약</button>
         )}
@@ -480,13 +475,7 @@ export default function Chat() {
         <div className="w-60 border-r p-4 flex flex-col gap-2">
           <div className="flex items-center justify-between mb-1">
             <div className="font-bold">회원 목록</div>
-            <button
-              onClick={toggle}
-              className="text-xs px-2 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
-              title={isSubscribed ? "알림 끄기" : "알림 허용"}
-            >
-              {isSubscribed ? "🔕" : "🔔"}
-            </button>
+            
           </div>
           {users.map((u) => (
             <SwipeUserItem
