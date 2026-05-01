@@ -1,4 +1,3 @@
-// app/hooks/usePushSubscription.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,38 +20,33 @@ function urlBase64ToUint8Array(base64String: string) {
 export function usePushSubscription(nickname: string | null) {
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const getPushReg = async (): Promise<ServiceWorkerRegistration> => {
-    const reg = await navigator.serviceWorker.register("/sw-push.js", {
-      scope: "/push-notifications/",
-      updateViaCache: "none",
-    });
-    await reg.update();
-
-    // 서비스 워커가 active 상태가 될 때까지 대기
-    if (reg.active) return reg;
-    return new Promise((resolve) => {
-      const sw = reg.installing ?? reg.waiting;
-      if (!sw) { resolve(reg); return; }
-      sw.addEventListener("statechange", function handler() {
-        if (reg.active) {
-          sw.removeEventListener("statechange", handler);
-          resolve(reg);
-        }
-      });
-    });
-  };
-
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
     const init = async () => {
-      const reg = await getPushReg();
+      // 기존 sw-push.js 등록 제거 (레거시 마이그레이션)
+      const allRegs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of allRegs) {
+        if (reg.active?.scriptURL.includes("sw-push.js")) {
+          const oldSub = await reg.pushManager.getSubscription();
+          if (oldSub) {
+            await oldSub.unsubscribe();
+            if (nickname) {
+              await deleteDoc(doc(db, "push_subscriptions", nickname)).catch(() => {});
+            }
+          }
+          await reg.unregister();
+        }
+      }
+
+      // 메인 SW(sw.js) 등록을 사용 — 브라우저/잠금화면에서도 안정적으로 동작
+      const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
       setIsSubscribed(!!sub && Notification.permission === "granted");
     };
 
     init().catch(() => {});
-  }, []);
+  }, [nickname]);
 
   const toggle = async () => {
     if (!nickname) return;
@@ -62,7 +56,7 @@ export function usePushSubscription(nickname: string | null) {
     }
 
     try {
-      const reg = await getPushReg();
+      const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
 
       if (isSubscribed && sub) {

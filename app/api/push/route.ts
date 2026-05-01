@@ -1,8 +1,7 @@
-// app/api/push/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import webpush from "web-push";
 import { db } from "@/app/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
 
 export async function POST(req: NextRequest) {
   webpush.setVapidDetails(
@@ -13,20 +12,28 @@ export async function POST(req: NextRequest) {
   try {
     const { toNickname, fromNickname, message } = await req.json();
 
-    // 수신자 구독 정보 가져오기
     const snap = await getDoc(doc(db, "push_subscriptions", toNickname));
     if (!snap.exists()) return NextResponse.json({ ok: false, reason: "no subscription" });
 
     const subscription = JSON.parse(snap.data().subscription);
 
-    await webpush.sendNotification(
-      subscription,
-      JSON.stringify({
-        title: `${fromNickname}님의 메시지`,
-        body: message,
-        url: "/home",
-      })
-    );
+    try {
+      await webpush.sendNotification(
+        subscription,
+        JSON.stringify({
+          title: `${fromNickname}님의 메시지`,
+          body: message,
+          url: "/home",
+        })
+      );
+    } catch (pushErr: any) {
+      // 구독이 만료되거나 무효화된 경우 Firestore에서 제거
+      if (pushErr.statusCode === 404 || pushErr.statusCode === 410) {
+        await deleteDoc(doc(db, "push_subscriptions", toNickname)).catch(() => {});
+        return NextResponse.json({ ok: false, reason: "subscription expired" });
+      }
+      throw pushErr;
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {
