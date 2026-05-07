@@ -678,8 +678,10 @@ export default function Chat() {
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
           placeholder="메시지 입력"
         />
-        <button onClick={sendMessage} className="px-4 py-2 bg-yellow-200 hover:bg-yellow-300 rounded-xl text-sm shrink-0 transition-colors">
-          전송
+        <button onClick={sendMessage} className="p-2 bg-yellow-200 hover:bg-yellow-300 rounded-xl shrink-0 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
         </button>
         {isMyVIP && aiSummaryOn && (
           <button onClick={runSummary} className="px-3 py-2 bg-blue-500 text-white rounded-xl text-sm shrink-0">요약</button>

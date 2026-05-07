@@ -374,9 +374,11 @@ export default function GroupChat() {
         />
         <button
           onClick={sendMessage}
-          className="px-4 py-2 bg-yellow-200 hover:bg-yellow-300 rounded-xl text-sm shrink-0 transition-colors"
+          className="p-2 bg-yellow-200 hover:bg-yellow-300 rounded-xl shrink-0 transition-colors"
         >
-          전송
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
         </button>
       </div>
     </div>
