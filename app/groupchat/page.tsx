@@ -53,6 +53,7 @@ export default function GroupChat() {
   const [newRoomName, setNewRoomName] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [inviting, setInviting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -137,10 +138,10 @@ export default function GroupChat() {
     return () => unsub();
   }, [currentRoom?.id, nickname]);
 
-  // 전체 사용자 목록 로드 (초대용)
+  // 전체 사용자 목록 로드 (초대용) - 실시간으로 유지
   useEffect(() => {
     if (!nickname) return;
-    getDocs(collection(db, "users")).then((snap) => {
+    return onSnapshot(collection(db, "users"), (snap) => {
       const list: User[] = snap.docs
         .map((d) => ({ id: d.id, nickname: d.data().nickname as string }))
         .filter((u) => u.nickname !== nickname);
@@ -194,10 +195,19 @@ export default function GroupChat() {
   };
 
   const inviteUser = async (targetNickname: string) => {
-    if (!currentRoom) return;
-    await updateDoc(doc(db, "group_rooms", currentRoom.id), {
-      members: arrayUnion(targetNickname),
-    });
+    if (!currentRoom || inviting) return;
+    setInviting(true);
+    try {
+      await updateDoc(doc(db, "group_rooms", currentRoom.id), {
+        members: arrayUnion(targetNickname),
+      });
+      setShowInvite(false);
+      alert(`${targetNickname}님을 초대했습니다.`);
+    } catch (err: any) {
+      alert(`초대 실패: ${err?.message || "알 수 없는 오류"}`);
+    } finally {
+      setInviting(false);
+    }
   };
 
   const leaveRoom = async () => {
@@ -231,13 +241,15 @@ export default function GroupChat() {
             {notInRoom.map((u) => (
               <button
                 key={u.id}
-                onClick={() => { inviteUser(u.nickname); setShowInvite(false); }}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 text-left"
+                disabled={inviting}
+                onClick={() => inviteUser(u.nickname)}
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 text-left disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
                   {u.nickname[0]}
                 </div>
                 <span className="text-sm">{u.nickname}</span>
+                {inviting && <span className="ml-auto text-xs text-gray-400">초대 중...</span>}
               </button>
             ))}
           </div>
