@@ -152,7 +152,6 @@ export default function Chat() {
   const [userVipMap, setUserVipMap] = useState<Record<string, boolean>>({});
   const [aiSummaryOn, setAiSummaryOn] = useState(false);
   const [summary, setSummary] = useState("");
-  const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
   const isInitialLoad = useRef(true);
   const { isSubscribed, toggle } = usePushSubscription(nickname);
@@ -162,13 +161,17 @@ export default function Chat() {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
-  const [showReactionFor, setShowReactionFor] = useState<string | null>(null);
   const [msgSearch, setMsgSearch] = useState("");
   const [showMsgSearch, setShowMsgSearch] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nicknameRef = useRef<string | null>(null);
+
+  // 컨텍스트 메뉴
+  type CtxMenu = { msgId: string; x: number; y: number; isMine: boolean; msg: Message } | null;
+  const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { nicknameRef.current = nickname; }, [nickname]);
 
@@ -450,7 +453,31 @@ export default function Chat() {
       reactions[emoji] = [...users, nickname];
     }
     await updateDoc(doc(db, "messages", msgId), { reactions });
-    setShowReactionFor(null);
+    setCtxMenu(null);
+  };
+
+  const openCtxMenu = (e: React.MouseEvent | React.TouchEvent, m: Message, isMine: boolean) => {
+    let x: number, y: number;
+    if ("touches" in e) {
+      x = e.touches[0].clientX;
+      y = e.touches[0].clientY;
+    } else {
+      (e as React.MouseEvent).preventDefault();
+      x = (e as React.MouseEvent).clientX;
+      y = (e as React.MouseEvent).clientY;
+    }
+    const popupW = 160;
+    const popupH = 180;
+    const adjX = Math.min(x, window.innerWidth - popupW - 8);
+    const adjY = y + popupH > window.innerHeight ? y - popupH : y + 8;
+    setCtxMenu({ msgId: m.id, x: adjX, y: adjY, isMine, msg: m });
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, m: Message, isMine: boolean) => {
+    longPressTimer.current = setTimeout(() => openCtxMenu(e, m, isMine), 500);
+  };
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
   };
 
   const isMyVIP = userVipMap[nickname || ""] === true;
@@ -531,7 +558,7 @@ export default function Chat() {
 
       <div
         className="flex-1 overflow-y-auto p-4 flex flex-col gap-1"
-        onClick={() => { setSelectedMsgId(null); setShowReactionFor(null); }}
+        onClick={() => setCtxMenu(null)}
       >
         {displayedMessages
           .filter(() => !isBlocked(currentChatUser?.id || ""))
@@ -543,7 +570,6 @@ export default function Chat() {
             const showUser = !prev || prev.from !== m.from;
             const isMine = m.from === nickname;
             const isVIP = userVipMap[m.from] === true;
-            const isSelected = selectedMsgId === m.id;
 
             return (
               <div key={m.id}>
@@ -573,12 +599,18 @@ export default function Chat() {
                         </div>
                       )}
 
-                      <div className={`px-3 py-2 rounded-2xl text-sm ${isMine
-                        ? isVIP
-                          ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
-                          : "bg-red-100"
-                        : "bg-gray-200"
-                      }`}>
+                      <div
+                        className={`px-3 py-2 rounded-2xl text-sm cursor-pointer select-none ${isMine
+                          ? isVIP
+                            ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
+                            : "bg-red-100"
+                          : "bg-gray-200"
+                        }`}
+                        onContextMenu={(e) => openCtxMenu(e, m, isMine)}
+                        onTouchStart={(e) => handleTouchStart(e, m, isMine)}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchMove={handleTouchEnd}
+                      >
                         {renderMsgContent(m)}
                       </div>
 
@@ -591,23 +623,6 @@ export default function Chat() {
                               className={`text-xs px-1.5 py-0.5 rounded-full border transition-colors ${users.includes(nickname!) ? "bg-blue-100 border-blue-300 text-blue-700" : "bg-gray-100 border-gray-300 text-gray-600"}`}
                             >
                               {emoji} {users.length}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {showReactionFor === m.id && (
-                        <div
-                          className={`flex gap-1 mt-1 bg-white border rounded-2xl px-2 py-1 shadow-md ${isMine ? "justify-end" : "justify-start"}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {REACTION_EMOJIS.map((emoji) => (
-                            <button
-                              key={emoji}
-                              onClick={() => toggleReaction(m.id, emoji)}
-                              className="text-lg hover:scale-125 transition-transform"
-                            >
-                              {emoji}
                             </button>
                           ))}
                         </div>
@@ -670,6 +685,56 @@ export default function Chat() {
           <button onClick={runSummary} className="px-3 py-2 bg-blue-500 text-white rounded-xl text-sm shrink-0">요약</button>
         )}
       </div>
+
+      {/* 컨텍스트 메뉴 팝업 */}
+      {ctxMenu && (
+        <div
+          className="fixed z-50"
+          style={{ top: ctxMenu.y, left: ctxMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-40">
+            {/* 리액션 행 */}
+            <div className="flex justify-around px-2 py-2 border-b border-gray-100">
+              {REACTION_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => toggleReaction(ctxMenu.msgId, emoji)}
+                  className="text-lg hover:scale-125 transition-transform"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            {/* 액션 목록 */}
+            <button
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2"
+              onClick={() => {
+                setReplyTo({ id: ctxMenu.msg.id, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type });
+                setCtxMenu(null);
+              }}
+            >
+              <span className="text-base">↩</span> 답장
+            </button>
+            {ctxMenu.isMine && (
+              <>
+                <button
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2"
+                  onClick={() => { editMessage(ctxMenu.msgId); setCtxMenu(null); }}
+                >
+                  <span className="text-base">✏️</span> 수정
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+                  onClick={() => { deleteMessage(ctxMenu.msgId); setCtxMenu(null); }}
+                >
+                  <span className="text-base">🗑️</span> 삭제
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 
