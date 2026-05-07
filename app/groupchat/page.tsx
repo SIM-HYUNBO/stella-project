@@ -224,22 +224,32 @@ export default function GroupChat() {
     setCurrentRoom(null);
   };
 
+  const compressToBase64 = (file: File, maxPx = 120): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("이미지 로드 실패")); };
+      img.src = url;
+    });
+
   const changeProfileImage = async (file: File) => {
     if (!currentRoom || profileUploading) return;
     setProfileUploading(true);
-    const timer = setTimeout(() => {
-      setProfileUploading(false);
-      alert("업로드 시간이 초과됐습니다. 다시 시도해 주세요.");
-    }, 15000);
     try {
-      const sRef = storageRef(storage, `group-profiles/${currentRoom.id}`);
-      const snapshot = await uploadBytes(sRef, file);
-      const url = await getDownloadURL(snapshot.ref);
-      await updateDoc(doc(db, "group_rooms", currentRoom.id), { profileImage: url });
+      const base64 = await compressToBase64(file);
+      await updateDoc(doc(db, "group_rooms", currentRoom.id), { profileImage: base64 });
     } catch (err: any) {
       alert(`프로필 변경 실패: ${err?.message ?? "알 수 없는 오류"}`);
     } finally {
-      clearTimeout(timer);
       setProfileUploading(false);
     }
   };
