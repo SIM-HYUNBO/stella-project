@@ -94,14 +94,16 @@ export default function GroupChat() {
         return tb - ta;
       });
       setRooms(list);
-      // currentRoom 동기화 (나가기 등으로 갱신될 수 있음)
-      if (currentRoom) {
-        const updated = list.find((r) => r.id === currentRoom.id);
-        if (updated) setCurrentRoom(updated);
-        else setCurrentRoom(null);
-      }
     });
   }, [nickname]);
+
+  // rooms가 바뀔 때마다 currentRoom 최신 데이터로 동기화
+  useEffect(() => {
+    if (!currentRoom) return;
+    const updated = rooms.find((r) => r.id === currentRoom.id);
+    if (updated) setCurrentRoom(updated);
+    else setCurrentRoom(null);
+  }, [rooms]);
 
   // 방 내 메시지 실시간 로드
   useEffect(() => {
