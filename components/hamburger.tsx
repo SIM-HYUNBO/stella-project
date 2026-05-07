@@ -198,6 +198,8 @@ export default function HamburgerMenuWithDelete() {
 
           {/* 공통 메뉴 */}
           {[
+            ["/home", "1:1 채팅"],
+            ["/groupchat", "단체 채팅"],
             ["/admintalk", "관리자 톡"],
             ["/AItalk", "이효린 챗"],
             ["/tools", "설정"],
