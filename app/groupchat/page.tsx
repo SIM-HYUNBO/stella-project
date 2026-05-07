@@ -374,9 +374,9 @@ export default function GroupChat() {
         />
         <button
           onClick={sendMessage}
-          className="p-2 bg-yellow-200 hover:bg-yellow-300 rounded-xl shrink-0 transition-colors"
+          className="w-9 h-9 flex items-center justify-center bg-yellow-300 hover:bg-yellow-400 rounded-full shrink-0 transition-all shadow-sm active:scale-95"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
         </button>
