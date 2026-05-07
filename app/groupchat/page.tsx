@@ -225,16 +225,21 @@ export default function GroupChat() {
   };
 
   const changeProfileImage = async (file: File) => {
-    if (!currentRoom) return;
+    if (!currentRoom || profileUploading) return;
     setProfileUploading(true);
+    const timer = setTimeout(() => {
+      setProfileUploading(false);
+      alert("업로드 시간이 초과됐습니다. 다시 시도해 주세요.");
+    }, 15000);
     try {
       const sRef = storageRef(storage, `group-profiles/${currentRoom.id}`);
       const snapshot = await uploadBytes(sRef, file);
       const url = await getDownloadURL(snapshot.ref);
       await updateDoc(doc(db, "group_rooms", currentRoom.id), { profileImage: url });
-    } catch {
-      alert("프로필 변경에 실패했습니다.");
+    } catch (err: any) {
+      alert(`프로필 변경 실패: ${err?.message ?? "알 수 없는 오류"}`);
     } finally {
+      clearTimeout(timer);
       setProfileUploading(false);
     }
   };
@@ -291,23 +296,20 @@ export default function GroupChat() {
           >←</button>
 
           {/* 프로필 이미지 (클릭 시 변경) */}
-          <div
-            className="relative w-9 h-9 rounded-full shrink-0 cursor-pointer group"
-            onClick={() => profileInputRef.current?.click()}
-            title="프로필 변경"
-          >
+          <div className="relative w-9 h-9 rounded-full shrink-0 group">
             {currentRoom?.profileImage ? (
-              <img
-                src={currentRoom.profileImage}
-                alt="프로필"
-                className="w-9 h-9 rounded-full object-cover"
-              />
+              <img src={currentRoom.profileImage} alt="프로필" className="w-9 h-9 rounded-full object-cover" />
             ) : (
               <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
                 {currentRoom?.name[0]}
               </div>
             )}
-            <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              disabled={profileUploading}
+              onClick={() => profileInputRef.current?.click()}
+              className={`absolute inset-0 rounded-full bg-black/30 flex items-center justify-center transition-opacity ${profileUploading ? "opacity-100 cursor-not-allowed" : "opacity-0 group-hover:opacity-100 cursor-pointer"}`}
+              title="프로필 변경"
+            >
               {profileUploading ? (
                 <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
@@ -315,7 +317,7 @@ export default function GroupChat() {
                   <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4zm0-8.4a5.2 5.2 0 1 1 0 10.4A5.2 5.2 0 0 1 12 6.8zM9 2l-1.83 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/>
                 </svg>
               )}
-            </div>
+            </button>
             <input
               ref={profileInputRef}
               type="file"
