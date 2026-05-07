@@ -554,10 +554,7 @@ export default function Chat() {
                     <div className="flex-1 border-t" />
                   </div>
                 )}
-                <div
-                  className={`flex ${isMine ? "justify-end" : "justify-start"} group`}
-                  onClick={(e) => { e.stopPropagation(); setSelectedMsgId((p) => p === m.id ? null : m.id); setShowReactionFor(null); }}
-                >
+                <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                   <div className={`flex items-end gap-1 max-w-[75%] ${isMine ? "flex-row-reverse" : "flex-row"}`}>
                     <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
                       {showUser && !isMine && (
@@ -619,46 +616,11 @@ export default function Chat() {
                       <div className="flex items-center gap-1 mt-0.5">
                         {isMine && (
                           <span className="text-[10px] text-gray-400">
-                            {(m.readBy?.length ?? 0) > 1 ? "✔✔" : "✔"}
+                            {(m.readBy?.length ?? 0) > 1 ? "0" : "1"}
                           </span>
                         )}
                         <span className="text-[10px] text-gray-400">{formatTime(m.createdAt)}</span>
                       </div>
-                    </div>
-
-                    {/* 액션 버튼 */}
-                    <div className={`flex flex-col gap-1 shrink-0 ${isSelected ? "flex" : "hidden group-hover:flex"}`}>
-                      <button
-                        title="답장"
-                        className="text-sm text-gray-400 hover:text-blue-500 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setReplyTo({ id: m.id, from: m.from, content: m.content, type: m.type });
-                          setSelectedMsgId(null);
-                        }}
-                      >↩</button>
-                      <button
-                        title="리액션"
-                        className="text-sm text-gray-400 hover:text-yellow-500 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowReactionFor((p) => p === m.id ? null : m.id);
-                        }}
-                      >😊</button>
-                      {isMine && (
-                        <>
-                          <button
-                            title="수정"
-                            className="text-sm text-gray-400 hover:text-green-500 transition-colors"
-                            onClick={(e) => { e.stopPropagation(); editMessage(m.id); }}
-                          >✏️</button>
-                          <button
-                            title="삭제"
-                            className="text-sm text-gray-400 hover:text-red-500 transition-colors"
-                            onClick={(e) => { e.stopPropagation(); deleteMessage(m.id); }}
-                          >🗑️</button>
-                        </>
-                      )}
                     </div>
                   </div>
                 </div>
