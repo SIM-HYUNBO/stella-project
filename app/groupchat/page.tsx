@@ -27,6 +27,7 @@ type GroupRoom = {
   members: string[];
   createdBy: string;
   createdAt?: any;
+  profileImage?: string;
 };
 
 type GroupMessage = {
@@ -56,8 +57,10 @@ export default function GroupChat() {
   const [inviting, setInviting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
+  const [profileUploading, setProfileUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const profileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const isInitialLoad = useRef(true);
 
@@ -221,6 +224,21 @@ export default function GroupChat() {
     setCurrentRoom(null);
   };
 
+  const changeProfileImage = async (file: File) => {
+    if (!currentRoom) return;
+    setProfileUploading(true);
+    try {
+      const sRef = storageRef(storage, `group-profiles/${currentRoom.id}`);
+      const snapshot = await uploadBytes(sRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      await updateDoc(doc(db, "group_rooms", currentRoom.id), { profileImage: url });
+    } catch {
+      alert("프로필 변경에 실패했습니다.");
+    } finally {
+      setProfileUploading(false);
+    }
+  };
+
   const playNotificationSound = () => {
     const audio = new Audio("/sounds/alert1.mp3");
     audio.play().catch(() => {});
@@ -271,6 +289,42 @@ export default function GroupChat() {
             onClick={() => setCurrentRoom(null)}
             className="text-gray-500 hover:text-gray-700 text-lg"
           >←</button>
+
+          {/* 프로필 이미지 (클릭 시 변경) */}
+          <div
+            className="relative w-9 h-9 rounded-full shrink-0 cursor-pointer group"
+            onClick={() => profileInputRef.current?.click()}
+            title="프로필 변경"
+          >
+            {currentRoom?.profileImage ? (
+              <img
+                src={currentRoom.profileImage}
+                alt="프로필"
+                className="w-9 h-9 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+                {currentRoom?.name[0]}
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {profileUploading ? (
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4zm0-8.4a5.2 5.2 0 1 1 0 10.4A5.2 5.2 0 0 1 12 6.8zM9 2l-1.83 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/>
+                </svg>
+              )}
+            </div>
+            <input
+              ref={profileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) changeProfileImage(f); e.target.value = ""; }}
+            />
+          </div>
+
           <div>
             <div className="font-bold text-sm">{currentRoom?.name}</div>
             <div className="text-xs text-gray-400">{currentRoom?.members.length}명</div>
@@ -441,8 +495,14 @@ export default function GroupChat() {
             onClick={() => setCurrentRoom(room)}
             className="w-full flex items-center gap-3 p-3 rounded-xl mb-2 bg-white hover:bg-gray-50 border transition-colors text-left"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-base font-bold text-blue-600 shrink-0">
-              {room.name[0]}
+            <div className="w-10 h-10 rounded-xl shrink-0 overflow-hidden">
+              {room.profileImage ? (
+                <img src={room.profileImage} alt="프로필" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-blue-100 flex items-center justify-center text-base font-bold text-blue-600">
+                  {room.name[0]}
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-sm text-gray-800">{room.name}</div>
