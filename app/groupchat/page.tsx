@@ -377,27 +377,29 @@ export default function GroupChat() {
 
       <div className="px-4 py-3 border-b shrink-0">
         {showCreate ? (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <input
-              className="flex-1 border rounded-xl px-3 py-2 text-sm"
+              className="w-full border rounded-xl px-3 py-2 text-sm"
               placeholder="방 이름 입력"
               value={newRoomName}
               onChange={(e) => setNewRoomName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createRoom()}
               autoFocus
             />
-            <button
-              onClick={createRoom}
-              className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm hover:bg-blue-600 transition-colors"
-            >
-              만들기
-            </button>
-            <button
-              onClick={() => { setShowCreate(false); setNewRoomName(""); }}
-              className="px-3 py-2 bg-gray-100 rounded-xl text-sm hover:bg-gray-200 transition-colors"
-            >
-              취소
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={createRoom}
+                className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-sm hover:bg-blue-600 transition-colors"
+              >
+                만들기
+              </button>
+              <button
+                onClick={() => { setShowCreate(false); setNewRoomName(""); }}
+                className="flex-1 py-2 bg-gray-100 rounded-xl text-sm hover:bg-gray-200 transition-colors"
+              >
+                취소
+              </button>
+            </div>
           </div>
         ) : (
           <button
