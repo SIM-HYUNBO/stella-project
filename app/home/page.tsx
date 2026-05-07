@@ -600,11 +600,11 @@ export default function Chat() {
                       )}
 
                       <div
-                        className={`px-3 py-2 rounded-2xl text-sm cursor-pointer select-none ${isMine
+                        className={`bubble px-3 py-2 text-sm cursor-pointer select-none ${isMine
                           ? isVIP
-                            ? "bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-400"
-                            : "bg-red-100"
-                          : "bg-gray-200"
+                            ? "bubble-mine-vip bg-gradient-to-r from-yellow-100 to-yellow-50 border border-yellow-300 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
+                            : "bubble-mine bg-red-100 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
+                          : "bubble-other bg-gray-200 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl rounded-bl-md"
                         }`}
                         onContextMenu={(e) => openCtxMenu(e, m, isMine)}
                         onTouchStart={(e) => handleTouchStart(e, m, isMine)}

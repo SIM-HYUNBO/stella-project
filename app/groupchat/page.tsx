@@ -329,7 +329,10 @@ export default function GroupChat() {
                     {showUser && !isMine && (
                       <div className="text-xs text-gray-500 mb-0.5">{m.from}</div>
                     )}
-                    <div className={`px-3 py-2 rounded-2xl text-sm ${isMine ? "bg-red-100" : "bg-gray-200"}`}>
+                    <div className={`bubble px-3 py-2 text-sm ${isMine
+                      ? "bubble-mine bg-red-100 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-md"
+                      : "bubble-other bg-gray-200 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl rounded-bl-md"
+                    }`}>
                       {m.type === "image" ? (
                         <img
                           src={m.content}
