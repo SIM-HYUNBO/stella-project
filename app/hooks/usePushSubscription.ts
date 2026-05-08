@@ -21,28 +21,49 @@ export function usePushSubscription(nickname: string | null) {
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
+    if (!nickname) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
     const init = async () => {
-      // 기존 sw-push.js 등록 제거 (레거시 마이그레이션)
       const allRegs = await navigator.serviceWorker.getRegistrations();
       for (const reg of allRegs) {
         if (reg.active?.scriptURL.includes("sw-push.js")) {
           const oldSub = await reg.pushManager.getSubscription();
           if (oldSub) {
             await oldSub.unsubscribe();
-            if (nickname) {
-              await deleteDoc(doc(db, "push_subscriptions", nickname)).catch(() => {});
-            }
+            await deleteDoc(doc(db, "push_subscriptions", nickname)).catch(() => {});
           }
           await reg.unregister();
         }
       }
 
-      // 메인 SW(sw.js) 등록을 사용 — 브라우저/잠금화면에서도 안정적으로 동작
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
-      setIsSubscribed(!!sub && Notification.permission === "granted");
+
+      if (sub && Notification.permission === "granted") {
+        setIsSubscribed(true);
+        return;
+      }
+
+      // 아직 구독 없으면 자동으로 권한 요청 + 구독
+      const permission = Notification.permission === "default"
+        ? await Notification.requestPermission()
+        : Notification.permission;
+
+      if (permission !== "granted") return;
+
+      const newSub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+
+      await setDoc(
+        doc(db, "push_subscriptions", nickname),
+        { subscription: JSON.stringify(newSub), updatedAt: new Date() },
+        { merge: true }
+      );
+
+      setIsSubscribed(true);
     };
 
     init().catch(() => {});

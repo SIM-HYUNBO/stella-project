@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import { Do_Hyeon, Nanum_Brush_Script } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -39,9 +40,10 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} ${doHyeon.variable} ${nanumBrush.variable} antialiased`}
       >
         <ThemeProvider
-          attribute="class"   
-          enableSystem={false}    
+          attribute="class"
+          enableSystem={false}
         >
+          <ServiceWorkerRegister />
           {children}
         </ThemeProvider>
       </body>
