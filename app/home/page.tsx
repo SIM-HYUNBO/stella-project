@@ -154,7 +154,7 @@ export default function Chat() {
   const [summary, setSummary] = useState("");
   const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
   const isInitialLoad = useRef(true);
-  const { isSubscribed, isBlocked, toggle } = usePushSubscription(nickname);
+  const { isSubscribed, isBlocked: pushBlocked, toggle } = usePushSubscription(nickname);
 
   // 필수 기능 state
   const [peerTyping, setPeerTyping] = useState(false);
@@ -429,14 +429,14 @@ export default function Chat() {
 
   const deleteMessage = async (id: string) => {
     await deleteDoc(doc(db, "messages", id));
-    setSelectedMsgId(null);
+    setCtxMenu(null);
   };
 
   const editMessage = async (id: string) => {
     const text = prompt("수정할 내용");
     if (!text) return;
     await updateDoc(doc(db, "messages", id), { content: text });
-    setSelectedMsgId(null);
+    setCtxMenu(null);
   };
 
   const toggleReaction = async (msgId: string, emoji: string) => {
@@ -752,7 +752,7 @@ export default function Chat() {
         </button>
       </div>
 
-      {isBlocked && (
+      {pushBlocked && (
         <div className="mx-3 mt-2 mb-1 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 shrink-0">
           알림이 차단되어 있어요.<br />
           <span className="font-semibold">Chrome: 주소창 🔒 → 알림 → 허용</span><br />
