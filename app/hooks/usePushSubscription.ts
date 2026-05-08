@@ -19,6 +19,7 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export function usePushSubscription(nickname: string | null) {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     if (!nickname) return;
@@ -46,10 +47,16 @@ export function usePushSubscription(nickname: string | null) {
       }
 
       // 아직 구독 없으면 자동으로 권한 요청 + 구독
+      if (Notification.permission === "denied") {
+        setIsBlocked(true);
+        return;
+      }
+
       const permission = Notification.permission === "default"
         ? await Notification.requestPermission()
         : Notification.permission;
 
+      if (permission === "denied") { setIsBlocked(true); return; }
       if (permission !== "granted") return;
 
       const newSub = await reg.pushManager.subscribe({
@@ -117,5 +124,5 @@ export function usePushSubscription(nickname: string | null) {
     }
   };
 
-  return { isSubscribed, toggle };
+  return { isSubscribed, isBlocked, toggle };
 }
