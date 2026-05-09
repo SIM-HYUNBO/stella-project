@@ -42,6 +42,20 @@ export default function TopButtons() {
           <span>친구</span>
           <span className="text-gray-400">›</span>
         </button>
+         <button
+          onClick={() => router.push("/font")}
+          className="flex justify-between items-center px-4 py-4 border-b"
+        >
+          <span>글씨체</span>
+          <span className="text-gray-400">›</span>
+        </button>
+          <button
+          onClick={() => router.push("/themes")}
+          className="flex justify-between items-center px-4 py-4 border-b"
+        >
+          <span>테마</span>
+          <span className="text-gray-400">›</span>
+        </button>
  <div className="text-center mt-5 text-gray-500">
  더 많은 기능을 기대해 주세요~
  </div>
