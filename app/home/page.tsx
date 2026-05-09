@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { db, storage } from "@/app/firebase";
+import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection,
@@ -19,7 +19,6 @@ import {
   deleteDoc,
   where,
 } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { usePushSubscription } from "@/app/hooks/usePushSubscription";
 
 type ReplyTo = {
@@ -407,15 +406,31 @@ export default function Chat() {
     setReplyTo(null);
   };
 
+  const compressToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const maxPx = 800;
+        const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/jpeg", 0.75));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("load fail")); };
+      img.src = url;
+    });
+
   const sendImage = async (file: File) => {
     if (!nickname || !currentChatUser) return;
     setImgUploading(true);
     try {
-      const sRef = storageRef(storage, `chat-images/${Date.now()}_${file.name}`);
-      const snapshot = await uploadBytes(sRef, file);
-      const url = await getDownloadURL(snapshot.ref);
+      const base64 = await compressToBase64(file);
       await addDoc(collection(db, "messages"), {
-        from: nickname, to: currentChatUser.nickname, content: url,
+        from: nickname, to: currentChatUser.nickname, content: base64,
         type: "image", createdAt: serverTimestamp(), readBy: [nickname],
         ...(replyTo ? { replyTo } : {}),
       });
