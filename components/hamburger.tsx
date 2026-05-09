@@ -201,7 +201,6 @@ export default function HamburgerMenuWithDelete() {
             ["/home", "1:1 채팅"],
             ["/groupchat", "단체 채팅"],
             ["/admintalk", "관리자 톡"],
-            ["/AItalk", "이효린 챗"],
             ["/tools", "설정"],
           ].map(([href, label]) => (
             <Link
@@ -212,27 +211,6 @@ export default function HamburgerMenuWithDelete() {
               {label}
             </Link>
           ))}
-
-         
-              <div className="border-t my-2"></div>
-
-              <div className="text-xs text-gray-400 px-2">
-                🤖 AI 기능
-              </div>
-
-              <Link
-                href="/as"
-                className="p-2 rounded-xl hover:bg-gray-100"
-              >
-                AI 채팅 요약
-              </Link>
-
-              <Link
-                href="/ai-chat"
-                className="p-2 rounded-xl hover:bg-gray-100"
-              >
-                AI 도우미 채팅
-              </Link>
           
         
 
