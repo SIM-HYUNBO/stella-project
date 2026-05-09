@@ -1,45 +1,40 @@
-import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+export const runtime = "nodejs";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+let userWinCount = 0;
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
     if (!messages || messages.length === 0) {
-      return NextResponse.json({ messages: [], userWinCount: 0 });
+      return Response.json({ messages: [], userWinCount: 0 });
     }
 
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
-    }
-
-    const safeMessages = messages.map((m: any) => ({
-      role: m.role,
-      content: m.content,
-    }));
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    const prompt = [
+      ...messages,
+      {
+        role: "system",
+        content: `너는 상대의 같은 학교 친구야. 이름은 이효린. 나이와 학교는 상대와 항상 같아.
+언제는 공감, 응원을 하고, 다른 때는 약간, 느끼기 힘들 정도로 조금 기분 나쁜 말투로 얘기해.
+같은 학교 친구로서 힘이 나고 좋은 반응을 대부분 줘. 넌 AI야.`,
       },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "너는 이효린이야. 밝고 활발하고 친근한 말투로 대화해. 반말로 대화하고 이모티콘을 가끔 써.",
-          },
-          ...safeMessages,
-        ],
-      }),
+    ];
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: prompt,
     });
 
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content || "응답 실패";
-
-    return NextResponse.json({ text, userWinCount: 0 });
+    return Response.json({
+      text: response.choices[0].message.content,
+      userWinCount,
+    });
   } catch (err) {
-    return NextResponse.json({ error: "server error" }, { status: 500 });
+    console.error(err);
+    return Response.json({ text: "AI 친구 응답 실패" }, { status: 500 });
   }
 }
