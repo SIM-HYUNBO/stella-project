@@ -1,12 +1,29 @@
+@import url("https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 기본 */
+:root {
+  --app-font: "SUIT";
+}
+
+html {
+  transition: 0.2s;
+}
+
 body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+
   background: transparent;
   color: inherit;
+
+  /* 🇰🇷 한국어 우선 + fallback 구조 */
+  font-family: var(--app-font);
 }
+
 
 /* 애니메이션 */
 @keyframes spin-slow {
@@ -22,18 +39,13 @@ body {
   animation: spin-slow 1.2s linear infinite;
 }
 
+/* 버튼 */
 button {
   transition: all 0.2s ease;
 }
 
-/* 일반 hover */
-
-
 .vip button:hover {
-  background: linear-gradient(135deg, #FFD700, #FFB800) !important;
+  background: linear-gradient(135deg, #ffd700, #ffb800) !important;
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
   transform: scale(1.02);
-}
-html {
-  transition: 0.2s;
 }

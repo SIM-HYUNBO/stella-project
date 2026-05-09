@@ -1,171 +1,74 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useFont } from "../FontContext";
 
-const FONT_LIST = [
-  {
-    name: "Pretendard",
-    value: "'Pretendard', sans-serif",
-  },
-  {
-    name: "SUIT",
-    value: "'SUIT', sans-serif",
-  },
-  {
-    name: "Inter",
-    value: "'Inter', sans-serif",
-  },
-  {
-    name: "Noto Sans KR",
-    value: "'Noto Sans KR', sans-serif",
-  },
-  {
-    name: "Gowun Dodum",
-    value: "'Gowun Dodum', sans-serif",
-  },
-  {
-    name: "Nanum Gothic",
-    value: "'Nanum Gothic', sans-serif",
-  },
-  {
-    name: "Nanum Myeongjo",
-    value: "'Nanum Myeongjo', serif",
-  },
-  {
-    name: "IBM Plex Sans KR",
-    value: "'IBM Plex Sans KR', sans-serif",
-  },
-  {
-    name: "ONE Mobile",
-    value: "'ONE Mobile', sans-serif",
-  },
-  {
-    name: "Cafe24 Ssurround",
-    value: "'Cafe24 Ssurround', sans-serif",
-  },
-  {
-    name: "RIDIBatang",
-    value: "'RIDIBatang', serif",
-  },
-  {
-    name: "MaruBuri",
-    value: "'MaruBuri', serif",
-  },
-  {
-    name: "Gmarket Sans",
-    value: "'Gmarket Sans', sans-serif",
-  },
-  {
-    name: "Gaegu",
-    value: "'Gaegu', cursive",
-  },
-  {
-    name: "Black Han Sans",
-    value: "'Black Han Sans', sans-serif",
-  },
-  {
-    name: "Do Hyeon",
-    value: "'Do Hyeon', sans-serif",
-  },
+const FONT_OPTIONS = [
+  { label: "기본 (Geist)", value: "var(--font-geist)" },
+  { label: "Noto Sans KR", value: "var(--font-noto)" },
+  { label: "JetBrains Mono", value: "var(--font-mono)" },
+  { label: "도현", value: "var(--font-dohyeon)" },
+  { label: "브러시 감성", value: "var(--font-brush)" },
 ];
 
-export default function FontSettingsPage() {
-  const [selectedFont, setSelectedFont] = useState(
-    "'Pretendard', sans-serif"
-  );
-
-  useEffect(() => {
-    const savedFont = localStorage.getItem("wagie-font");
-
-    if (savedFont) {
-      setSelectedFont(savedFont);
-
-      document.documentElement.style.setProperty(
-        "--app-font",
-        savedFont
-      );
-    }
-  }, []);
-
-  const changeFont = (fontValue) => {
-    setSelectedFont(fontValue);
-
-    localStorage.setItem("wagie-font", fontValue);
-
-    document.documentElement.style.setProperty(
-      "--app-font",
-      fontValue
-    );
-  };
+export default function FontSettings() {
+  const { font, changeFont } = useFont();
+  const router = useRouter();
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#111",
-        color: "white",
-        padding: "24px",
-        fontFamily: "var(--app-font)",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "28px",
-          fontWeight: "bold",
-          marginBottom: "24px",
-        }}
-      >
-        글씨체 설정
-      </h1>
+    <div style={{ maxWidth: 500, margin: "0 auto", padding: 30 }}>
+      
+      {/* 🔙 헤더 */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button
+          onClick={() => router.back()}
+          style={{
+            padding: "6px 10px",
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            background: "#fff",
+            cursor: "pointer",
+            fontSize: 14,
+          }}
+        >
+          ← 뒤로가기
+        </button>
 
+        <h2 style={{ margin: 0 }}>⚙️ 폰트 설정</h2>
+      </div>
+
+      {/* 폰트 리스트 */}
+      <div style={{ marginTop: 20 }}>
+        {FONT_OPTIONS.map((f) => (
+          <div
+            key={f.value}
+            onClick={() => changeFont(f.value)}
+            style={{
+              padding: 12,
+              marginBottom: 10,
+              border: "1px solid #ddd",
+              borderRadius: 10,
+              cursor: "pointer",
+              background: font === f.value ? "#eef" : "white",
+              transition: "0.2s",
+            }}
+          >
+            {f.label}
+          </div>
+        ))}
+      </div>
+
+      {/* 미리보기 */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: "16px",
+          marginTop: 20,
+          padding: 15,
+          border: "1px solid #ddd",
+          borderRadius: 10,
         }}
       >
-        {FONT_LIST.map((font) => {
-          const active = selectedFont === font.value;
-
-          return (
-            <button
-              key={font.name}
-              onClick={() => changeFont(font.value)}
-              style={{
-                padding: "20px",
-                borderRadius: "16px",
-                border: active
-                  ? "2px solid #ffe066"
-                  : "1px solid #333",
-                background: active ? "#1f1f1f" : "#181818",
-                cursor: "pointer",
-                transition: "0.2s",
-                textAlign: "left",
-                color: "white",
-                fontFamily: font.value,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "20px",
-                  marginBottom: "10px",
-                }}
-              >
-                {font.name}
-              </div>
-
-              <div
-                style={{
-                  opacity: 0.8,
-                  lineHeight: 1.6,
-                }}
-              >
-                안녕하세요 WAGIE 입니다.
-              </div>
-            </button>
-          );
-        })}
+        👀 미리보기 텍스트  
+        현재 선택된 폰트가 즉시 반영됩니다.
       </div>
     </div>
   );

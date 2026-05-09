@@ -1,19 +1,31 @@
 import localFont from "next/font/local";
-import { Do_Hyeon, Nanum_Brush_Script } from "next/font/google";
+import {
+  Noto_Sans_KR,
+  JetBrains_Mono,
+  Do_Hyeon,
+  Nanum_Brush_Script,
+} from "next/font/google";
+
 import { ThemeProvider } from "next-themes";
+import { FontProvider } from "./FontContext";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
-const geistSans = localFont({
+const geist = localFont({
   src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+  variable: "--font-geist",
 });
 
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const noto = Noto_Sans_KR({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-noto",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-mono",
 });
 
 const doHyeon = Do_Hyeon({
@@ -22,29 +34,30 @@ const doHyeon = Do_Hyeon({
   variable: "--font-dohyeon",
 });
 
-const nanumBrush = Nanum_Brush_Script({
+const brush = Nanum_Brush_Script({
   subsets: ["latin"],
   weight: "400",
-  variable: "--font-nanum-brush",
+  variable: "--font-brush",
 });
-
-export const metadata = {
-  title: "WAGIE",
-  description: "WAGIE",
-};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${doHyeon.variable} ${nanumBrush.variable} antialiased`}
+        className={`
+          ${geist.variable}
+          ${noto.variable}
+          ${mono.variable}
+          ${doHyeon.variable}
+          ${brush.variable}
+          antialiased
+        `}
       >
-        <ThemeProvider
-          attribute="class"
-          enableSystem={false}
-        >
-          <ServiceWorkerRegister />
-          {children}
+        <ThemeProvider attribute="class" enableSystem={false}>
+          <FontProvider>
+            <ServiceWorkerRegister />
+            {children}
+          </FontProvider>
         </ThemeProvider>
       </body>
     </html>

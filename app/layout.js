@@ -1,51 +1,82 @@
-import localFont from "next/font/local";
-import { Do_Hyeon, Nanum_Brush_Script } from "next/font/google";
-import { ThemeProvider } from "next-themes";
+// app/layout.js
+
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
+import {
+  Jua,
+  Dongle,
+  Do_Hyeon,
+  Gaegu,
+  Gowun_Dodum,
+  Hi_Melody,
+  Poor_Story,
+  Black_Han_Sans,
+} from "next/font/google";
 
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
-
-const doHyeon = Do_Hyeon({
-  subsets: ["latin"],
+const jua = Jua({
   weight: "400",
+  subsets: ["latin"],
+  variable: "--font-jua",
+});
+
+const dongle = Dongle({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-dongle",
+});
+
+const dohyeon = Do_Hyeon({
+  weight: "400",
+  subsets: ["latin"],
   variable: "--font-dohyeon",
 });
 
-const nanumBrush = Nanum_Brush_Script({
+const gaegu = Gaegu({
+  weight: ["400", "700"],
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-nanum-brush",
+  variable: "--font-gaegu",
 });
 
-export const metadata = {
-  title: "WAGIE",
-  description: "wagie",
-};
+const gowun = Gowun_Dodum({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-gowun",
+});
+
+const himelody = Hi_Melody({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-himelody",
+});
+
+const poorstory = Poor_Story({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-poorstory",
+});
+
+const blackhan = Black_Han_Sans({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-blackhan",
+});
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${doHyeon.variable} ${nanumBrush.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"     // ⭐ 기본 다크모드
-          enableSystem={false}    // 시스템 설정 무시
-        >
-          {children}
-        </ThemeProvider>
-      </body>
+    <html
+      lang="ko"
+      className={`
+        ${jua.variable}
+        ${dongle.variable}
+        ${dohyeon.variable}
+        ${gaegu.variable}
+        ${gowun.variable}
+        ${himelody.variable}
+        ${poorstory.variable}
+        ${blackhan.variable}
+      `}
+    >
+      <body>{children}</body>
     </html>
   );
 }
