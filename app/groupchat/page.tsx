@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { db, storage } from "@/app/firebase";
+import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection,
@@ -19,7 +19,6 @@ import {
   arrayRemove,
   where,
 } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 type GroupRoom = {
   id: string;
@@ -182,12 +181,10 @@ export default function GroupChat() {
     if (!nickname || !currentRoom) return;
     setImgUploading(true);
     try {
-      const sRef = storageRef(storage, `group-images/${currentRoom.id}/${Date.now()}_${file.name}`);
-      const snapshot = await uploadBytes(sRef, file);
-      const url = await getDownloadURL(snapshot.ref);
+      const base64 = await compressToBase64(file, 800);
       await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
         from: nickname,
-        content: url,
+        content: base64,
         type: "image",
         createdAt: serverTimestamp(),
         readBy: [nickname],
