@@ -151,6 +151,7 @@ export default function HamburgerMenuWithDelete() {
 
           {/* 공통 메뉴 */}
           {[
+            ["/friendmenu", "친구 목록"],
             ["/home", "1:1 채팅"],
             ["/groupchat", "단체 채팅"],
             ["/admintalk", "관리자 톡"],

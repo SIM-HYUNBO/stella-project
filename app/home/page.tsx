@@ -356,33 +356,51 @@ export default function Chat() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!nickname) return;
+useEffect(() => {
+  if (!nickname) return;
 
-    const q = query(
-      collection(db, "messages"),
-      where("to", "==", nickname)
-    );
+  const unsub = onSnapshot(collection(db, "friends"), (snapshot) => {
+    const friendSet = new Set<string>();
 
-    return onSnapshot(q, (snap) => {
-      const counts: Record<string, number> = {};
+    snapshot.forEach((d) => {
+      const data = d.data();
 
-      snap.docs.forEach((d) => {
-        const data = d.data();
+      if (data.user_id === nickname) {
+        friendSet.add(data.friend_id);
+      }
 
-        if (!(data.readBy || []).includes(nickname)) {
-          counts[data.from] = (counts[data.from] || 0) + 1;
-        }
-      });
-
-      setUnreadCounts(counts);
+      if (data.friend_id === nickname) {
+        friendSet.add(data.user_id);
+      }
     });
-  }, [nickname]);
+
+    setFriendIds(friendSet);
+  });
+
+  return () => unsub();
+}, [nickname]);
   useEffect(() => {
   if (!nickname) return;
 
   const fetchFriends = async () => {
     const snap = await getDocs(collection(db, "friends"));
+    onSnapshot(collection(db, "friends"), (snap) => {
+  const set = new Set<string>();
+
+  snap.docs.forEach((d) => {
+    const data = d.data();
+
+    if (data.user_id === nickname) {
+      set.add(data.friend_id);
+    }
+
+    if (data.friend_id === nickname) {
+      set.add(data.user_id);
+    }
+  });
+
+  setFriendIds(new Set(set));
+});
 
     const set = new Set<string>();
 
@@ -391,11 +409,15 @@ export default function Chat() {
 
       // 내가 친구인 사람만
       if (data.user_id === nickname) {
-        set.add(data.friend_id);
-      }
+  set.add(data.friend_id);
+}
+
+if (data.friend_id === nickname) {
+  set.add(data.user_id);
+}
     });
 
-    setFriendIds(set);
+   setFriendIds(new Set(set));
   };
 
   fetchFriends();
@@ -647,7 +669,7 @@ export default function Chat() {
     const users = reactions[emoji] || [];
 
     if (users.includes(nickname)) {
-      const newUsers = users.filter((u) => u !== nickname);
+    const newUsers = users.filter((u) => u !== nickname);
 
       if (newUsers.length === 0) {
         delete reactions[emoji];
@@ -1146,7 +1168,7 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-3">
        {users
-  .filter((u) => friendIds.has(u.id))
+  .filter((u) => friendIds.has(u.nickname))
   .map((u) => (
           <SwipeUserItem
             key={u.id}
