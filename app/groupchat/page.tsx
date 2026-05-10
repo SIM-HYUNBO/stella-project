@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
+
 import {
   collection,
   addDoc,
@@ -12,7 +13,6 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
-  getDocs,
   updateDoc,
   doc,
   arrayUnion,
@@ -45,168 +45,378 @@ type User = {
 
 export default function GroupChat() {
   const [nickname, setNickname] = useState<string | null>(null);
+
   const [rooms, setRooms] = useState<GroupRoom[]>([]);
-  const [currentRoom, setCurrentRoom] = useState<GroupRoom | null>(null);
-  const [messages, setMessages] = useState<GroupMessage[]>([]);
+
+  const [currentRoom, setCurrentRoom] =
+    useState<GroupRoom | null>(null);
+
+  const [messages, setMessages] = useState<
+    GroupMessage[]
+  >([]);
+
   const [input, setInput] = useState("");
-  const [showCreate, setShowCreate] = useState(false);
-  const [newRoomName, setNewRoomName] = useState("");
-  const [showInvite, setShowInvite] = useState(false);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [inviting, setInviting] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [imgUploading, setImgUploading] = useState(false);
-  const [profileUploading, setProfileUploading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const profileInputRef = useRef<HTMLInputElement>(null);
+
+  const [showCreate, setShowCreate] =
+    useState(false);
+
+  const [newRoomName, setNewRoomName] =
+    useState("");
+
+  const [showInvite, setShowInvite] =
+    useState(false);
+
+  const [allUsers, setAllUsers] = useState<
+    User[]
+  >([]);
+
+  const [inviting, setInviting] =
+    useState(false);
+
+  const [isMobile, setIsMobile] =
+    useState(false);
+
+  const [imgUploading, setImgUploading] =
+    useState(false);
+
+  const [profileUploading, setProfileUploading] =
+    useState(false);
+
+  const messagesEndRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const imageInputRef =
+    useRef<HTMLInputElement>(null);
+
+  const profileInputRef =
+    useRef<HTMLInputElement>(null);
+
   const router = useRouter();
-  const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
+    const check = () =>
+      setIsMobile(window.innerWidth < 768);
+
     check();
+
     window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+
+    return () =>
+      window.removeEventListener(
+        "resize",
+        check
+      );
   }, []);
 
   useEffect(() => {
     const unsub = watchAuthState((user) => {
-      if (user) setNickname(user.displayName || "유저");
-      else router.replace("/login");
+      if (user) {
+        setNickname(
+          user.displayName || "유저"
+        );
+      } else {
+        router.replace("/login");
+      }
     });
+
     return () => unsub();
   }, []);
 
-  // 내가 속한 방 목록 실시간 로드
+  // 방 목록
   useEffect(() => {
     if (!nickname) return;
+
     const q = query(
       collection(db, "group_rooms"),
-      where("members", "array-contains", nickname)
+      where(
+        "members",
+        "array-contains",
+        nickname
+      )
     );
+
     return onSnapshot(q, (snap) => {
-      const list: GroupRoom[] = snap.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<GroupRoom, "id">),
-      }));
+      const list: GroupRoom[] =
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<
+            GroupRoom,
+            "id"
+          >),
+        }));
+
       list.sort((a, b) => {
-        const ta = a.createdAt?.toDate?.()?.getTime() ?? 0;
-        const tb = b.createdAt?.toDate?.()?.getTime() ?? 0;
+        const ta =
+          a.createdAt
+            ?.toDate?.()
+            ?.getTime() ?? 0;
+
+        const tb =
+          b.createdAt
+            ?.toDate?.()
+            ?.getTime() ?? 0;
+
         return tb - ta;
       });
+
       setRooms(list);
     });
   }, [nickname]);
 
-  // rooms가 바뀔 때마다 currentRoom 최신 데이터로 동기화
+  // currentRoom 동기화
   useEffect(() => {
     if (!currentRoom) return;
-    const updated = rooms.find((r) => r.id === currentRoom.id);
-    if (updated) setCurrentRoom(updated);
-    else setCurrentRoom(null);
+
+    const updated = rooms.find(
+      (r) => r.id === currentRoom.id
+    );
+
+    if (updated) {
+      setCurrentRoom(updated);
+    } else {
+      setCurrentRoom(null);
+    }
   }, [rooms]);
 
-  // 방 내 메시지 실시간 로드
+  // 메시지
   useEffect(() => {
     if (!currentRoom || !nickname) return;
-    isInitialLoad.current = true;
+
     const q = query(
-      collection(db, "group_rooms", currentRoom.id, "messages"),
+      collection(
+        db,
+        "group_rooms",
+        currentRoom.id,
+        "messages"
+      ),
       orderBy("createdAt", "asc")
     );
-    const unsub = onSnapshot(q, async (snap) => {
-      const msgs: GroupMessage[] = [];
-      for (const d of snap.docs) {
-        const data = d.data();
-        const m: GroupMessage = {
-          id: d.id,
-          from: data.from,
-          content: data.content,
-          type: data.type || "text",
-          createdAt: data.createdAt,
-          readBy: data.readBy || [],
-        };
-        if (m.from !== nickname && !m.readBy?.includes(nickname)) {
-          await updateDoc(
-            doc(db, "group_rooms", currentRoom.id, "messages", m.id),
-            { readBy: arrayUnion(nickname) }
-          );
+
+    const unsub = onSnapshot(
+      q,
+      async (snap) => {
+        const msgs: GroupMessage[] = [];
+
+        for (const d of snap.docs) {
+          const data = d.data();
+
+          const m: GroupMessage = {
+            id: d.id,
+            from: data.from,
+            content: data.content,
+            type: data.type || "text",
+            createdAt: data.createdAt,
+            readBy: data.readBy || [],
+          };
+
+          if (
+            m.from !== nickname &&
+            !m.readBy?.includes(nickname)
+          ) {
+            await updateDoc(
+              doc(
+                db,
+                "group_rooms",
+                currentRoom.id,
+                "messages",
+                m.id
+              ),
+              {
+                readBy: arrayUnion(nickname),
+              }
+            );
+          }
+
+          msgs.push(m);
         }
-        msgs.push(m);
+
+        setMessages(msgs);
+
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView(
+            {
+              behavior: "smooth",
+            }
+          );
+        }, 50);
       }
-      isInitialLoad.current = false;
-      setMessages(msgs);
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-    });
+    );
+
     return () => unsub();
   }, [currentRoom?.id, nickname]);
 
-  // 전체 사용자 목록 로드 (초대용) - 실시간으로 유지
+  // 사용자 목록
   useEffect(() => {
     if (!nickname) return;
-    return onSnapshot(collection(db, "users"), (snap) => {
-      const list: User[] = snap.docs
-        .map((d) => ({ id: d.id, nickname: d.data().nickname as string }))
-        .filter((u) => u.nickname !== nickname);
-      setAllUsers(list);
-    });
+
+    return onSnapshot(
+      collection(db, "users"),
+      (snap) => {
+        const list: User[] = snap.docs
+          .map((d) => ({
+            id: d.id,
+            nickname:
+              d.data().nickname as string,
+          }))
+          .filter(
+            (u) => u.nickname !== nickname
+          );
+
+        setAllUsers(list);
+      }
+    );
   }, [nickname]);
 
   const createRoom = async () => {
-    if (!newRoomName.trim() || !nickname) return;
-    await addDoc(collection(db, "group_rooms"), {
-      name: newRoomName.trim(),
-      members: [nickname],
-      createdBy: nickname,
-      createdAt: serverTimestamp(),
-    });
+    if (!newRoomName.trim() || !nickname)
+      return;
+
+    await addDoc(
+      collection(db, "group_rooms"),
+      {
+        name: newRoomName.trim(),
+        members: [nickname],
+        createdBy: nickname,
+        createdAt: serverTimestamp(),
+      }
+    );
+
     setNewRoomName("");
     setShowCreate(false);
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || !nickname || !currentRoom) return;
-    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
-      from: nickname,
-      content: input.trim(),
-      type: "text",
-      createdAt: serverTimestamp(),
-      readBy: [nickname],
-    });
+    if (
+      !input.trim() ||
+      !nickname ||
+      !currentRoom
+    )
+      return;
+
+    await addDoc(
+      collection(
+        db,
+        "group_rooms",
+        currentRoom.id,
+        "messages"
+      ),
+      {
+        from: nickname,
+        content: input.trim(),
+        type: "text",
+        createdAt: serverTimestamp(),
+        readBy: [nickname],
+      }
+    );
+
     setInput("");
   };
 
+  const compressToBase64 = (
+    file: File,
+    maxPx = 800
+  ): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const ratio = Math.min(
+          maxPx / img.width,
+          maxPx / img.height,
+          1
+        );
+
+        const canvas =
+          document.createElement("canvas");
+
+        canvas.width = img.width * ratio;
+        canvas.height =
+          img.height * ratio;
+
+        canvas
+          .getContext("2d")
+          ?.drawImage(
+            img,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+
+        URL.revokeObjectURL(url);
+
+        resolve(
+          canvas.toDataURL(
+            "image/jpeg",
+            0.8
+          )
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+
+        reject(
+          new Error("이미지 로드 실패")
+        );
+      };
+
+      img.src = url;
+    });
+
   const sendImage = async (file: File) => {
     if (!nickname || !currentRoom) return;
+
     setImgUploading(true);
+
     try {
-      const base64 = await compressToBase64(file, 800);
-      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
-        from: nickname,
-        content: base64,
-        type: "image",
-        createdAt: serverTimestamp(),
-        readBy: [nickname],
-      });
-    } catch {
-      alert("이미지 전송에 실패했습니다.");
+      const base64 =
+        await compressToBase64(file);
+
+      await addDoc(
+        collection(
+          db,
+          "group_rooms",
+          currentRoom.id,
+          "messages"
+        ),
+        {
+          from: nickname,
+          content: base64,
+          type: "image",
+          createdAt: serverTimestamp(),
+          readBy: [nickname],
+        }
+      );
     } finally {
       setImgUploading(false);
     }
   };
 
-  const inviteUser = async (targetNickname: string) => {
+  const inviteUser = async (
+    targetNickname: string
+  ) => {
     if (!currentRoom || inviting) return;
+
     setInviting(true);
+
     try {
-      await updateDoc(doc(db, "group_rooms", currentRoom.id), {
-        members: arrayUnion(targetNickname),
-      });
+      await updateDoc(
+        doc(
+          db,
+          "group_rooms",
+          currentRoom.id
+        ),
+        {
+          members: arrayUnion(
+            targetNickname
+          ),
+        }
+      );
+
       setShowInvite(false);
-      alert(`${targetNickname}님을 초대했습니다.`);
-    } catch (err: any) {
-      alert(`초대 실패: ${err?.message || "알 수 없는 오류"}`);
     } finally {
       setInviting(false);
     }
@@ -214,267 +424,437 @@ export default function GroupChat() {
 
   const leaveRoom = async () => {
     if (!currentRoom || !nickname) return;
-    if (!confirm(`"${currentRoom.name}" 방에서 나가시겠습니까?`)) return;
-    await updateDoc(doc(db, "group_rooms", currentRoom.id), {
-      members: arrayRemove(nickname),
-    });
+
+    if (
+      !confirm(
+        `"${currentRoom.name}" 방에서 나가시겠습니까?`
+      )
+    )
+      return;
+
+    await updateDoc(
+      doc(
+        db,
+        "group_rooms",
+        currentRoom.id
+      ),
+      {
+        members: arrayRemove(nickname),
+      }
+    );
+
     setCurrentRoom(null);
   };
 
-  const compressToBase64 = (file: File, maxPx = 120): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width * ratio;
-        canvas.height = img.height * ratio;
-        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("이미지 로드 실패")); };
-      img.src = url;
-    });
+  const changeProfileImage = async (
+    file: File
+  ) => {
+    if (!currentRoom) return;
 
-  const changeProfileImage = async (file: File) => {
-    if (!currentRoom || profileUploading) return;
     setProfileUploading(true);
+
     try {
-      const base64 = await compressToBase64(file);
-      await updateDoc(doc(db, "group_rooms", currentRoom.id), { profileImage: base64 });
-    } catch (err: any) {
-      alert(`프로필 변경 실패: ${err?.message ?? "알 수 없는 오류"}`);
+      const base64 =
+        await compressToBase64(file);
+
+      await updateDoc(
+        doc(
+          db,
+          "group_rooms",
+          currentRoom.id
+        ),
+        {
+          profileImage: base64,
+        }
+      );
     } finally {
       setProfileUploading(false);
     }
   };
 
-  const playNotificationSound = () => {
-    const audio = new Audio("/sounds/alert1.mp3");
-    audio.play().catch(() => {});
-  };
-
-  if (!nickname) return <div className="flex items-center justify-center h-screen">로딩중...</div>;
+  if (!nickname) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        로딩중...
+      </div>
+    );
+  }
 
   // 초대 모달
   const renderInviteModal = () => {
-    if (!showInvite || !currentRoom) return null;
-    const notInRoom = allUsers.filter((u) => !currentRoom.members.includes(u.nickname));
+    if (!showInvite || !currentRoom)
+      return null;
+
+    const notInRoom = allUsers.filter(
+      (u) =>
+        !currentRoom.members.includes(
+          u.nickname
+        )
+    );
+
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowInvite(false)}>
-        <div className="bg-white rounded-2xl p-5 w-72 max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-          <div className="font-bold text-base mb-3">사용자 초대</div>
-          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
-            {notInRoom.length === 0 && (
-              <div className="text-sm text-gray-400 text-center py-4">초대할 사용자가 없습니다</div>
-            )}
+      <div
+        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+        onClick={() =>
+          setShowInvite(false)
+        }
+      >
+        <div
+          className="w-80 bg-white rounded-3xl shadow-2xl p-5"
+          onClick={(e) =>
+            e.stopPropagation()
+          }
+        >
+          <div className="text-lg font-bold text-gray-800 mb-4">
+            사용자 초대
+          </div>
+
+          <div className="max-h-[350px] overflow-y-auto flex flex-col gap-2">
             {notInRoom.map((u) => (
               <button
                 key={u.id}
                 disabled={inviting}
-                onClick={() => inviteUser(u.nickname)}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() =>
+                  inviteUser(u.nickname)
+                }
+                className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
               >
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
                   {u.nickname[0]}
                 </div>
-                <span className="text-sm">{u.nickname}</span>
-                {inviting && <span className="ml-auto text-xs text-gray-400">초대 중...</span>}
+
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800">
+                    {u.nickname}
+                  </div>
+                </div>
               </button>
             ))}
           </div>
-          <button onClick={() => setShowInvite(false)} className="mt-3 text-sm text-gray-400 hover:text-gray-600">닫기</button>
+
+          <button
+            onClick={() =>
+              setShowInvite(false)
+            }
+            className="mt-4 w-full h-11 rounded-2xl bg-gray-100 hover:bg-gray-200 text-sm"
+          >
+            닫기
+          </button>
         </div>
       </div>
     );
   };
 
-  // 채팅 화면
+  // 채팅
   const renderRoom = () => (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-white to-gray-50">
       {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white shrink-0">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCurrentRoom(null)}
-            className="text-gray-500 hover:text-gray-700 text-lg"
-          >←</button>
+      <div className="px-4 py-3 border-b bg-white flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          {isMobile && (
+            <button
+              onClick={() =>
+                setCurrentRoom(null)
+              }
+              className="text-gray-500"
+            >
+              ←
+            </button>
+          )}
 
-          {/* 프로필 이미지 (클릭 시 변경) */}
-          <div className="relative w-9 h-9 rounded-full shrink-0 group">
+          <div className="relative shrink-0 group">
             {currentRoom?.profileImage ? (
-              <img src={currentRoom.profileImage} alt="프로필" className="w-9 h-9 rounded-full object-cover" />
+              <img
+                src={
+                  currentRoom.profileImage
+                }
+                alt="프로필"
+                className="w-11 h-11 rounded-full object-cover shadow"
+              />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
                 {currentRoom?.name[0]}
               </div>
             )}
+
             <button
               disabled={profileUploading}
-              onClick={() => profileInputRef.current?.click()}
-              className={`absolute inset-0 rounded-full bg-black/30 flex items-center justify-center transition-opacity ${profileUploading ? "opacity-100 cursor-not-allowed" : "opacity-0 group-hover:opacity-100 cursor-pointer"}`}
-              title="프로필 변경"
+              onClick={() =>
+                profileInputRef.current?.click()
+              }
+              className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition ${
+                profileUploading
+                  ? "opacity-100"
+                  : "opacity-0 group-hover:opacity-100"
+              }`}
             >
-              {profileUploading ? (
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4zm0-8.4a5.2 5.2 0 1 1 0 10.4A5.2 5.2 0 0 1 12 6.8zM9 2l-1.83 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/>
-                </svg>
-              )}
+              ✏️
             </button>
+
             <input
               ref={profileInputRef}
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) changeProfileImage(f); e.target.value = ""; }}
+              onChange={(e) => {
+                const f =
+                  e.target.files?.[0];
+
+                if (f)
+                  changeProfileImage(f);
+
+                e.target.value = "";
+              }}
             />
           </div>
 
           <div>
-            <div className="font-bold text-sm">{currentRoom?.name}</div>
-            <div className="text-xs text-gray-400">{currentRoom?.members.length}명</div>
+            <div className="font-bold text-gray-800">
+              {currentRoom?.name}
+            </div>
+
+            <div className="text-xs text-gray-400">
+              멤버{" "}
+              {currentRoom?.members.length}
+              명
+            </div>
           </div>
         </div>
+
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowInvite(true)}
-            className="text-sm px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"
+            onClick={() =>
+              setShowInvite(true)
+            }
+            className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
           >
             초대
           </button>
+
           <button
             onClick={leaveRoom}
-            className="text-sm px-3 py-1.5 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors"
+            className="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm transition"
           >
             나가기
           </button>
         </div>
       </div>
 
-      {/* 멤버 표시 */}
-      <div className="px-4 py-1.5 bg-gray-50 border-b shrink-0">
+      {/* 멤버 */}
+      <div className="px-4 py-2 border-b bg-white">
         <div className="text-xs text-gray-400 truncate">
-          👥 {currentRoom?.members.join(", ")}
+          👥{" "}
+          {currentRoom?.members.join(", ")}
         </div>
       </div>
 
       {/* 메시지 */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1">
+      <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-3">
         {messages.map((m, i) => {
-          const isMine = m.from === nickname;
+          const isMine =
+            m.from === nickname;
+
           const prev = messages[i - 1];
-          const showUser = !prev || prev.from !== m.from;
-          const currentDate = formatDateLabel(m.createdAt);
-          const prevDate = i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
-          const showDate = currentDate !== prevDate;
+
+          const showUser =
+            !prev || prev.from !== m.from;
+
+          const currentDate =
+            formatDateLabel(
+              m.createdAt
+            );
+
+          const prevDate =
+            i > 0
+              ? formatDateLabel(
+                  messages[i - 1]
+                    .createdAt
+                )
+              : null;
+
+          const showDate =
+            currentDate !== prevDate;
 
           return (
             <div key={m.id}>
               {showDate && (
                 <div className="flex items-center justify-center text-xs text-gray-400 w-full my-2">
                   <div className="flex-1 border-t" />
-                  <span className="px-2">{currentDate}</span>
+
+                  <span className="px-2">
+                    {currentDate}
+                  </span>
+
                   <div className="flex-1 border-t" />
                 </div>
               )}
-              <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div className={`flex items-end gap-1 max-w-[75%] ${isMine ? "flex-row-reverse" : "flex-row"}`}>
-                  {!isMine && (
-                    <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0 mb-1">
-                      {m.from[0]}
-                    </div>
-                  )}
-                  <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
-                    {showUser && !isMine && (
-                      <div className="text-xs text-gray-500 mb-0.5">{m.from}</div>
+
+              <div
+                className={`flex ${
+                  isMine
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
+                <div className="max-w-[80%]">
+                  {!isMine &&
+                    showUser && (
+                      <div className="text-xs text-gray-400 mb-1 ml-1">
+                        {m.from}
+                      </div>
                     )}
-                    <div className={`px-3 py-2 rounded-2xl text-sm ${isMine ? "bg-red-100" : "bg-gray-200"}`}>
-                      {m.type === "image" ? (
-                        <img
-                          src={m.content}
-                          alt="이미지"
-                          className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer"
-                          onClick={() => window.open(m.content, "_blank")}
-                        />
-                      ) : (
-                        <span className="break-words whitespace-pre-wrap">{m.content}</span>
-                      )}
-                    </div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">{formatTime(m.createdAt)}</div>
+
+                  <div
+                    className={`px-4 py-3 rounded-3xl text-sm shadow-sm ${
+                      isMine
+                        ? "bg-gradient-to-r from-yellow-300 to-orange-300 text-white rounded-br-md"
+                        : "bg-white border border-gray-100 rounded-bl-md"
+                    }`}
+                  >
+                    {m.type ===
+                    "image" ? (
+                      <img
+                        src={m.content}
+                        alt="이미지"
+                        className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
+                        onClick={() =>
+                          window.open(
+                            m.content,
+                            "_blank"
+                          )
+                        }
+                      />
+                    ) : (
+                      <span className="break-words whitespace-pre-wrap">
+                        {m.content}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    className={`mt-1 text-[10px] text-gray-400 flex ${
+                      isMine
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    {formatTime(
+                      m.createdAt
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           );
         })}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* 입력창 */}
-      <div className="flex border-t p-3 gap-2 items-center bg-white shrink-0">
+      <div className="p-3 bg-white border-t flex items-center gap-2 shrink-0">
         <button
-          onClick={() => imageInputRef.current?.click()}
-          className={`text-xl shrink-0 transition-colors ${imgUploading ? "text-gray-300 animate-pulse" : "text-gray-400 hover:text-blue-500"}`}
+          onClick={() =>
+            imageInputRef.current?.click()
+          }
           disabled={imgUploading}
-          title="사진 전송"
+          className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg ${
+            imgUploading
+              ? "animate-pulse"
+              : "hover:bg-gray-200"
+          }`}
         >
           📷
         </button>
+
         <input
-          type="file" ref={imageInputRef} accept="image/*" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) sendImage(f); e.target.value = ""; }}
+          type="file"
+          ref={imageInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f =
+              e.target.files?.[0];
+
+            if (f) sendImage(f);
+
+            e.target.value = "";
+          }}
         />
+
         <input
-          className="flex-1 border rounded-xl px-3 py-2 text-sm"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+          className="flex-1 h-11 rounded-full bg-gray-100 px-4 text-sm outline-none"
           placeholder="메시지 입력"
+          value={input}
+          onChange={(e) =>
+            setInput(e.target.value)
+          }
+          onKeyDown={(e) => {
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey
+            ) {
+              sendMessage();
+            }
+          }}
         />
+
         <button
           onClick={sendMessage}
-          className="w-9 h-9 flex items-center justify-center bg-yellow-300 hover:bg-yellow-400 rounded-full shrink-0 transition-all shadow-sm active:scale-95"
+          className="w-11 h-11 rounded-full bg-gradient-to-r from-yellow-300 to-orange-300 text-white shadow hover:scale-105 active:scale-95 transition"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
+          ➤
         </button>
       </div>
     </div>
   );
 
-  // 방 목록 화면
+  // 방 목록
   const renderRoomList = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-        <div className="font-bold text-gray-800">단체 채팅</div>
+    <div className="flex flex-col h-full bg-white">
+      <div className="px-4 py-4 border-b">
+        <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+          WAGIE GROUP
+        </div>
+
+        <div className="text-xs text-gray-400 mt-0.5">
+          단체 채팅
+        </div>
       </div>
 
-      <div className="px-4 py-3 border-b shrink-0">
+      <div className="px-3 py-3 border-b">
         {showCreate ? (
           <div className="flex flex-col gap-2">
             <input
-              className="w-full border rounded-xl px-3 py-2 text-sm"
+              className="w-full h-11 rounded-2xl bg-gray-100 px-4 text-sm outline-none"
               placeholder="방 이름 입력"
               value={newRoomName}
-              onChange={(e) => setNewRoomName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && createRoom()}
+              onChange={(e) =>
+                setNewRoomName(
+                  e.target.value
+                )
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                createRoom()
+              }
               autoFocus
             />
+
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-sm hover:bg-blue-600 transition-colors"
+                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-300 text-white font-semibold shadow"
               >
                 만들기
               </button>
+
               <button
-                onClick={() => { setShowCreate(false); setNewRoomName(""); }}
-                className="flex-1 py-2 bg-gray-100 rounded-xl text-sm hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  setShowCreate(false);
+                  setNewRoomName("");
+                }}
+                className="flex-1 h-11 rounded-2xl bg-gray-100 hover:bg-gray-200"
               >
                 취소
               </button>
@@ -482,8 +862,10 @@ export default function GroupChat() {
           </div>
         ) : (
           <button
-            onClick={() => setShowCreate(true)}
-            className="w-full py-2.5 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 transition-colors"
+            onClick={() =>
+              setShowCreate(true)
+            }
+            className="w-full h-11 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-300 text-white font-semibold shadow"
           >
             + 방 만들기
           </button>
@@ -491,34 +873,58 @@ export default function GroupChat() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
-        {rooms.length === 0 && (
-          <div className="text-center text-gray-400 text-sm mt-8 flex flex-col items-center gap-2">
-            <div className="text-3xl">💬</div>
-            <div>참여 중인 단체 채팅방이 없습니다</div>
-            <div className="text-xs">방을 만들거나 초대를 받아 보세요</div>
-          </div>
-        )}
         {rooms.map((room) => (
           <button
             key={room.id}
-            onClick={() => setCurrentRoom(room)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl mb-2 bg-white hover:bg-gray-50 border transition-colors text-left"
+            onClick={() =>
+              setCurrentRoom(room)
+            }
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl mb-2 border shadow-sm transition text-left ${
+              currentRoom?.id === room.id
+                ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-orange-100"
+                : "bg-white hover:bg-gray-50 border-gray-100"
+            }`}
           >
-            <div className="w-10 h-10 rounded-xl shrink-0 overflow-hidden">
-              {room.profileImage ? (
-                <img src={room.profileImage} alt="프로필" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-blue-100 flex items-center justify-center text-base font-bold text-blue-600">
-                  {room.name[0]}
-                </div>
-              )}
-            </div>
+            {room.profileImage ? (
+              <img
+                src={room.profileImage}
+                alt="프로필"
+                className="w-11 h-11 rounded-full object-cover shadow"
+              />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
+                {room.name[0]}
+              </div>
+            )}
+
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm text-gray-800">{room.name}</div>
-              <div className="text-xs text-gray-400 truncate">멤버 {room.members.length}명</div>
+              <div className="font-semibold text-gray-800 truncate">
+                {room.name}
+              </div>
+
+              <div className="text-xs text-gray-400 truncate">
+                멤버{" "}
+                {room.members.length}명
+              </div>
             </div>
           </button>
         ))}
+
+        {rooms.length === 0 && (
+          <div className="flex flex-col items-center justify-center text-center text-gray-400 mt-16">
+            <div className="text-6xl mb-4">
+              💬
+            </div>
+
+            <div className="font-semibold">
+              아직 채팅방이 없어
+            </div>
+
+            <div className="text-sm mt-1">
+              새 단체방을 만들어봐
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -526,8 +932,11 @@ export default function GroupChat() {
   if (isMobile) {
     return (
       <PageContainer>
-        <div className="h-screen flex flex-col">
-          {currentRoom ? renderRoom() : renderRoomList()}
+        <div className="h-screen flex flex-col overflow-hidden">
+          {!currentRoom
+            ? renderRoomList()
+            : renderRoom()}
+
           {renderInviteModal()}
         </div>
       </PageContainer>
@@ -536,17 +945,33 @@ export default function GroupChat() {
 
   return (
     <PageContainer>
-      <div className="h-screen flex overflow-hidden">
-        <div className="w-64 border-r flex flex-col">{renderRoomList()}</div>
+      <div className="h-screen flex overflow-hidden bg-white rounded-none md:rounded-3xl shadow-xl">
+        <div className="w-[320px] border-r">
+          {renderRoomList()}
+        </div>
+
         <div className="flex-1 flex flex-col">
-          {currentRoom ? renderRoom() : (
-            <div className="flex-1 flex items-center justify-center text-gray-400 flex-col gap-2">
-              <div className="text-4xl">💬</div>
-              <div>채팅방을 선택하거나 새로 만들어 보세요</div>
+          {currentRoom ? (
+            renderRoom()
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-50">
+              <div className="text-7xl mb-5">
+                💬
+              </div>
+
+              <div className="text-2xl font-bold text-gray-700">
+                단체 대화를 시작해봐요
+              </div>
+
+              <div className="text-gray-400 mt-2">
+                왼쪽에서 채팅방을
+                선택해주세요
+              </div>
             </div>
           )}
         </div>
       </div>
+
       {renderInviteModal()}
     </PageContainer>
   );
@@ -554,12 +979,23 @@ export default function GroupChat() {
 
 const formatTime = (ts: any) => {
   if (!ts) return "";
-  const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+
+  const d = ts?.toDate
+    ? ts.toDate()
+    : new Date(ts);
+
+  return d.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const formatDateLabel = (ts: any) => {
   if (!ts) return "";
-  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+
+  const d = ts?.toDate
+    ? ts.toDate()
+    : new Date(ts);
+
   return d.toLocaleDateString("ko-KR");
 };
