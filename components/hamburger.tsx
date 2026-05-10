@@ -11,13 +11,12 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
-import { doc, getDoc, deleteDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import TextAvatar from "./TextAvatar";
 import { useRouter } from "next/navigation";
 
 export default function HamburgerMenuWithDelete() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,14 +31,12 @@ export default function HamburgerMenuWithDelete() {
 
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const profileRef = useRef<HTMLDivElement | null>(null);
 
-  // ✅ 하드코딩 유지
   const SPECIAL_USERS = ["관리자", "나율", "Fred"];
 
   useEffect(() => setMounted(true), []);
 
-  /* 🔥 사용자 + VIP 로드 */
+  /* 사용자 로드 */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -51,8 +48,6 @@ export default function HamburgerMenuWithDelete() {
 
           setNickname(data.nickname);
           setProfileImage(data.profileImage || null);
-
-          // 🔥 VIP Firestore 기준
           setIsVip(data.vip === true);
         }
       } else {
@@ -69,14 +64,8 @@ export default function HamburgerMenuWithDelete() {
   /* 외부 클릭 */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        profileRef.current &&
-        !profileRef.current.contains(e.target as Node)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
-        setProfileMenuOpen(false);
       }
     };
 
@@ -120,14 +109,10 @@ export default function HamburgerMenuWithDelete() {
     <>
       {/* 햄버거 버튼 */}
       <button
-        onClick={() => {
-          setMenuOpen(!menuOpen);
-          setProfileMenuOpen(false);
-          setConfirmDeleteOpen(false);
-        }}
+        onClick={() => setMenuOpen(!menuOpen)}
         className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl shadow-md z-50 bg-white"
       >
-        <div className="flex flex-col justify-center items-center gap-1 ">
+        <div className="flex flex-col justify-center items-center gap-1">
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
@@ -140,53 +125,21 @@ export default function HamburgerMenuWithDelete() {
           ref={menuRef}
           className="fixed top-20 right-4 w-60 bg-white rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
-          {/* 로그인 */}
+          {/* 로그인 / 유저 */}
           {user ? (
-            <>
-              <button
-                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100"
-              >
-                <TextAvatar
-                  nickname={nickname || "유저"}
-                  size={48}
-                  profileImage={profileImage}
-                />
-                <span className="font-semibold">
-                  {nickname || "유저"}
-                </span>
-              </button>
-
-              {profileMenuOpen && (
-                <div
-                  ref={profileRef}
-                  className="flex flex-col bg-gray-100 rounded-xl px-4 py-3 space-y-2 items-start"
-                >
-                  <button onClick={() => router.push("/profile/edit")}>
-                    ✏️ 편집
-                  </button>
-
-                   <button onClick={() => router.push("/play")}>
-                    👤 내 아바타
-                  </button>
-                  <button
-                    onClick={() => signOut(auth)}
-                    className="text-red-500"
-                  >
-                    🚪 로그아웃
-                  </button>
-
-                  <button
-                    onClick={() => setConfirmDeleteOpen(true)}
-                    className="text-red-700"
-                  >
-                    🛑 계정 탈퇴
-                  </button>
-
-                 
-                </div>
-              )}
-            </>
+            <button
+              onClick={() => router.push("/profile")}
+              className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100"
+            >
+              <TextAvatar
+                nickname={nickname || "유저"}
+                size={48}
+                profileImage={profileImage}
+              />
+              <span className="font-semibold">
+                {nickname || "유저"}
+              </span>
+            </button>
           ) : (
             <button
               onClick={() => router.push("/login")}
@@ -211,10 +164,8 @@ export default function HamburgerMenuWithDelete() {
               {label}
             </Link>
           ))}
-          
-        
 
-          {/* 🔒 특별 메뉴 (하드코딩 유지) */}
+          {/* 특별 메뉴 */}
           {SPECIAL_USERS.includes(nickname || "") && (
             <>
               <div className="border-t my-2"></div>
@@ -238,9 +189,7 @@ export default function HamburgerMenuWithDelete() {
       {confirmDeleteOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-80 space-y-4">
-            <h2 className="text-red-600 font-bold">
-              계정 탈퇴
-            </h2>
+            <h2 className="text-red-600 font-bold">계정 탈퇴</h2>
 
             <input
               type="password"
