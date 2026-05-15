@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   setPersistence,
   browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 
 import { auth, db } from "../firebase";
@@ -19,14 +20,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [nickname, setNickname] = useState("");
+  const [keepLogin, setKeepLogin] = useState(true);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      // 🔥 1. 로그인 상태 유지 설정 (핵심)
-      await setPersistence(auth, browserLocalPersistence);
+      await setPersistence(auth, keepLogin ? browserLocalPersistence : browserSessionPersistence);
 
       // 🔥 2. 로그인
       const userCredential = await signInWithEmailAndPassword(
@@ -86,6 +87,16 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={keepLogin}
+                onChange={(e) => setKeepLogin(e.target.checked)}
+                className="w-4 h-4 accent-blue-400"
+              />
+              <span className="text-sm text-gray-600">로그인 상태 유지</span>
+            </label>
 
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
