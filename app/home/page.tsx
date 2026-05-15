@@ -373,72 +373,31 @@ export default function Chat() {
     });
   }, []);
 
-useEffect(() => {
-  if (!nickname) return;
-
-  const unsub = onSnapshot(collection(db, "friends"), (snapshot) => {
-    const friendSet = new Set<string>();
-
-    snapshot.forEach((d) => {
-      const data = d.data();
-
-      if (data.user_id === nickname) {
-        friendSet.add(data.friend_id);
-      }
-
-      if (data.friend_id === nickname) {
-        friendSet.add(data.user_id);
-      }
-    });
-
-    setFriendIds(friendSet);
-  });
-
-  return () => unsub();
-}, [nickname]);
+  /* 친구 목록 — friends 컬렉션은 { users: [uid1, uid2] } 구조 */
   useEffect(() => {
-  if (!nickname) return;
+    if (!uid) return;
 
-  const fetchFriends = async () => {
-    const snap = await getDocs(collection(db, "friends"));
-    onSnapshot(collection(db, "friends"), (snap) => {
-  const set = new Set<string>();
-
-  snap.docs.forEach((d) => {
-    const data = d.data();
-
-    if (data.user_id === nickname) {
-      set.add(data.friend_id);
-    }
-
-    if (data.friend_id === nickname) {
-      set.add(data.user_id);
-    }
-  });
-
-  setFriendIds(new Set(set));
-});
-
-    const set = new Set<string>();
-
-    snap.docs.forEach((d) => {
-      const data = d.data();
-
-      // 내가 친구인 사람만
-      if (data.user_id === nickname) {
-  set.add(data.friend_id);
-}
-
-if (data.friend_id === nickname) {
-  set.add(data.user_id);
-}
+    const q = query(collection(db, "friends"), where("users", "array-contains", uid));
+    const unsub = onSnapshot(q, async (snap) => {
+      const nickSet = new Set<string>();
+      for (const d of snap.docs) {
+        const data = d.data();
+        const friendUid = (data.users as string[]).find((u) => u !== uid);
+        if (!friendUid) continue;
+        // users 컬렉션에서 닉네임 찾기
+        const found = users.find((u) => u.id === friendUid);
+        if (found) {
+          nickSet.add(found.nickname);
+        } else {
+          const uSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", friendUid)));
+          uSnap.forEach((ud) => nickSet.add(ud.data().nickname));
+        }
+      }
+      setFriendIds(nickSet);
     });
 
-   setFriendIds(new Set(set));
-  };
-
-  fetchFriends();
-}, [nickname]);
+    return () => unsub();
+  }, [uid, users]);
 
   useEffect(() => {
     if (!currentChatUser || !nickname) {

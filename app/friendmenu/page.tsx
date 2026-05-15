@@ -13,7 +13,6 @@ import {
   query,
   where,
   onSnapshot,
-  getDocs as _getDocs,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -34,7 +33,9 @@ export default function FriendsPage() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
       setCurrentUser(user);
-      const nick = user.displayName || "유저";
+      // Firestore에서 닉네임 가져오기
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const nick = userSnap.exists() ? userSnap.data().nickname : (user.displayName || "유저");
       setCurrentNickname(nick);
       await loadUsers(user.uid);
       await loadFriends(user.uid);
