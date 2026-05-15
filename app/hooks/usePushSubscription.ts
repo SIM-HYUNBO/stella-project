@@ -21,11 +21,13 @@ export function usePushSubscription(nickname: string | null) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
 
+  // 기존 구독 여부만 확인 (자동 권한 요청 없음)
   useEffect(() => {
     if (!nickname) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
-    const init = async () => {
+    const check = async () => {
+      // 레거시 sw-push.js 제거
       const allRegs = await navigator.serviceWorker.getRegistrations();
       for (const reg of allRegs) {
         if (reg.active?.scriptURL.includes("sw-push.js")) {
@@ -40,42 +42,16 @@ export function usePushSubscription(nickname: string | null) {
 
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
+      const granted = Notification.permission === "granted";
 
-      if (sub && Notification.permission === "granted") {
-        setIsSubscribed(true);
-        return;
-      }
-
-      // 아직 구독 없으면 자동으로 권한 요청 + 구독
-      if (Notification.permission === "denied") {
-        setIsBlocked(true);
-        return;
-      }
-
-      const permission = Notification.permission === "default"
-        ? await Notification.requestPermission()
-        : Notification.permission;
-
-      if (permission === "denied") { setIsBlocked(true); return; }
-      if (permission !== "granted") return;
-
-      const newSub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-
-      await setDoc(
-        doc(db, "push_subscriptions", nickname),
-        { subscription: JSON.stringify(newSub), updatedAt: new Date() },
-        { merge: true }
-      );
-
-      setIsSubscribed(true);
+      setIsBlocked(Notification.permission === "denied");
+      setIsSubscribed(!!sub && granted);
     };
 
-    init().catch(() => {});
+    check().catch(() => {});
   }, [nickname]);
 
+  // 🔔 버튼 클릭 시 호출
   const toggle = async () => {
     if (!nickname) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -87,6 +63,7 @@ export function usePushSubscription(nickname: string | null) {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
 
+      // 이미 구독 중 → 해제
       if (isSubscribed && sub) {
         await sub.unsubscribe();
         await deleteDoc(doc(db, "push_subscriptions", nickname));
@@ -94,13 +71,14 @@ export function usePushSubscription(nickname: string | null) {
         return;
       }
 
-      let permission = Notification.permission;
-      if (permission === "default") {
-        permission = await Notification.requestPermission();
-      }
+      // 권한 요청 (이 시점에 브라우저 팝업 뜸)
+      const permission = Notification.permission === "default"
+        ? await Notification.requestPermission()
+        : Notification.permission;
 
       if (permission === "denied") {
-        alert("알림이 차단되어 있어요.\n브라우저 주소창 왼쪽 자물쇠 아이콘 → 알림 → 허용 으로 변경해주세요.");
+        setIsBlocked(true);
+        alert("알림이 차단되어 있어요.\n브라우저 주소창 🔒 → 알림 → 허용으로 변경해주세요.");
         return;
       }
 
