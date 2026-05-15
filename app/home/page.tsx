@@ -44,6 +44,7 @@ type Message = {
 type User = {
   id: string;
   nickname: string;
+  profileImage?: string | null;
 };
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
@@ -163,10 +164,17 @@ function SwipeUserItem({
       >
         <div className="flex items-center gap-3">
           <div className="relative shrink-0">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-sm font-bold text-white shadow">
-              {u.nickname[0]}
-            </div>
-
+            {u.profileImage ? (
+              <img
+                src={u.profileImage}
+                alt={u.nickname}
+                className="w-11 h-11 rounded-full object-cover shadow"
+              />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-sm font-bold text-white shadow">
+                {u.nickname[0]}
+              </div>
+            )}
             <span
               className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
                 isOnline ? "bg-green-400" : "bg-gray-300"
@@ -312,6 +320,7 @@ export default function Chat() {
         list.push({
           id: d.id,
           nickname: data.nickname,
+          profileImage: data.profileImage ?? null,
         });
       });
 
