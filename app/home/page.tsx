@@ -199,6 +199,8 @@ export default function Chat() {
   const router = useRouter();
 
   const [nickname, setNickname] = useState<string | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
+  const [friendRequests, setFriendRequests] = useState<any[]>([]);
 
   const [users, setUsers] = useState<User[]>([]);
   const [currentChatUser, setCurrentChatUser] =
@@ -271,13 +273,28 @@ export default function Chat() {
     const unsub = watchAuthState((user) => {
       if (user) {
         setNickname(user.displayName || "유저");
+        setUid(user.uid);
       } else {
         router.replace("/login");
       }
     });
-
     return () => unsub();
   }, []);
+
+  /* 친구 요청 수신 리스너 */
+  useEffect(() => {
+    if (!uid) return;
+    const q = query(
+      collection(db, "friend_requests"),
+      where("to", "==", uid),
+      where("status", "==", "pending")
+    );
+    return onSnapshot(q, (snap) => {
+      const list: any[] = [];
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      setFriendRequests(list);
+    });
+  }, [uid]);
 
   useEffect(() => {
     if (!nickname) return;
@@ -634,6 +651,20 @@ if (data.friend_id === nickname) {
     } finally {
       setImgUploading(false);
     }
+  };
+
+  const acceptFriendRequest = async (req: any) => {
+    if (!uid) return;
+    const chatId = [uid, req.from].sort().join("_");
+    await setDoc(doc(db, "friends", chatId), {
+      users: [uid, req.from],
+      createdAt: Date.now(),
+    });
+    await deleteDoc(doc(db, "friend_requests", req.id));
+  };
+
+  const rejectFriendRequest = async (req: any) => {
+    await deleteDoc(doc(db, "friend_requests", req.id));
   };
 
   const deleteMessage = async (id: string) => {
@@ -1211,8 +1242,43 @@ if (data.friend_id === nickname) {
     );
   }
 
+  const pendingRequest = friendRequests[0] ?? null;
+
   return (
     <PageContainer>
+      {/* 친구 요청 팝업 */}
+      {pendingRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
+            <div className="text-center">
+              <div className="text-2xl mb-2">👋</div>
+              <div className="font-bold text-gray-800 text-base">
+                {pendingRequest.fromNickname || pendingRequest.from}님이 친구를 요청했어요
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => acceptFriendRequest(pendingRequest)}
+                className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold"
+              >
+                수락
+              </button>
+              <button
+                onClick={() => rejectFriendRequest(pendingRequest)}
+                className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold"
+              >
+                거절
+              </button>
+            </div>
+            {friendRequests.length > 1 && (
+              <div className="text-center text-xs text-gray-400">
+                외 {friendRequests.length - 1}건 더 있어요
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="h-screen flex overflow-hidden bg-white rounded-none md:rounded-3xl shadow-xl">
         <div className="w-[320px] border-r">
           {renderUserList()}
