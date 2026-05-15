@@ -8,7 +8,10 @@ import {
 
 import { ThemeProvider } from "next-themes";
 import { FontProvider } from "./FontContext";
+
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import FCMToken from "@/components/FCMToken";
+
 import "./globals.css";
 
 const geist = localFont({
@@ -55,8 +58,15 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider attribute="class" enableSystem={false}>
           <FontProvider>
+
+            {/* 서비스 워커 */}
             <ServiceWorkerRegister />
+
+            {/* FCM 초기화 */}
+            <FCMToken />
+
             {children}
+
           </FontProvider>
         </ThemeProvider>
       </body>
