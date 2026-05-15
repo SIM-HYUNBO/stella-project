@@ -293,6 +293,8 @@ export default function GroupChat() {
     )
       return;
 
+    const text = input.trim();
+
     await addDoc(
       collection(
         db,
@@ -302,12 +304,26 @@ export default function GroupChat() {
       ),
       {
         from: nickname,
-        content: input.trim(),
+        content: text,
         type: "text",
         createdAt: serverTimestamp(),
         readBy: [nickname],
       }
     );
+
+    const targets = currentRoom.members.filter((m) => m !== nickname);
+    if (targets.length > 0) {
+      fetch("/api/fcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toNicknames: targets,
+          fromNickname: nickname,
+          message: text.length > 60 ? text.slice(0, 60) + "…" : text,
+          roomName: currentRoom.name,
+        }),
+      }).catch(() => {});
+    }
 
     setInput("");
   };

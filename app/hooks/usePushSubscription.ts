@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/app/firebase";
+import { getFirebaseMessaging } from "@/app/firebase";
+import { getToken } from "firebase/messaging";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
@@ -15,6 +17,26 @@ function urlBase64ToUint8Array(base64String: string) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+async function saveFCMToken(nickname: string) {
+  try {
+    const messaging = await getFirebaseMessaging();
+    if (!messaging) return;
+    const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY });
+    if (!token) return;
+    await setDoc(doc(db, "fcm_tokens", nickname), { token, updatedAt: new Date() }, { merge: true });
+  } catch {
+    // FCM 미지원 환경 무시
+  }
+}
+
+async function deleteFCMToken(nickname: string) {
+  try {
+    await deleteDoc(doc(db, "fcm_tokens", nickname));
+  } catch {
+    // 무시
+  }
 }
 
 export function usePushSubscription(nickname: string | null) {
@@ -67,11 +89,12 @@ export function usePushSubscription(nickname: string | null) {
       if (isSubscribed && sub) {
         await sub.unsubscribe();
         await deleteDoc(doc(db, "push_subscriptions", nickname));
+        await deleteFCMToken(nickname);
         setIsSubscribed(false);
         return;
       }
 
-      // 권한 요청 (이 시점에 브라우저 팝업 뜸)
+      // 권한 요청
       const permission = Notification.permission === "default"
         ? await Notification.requestPermission()
         : Notification.permission;
@@ -84,6 +107,7 @@ export function usePushSubscription(nickname: string | null) {
 
       if (permission !== "granted") return;
 
+      // Web Push 구독
       const newSub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
@@ -94,6 +118,9 @@ export function usePushSubscription(nickname: string | null) {
         { subscription: JSON.stringify(newSub), updatedAt: new Date() },
         { merge: true }
       );
+
+      // FCM 토큰 저장
+      await saveFCMToken(nickname);
 
       setIsSubscribed(true);
     } catch (e: any) {

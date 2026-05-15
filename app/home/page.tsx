@@ -559,6 +559,16 @@ export default function Chat() {
 
     await addDoc(collection(db, "messages"), msgData);
 
+    fetch("/api/fcm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        toNicknames: [currentChatUser.nickname],
+        fromNickname: nickname,
+        message: input.trim().length > 60 ? input.trim().slice(0, 60) + "…" : input.trim(),
+      }),
+    }).catch(() => {});
+
     setInput("");
     setReplyTo(null);
   };
@@ -618,6 +628,16 @@ export default function Chat() {
         createdAt: serverTimestamp(),
         readBy: [nickname],
       });
+
+      fetch("/api/fcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toNicknames: [currentChatUser.nickname],
+          fromNickname: nickname,
+          message: "📷 사진을 보냈어요",
+        }),
+      }).catch(() => {});
     } finally {
       setImgUploading(false);
     }
