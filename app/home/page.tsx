@@ -809,9 +809,17 @@ export default function Chat() {
             )}
 
             <div className="relative">
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
-                {currentChatUser.nickname[0]}
-              </div>
+              {currentChatUser.profileImage ? (
+                <img
+                  src={currentChatUser.profileImage}
+                  alt={currentChatUser.nickname}
+                  className="w-11 h-11 rounded-full object-cover shadow"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
+                  {currentChatUser.nickname[0]}
+                </div>
+              )}
 
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
@@ -897,13 +905,28 @@ export default function Chat() {
               )}
             <div
               key={m.id}
-              className={`flex ${
+              className={`flex items-end gap-2 ${
                 isMine
                   ? "justify-end"
                   : "justify-start"
               }`}
             >
-              <div className="max-w-[80%]">
+              {!isMine && (
+                <div className="shrink-0 self-end mb-1">
+                  {currentChatUser?.profileImage ? (
+                    <img
+                      src={currentChatUser.profileImage}
+                      alt={currentChatUser.nickname}
+                      className="w-8 h-8 rounded-full object-cover shadow"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-xs font-bold text-white shadow">
+                      {m.from[0]}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="max-w-[75%]">
                 {!isMine && (
                   <div className="text-xs text-gray-400 mb-1 ml-1">
                     {m.from}
