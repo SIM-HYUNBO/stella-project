@@ -19,6 +19,7 @@
     "antd": "^5.27.6",
     "express": "^5.2.1",
     "firebase": "^12.9.0",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^12.33.0",
     "lucide-react": "^0.548.0",
     "next": "14.2.15",
