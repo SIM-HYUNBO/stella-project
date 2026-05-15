@@ -917,11 +917,11 @@ export default function GroupChat() {
             </div>
 
             <div className="font-semibold">
-              아직 채팅방이 없어
+              아직 채팅방이 없어요
             </div>
 
             <div className="text-sm mt-1">
-              새 단체방을 만들어봐
+              새 단체방을 만들어봐요
             </div>
           </div>
         )}
