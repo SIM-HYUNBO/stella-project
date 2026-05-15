@@ -871,10 +871,21 @@ export default function Chat() {
         className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-3"
         onClick={() => setCtxMenu(null)}
       >
-        {displayedMessages.map((m) => {
+        {displayedMessages.map((m, i) => {
           const isMine = m.from === nickname;
+          const currentDate = formatDateLabel(m.createdAt);
+          const prevDate = i > 0 ? formatDateLabel(displayedMessages[i - 1].createdAt) : null;
+          const showDate = currentDate && currentDate !== prevDate;
 
           return (
+            <div key={m.id}>
+              {showDate && (
+                <div className="flex items-center gap-2 my-2">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400 shrink-0">{currentDate}</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+              )}
             <div
               key={m.id}
               className={`flex ${
@@ -971,6 +982,7 @@ export default function Chat() {
                   </span>
                 </div>
               </div>
+            </div>
             </div>
           );
         })}
@@ -1277,13 +1289,12 @@ export default function Chat() {
 
 const formatTime = (ts: any) => {
   if (!ts) return "";
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+};
 
-  const d = ts?.toDate
-    ? ts.toDate()
-    : new Date(ts);
-
-  return d.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const formatDateLabel = (ts: any) => {
+  if (!ts) return "";
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 };
