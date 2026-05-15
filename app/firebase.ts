@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   apiKey: "AIzaSyBBSM0axgA9iVrTpqpF31dmBSARajf6Xic",
@@ -20,4 +20,5 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 // 데이터베이스 인스턴스 export
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch(() => {});
 export const storage = getStorage(app);

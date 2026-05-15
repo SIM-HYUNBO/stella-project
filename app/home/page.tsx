@@ -200,6 +200,7 @@ export default function Chat() {
 
   const [nickname, setNickname] = useState<string | null>(null);
   const [uid, setUid] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
 
   const [users, setUsers] = useState<User[]>([]);
@@ -271,6 +272,7 @@ export default function Chat() {
 
   useEffect(() => {
     const unsub = watchAuthState((user) => {
+      setAuthReady(true);
       if (user) {
         setNickname(user.displayName || "유저");
         setUid(user.uid);
@@ -1200,6 +1202,12 @@ export default function Chat() {
       </PageContainer>
     );
   }
+
+  if (!authReady) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   const pendingRequest = friendRequests[0] ?? null;
 
