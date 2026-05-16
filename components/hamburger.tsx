@@ -165,6 +165,20 @@ export default function HamburgerMenuWithDelete() {
               {label}
             </Link>
           ))}
+               <>
+              <div className="border-t my-2"></div>
+
+              <div className="text-xs text-gray-400 px-2">
+                ✨ 새로운 메뉴
+              </div>
+
+              <Link
+                href="/cam"
+                className="p-2 rounded-xl hover:bg-gray-100"
+              >
+                🔮 유리구슬과 놀기
+              </Link>
+            </>
 
           {/* 특별 메뉴 */}
           {SPECIAL_USERS.includes(nickname || "") && (
