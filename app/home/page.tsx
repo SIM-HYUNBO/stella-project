@@ -88,10 +88,22 @@ export default function AvatarPage() {
   };
 
   /* =========================
-      쓰다듬기 공통
+      파동 생성
   ========================= */
-  const handlePetMove = (clientX: number, clientY: number) => {
+ 
+
+ 
+
+  /* =========================
+      쓰다듬기
+  ========================= */
+  const handlePetMove = (
+    clientX: number,
+    clientY: number
+  ) => {
     const now = Date.now();
+
+    
 
     if (!lastMoveRef.current) {
       lastMoveRef.current = {
@@ -103,11 +115,19 @@ export default function AvatarPage() {
       return;
     }
 
-    const dx = clientX - lastMoveRef.current.x;
-    const dy = clientY - lastMoveRef.current.y;
-    const dt = Math.max(now - lastMoveRef.current.time, 1);
+    const dx =
+      clientX - lastMoveRef.current.x;
 
-    const speed = Math.sqrt(dx * dx + dy * dy) / dt;
+    const dy =
+      clientY - lastMoveRef.current.y;
+
+    const dt = Math.max(
+      now - lastMoveRef.current.time,
+      1
+    );
+
+    const speed =
+      Math.sqrt(dx * dx + dy * dy) / dt;
 
     lastMoveRef.current = {
       x: clientX,
@@ -135,7 +155,10 @@ export default function AvatarPage() {
 
     if (!touch) return;
 
-    handlePetMove(touch.clientX, touch.clientY);
+    handlePetMove(
+      touch.clientX,
+      touch.clientY
+    );
   };
 
   /* =========================
@@ -151,7 +174,10 @@ export default function AvatarPage() {
     setMood((prev) => {
       const next = Math.max(0, prev - 3);
 
-      localStorage.setItem("orbMood", String(next));
+      localStorage.setItem(
+        "orbMood",
+        String(next)
+      );
 
       return next;
     });
@@ -171,12 +197,15 @@ export default function AvatarPage() {
         requestPermission?: () => Promise<PermissionState>;
       };
 
-    if (typeof DeviceMotion?.requestPermission === "function") {
+    if (
+      typeof DeviceMotion?.requestPermission ===
+      "function"
+    ) {
       const permission =
         await DeviceMotion.requestPermission();
 
       if (permission !== "granted") {
-        alert("흔들기 권한이 필요해!");
+        alert("권한이 필요해!");
         return;
       }
     }
@@ -191,7 +220,9 @@ export default function AvatarPage() {
 
     let lastShakeTime = 0;
 
-    const handleMotion = (event: DeviceMotionEvent) => {
+    const handleMotion = (
+      event: DeviceMotionEvent
+    ) => {
       const acc =
         event.accelerationIncludingGravity;
 
@@ -204,7 +235,10 @@ export default function AvatarPage() {
 
       const now = Date.now();
 
-      if (total > 45 && now - lastShakeTime > 2500) {
+      if (
+        total > 45 &&
+        now - lastShakeTime > 2500
+      ) {
         lastShakeTime = now;
 
         startDizzy();
@@ -232,7 +266,10 @@ export default function AvatarPage() {
       setMood((prev) => {
         const next = Math.max(0, prev - 1);
 
-        localStorage.setItem("orbMood", String(next));
+        localStorage.setItem(
+          "orbMood",
+          String(next)
+        );
 
         return next;
       });
@@ -249,10 +286,14 @@ export default function AvatarPage() {
       if (!orbRef.current || dizzy) return;
 
       const x =
-        (e.clientX - window.innerWidth / 2) / 50;
+        (e.clientX -
+          window.innerWidth / 2) /
+        50;
 
       const y =
-        (e.clientY - window.innerHeight / 2) / 50;
+        (e.clientY -
+          window.innerHeight / 2) /
+        50;
 
       orbRef.current.style.transform = `
         translate(${x}px, ${y}px)
@@ -261,7 +302,10 @@ export default function AvatarPage() {
       `;
     };
 
-    window.addEventListener("mousemove", move);
+    window.addEventListener(
+      "mousemove",
+      move
+    );
 
     return () => {
       window.removeEventListener(
@@ -305,7 +349,9 @@ export default function AvatarPage() {
           </div>
         )}
 
-        <div className="orb-name">{name}</div>
+        <div className="orb-name">
+          {name}
+        </div>
 
         <div className="mood-text">
           {moodText}
@@ -345,6 +391,9 @@ export default function AvatarPage() {
               `,
             }}
           >
+            
+
+            {/* 글리터 */}
             <div
               className={`glitter-layer ${
                 dizzy
@@ -355,7 +404,7 @@ export default function AvatarPage() {
               {GLITTERS.map((g) => (
                 <span
                   key={g.id}
-                  className={`glitter ${moodType}`}
+                  className="glitter"
                   style={{
                     left: `${g.left}%`,
                     top: `${g.top}%`,
@@ -411,6 +460,7 @@ export default function AvatarPage() {
           .page {
             width: 100%;
             min-height: 100vh;
+
             overflow: hidden;
 
             position: relative;
@@ -431,6 +481,7 @@ export default function AvatarPage() {
 
           .menu {
             position: absolute;
+
             top: 40px;
             right: 40px;
 
@@ -460,17 +511,6 @@ export default function AvatarPage() {
               );
 
             color: white;
-
-            box-shadow:
-              0 20px 60px
-                rgba(0, 0, 0, 0.18),
-              inset 0 1px 1px
-                rgba(
-                  255,
-                  255,
-                  255,
-                  0.2
-                );
           }
 
           .menu-title {
@@ -544,9 +584,6 @@ export default function AvatarPage() {
             font-weight: 900;
 
             color: white;
-
-            text-shadow: 0 6px 20px
-              rgba(0, 0, 0, 0.18);
           }
 
           .mood-text {
@@ -629,20 +666,11 @@ export default function AvatarPage() {
               ease-in-out infinite;
           }
 
-          .orb.dizzy {
-            animation:
-              dizzyShake 0.25s
-                ease-in-out infinite,
-              float 3.2s
-                ease-in-out infinite;
-          }
-
-          .orb::before {
-            content: "";
-
+          .ripple {
             position: absolute;
 
-            inset: 14px;
+            width: 20px;
+            height: 20px;
 
             border-radius: 50%;
 
@@ -651,10 +679,20 @@ export default function AvatarPage() {
                 255,
                 255,
                 255,
-                0.45
+                0.7
               );
 
-            z-index: 4;
+            transform: translate(
+              -50%,
+              -50%
+            );
+
+            pointer-events: none;
+
+            animation: ripple 0.9s
+              ease-out forwards;
+
+            z-index: 2;
           }
 
           .glitter-layer {
@@ -667,11 +705,6 @@ export default function AvatarPage() {
             overflow: hidden;
 
             z-index: 1;
-          }
-
-          .dizzy-glitter {
-            animation: glitterSpin
-              0.8s linear infinite;
           }
 
           .glitter {
@@ -803,30 +836,6 @@ export default function AvatarPage() {
             right: 78px;
           }
 
-          .dizzy-eye {
-            background: white;
-
-            color: rgba(
-              53,
-              36,
-              63,
-              0.9
-            );
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 11px;
-            font-weight: 900;
-
-            animation: none;
-          }
-
-          .dizzy-eye::after {
-            content: "@";
-          }
-
           .mouth {
             position: absolute;
 
@@ -837,8 +846,6 @@ export default function AvatarPage() {
             height: 12px;
 
             transform: translateX(-50%);
-
-            transition: 0.3s;
           }
 
           .mouth.happy,
@@ -880,21 +887,6 @@ export default function AvatarPage() {
               );
           }
 
-          .dizzy-mouth {
-            width: 18px;
-            height: 18px;
-
-            border: 3px solid
-              rgba(
-                53,
-                36,
-                63,
-                0.75
-              ) !important;
-
-            border-radius: 50% !important;
-          }
-
           .shadow {
             position: absolute;
 
@@ -916,6 +908,22 @@ export default function AvatarPage() {
               ease-in-out infinite;
           }
 
+          @keyframes ripple {
+            0% {
+              width: 10px;
+              height: 10px;
+
+              opacity: 0.9;
+            }
+
+            100% {
+              width: 140px;
+              height: 140px;
+
+              opacity: 0;
+            }
+          }
+
           @keyframes float {
             0%,
             100% {
@@ -926,46 +934,6 @@ export default function AvatarPage() {
               transform: translateY(
                 -14px
               );
-            }
-          }
-
-          @keyframes dizzyShake {
-            0% {
-              transform: translate(
-                  -4px,
-                  0
-                )
-                rotate(-5deg);
-            }
-
-            50% {
-              transform: translate(
-                  4px,
-                  -2px
-                )
-                rotate(5deg);
-            }
-
-            100% {
-              transform: translate(
-                  -4px,
-                  0
-                )
-                rotate(-5deg);
-            }
-          }
-
-          @keyframes glitterSpin {
-            0% {
-              transform: rotate(0deg)
-                scale(1);
-            }
-
-            100% {
-              transform: rotate(
-                  360deg
-                )
-                scale(1.08);
             }
           }
 
