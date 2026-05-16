@@ -1206,12 +1206,15 @@ export default function Chat() {
           </div>
         </div>
 
-        <button
-          onClick={toggle}
-          className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
-        >
-          {isSubscribed ? "🔕" : "🔔"}
-        </button>
+       <button
+  onClick={() => {
+    console.log("nickname:", nickname);
+    toggle();
+  }}
+  className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
+>
+  {isSubscribed ? "🔕" : "🔔"}
+</button>
       </div>
 
       <div className="px-3 py-3 border-b">
