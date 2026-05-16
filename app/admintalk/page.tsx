@@ -181,12 +181,29 @@ export default function ChatPage() {
   const sendMessage = async () => {
     if (!input.trim() || !nickname || !currentRoomId) return;
 
+    const text = input.trim();
+
     await addDoc(collection(db, "aroom", currentRoomId, "messages"), {
       user: nickname,
-      content: input,
+      content: text,
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
+
+    const currentRoom = rooms.find((r) => r.id === currentRoomId);
+    const targets = currentRoom?.members.filter((m) => m !== nickname) ?? [];
+    if (targets.length > 0) {
+      fetch("/api/fcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toNicknames: targets,
+          fromNickname: nickname,
+          message: text.length > 60 ? text.slice(0, 60) + "…" : text,
+          roomName: "관리자 톡",
+        }),
+      }).catch(() => {});
+    }
 
     setInput("");
   };
