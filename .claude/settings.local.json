@@ -9,7 +9,10 @@
       "Bash(Format-List)",
       "Bash(Get-ChildItem -Path . -Force -Recurse)",
       "Bash(Select-Object -First 50)",
-      "Bash(grep -E \"\\\\.\\(png|jpg|jpeg|ico|webp|svg\\)$\")"
+      "Bash(grep -E \"\\\\.\\(png|jpg|jpeg|ico|webp|svg\\)$\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Project\\\\stella-project\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table)"
     ]
   }
 }

@@ -1,1355 +1,683 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import PageContainer from "../../components/PageContainer";
-import { db } from "@/app/firebase";
-import { watchAuthState } from "../authService";
-import {
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  getDocs,
-  updateDoc,
-  doc,
-  setDoc,
-  deleteDoc,
-  where,
-} from "firebase/firestore";
-import { usePushSubscription } from "@/app/hooks/usePushSubscription";
+import { useEffect, useRef, useState } from "react";
+import PageContainer from "@/components/PageContainer";
 
-type ReplyTo = {
-  id: string;
-  from: string;
-  content: string;
-  type?: string;
-};
+const GLITTERS = Array.from({ length: 22 }).map((_, i) => ({
+  id: i,
+  left: (i * 37) % 100,
+  top: (i * 53) % 100,
+  size: 3 + (i % 4),
+  delay: (i % 7) * 0.4,
+  duration: 4 + (i % 5),
+}));
 
-type Message = {
-  id: string;
-  from: string;
-  to: string;
-  content: string;
-  type?: "text" | "image";
-  createdAt?: any;
-  readBy?: string[];
-  replyTo?: ReplyTo;
-  reactions?: Record<string, string[]>;
-  edited?: boolean;
-};
-
-type User = {
-  id: string;
-  nickname: string;
-  profileImage?: string | null;
-};
-
-const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
-
-function SwipeUserItem({
-  u,
-  isActive,
-  isBlocked,
-  lastMessage,
-  unreadCount,
-  isOnline,
-  onClick,
-  onBlock,
-}: any) {
-  const BUTTON_WIDTH = 84;
-
-  const [offset, setOffset] = useState(0);
-  const [open, setOpen] = useState(false);
-
-  
-
-  const startX = useRef(0);
-  const isDragging = useRef(false);
-  const currentOffset = useRef(0);
-
-  const onMoveStart = (clientX: number) => {
-    startX.current = clientX - offset;
-    isDragging.current = true;
-  };
-
-  const onMove = (clientX: number) => {
-    if (!isDragging.current) return;
-
-    const newOffset = Math.min(
-      0,
-      Math.max(-BUTTON_WIDTH, clientX - startX.current)
-    );
-
-    setOffset(newOffset);
-    currentOffset.current = newOffset;
-  };
-
-  const onMoveEnd = () => {
-    if (!isDragging.current) return;
-
-    isDragging.current = false;
-
-    if (!open) {
-      if (currentOffset.current < -40) {
-        setOffset(-BUTTON_WIDTH);
-        setOpen(true);
-      } else {
-        setOffset(0);
-      }
-    } else {
-      if (currentOffset.current > -40) {
-        setOffset(0);
-        setOpen(false);
-      } else {
-        setOffset(-BUTTON_WIDTH);
-      }
-    }
-  };
-  
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl mb-2">
-      <div
-        className="absolute right-0 top-0 h-full flex"
-        style={{ width: BUTTON_WIDTH }}
-      >
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onBlock();
-            setOffset(0);
-            setOpen(false);
-          }}
-          className={`w-full text-white text-xs font-semibold ${
-            isBlocked
-              ? "bg-emerald-500"
-              : "bg-gradient-to-br from-red-500 to-pink-500"
-          }`}
-        >
-          {isBlocked ? "해제" : "차단"}
-        </button>
-      </div>
-
-      <div
-        className={`relative z-10 px-3 py-3 bg-white border border-gray-100 shadow-sm cursor-pointer transition ${
-          isActive
-            ? "bg-gradient-to-r from-yellow-50 to-orange-50"
-            : "hover:bg-gray-50"
-        }`}
-        style={{
-          transform: `translateX(${offset}px)`,
-          transition: isDragging.current
-            ? "none"
-            : "transform .25s ease",
-        }}
-        onMouseDown={(e) => onMoveStart(e.clientX)}
-        onMouseMove={(e) => onMove(e.clientX)}
-        onMouseUp={onMoveEnd}
-        onMouseLeave={onMoveEnd}
-        onTouchStart={(e) => onMoveStart(e.touches[0].clientX)}
-        onTouchMove={(e) => onMove(e.touches[0].clientX)}
-        onTouchEnd={onMoveEnd}
-        onClick={() => {
-          if (open) {
-            setOffset(0);
-            setOpen(false);
-            currentOffset.current = 0;
-          } else if (offset === 0) {
-            onClick();
-          }
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="relative shrink-0">
-            {u.profileImage ? (
-              <img
-                src={u.profileImage}
-                alt={u.nickname}
-                className="w-11 h-11 rounded-full object-cover shadow"
-              />
-            ) : (
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-sm font-bold text-white shadow">
-                {u.nickname[0]}
-              </div>
-            )}
-            <span
-              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                isOnline ? "bg-green-400" : "bg-gray-300"
-              }`}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-gray-800 truncate">
-              {u.nickname}
-            </div>
-
-            <div className="text-xs text-gray-400 truncate">
-              {lastMessage || "대화 없음"}
-            </div>
-          </div>
-
-          {unreadCount > 0 && (
-            <div className="min-w-[22px] h-[22px] px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold shadow">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function Chat() {
-  const router = useRouter();
-
-  const [nickname, setNickname] = useState<string | null>(null);
-  const [uid, setUid] = useState<string | null>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [friendRequests, setFriendRequests] = useState<any[]>([]);
-
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentChatUser, setCurrentChatUser] =
-    useState<User | null>(null);
-
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  const [input, setInput] = useState("");
-
-  const [blocked, setBlocked] = useState<any[]>([]);
-
-  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(
-    new Set()
-  );
-
-  const [unreadCounts, setUnreadCounts] = useState<
-    Record<string, number>
-  >({});
-
-  const [lastMessages, setLastMessages] = useState<
-    Record<string, string>
-  >({});
-
-  const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
-    const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
-
-  const [peerTyping, setPeerTyping] = useState(false);
-
-  const [msgSearch, setMsgSearch] = useState("");
-  const [showMsgSearch, setShowMsgSearch] = useState(false);
-
-  const [imgUploading, setImgUploading] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  const [ctxMenu, setCtxMenu] = useState<any>(null);
-
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  const imageInputRef = useRef<HTMLInputElement>(null);
-
-  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+export default function AvatarPage() {
+  const orbRef = useRef<HTMLDivElement | null>(null);
+  const lastMoveRef = useRef<{ x: number; y: number; time: number } | null>(
     null
   );
 
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const [name, setName] = useState("말랑구슬");
+  const [mood, setMood] = useState(65);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const [dizzy, setDizzy] = useState(false);
+  const [motionReady, setMotionReady] = useState(false);
 
-  const nicknameRef = useRef<string | null>(null);
+  const moodType =
+    mood >= 80 ? "happy" : mood >= 55 ? "normal" : mood >= 30 ? "sad" : "angry";
 
-  const { isSubscribed, isBlocked: pushBlocked, toggle } =
-    usePushSubscription(nickname);
+  const moodText = dizzy
+    ? "어지러워..."
+    : moodType === "happy"
+    ? "기분 최고야"
+    : moodType === "normal"
+    ? "말랑말랑해"
+    : moodType === "sad"
+    ? "조금 외로워..."
+    : "삐졌어";
+
+  const orbColor =
+    moodType === "happy"
+      ? "#ffd86b"
+      : moodType === "normal"
+      ? "#9b7cff"
+      : moodType === "sad"
+      ? "#7ddcff"
+      : "#ff5b6e";
 
   useEffect(() => {
-    nicknameRef.current = nickname;
-  }, [nickname]);
+    const savedName = localStorage.getItem("orbName");
+    const savedMood = localStorage.getItem("orbMood");
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-
-    check();
-
-    window.addEventListener("resize", check);
-
-    return () => window.removeEventListener("resize", check);
+    if (savedName) setName(savedName);
+    if (savedMood) setMood(Number(savedMood));
   }, []);
 
-  useEffect(() => {
-    const unsub = watchAuthState((user) => {
-      setAuthReady(true);
-      if (user) {
-        setNickname(user.displayName || "유저");
-        setUid(user.uid);
-      } else {
-        router.replace("/login");
-      }
-    });
-    return () => unsub();
-  }, []);
+  const saveSettings = () => {
+    localStorage.setItem("orbName", name);
+    localStorage.setItem("orbMood", String(mood));
+    alert("저장됐어요!");
+  };
 
-  /* 친구 요청 수신 리스너 */
-  useEffect(() => {
-    if (!uid) return;
-    const q = query(
-      collection(db, "friend_requests"),
-      where("to", "==", uid),
-      where("status", "==", "pending")
-    );
-    return onSnapshot(q, (snap) => {
-      const list: any[] = [];
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
-      setFriendRequests(list);
-    });
-  }, [uid]);
-
-  useEffect(() => {
-    if (!nickname) return;
-
-    const fetchUsers = async () => {
-      const snap = await getDocs(collection(db, "users"));
-
-      const list: User[] = [];
-
-      snap.docs.forEach((d) => {
-        const data = d.data();
-
-        list.push({
-          id: d.id,
-          nickname: data.nickname,
-          profileImage: data.profileImage ?? null,
-        });
-      });
-
-      setUsers(list.filter((u) => u.nickname !== nickname));
-    };
-
-    fetchUsers();
-  }, [nickname]);
-
-  useEffect(() => {
-    if (!nickname) return;
-
-    const q = query(
-      collection(db, "blocked"),
-      where("user_id", "==", nickname)
-    );
-
-    return onSnapshot(q, (snap) => {
-      const list: any[] = [];
-
-      snap.forEach((d) => {
-        list.push({
-          id: d.id,
-          ...d.data(),
-        });
-      });
-
-      setBlocked(list);
-    });
-  }, [nickname]);
-
-  useEffect(() => {
-    if (!nickname) return;
-
-    const presRef = doc(db, "presence", nickname);
-
-    setDoc(presRef, {
-      isOnline: true,
-      lastSeen: serverTimestamp(),
+  const changeMood = (amount: number, text: string) => {
+    setMood((prev) => {
+      const next = Math.max(0, Math.min(100, prev + amount));
+      localStorage.setItem("orbMood", String(next));
+      return next;
     });
 
-    return () => {
-      setDoc(presRef, {
-        isOnline: false,
-        lastSeen: serverTimestamp(),
-      });
-    };
-  }, [nickname]);
+    setReaction(text);
 
-  useEffect(() => {
-    return onSnapshot(collection(db, "presence"), (snap) => {
-      const online = new Set<string>();
+    setTimeout(() => {
+      setReaction("");
+    }, 1200);
+  };
 
-      snap.docs.forEach((d) => {
-        if (d.data().isOnline) {
-          online.add(d.id);
-        }
-      });
+  const handlePet = (e: React.MouseEvent<HTMLDivElement>) => {
+    const now = Date.now();
 
-      setOnlineUsers(online);
-    });
-  }, []);
-
-  /* 친구 목록 — friends 컬렉션은 { users: [uid1, uid2] } 구조 */
-  useEffect(() => {
-    if (!uid) return;
-
-    const q = query(collection(db, "friends"), where("users", "array-contains", uid));
-    const unsub = onSnapshot(q, async (snap) => {
-      const nickSet = new Set<string>();
-      for (const d of snap.docs) {
-        const data = d.data();
-        const friendUid = (data.users as string[]).find((u) => u !== uid);
-        if (!friendUid) continue;
-        // users 컬렉션에서 닉네임 찾기
-        const found = users.find((u) => u.id === friendUid);
-        if (found) {
-          nickSet.add(found.nickname);
-        } else {
-          const uSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", friendUid)));
-          uSnap.forEach((ud) => nickSet.add(ud.data().nickname));
-        }
-      }
-      setFriendIds(nickSet);
-    });
-
-    return () => unsub();
-  }, [uid, users]);
-
-  useEffect(() => {
-    if (!currentChatUser || !nickname) {
-      setPeerTyping(false);
+    if (!lastMoveRef.current) {
+      lastMoveRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        time: now,
+      };
       return;
     }
 
-    const key = `${currentChatUser.nickname}_to_${nickname}`;
+    const dx = e.clientX - lastMoveRef.current.x;
+    const dy = e.clientY - lastMoveRef.current.y;
+    const dt = Math.max(now - lastMoveRef.current.time, 1);
+    const speed = Math.sqrt(dx * dx + dy * dy) / dt;
 
-    return onSnapshot(doc(db, "typing", key), (snap) => {
-      if (!snap.exists()) {
-        setPeerTyping(false);
+    lastMoveRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: now,
+    };
+
+    if (speed > 1.2) {
+      changeMood(-2, "아야!");
+    } else if (speed > 0.08) {
+      changeMood(1, "좋아...");
+    }
+  };
+
+  const startDizzy = () => {
+    if (dizzy) return;
+
+    setDizzy(true);
+    setReaction("우웅...");
+
+    setMood((prev) => {
+      const next = Math.max(0, prev - 3);
+      localStorage.setItem("orbMood", String(next));
+      return next;
+    });
+
+    setTimeout(() => {
+      setDizzy(false);
+    }, 2600);
+
+    setTimeout(() => {
+      setReaction("");
+    }, 1400);
+  };
+
+  const enableMotion = async () => {
+    const DeviceMotion =
+      DeviceMotionEvent as typeof DeviceMotionEvent & {
+        requestPermission?: () => Promise<PermissionState>;
+      };
+
+    if (typeof DeviceMotion?.requestPermission === "function") {
+      const permission = await DeviceMotion.requestPermission();
+
+      if (permission !== "granted") {
+        alert("흔들기 감지를 허용해야 해요");
         return;
       }
+    }
 
-      const data = snap.data();
-
-      const updated = data.updatedAt?.toDate?.();
-
-      const isRecent =
-        updated && Date.now() - updated.getTime() < 5000;
-
-      setPeerTyping(data.isTyping && isRecent);
-    });
-  }, [currentChatUser, nickname]);
+    setMotionReady(true);
+    alert("흔들기 감지가 켜졌어요!");
+  };
 
   useEffect(() => {
-    if (!currentChatUser || !nickname) return;
+    if (!motionReady) return;
 
-    const q = query(
-      collection(db, "messages"),
-      orderBy("createdAt", "asc")
-    );
+    let lastShakeTime = 0;
 
-    const unsub = onSnapshot(q, async (snap) => {
-      const msgs: Message[] = [];
+    const handleMotion = (event: DeviceMotionEvent) => {
+      const acc = event.accelerationIncludingGravity;
+      if (!acc) return;
 
-      let lastMsg = "";
+      const total =
+        Math.abs(acc.x || 0) + Math.abs(acc.y || 0) + Math.abs(acc.z || 0);
 
-      for (const d of snap.docs) {
-        const data = d.data();
+      const now = Date.now();
 
-        const m: Message = {
-          id: d.id,
-          from: data.from,
-          to: data.to,
-          content: data.content,
-          type: data.type || "text",
-          createdAt: data.createdAt,
-          readBy: data.readBy || [],
-          replyTo: data.replyTo,
-          reactions: data.reactions || {},
-          edited: data.edited || false,
-        };
-
-        const isMyChat =
-          (m.from === nickname &&
-            m.to === currentChatUser.nickname) ||
-          (m.from === currentChatUser.nickname &&
-            m.to === nickname);
-
-        if (!isMyChat) continue;
-
-        lastMsg =
-          m.type === "image" ? "📷 사진" : m.content;
-
-        if (
-          m.from !== nickname &&
-          !m.readBy?.includes(nickname)
-        ) {
-          await updateDoc(doc(db, "messages", m.id), {
-            readBy: [...(m.readBy || []), nickname],
-          });
-
-          m.readBy = [...(m.readBy || []), nickname];
-        }
-
-        msgs.push(m);
+      if (total > 45 && now - lastShakeTime > 2500) {
+        lastShakeTime = now;
+        startDizzy();
       }
-
-      setMessages(msgs);
-
-      setLastMessages((prev) => ({
-        ...prev,
-        [currentChatUser.id]: lastMsg,
-      }));
-
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({
-          behavior: "smooth",
-        });
-      }, 50);
-    });
-
-    return () => unsub();
-  }, [currentChatUser, nickname]);
-
-  const updateTyping = useCallback(
-    async (isTyping: boolean) => {
-      if (!nicknameRef.current || !currentChatUser) return;
-
-      const key = `${nicknameRef.current}_to_${currentChatUser.nickname}`;
-
-      await setDoc(doc(db, "typing", key), {
-        from: nicknameRef.current,
-        to: currentChatUser.nickname,
-        isTyping,
-        updatedAt: serverTimestamp(),
-      });
-    },
-    [currentChatUser]
-  );
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setInput(e.target.value);
-
-    updateTyping(true);
-
-    if (typingTimerRef.current) {
-      clearTimeout(typingTimerRef.current);
-    }
-
-    typingTimerRef.current = setTimeout(() => {
-      updateTyping(false);
-    }, 2000);
-  };
-
-  const sendMessage = async () => {
-    if (!input.trim() || !nickname || !currentChatUser)
-      return;
-
-    updateTyping(false);
-
-    const msgData: any = {
-      from: nickname,
-      to: currentChatUser.nickname,
-      content: input.trim(),
-      type: "text",
-      createdAt: serverTimestamp(),
-      readBy: [nickname],
     };
 
-    if (replyTo) {
-      msgData.replyTo = replyTo;
-    }
+    window.addEventListener("devicemotion", handleMotion);
 
-    await addDoc(collection(db, "messages"), msgData);
+    return () => {
+      window.removeEventListener("devicemotion", handleMotion);
+    };
+  }, [motionReady, dizzy]);
 
-    fetch("/api/fcm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        toNicknames: [currentChatUser.nickname],
-        fromNickname: nickname,
-        message: input.trim().length > 60 ? input.trim().slice(0, 60) + "…" : input.trim(),
-      }),
-    }).catch(() => {});
-
-    setInput("");
-    setReplyTo(null);
-  };
-
-  const compressToBase64 = (
-    file: File
-  ): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const img = new Image();
-
-      const url = URL.createObjectURL(file);
-
-      img.onload = () => {
-        const maxPx = 800;
-
-        const ratio = Math.min(
-          maxPx / img.width,
-          maxPx / img.height,
-          1
-        );
-
-        const canvas = document.createElement("canvas");
-
-        canvas.width = img.width * ratio;
-        canvas.height = img.height * ratio;
-
-        canvas
-          .getContext("2d")
-          ?.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        URL.revokeObjectURL(url);
-
-        resolve(canvas.toDataURL("image/jpeg", 0.75));
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error("이미지 로드 실패"));
-      };
-
-      img.src = url;
-    });
-
-  const sendImage = async (file: File) => {
-    if (!nickname || !currentChatUser) return;
-
-    setImgUploading(true);
-
-    try {
-      const base64 = await compressToBase64(file);
-
-      await addDoc(collection(db, "messages"), {
-        from: nickname,
-        to: currentChatUser.nickname,
-        content: base64,
-        type: "image",
-        createdAt: serverTimestamp(),
-        readBy: [nickname],
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMood((prev) => {
+        const next = Math.max(0, prev - 1);
+        localStorage.setItem("orbMood", String(next));
+        return next;
       });
-
-      fetch("/api/fcm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          toNicknames: [currentChatUser.nickname],
-          fromNickname: nickname,
-          message: "📷 사진을 보냈어요",
-        }),
-      }).catch(() => {});
-    } finally {
-      setImgUploading(false);
-    }
-  };
-
-  const acceptFriendRequest = async (req: any) => {
-    if (!uid) return;
-    const chatId = [uid, req.from].sort().join("_");
-    await setDoc(doc(db, "friends", chatId), {
-      users: [uid, req.from],
-      createdAt: Date.now(),
-    });
-    await deleteDoc(doc(db, "friend_requests", req.id));
-  };
-
-  const rejectFriendRequest = async (req: any) => {
-    await deleteDoc(doc(db, "friend_requests", req.id));
-  };
-
-  const deleteMessage = async (id: string) => {
-    await deleteDoc(doc(db, "messages", id));
-    setCtxMenu(null);
-  };
-
-  const editMessage = async (id: string) => {
-    const text = prompt("수정할 메시지");
-
-    if (!text) return;
-
-    await updateDoc(doc(db, "messages", id), {
-      content: text,
-      edited: true,
-    });
-
-    setCtxMenu(null);
-  };
-
-  const toggleReaction = async (
-    msgId: string,
-    emoji: string
-  ) => {
-    if (!nickname) return;
-
-    const msg = messages.find((m) => m.id === msgId);
-
-    if (!msg) return;
-
-    const reactions = { ...(msg.reactions || {}) };
-
-    const users = reactions[emoji] || [];
-
-    if (users.includes(nickname)) {
-    const newUsers = users.filter((u) => u !== nickname);
-
-      if (newUsers.length === 0) {
-        delete reactions[emoji];
-      } else {
-        reactions[emoji] = newUsers;
-      }
-    } else {
-      reactions[emoji] = [...users, nickname];
-    }
-
-    await updateDoc(doc(db, "messages", msgId), {
-      reactions,
-    });
-
-    setCtxMenu(null);
-  };
-
-  const blockUser = async (
-    targetNickname: string,
-    targetId: string
-  ) => {
-    const exist = blocked.find(
-      (b) => b.target_id === targetId
-    );
-
-    if (exist) {
-      await deleteDoc(doc(db, "blocked", exist.id));
-      return;
-    }
-
-    await addDoc(collection(db, "blocked"), {
-      user_id: nickname,
-      target_id: targetId,
-      target_name: targetNickname,
-      createdAt: serverTimestamp(),
-    });
-  };
-
-  const isBlocked = (id: string) =>
-    blocked.some((b) => b.target_id === id);
-
-  const openCtxMenu = (
-    e: React.MouseEvent | React.TouchEvent,
-    m: Message,
-    isMine: boolean
-  ) => {
-    let x = 0;
-    let y = 0;
-
-    if ("touches" in e) {
-      x = e.touches[0].clientX;
-      y = e.touches[0].clientY;
-    } else {
-      e.preventDefault();
-      x = e.clientX;
-      y = e.clientY;
-    }
-
-    setCtxMenu({
-      msgId: m.id,
-      x,
-      y,
-      isMine,
-      msg: m,
-    });
-  };
-
-  const handleTouchStart = (
-    e: React.TouchEvent,
-    m: Message,
-    isMine: boolean
-  ) => {
-    longPressTimer.current = setTimeout(() => {
-      openCtxMenu(e, m, isMine);
-    }, 500);
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-
-  const displayedMessages = msgSearch.trim()
-    ? messages.filter((m) =>
-        m.content
-          .toLowerCase()
-          .includes(msgSearch.toLowerCase())
-      )
-    : messages;
-
-  if (!nickname) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        로딩중...
-      </div>
-    );
-  }
-
-  const renderMsgContent = (m: Message) => {
-    if (m.type === "image") {
-      return (
-        <img
-          src={m.content}
-          alt="이미지"
-          className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
-          onClick={() =>
-            window.open(m.content, "_blank")
-          }
-        />
-      );
-    }
-
-    return (
-      <span className="break-words whitespace-pre-wrap">
-        {m.content}
-      </span>
-    );
-  };
-
-  const renderChat = () => (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-white to-gray-50">
-      {currentChatUser && (
-        <div className="px-4 py-3 border-b bg-white flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            {isMobile && (
-              <button
-                onClick={() =>
-                  setCurrentChatUser(null)
-                }
-                className="text-gray-500"
-              >
-                ←
-              </button>
-            )}
-
-            <div className="relative">
-              {currentChatUser.profileImage ? (
-                <img
-                  src={currentChatUser.profileImage}
-                  alt={currentChatUser.nickname}
-                  className="w-11 h-11 rounded-full object-cover shadow"
-                />
-              ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
-                  {currentChatUser.nickname[0]}
-                </div>
-              )}
-
-              <span
-                className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                  onlineUsers.has(
-                    currentChatUser.nickname
-                  )
-                    ? "bg-green-400"
-                    : "bg-gray-300"
-                }`}
-              />
-            </div>
-
-            <div>
-              <div className="font-bold text-gray-800">
-                {currentChatUser.nickname}
-              </div>
-
-              <div className="text-xs text-gray-400">
-                {onlineUsers.has(
-                  currentChatUser.nickname
-                )
-                  ? "온라인"
-                  : "오프라인"}
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              setShowMsgSearch((p) => !p);
-              setMsgSearch("");
-            }}
-            className="text-xl"
-          >
-            🔍
-          </button>
-        </div>
-      )}
-
-      {pushBlocked && (
-        <div className="m-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-red-600">
-          브라우저 알림이 차단되어 있어요
-        </div>
-      )}
-
-      {showMsgSearch && (
-        <div className="px-4 py-2 border-b bg-white">
-          <input
-            className="w-full px-4 py-2 rounded-2xl border bg-gray-50 text-sm"
-            placeholder="메시지 검색..."
-            value={msgSearch}
-            onChange={(e) =>
-              setMsgSearch(e.target.value)
-            }
-          />
-        </div>
-      )}
-
-      {peerTyping && (
-        <div className="px-4 py-2 text-xs text-gray-400 italic">
-          {currentChatUser?.nickname}님이 입력 중...
-        </div>
-      )}
-
-      <div
-        className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-3"
-        onClick={() => setCtxMenu(null)}
-      >
-        {displayedMessages.map((m, i) => {
-          const isMine = m.from === nickname;
-          const currentDate = formatDateLabel(m.createdAt);
-          const prevDate = i > 0 ? formatDateLabel(displayedMessages[i - 1].createdAt) : null;
-          const showDate = currentDate && currentDate !== prevDate;
-
-          return (
-            <div key={m.id}>
-              {showDate && (
-                <div className="flex items-center gap-2 my-2">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400 shrink-0">{currentDate}</span>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
-              )}
-            <div
-              key={m.id}
-              className={`flex items-end gap-2 ${
-                isMine
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-            >
-              {!isMine && (
-                <div className="shrink-0 self-end mb-1">
-                  {currentChatUser?.profileImage ? (
-                    <img
-                      src={currentChatUser.profileImage}
-                      alt={currentChatUser.nickname}
-                      className="w-8 h-8 rounded-full object-cover shadow"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-xs font-bold text-white shadow">
-                      {m.from[0]}
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="max-w-[75%]">
-                {!isMine && (
-                  <div className="text-xs text-gray-400 mb-1 ml-1">
-                    {m.from}
-                  </div>
-                )}
-
-                {m.replyTo && (
-                  <div className="mb-1 px-3 py-2 rounded-xl bg-blue-50 border-l-4 border-blue-400 text-xs">
-                    <div className="font-semibold text-blue-600">
-                      {m.replyTo.from}
-                    </div>
-
-                    <div className="truncate text-gray-500">
-                      {m.replyTo.type === "image"
-                        ? "📷 사진"
-                        : m.replyTo.content}
-                    </div>
-                  </div>
-                )}
-
-                <div
-                  className={`px-4 py-3 rounded-3xl text-sm shadow-sm ${
-                    isMine
-                      ? "bg-gradient-to-r from-yellow-300 to-orange-300 text-white rounded-br-md"
-                      : "bg-white border border-gray-100 rounded-bl-md"
-                  }`}
-                  onContextMenu={(e) =>
-                    openCtxMenu(e, m, isMine)
-                  }
-                  onTouchStart={(e) =>
-                    handleTouchStart(
-                      e,
-                      m,
-                      isMine
-                    )
-                  }
-                  onTouchEnd={handleTouchEnd}
-                  onTouchMove={handleTouchEnd}
-                >
-                  {renderMsgContent(m)}
-                </div>
-
-                {m.reactions &&
-                  Object.keys(m.reactions).length >
-                    0 && (
-                    <div className="flex gap-1 flex-wrap mt-1">
-                      {Object.entries(
-                        m.reactions
-                      ).map(([emoji, users]) => (
-                        <button
-                          key={emoji}
-                          onClick={() =>
-                            toggleReaction(
-                              m.id,
-                              emoji
-                            )
-                          }
-                          className={`text-xs px-2 py-1 rounded-full border ${
-                            users.includes(
-                              nickname
-                            )
-                              ? "bg-blue-100 border-blue-300 text-blue-700"
-                              : "bg-white border-gray-200"
-                          }`}
-                        >
-                          {emoji} {users.length}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                <div
-                  className={`mt-1 text-[10px] text-gray-400 flex gap-1 ${
-                    isMine
-                      ? "justify-end"
-                      : "justify-start"
-                  }`}
-                >
-                  {m.edited && (
-                    <span>수정됨</span>
-                  )}
-
-                  <span>
-                    {formatTime(m.createdAt)}
-                  </span>
-                </div>
-              </div>
-            </div>
-            </div>
-          );
-        })}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {replyTo && (
-        <div className="px-4 py-2 bg-blue-50 border-t flex items-center gap-3">
-          <div className="w-1 h-10 rounded-full bg-blue-400" />
-
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-blue-600">
-              {replyTo.from}
-            </div>
-
-            <div className="text-xs text-gray-500 truncate">
-              {replyTo.type === "image"
-                ? "📷 사진"
-                : replyTo.content}
-            </div>
-          </div>
-
-          <button
-            onClick={() => setReplyTo(null)}
-            className="text-gray-400"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      <div className="p-3 bg-white border-t flex items-center gap-2 shrink-0">
-        <button
-          onClick={() =>
-            imageInputRef.current?.click()
-          }
-          disabled={imgUploading}
-          className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg ${
-            imgUploading
-              ? "animate-pulse"
-              : "hover:bg-gray-200"
-          }`}
-        >
-          📷
-        </button>
-
-        <input
-          type="file"
-          ref={imageInputRef}
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-
-            if (f) sendImage(f);
-
-            e.target.value = "";
-          }}
-        />
-
-        <input
-          className="flex-1 h-11 rounded-full bg-gray-100 px-4 text-sm outline-none"
-          placeholder="메시지 입력"
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey
-            ) {
-              sendMessage();
-            }
-          }}
-        />
-
-        <button
-          onClick={sendMessage}
-          className="w-11 h-11 rounded-full bg-gradient-to-r from-yellow-300 to-orange-300 text-white shadow hover:scale-105 active:scale-95 transition"
-        >
-          ➤
-        </button>
-      </div>
-
-      {ctxMenu && (
-        <div
-          className="fixed z-50"
-          style={{
-            top: ctxMenu.y,
-            left: ctxMenu.x,
-          }}
-        >
-          <div className="w-44 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-            <div className="flex justify-around py-3 border-b">
-              {REACTION_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() =>
-                    toggleReaction(
-                      ctxMenu.msgId,
-                      emoji
-                    )
-                  }
-                  className="text-xl hover:scale-125 transition"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-
-            <button
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
-              onClick={() => {
-                setReplyTo({
-                  id: ctxMenu.msg.id,
-                  from: ctxMenu.msg.from,
-                  content:
-                    ctxMenu.msg.content,
-                  type: ctxMenu.msg.type,
-                });
-
-                setCtxMenu(null);
-              }}
-            >
-              ↩ 답장
-            </button>
-
-            {ctxMenu.isMine && (
-              <>
-                <button
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
-                  onClick={() =>
-                    editMessage(
-                      ctxMenu.msgId
-                    )
-                  }
-                >
-                  ✏️ 수정
-                </button>
-
-                <button
-                  className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm"
-                  onClick={() =>
-                    deleteMessage(
-                      ctxMenu.msgId
-                    )
-                  }
-                >
-                  🗑 삭제
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderUserList = () => (
-    <div className="flex flex-col h-full bg-white">
-      <div className="px-4 py-4 border-b flex items-center justify-between">
-        <div>
-          <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-            WAGIE
-          </div>
-
-          <div className="text-xs text-gray-400 mt-0.5">
-            실시간 채팅
-          </div>
-        </div>
-
-       <button
-  onClick={() => {
-    console.log("nickname:", nickname);
-    toggle();
-  }}
-  className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
->
-  {isSubscribed ? "🔕" : "🔔"}
-</button>
-      </div>
-
-      <div className="px-3 py-3 border-b">
-        <input
-          className="w-full h-11 rounded-2xl bg-gray-100 px-4 text-sm outline-none"
-          placeholder="사용자 검색..."
-          onChange={(e) => {}}
-        />
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-3">
-       {users
-  .filter((u) => friendIds.has(u.nickname))
-  .map((u) => (
-          <SwipeUserItem
-            key={u.id}
-            u={u}
-            isActive={
-              currentChatUser?.id === u.id
-            }
-            isBlocked={isBlocked(u.id)}
-            lastMessage={lastMessages[u.id]}
-            unreadCount={
-              unreadCounts[u.nickname] || 0
-            }
-            isOnline={onlineUsers.has(
-              u.nickname
-            )}
-            onClick={() =>
-              setCurrentChatUser(u)
-            }
-            onBlock={() =>
-              blockUser(
-                u.nickname,
-                u.id
-              )
-            }
-          />
-        ))}
-      </div>
-    </div>
-  );
-
-  if (isMobile) {
-    return (
-      <PageContainer>
-        <div className="h-screen flex flex-col overflow-hidden">
-          {!currentChatUser
-            ? renderUserList()
-            : renderChat()}
-        </div>
-      </PageContainer>
-    );
-  }
-
-  if (!authReady) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-
-  const pendingRequest = friendRequests[0] ?? null;
+    }, 25000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      if (!orbRef.current || dizzy) return;
+
+      const x = (e.clientX - window.innerWidth / 2) / 50;
+      const y = (e.clientY - window.innerHeight / 2) / 50;
+
+      orbRef.current.style.transform = `
+        translate(${x}px, ${y}px)
+        rotateY(${x * 1.2}deg)
+        rotateX(${-y * 1.2}deg)
+      `;
+    };
+
+    window.addEventListener("mousemove", move);
+
+    return () => {
+      window.removeEventListener("mousemove", move);
+    };
+  }, [dizzy]);
 
   return (
     <PageContainer>
-      {/* 친구 요청 팝업 */}
-      {pendingRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
-            <div className="text-center">
-              <div className="text-2xl mb-2">👋</div>
-              <div className="font-bold text-gray-800 text-base">
-                {pendingRequest.fromNickname || pendingRequest.from}님이 친구를 요청했어요
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => acceptFriendRequest(pendingRequest)}
-                className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold"
-              >
-                수락
-              </button>
-              <button
-                onClick={() => rejectFriendRequest(pendingRequest)}
-                className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold"
-              >
-                거절
-              </button>
-            </div>
-            {friendRequests.length > 1 && (
-              <div className="text-center text-xs text-gray-400">
-                외 {friendRequests.length - 1}건 더 있어요
-              </div>
-            )}
+      <div className="page">
+        {menuOpen && (
+          <div className="menu">
+            <div className="menu-title">✨ 유리구슬 설정</div>
+
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="구슬 이름"
+              className="input"
+            />
+
+            <button className="save-btn" onClick={saveSettings}>
+              저장
+            </button>
+
+            <button className="motion-btn" onClick={enableMotion}>
+              폰 흔들기 감지 켜기
+            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="h-screen flex overflow-hidden bg-white rounded-none md:rounded-3xl shadow-xl">
-        <div className="w-[320px] border-r">
-          {renderUserList()}
-        </div>
+        <div className="orb-name">{name}</div>
+        <div className="mood-text">{moodText}</div>
 
-        <div className="flex-1 flex flex-col">
-          {currentChatUser ? (
-            renderChat()
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-50">
-              <div className="text-7xl mb-5">
-                💬
-              </div>
+        <div className="orb-wrap">
+          {reaction && <div className="reaction">{reaction}</div>}
 
-              <div className="text-2xl font-bold text-gray-700">
-                대화를 시작해봐요
-              </div>
-
-              <div className="text-gray-400 mt-2">
-                왼쪽에서 채팅 상대를 선택해주세요
-              </div>
+          <div
+            ref={orbRef}
+            className={`orb ${moodType} ${dizzy ? "dizzy" : ""}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            onMouseMove={handlePet}
+            style={{
+              background: `
+                radial-gradient(circle at 32% 25%, rgba(255,255,255,0.95), rgba(255,255,255,0.25) 18%, transparent 32%),
+                radial-gradient(circle at 65% 72%, rgba(255,255,255,0.28), transparent 28%),
+                radial-gradient(circle at 35% 65%, ${orbColor}, transparent 38%),
+                linear-gradient(145deg, rgba(255,255,255,0.65), ${orbColor})
+              `,
+              boxShadow: `
+                0 35px 80px ${orbColor}77,
+                inset 18px 18px 35px rgba(255,255,255,0.75),
+                inset -25px -30px 45px rgba(105,70,210,0.35)
+              `,
+            }}
+          >
+            <div className={`glitter-layer ${dizzy ? "dizzy-glitter" : ""}`}>
+              {GLITTERS.map((g) => (
+                <span
+                  key={g.id}
+                  className={`glitter ${moodType}`}
+                  style={{
+                    left: `${g.left}%`,
+                    top: `${g.top}%`,
+                    width: `${g.size}px`,
+                    height: `${g.size}px`,
+                    animationDelay: `${g.delay}s`,
+                    animationDuration: `${g.duration}s`,
+                  }}
+                />
+              ))}
             </div>
-          )}
+
+            <div className="shine big" />
+            <div className="shine small" />
+            <div className="glow" />
+
+            <div className="face">
+              <div className={`eye left ${dizzy ? "dizzy-eye" : ""}`} />
+              <div className={`eye right ${dizzy ? "dizzy-eye" : ""}`} />
+              <div className={`mouth ${moodType} ${dizzy ? "dizzy-mouth" : ""}`} />
+            </div>
+          </div>
+
+          <div className="shadow" style={{ background: `${orbColor}55` }} />
         </div>
+
+        <style jsx>{`
+          .page {
+            width: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(
+              circle at top,
+              #fff6cf 0%,
+              #ffd6ec 42%,
+              #cdb9ff 100%
+            );
+          }
+
+          .menu {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            z-index: 10;
+            width: 260px;
+            padding: 18px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: white;
+            box-shadow:
+              0 20px 60px rgba(0, 0, 0, 0.18),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
+          }
+
+          .menu-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 14px;
+          }
+
+          .input {
+            width: 100%;
+            border: none;
+            outline: none;
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+          }
+
+          .input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+          }
+
+          .save-btn,
+          .motion-btn {
+            width: 100%;
+            border: none;
+            border-radius: 18px;
+            padding: 12px;
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+          }
+
+          .save-btn {
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.35);
+          }
+
+          .motion-btn {
+            background: rgba(255, 255, 255, 0.2);
+          }
+
+          .orb-name {
+            font-size: 30px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+          }
+
+          .mood-text {
+            margin-top: 8px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.86);
+          }
+
+          .orb-wrap {
+            position: relative;
+            width: 260px;
+            height: 300px;
+          }
+
+          .reaction {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            z-index: 8;
+            transform: translateX(-50%);
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #6d54d9;
+            font-weight: 900;
+            animation: pop 1.2s ease forwards;
+          }
+
+          .orb {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            cursor: pointer;
+            overflow: hidden;
+            transition:
+              background 0.4s,
+              box-shadow 0.4s,
+              transform 0.18s ease-out;
+            transform-style: preserve-3d;
+            animation: float 3.2s ease-in-out infinite;
+          }
+
+          .orb.dizzy {
+            animation:
+              dizzyShake 0.25s ease-in-out infinite,
+              float 3.2s ease-in-out infinite;
+          }
+
+          .orb::before {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            z-index: 4;
+          }
+
+          .glitter-layer {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            z-index: 1;
+          }
+
+          .dizzy-glitter {
+            animation: glitterSpin 0.8s linear infinite;
+          }
+
+          .glitter {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow:
+              0 0 8px rgba(255, 255, 255, 0.95),
+              0 0 18px rgba(255, 255, 255, 0.5);
+            opacity: 0.75;
+            animation-name: glitterFloat;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out;
+          }
+
+          .glitter.happy {
+            box-shadow:
+              0 0 8px rgba(255, 255, 190, 1),
+              0 0 22px rgba(255, 230, 120, 0.8);
+          }
+
+          .glitter.sad {
+            opacity: 0.55;
+          }
+
+          .glitter.angry {
+            animation-duration: 2.6s !important;
+          }
+
+          .glow {
+            position: absolute;
+            inset: -22px;
+            border-radius: 50%;
+            background: radial-gradient(
+              circle,
+              rgba(255, 255, 255, 0.45),
+              transparent 65%
+            );
+            filter: blur(16px);
+            z-index: 0;
+          }
+
+          .shine {
+            position: absolute;
+            z-index: 5;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.82);
+          }
+
+          .shine.big {
+            top: 38px;
+            left: 52px;
+            width: 48px;
+            height: 24px;
+            transform: rotate(-35deg);
+          }
+
+          .shine.small {
+            top: 72px;
+            left: 38px;
+            width: 18px;
+            height: 12px;
+          }
+
+          .face {
+            position: absolute;
+            inset: 0;
+            z-index: 6;
+          }
+
+          .eye {
+            position: absolute;
+            top: 98px;
+            width: 16px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(53, 36, 63, 0.9);
+            animation: blink 4s infinite;
+          }
+
+          .eye.left {
+            left: 78px;
+          }
+
+          .eye.right {
+            right: 78px;
+          }
+
+          .dizzy-eye {
+            background: white;
+            color: rgba(53, 36, 63, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            animation: none;
+          }
+
+          .dizzy-eye::after {
+            content: "@";
+          }
+
+          .mouth {
+            position: absolute;
+            left: 50%;
+            top: 132px;
+            width: 24px;
+            height: 12px;
+            transform: translateX(-50%);
+            transition: 0.3s;
+          }
+
+          .mouth.happy,
+          .mouth.normal {
+            border-bottom: 4px solid rgba(53, 36, 63, 0.85);
+            border-radius: 0 0 24px 24px;
+          }
+
+          .mouth.sad {
+            border-top: 3px solid rgba(53, 36, 63, 0.75);
+            border-radius: 20px 20px 0 0;
+          }
+
+          .mouth.angry {
+            width: 18px;
+            border-top: 3px solid rgba(53, 36, 63, 0.9);
+          }
+
+          .dizzy-mouth {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(53, 36, 63, 0.75) !important;
+            border-radius: 50% !important;
+          }
+
+          .shadow {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            width: 150px;
+            height: 32px;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            filter: blur(10px);
+            opacity: 0.5;
+            animation: shadow 3.2s ease-in-out infinite;
+          }
+
+          @keyframes float {
+            0%,
+            100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-14px);
+            }
+          }
+
+          @keyframes dizzyShake {
+            0% {
+              transform: translate(-4px, 0) rotate(-5deg);
+            }
+            50% {
+              transform: translate(4px, -2px) rotate(5deg);
+            }
+            100% {
+              transform: translate(-4px, 0) rotate(-5deg);
+            }
+          }
+
+          @keyframes glitterSpin {
+            0% {
+              transform: rotate(0deg) scale(1);
+            }
+            100% {
+              transform: rotate(360deg) scale(1.08);
+            }
+          }
+
+          @keyframes glitterFloat {
+            0% {
+              transform: translate(0, 0) scale(0.8);
+              opacity: 0.35;
+            }
+            25% {
+              transform: translate(8px, -12px) scale(1.2);
+              opacity: 0.9;
+            }
+            50% {
+              transform: translate(-6px, -22px) scale(1);
+              opacity: 0.65;
+            }
+            75% {
+              transform: translate(10px, -10px) scale(1.35);
+              opacity: 1;
+            }
+            100% {
+              transform: translate(0, 0) scale(0.8);
+              opacity: 0.35;
+            }
+          }
+
+          @keyframes shadow {
+            0%,
+            100% {
+              transform: translateX(-50%) scale(1);
+            }
+            50% {
+              transform: translateX(-50%) scale(0.82);
+            }
+          }
+
+          @keyframes blink {
+            0%,
+            92%,
+            100% {
+              transform: scaleY(1);
+            }
+            95% {
+              transform: scaleY(0.2);
+            }
+          }
+
+          @keyframes pop {
+            0% {
+              opacity: 0;
+              transform: translateX(-50%) translateY(10px) scale(0.8);
+            }
+            30% {
+              opacity: 1;
+              transform: translateX(-50%) translateY(0) scale(1.08);
+            }
+            100% {
+              opacity: 0;
+              transform: translateX(-50%) translateY(-12px) scale(1);
+            }
+          }
+        `}</style>
       </div>
     </PageContainer>
   );
 }
-
-const formatTime = (ts: any) => {
-  if (!ts) return "";
-  const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-};
-
-const formatDateLabel = (ts: any) => {
-  if (!ts) return "";
-  const d = ts?.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
-};

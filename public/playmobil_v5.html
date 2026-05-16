@@ -1,306 +1,904 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>삭발 귀요미</title>
-    <style>
-        body { margin: 0; overflow: hidden; font-family: 'Apple SD Gothic Neo', sans-serif; background: #e0e0e0; touch-action: none; }
-        #container { width: 100vw; height: 100vh; position: relative; }
-        canvas { width: 100%; height: 100%; display: block; }
-        
-        /* UI 패널 */
-        .custom-bar {
-            position: absolute; top: 20px; left: 20px; z-index: 10;
-            background: rgba(255, 255, 255, 0.9); padding: 18px; border-radius: 20px;
-            width: 180px; border: 1px solid #ccc; backdrop-filter: blur(10px);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .custom-bar.hidden { transform: translateX(-240px); opacity: 0; pointer-events: none; }
-        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 22px; cursor: pointer; color: #aaa; }
-        
-        #open-btn {
-            position: absolute; top: 20px; left: -60px; z-index: 11;
-            background: white; width: 45px; height: 45px; border-radius: 0 15px 15px 0;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border: 1px solid #ccc; border-left: none;
-            transition: left 0.3s; font-weight: bold; font-size: 22px;
-        }
-        #open-btn.visible { left: 0; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>코지 라이프 캐릭터 메이커</title>
+  <style>
+    :root {
+      --bg1: #fff7fb;
+      --bg2: #eef9ff;
+      --panel: rgba(255,255,255,0.88);
+      --line: #5c4b5d;
+      --skin: #f6c9a5;
+      --hair: #5b3a29;
+      --eye: #5a7bd8;
+      --outfit: #96d4c5;
+      --accent: #ff9ecb;
+      --shadow: 0 16px 40px rgba(114, 97, 130, 0.18);
+    }
 
-        .custom-section { margin-bottom: 15px; }
-        .custom-section label { display: block; font-size: 11px; font-weight: 800; color: #444; margin-bottom: 6px; }
-        .picker-wrapper { display: flex; align-items: center; gap: 10px; background: #f5f5f5; padding: 6px 12px; border-radius: 15px; }
-        
-        input[type="color"] {
-            appearance: none; -webkit-appearance: none; border: none; 
-            width: 28px; height: 28px; cursor: pointer; background: none; padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch { border: 2px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.1); }
-        .hex-code { font-size: 12px; color: #666; font-family: monospace; font-weight: bold; }
+    * { box-sizing: border-box; }
 
-        #save-notice {
-            position: absolute; top: 20px; right: 20px; background: #333;
-            color: white; padding: 10px 20px; border-radius: 12px; font-size: 13px;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
-        }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background:
+        radial-gradient(circle at top left, #ffe8f4 0%, transparent 30%),
+        radial-gradient(circle at top right, #dff4ff 0%, transparent 28%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: #3a2f3a;
+      min-height: 100vh;
+    }
 
-        .anim-bar {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 8px; z-index: 10; background: rgba(0, 0, 0, 0.6);
-            padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(4px);
-        }
-        .anim-bar button {
-            padding: 7px 14px; border-radius: 20px; border: none;
-            background: rgba(255, 255, 255, 0.2); color: white; cursor: pointer; font-size: 13px;
-        }
-        .anim-bar button.active { background: #fff; color: #000; font-weight: bold; }
-    </style>
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 34px;
+      color: #4f3c58;
+    }
+
+    .title p {
+      margin: 8px 0 0;
+      color: #6d5b74;
+      font-size: 15px;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .controls {
+      padding: 20px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .section {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed #e8dfea;
+    }
+
+    .section:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: #4a3852;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #66556c;
+    }
+
+    input[type="color"],
+    select,
+    input[type="range"],
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid #e0d6e5;
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input[type="range"] {
+      padding: 0;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+      box-shadow: 0 8px 18px rgba(122, 95, 133, 0.15);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .btn-main {
+      background: linear-gradient(135deg, #ffb2d3, #ff93b4);
+      color: white;
+    }
+
+    .btn-sub {
+      background: linear-gradient(135deg, #b6e4ff, #8fd3ff);
+      color: #29475e;
+    }
+
+    .btn-soft {
+      background: linear-gradient(135deg, #ccefdc, #9de0c4);
+      color: #245343;
+    }
+
+    .btn-dark {
+      background: linear-gradient(135deg, #8f7ab8, #6f5a98);
+      color: #fff;
+    }
+
+    .preview {
+      padding: 24px;
+      min-height: 700px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .nameTag {
+      align-self: center;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #f0e5f2;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 700;
+      color: #5a4664;
+      box-shadow: 0 8px 20px rgba(100, 76, 111, 0.12);
+    }
+
+    .stage {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 28px;
+      overflow: hidden;
+      min-height: 580px;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.85), rgba(255,255,255,0.35) 35%, transparent 60%),
+        linear-gradient(180deg, #dff7ff 0%, #fef7fb 45%, #f9f0d9 100%);
+      position: relative;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      width: 120%;
+      height: 180px;
+      bottom: -50px;
+      left: -10%;
+      border-radius: 50%;
+      background: #d9f2d3;
+      box-shadow: inset 0 10px 20px rgba(255,255,255,0.7);
+    }
+
+    svg {
+      width: min(520px, 92%);
+      height: auto;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 18px 20px rgba(78, 62, 87, 0.15));
+    }
+
+    .hint {
+      text-align: center;
+      color: #7b6b83;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .preview {
+        min-height: auto;
+      }
+
+      .stage {
+        min-height: 460px;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<div id="container">
-    <div id="save-notice">✨ 저장 완료!</div>
-    <div id="open-btn" onclick="toggleUI(true)"> &rsaquo; </div>
-
-    <div class="custom-bar" id="ui-panel">
-        <div class="close-btn" onclick="toggleUI(false)">×</div>
-        <div class="custom-section" style="margin-top: 15px;">
-            <label>SKIN</label>
-            <div class="picker-wrapper">
-                <input type="color" id="picker-skin" oninput="updateColor('skin', this.value)">
-                <span class="hex-code" id="hex-skin">#FAD7B5</span>
-            </div>
-        </div>
-        <div class="custom-section">
-            <label>TOP</label>
-            <div class="picker-wrapper">
-                <input type="color" id="picker-shirt" oninput="updateColor('shirt', this.value)">
-                <span class="hex-code" id="hex-shirt">#FFFFFF</span>
-            </div>
-        </div>
-        <div class="custom-section">
-            <label>BOTTOM</label>
-            <div class="picker-wrapper">
-                <input type="color" id="picker-pants" oninput="updateColor('pants', this.value)">
-                <span class="hex-code" id="hex-pants">#9FB7D3</span>
-            </div>
-        </div>
-        <div class="custom-section">
-            <label>SHOES</label>
-            <div class="picker-wrapper">
-                <input type="color" id="picker-shoe" oninput="updateColor('shoe', this.value)">
-                <span class="hex-code" id="hex-shoe">#EEEEEE</span>
-            </div>
-        </div>
-        <button onclick="saveToLocal()" style="width:100%; padding:12px; border-radius:15px; border:none; background:#000; color:white; font-weight:bold; cursor:pointer;">SAVE</button>
+  <div class="wrap">
+    <div class="title">
+      <h1>코지 라이프 캐릭터 메이커</h1>
+      <p>두근두근한 생활 시뮬 감성으로 만든 오리지널 캐릭터 생성기</p>
     </div>
 
-    <div class="anim-bar">
-        <button onclick="setAnim('idle')" id="btn-idle">대기</button>
-        <button onclick="setAnim('walk')" id="btn-walk">걷기</button>
-        <button onclick="setAnim('wave')" id="btn-wave">인사</button>
-        <button onclick="setAnim('dance')" id="btn-dance">춤</button>
+    <div class="app">
+      <div class="panel controls">
+        <div class="section">
+          <h3>기본 정보</h3>
+          <label for="charName">캐릭터 이름</label>
+          <input type="text" id="charName" value="하트" />
+        </div>
+
+        <div class="section">
+          <h3>색상</h3>
+          <div class="row">
+            <div>
+              <label for="skinColor">피부색</label>
+              <input type="color" id="skinColor" value="#f6c9a5" />
+            </div>
+            <div>
+              <label for="hairColor">머리색</label>
+              <input type="color" id="hairColor" value="#5b3a29" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label for="eyeColor">눈동자색</label>
+              <input type="color" id="eyeColor" value="#5a7bd8" />
+            </div>
+            <div>
+              <label for="outfitColor">옷색</label>
+              <input type="color" id="outfitColor" value="#96d4c5" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label for="accentColor">포인트색</label>
+              <input type="color" id="accentColor" value="#ff9ecb" />
+            </div>
+            <div>
+              <label for="bgTint">배경톤</label>
+              <input type="color" id="bgTint" value="#dff7ff" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>헤어 / 얼굴</h3>
+          <label for="hairStyle">헤어스타일</label>
+          <select id="hairStyle">
+            <option value="short">숏컷</option>
+            <option value="bob" selected>보브컷</option>
+            <option value="long">롱헤어</option>
+            <option value="twin">트윈테일</option>
+          </select>
+
+          <label for="eyeStyle" style="margin-top:10px;">눈 모양</label>
+          <select id="eyeStyle">
+            <option value="round" selected>동그란 눈</option>
+            <option value="sleepy">나른한 눈</option>
+            <option value="sparkle">반짝이는 눈</option>
+          </select>
+
+          <label for="mouthStyle" style="margin-top:10px;">입 모양</label>
+          <select id="mouthStyle">
+            <option value="smile" selected>미소</option>
+            <option value="small">작은 입</option>
+            <option value="open">활짝 웃음</option>
+          </select>
+        </div>
+
+        <div class="section">
+          <h3>의상 / 장식</h3>
+          <label for="outfitStyle">의상 타입</label>
+          <select id="outfitStyle">
+            <option value="shirt" selected>캐주얼 셔츠</option>
+            <option value="dress">원피스</option>
+            <option value="overall">멜빵룩</option>
+            <option value="hoodie">후드</option>
+          </select>
+
+          <label for="accessory" style="margin-top:10px;">악세사리</label>
+          <select id="accessory">
+            <option value="none" selected>없음</option>
+            <option value="flower">꽃핀</option>
+            <option value="hat">모자</option>
+            <option value="glasses">안경</option>
+          </select>
+
+          <label for="pet" style="margin-top:10px;">동반 펫</label>
+          <select id="pet">
+            <option value="none" selected>없음</option>
+            <option value="cat">고양이</option>
+            <option value="dog">강아지</option>
+            <option value="slime">젤리 펫</option>
+          </select>
+        </div>
+
+        <div class="section">
+          <h3>비율</h3>
+          <label for="headScale">머리 크기</label>
+          <input type="range" id="headScale" min="0.85" max="1.2" step="0.01" value="1.00" />
+
+          <label for="eyeScale" style="margin-top:10px;">눈 크기</label>
+          <input type="range" id="eyeScale" min="0.8" max="1.35" step="0.01" value="1.00" />
+        </div>
+
+        <div class="buttons">
+          <button class="btn-main" id="randomBtn">랜덤 생성</button>
+          <button class="btn-sub" id="resetBtn">기본값 복원</button>
+          <button class="btn-soft" id="saveJsonBtn">설정 저장</button>
+          <button class="btn-dark" id="loadJsonBtn">설정 불러오기</button>
+        </div>
+
+        <input type="file" id="jsonFile" accept=".json" style="display:none;" />
+      </div>
+
+      <div class="panel preview">
+        <div class="nameTag" id="nameTag">하트</div>
+        <div class="stage" id="stage">
+          <svg id="characterSvg" viewBox="0 0 420 560" xmlns="http://www.w3.org/2000/svg" aria-label="character preview">
+            <defs>
+              <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="5" stdDeviation="6" flood-opacity="0.15" />
+              </filter>
+            </defs>
+
+            <ellipse cx="210" cy="500" rx="90" ry="18" fill="rgba(80,60,90,0.12)" />
+
+            <g id="petLayer"></g>
+
+            <g id="characterRoot">
+              <g id="bodyGroup">
+                <rect x="160" y="205" width="100" height="140" rx="42" fill="var(--skin)" opacity="0.12"/>
+                <g id="arms">
+                  <rect x="122" y="250" width="38" height="100" rx="18" fill="var(--skin)" stroke="var(--line)" stroke-width="3"/>
+                  <rect x="260" y="250" width="38" height="100" rx="18" fill="var(--skin)" stroke="var(--line)" stroke-width="3"/>
+                </g>
+
+                <g id="legs">
+                  <rect x="170" y="390" width="32" height="100" rx="16" fill="var(--skin)" stroke="var(--line)" stroke-width="3"/>
+                  <rect x="218" y="390" width="32" height="100" rx="16" fill="var(--skin)" stroke="var(--line)" stroke-width="3"/>
+                  <rect x="160" y="480" width="48" height="20" rx="10" fill="#6d5266"/>
+                  <rect x="212" y="480" width="48" height="20" rx="10" fill="#6d5266"/>
+                </g>
+
+                <g id="outfitLayer"></g>
+              </g>
+
+              <g id="headGroup" transform="translate(0,0)">
+                <g id="hairBackLayer"></g>
+
+                <g id="headScaleWrap" transform="translate(210 165) scale(1) translate(-210 -165)">
+                  <circle cx="210" cy="165" r="78" fill="var(--skin)" stroke="var(--line)" stroke-width="4"/>
+                  <ellipse cx="180" cy="170" rx="10" ry="16" fill="var(--skin)" stroke="var(--line)" stroke-width="3"/>
+                  <ellipse cx="240" cy="170" rx="10" ry="16" fill="var(--skin)" stroke="var(--line)" stroke-width="3"/>
+
+                  <g id="hairFrontLayer"></g>
+
+                  <g id="faceLayer"></g>
+                  <g id="accessoryLayer"></g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="hint">원하면 다음 단계로 React 버전, Canvas 버전, 게임용 스프라이트 버전으로도 바꿔줄 수 있어요.</div>
+      </div>
     </div>
-    <canvas id="c"></canvas>
-</div>
+  </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-/** 1. UI 설정 **/
-function toggleUI(show) {
-    document.getElementById('ui-panel').classList.toggle('hidden', !show);
-    document.getElementById('open-btn').classList.toggle('visible', !show);
-}
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
+    const defaults = {
+      charName: "하트",
+      skinColor: "#f6c9a5",
+      hairColor: "#5b3a29",
+      eyeColor: "#5a7bd8",
+      outfitColor: "#96d4c5",
+      accentColor: "#ff9ecb",
+      bgTint: "#dff7ff",
+      hairStyle: "bob",
+      eyeStyle: "round",
+      mouthStyle: "smile",
+      outfitStyle: "shirt",
+      accessory: "none",
+      pet: "none",
+      headScale: "1.00",
+      eyeScale: "1.00"
+    };
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 100);
-camera.position.set(0, 2.3, 5.5);
+    const state = { ...defaults };
 
-const resize = () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-};
-window.addEventListener('resize', resize); resize();
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-const sun = new THREE.DirectionalLight(0xfff5e0, 0.8);
-sun.position.set(4, 8, 5); sun.castShadow = true; scene.add(sun);
-
-const ground = new THREE.Mesh(new THREE.CircleGeometry(2.8, 64), new THREE.MeshStandardMaterial({color: 0xcccccc}));
-ground.rotation.x = -Math.PI/2; ground.position.y = 0.5; ground.receiveShadow = true; scene.add(ground);
-
-/** 2. 캐릭터 재질 & 조형 **/
-const mats = {
-    skin: new THREE.MeshStandardMaterial({color: 0xFAD7B5, roughness: 0.5}),
-    shirt: new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.6}),
-    pants: new THREE.MeshStandardMaterial({color: 0x9FB7D3, roughness: 0.7}),
-    eye: new THREE.MeshStandardMaterial({color: 0x1a1a2e, roughness: 0.2}),
-    white: new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.1}),
-    shoe: new THREE.MeshStandardMaterial({color: 0xeeeeee, roughness: 0.8})
-};
-
-const sph = (r, mat) => { 
-    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 32), mat);
-    m.castShadow = true; m.receiveShadow = true; return m;
-};
-const cyl = (rt, rb, h, mat) => {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 16), mat);
-    m.castShadow = true; m.receiveShadow = true; return m;
-};
-const bx = (w, h, d, mat) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-    m.castShadow = true; m.receiveShadow = true; return m;
-};
-
-const root = new THREE.Group();
-scene.add(root);
-
-const headG = new THREE.Group(); root.add(headG);
-headG.add(sph(0.38, mats.skin));
-const nose = sph(0.04, mats.skin); nose.position.set(0, -0.03, 0.37); headG.add(nose);
-const eyeL = sph(0.055, mats.eye); eyeL.position.set(-0.12, 0.06, 0.34); headG.add(eyeL);
-const eyeR = sph(0.055, mats.eye); eyeR.position.set(0.12, 0.06, 0.34); headG.add(eyeR);
-const hlL = sph(0.02, mats.white); hlL.position.set(-0.1, 0.09, 0.385); headG.add(hlL);
-const hlR = sph(0.02, mats.white); hlR.position.set(0.14, 0.09, 0.385); headG.add(hlR);
-
-const neck = cyl(0.12, 0.14, 0.1, mats.skin); root.add(neck);
-const torso = cyl(0.32, 0.34, 0.72, mats.shirt); root.add(torso);
-const collar = cyl(0.25, 0.28, 0.08, mats.shirt); root.add(collar);
-const hip = cyl(0.33, 0.30, 0.28, mats.pants); root.add(hip);
-
-function createArm(isLeft) {
-    const group = new THREE.Group();
-    const upper = cyl(0.1, 0.09, 0.38, mats.shirt); upper.position.set(isLeft ? -0.08 : 0.08, -0.19, 0); group.add(upper);
-    const elbowG = new THREE.Group(); elbowG.position.set(isLeft ? -0.08 : 0.08, -0.38, 0); group.add(elbowG);
-    const fore = cyl(0.085, 0.075, 0.32, mats.skin); fore.position.y = -0.16; elbowG.add(fore);
-    const hand = sph(0.1, mats.skin); hand.position.y = -0.34; elbowG.add(hand);
-    const shBall = sph(0.13, mats.shirt); shBall.position.set(isLeft ? -0.05 : 0.05, 0, 0); group.add(shBall);
-    return { group, elbow: elbowG };
-}
-const armL = createArm(true); root.add(armL.group);
-const armR = createArm(false); root.add(armR.group);
-
-function createLeg(isLeft) {
-    const group = new THREE.Group();
-    const thigh = cyl(0.13, 0.12, 0.38, mats.pants); thigh.position.y = -0.19; group.add(thigh);
-    const kneeG = new THREE.Group(); kneeG.position.y = -0.38; group.add(kneeG);
-       const kneeBall = sph(0.11, mats.pants);
-    kneeBall.position.y = 0;
-    kneeG.add(kneeBall);
-    const shin = cyl(0.11, 0.1, 0.36, mats.pants); shin.position.y = -0.18; kneeG.add(shin);
-    const shoe = bx(0.18, 0.12, 0.3, mats.shoe); shoe.position.set(0, -0.4, 0.06); kneeG.add(shoe);
-    return { group, knee: kneeG };
-}
-const legL = createLeg(true); root.add(legL.group);
-const legR = createLeg(false); root.add(legR.group);
-
-/** 3. 저장 및 컬러 기능 **/
-const config = { skin: '#FAD7B5', shirt: '#ffffff', pants: '#9FB7D3', shoe: '#eeeeee' };
-
-// [수정] 컬러 업데이트 및 UI 반영
-window.updateColor = (part, hex) => {
-    if(mats[part]) {
-        mats[part].color.set(hex);
-        config[part] = hex;
-        const hexDisp = document.getElementById(`hex-${part}`);
-        const picker = document.getElementById(`picker-${part}`);
-        if(hexDisp) hexDisp.innerText = hex.toUpperCase();
-        if(picker) picker.value = hex;
+    function setCSSVars() {
+      document.documentElement.style.setProperty("--skin", state.skinColor);
+      document.documentElement.style.setProperty("--hair", state.hairColor);
+      document.documentElement.style.setProperty("--eye", state.eyeColor);
+      document.documentElement.style.setProperty("--outfit", state.outfitColor);
+      document.documentElement.style.setProperty("--accent", state.accentColor);
+      $("stage").style.background = `
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.85), rgba(255,255,255,0.35) 35%, transparent 60%),
+        linear-gradient(180deg, ${state.bgTint} 0%, #fef7fb 45%, #f9f0d9 100%)
+      `;
+      $("nameTag").textContent = state.charName || "이름 없음";
     }
-};
 
-// [수정] 데이터 로드 로직
-function loadSavedData() {
-    const saved = localStorage.getItem('myGwiYomiSavedData');
-    if(saved) {
-        const data = JSON.parse(saved);
-        Object.keys(data).forEach(key => {
-            updateColor(key, data[key]);
-        });
+    function drawHairBack() {
+      const c = state.hairColor;
+      switch (state.hairStyle) {
+        case "short":
+          return `
+            <path d="M142 144
+                     C150 98, 185 78, 210 78
+                     C245 78, 280 98, 288 145
+                     L286 205
+                     C272 230, 246 246, 210 248
+                     C175 246, 150 230, 136 205
+                     Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>`;
+        case "bob":
+          return `
+            <path d="M135 138
+                     C145 88, 180 70, 210 70
+                     C242 70, 277 88, 287 140
+                     L292 225
+                     C276 246, 246 260, 210 261
+                     C176 260, 146 246, 128 224
+                     Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>`;
+        case "long":
+          return `
+            <path d="M132 135
+                     C142 82, 179 62, 210 62
+                     C243 62, 280 82, 290 136
+                     L304 320
+                     C278 350, 244 365, 210 365
+                     C176 365, 143 350, 116 320
+                     Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>`;
+        case "twin":
+          return `
+            <ellipse cx="124" cy="235" rx="34" ry="72" fill="${c}" stroke="var(--line)" stroke-width="4"/>
+            <ellipse cx="296" cy="235" rx="34" ry="72" fill="${c}" stroke="var(--line)" stroke-width="4"/>
+            <path d="M138 136
+                     C146 84, 180 64, 210 64
+                     C242 64, 276 84, 284 138
+                     L284 210
+                     C262 228, 236 238, 210 238
+                     C184 238, 158 228, 136 210
+                     Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>`;
+      }
     }
-}
 
-window.saveToLocal = () => {
-    localStorage.setItem('myGwiYomiSavedData', JSON.stringify(config));
-    const n = document.getElementById('save-notice');
-    n.style.opacity = 1; setTimeout(() => n.style.opacity = 0, 1500);
-};
-
-// 페이지 시작 시 로드
-loadSavedData();
-
-// 드래그 로직
-let dragging = false, px = 0, rotY = 0.3;
-const onStart = (e) => { 
-    if(e.target.closest('.custom-bar') || e.target.closest('.anim-bar')) return;
-    dragging = true; px = e.touches ? e.touches[0].clientX : e.clientX; 
-};
-const onMove = (e) => {
-    if(!dragging) return;
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    rotY += (cx - px) * 0.01; px = cx;
-};
-canvas.addEventListener('mousedown', onStart); canvas.addEventListener('mousemove', onMove);
-window.addEventListener('mouseup', () => dragging = false);
-canvas.addEventListener('touchstart', onStart); canvas.addEventListener('touchmove', onMove);
-window.addEventListener('touchend', () => dragging = false);
-
-/** 4. 애니메이션 **/
-let currentAnim = 'idle', animTime = 0;
-window.setAnim = (n) => {
-    currentAnim = n; animTime = 0;
-    document.querySelectorAll('.anim-bar button').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + n).classList.add('active');
-};
-setAnim('idle');
-
-function tick(dt) {
-    animTime += dt; const t = animTime;
-    headG.position.set(0, 1.85, 0); neck.position.set(0, 1.48, 0);
-    torso.position.set(0, 1.08, 0); collar.position.set(0, 1.42, 0); hip.position.set(0, 0.68, 0);
-    armL.group.position.set(-0.34, 1.38, 0); armR.group.position.set(0.34, 1.38, 0);
-    legL.group.position.set(-0.17, 0.54, 0); legR.group.position.set(0.17, 0.54, 0);
-    [armL.group, armR.group, armL.elbow, armR.elbow, legL.group, legR.group, legL.knee, legR.knee, headG].forEach(g => g.rotation.set(0,0,0));
-
-    const baseH = 1.05; root.position.y = baseH;
-
-    if(currentAnim === 'idle') {
-        root.position.y = baseH + Math.sin(t * 1.5) * 0.02;
-        armL.group.rotation.z = -0.15 + Math.sin(t * 1.5) * 0.03;
-        armR.group.rotation.z = 0.15 - Math.sin(t * 1.5) * 0.03;
-    } else if(currentAnim === 'walk') {
-        const s = Math.sin(t * 4.5);
-        root.position.y = baseH + Math.abs(Math.sin(t * 4.5)) * 0.045;
-        legL.group.rotation.x = s * 0.6; legR.group.rotation.x = -s * 0.6;
-        legL.group.rotation.z = Math.sin(t * 4.5) * 0.05;
-legR.group.rotation.z = -Math.sin(t * 4.5) * 0.05;
-        legL.knee.rotation.x = Math.max(0, -s) * 0.8; legR.knee.rotation.x = Math.max(0, s) * 0.8;
-        armL.group.rotation.x = -s * 0.4; armR.group.rotation.x = s * 0.4;
-    } else if(currentAnim === 'wave') {
-        armR.group.rotation.x = -1.6; armR.group.rotation.z = 0.4 + Math.sin(t * 5) * 0.2;
-        armR.elbow.rotation.x = -0.5; headG.rotation.y = 0.2;
-    } else if(currentAnim === 'dance') {
-        const s = Math.sin(t * 5); root.position.y = baseH + Math.abs(s) * 0.1;
-        root.rotation.y += dt * 2; armL.group.rotation.z = -1; armR.group.rotation.z = 1;
+    function drawHairFront() {
+      const c = state.hairColor;
+      switch (state.hairStyle) {
+        case "short":
+          return `
+            <path d="M142 146
+                     C150 102, 183 82, 210 82
+                     C242 82, 274 101, 281 144
+                     C259 128, 241 122, 210 122
+                     C178 122, 161 128, 142 146 Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>
+            <path d="M160 122 C175 150, 245 150, 260 122" fill="none" stroke="${c}" stroke-width="16" stroke-linecap="round"/>
+          `;
+        case "bob":
+          return `
+            <path d="M136 144
+                     C145 92, 182 72, 210 72
+                     C244 72, 278 93, 286 144
+                     C258 121, 236 112, 210 112
+                     C182 112, 163 120, 136 144 Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>
+            <path d="M150 125 Q175 155 200 126" fill="none" stroke="${c}" stroke-width="14" stroke-linecap="round"/>
+            <path d="M220 126 Q245 155 270 124" fill="none" stroke="${c}" stroke-width="14" stroke-linecap="round"/>
+          `;
+        case "long":
+          return `
+            <path d="M134 142
+                     C143 88, 181 66, 210 66
+                     C243 66, 280 88, 288 142
+                     C262 120, 236 110, 210 110
+                     C183 110, 159 119, 134 142 Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>
+            <path d="M159 120 Q184 160 210 118" fill="none" stroke="${c}" stroke-width="14" stroke-linecap="round"/>
+            <path d="M210 118 Q236 160 261 120" fill="none" stroke="${c}" stroke-width="14" stroke-linecap="round"/>
+          `;
+        case "twin":
+          return `
+            <path d="M138 142
+                     C145 88, 180 66, 210 66
+                     C243 66, 278 88, 284 142
+                     C258 120, 235 112, 210 112
+                     C184 112, 161 120, 138 142 Z"
+                  fill="${c}" stroke="var(--line)" stroke-width="4"/>
+            <circle cx="148" cy="146" r="12" fill="var(--accent)" stroke="var(--line)" stroke-width="3"/>
+            <circle cx="272" cy="146" r="12" fill="var(--accent)" stroke="var(--line)" stroke-width="3"/>
+          `;
+      }
     }
-}
 
-let last = performance.now();
-(function loop(now) {
-    requestAnimationFrame(loop);
-    const dt = Math.min((now - last) / 1000, 0.05); last = now;
-    tick(dt);
-    root.rotation.y = rotY;
-    renderer.render(scene, camera);
-})(performance.now());
-</script>
+    function drawEyes() {
+      const eyeScale = parseFloat(state.eyeScale);
+      const left = 178;
+      const right = 242;
+      const y = 168;
+      const iris = state.eyeColor;
+
+      if (state.eyeStyle === "round") {
+        return `
+          <g transform="translate(${left} ${y}) scale(${eyeScale}) translate(${-left} ${-y})">
+            <ellipse cx="${left}" cy="${y}" rx="17" ry="20" fill="white" stroke="var(--line)" stroke-width="3"/>
+            <circle cx="${left}" cy="${y+2}" r="8" fill="${iris}"/>
+            <circle cx="${left-2}" cy="${y}" r="4" fill="#2d2a35"/>
+            <circle cx="${left-5}" cy="${y-5}" r="2.5" fill="white"/>
+          </g>
+          <g transform="translate(${right} ${y}) scale(${eyeScale}) translate(${-right} ${-y})">
+            <ellipse cx="${right}" cy="${y}" rx="17" ry="20" fill="white" stroke="var(--line)" stroke-width="3"/>
+            <circle cx="${right}" cy="${y+2}" r="8" fill="${iris}"/>
+            <circle cx="${right-2}" cy="${y}" r="4" fill="#2d2a35"/>
+            <circle cx="${right-5}" cy="${y-5}" r="2.5" fill="white"/>
+          </g>
+        `;
+      }
+
+      if (state.eyeStyle === "sleepy") {
+        return `
+          <g transform="translate(${left} ${y}) scale(${eyeScale}) translate(${-left} ${-y})">
+            <path d="M160 167 Q178 157 196 167" fill="white" stroke="var(--line)" stroke-width="3"/>
+            <path d="M162 170 Q178 180 194 170" fill="none" stroke="var(--line)" stroke-width="3"/>
+            <ellipse cx="${left}" cy="${y+1}" rx="7" ry="5" fill="${iris}"/>
+          </g>
+          <g transform="translate(${right} ${y}) scale(${eyeScale}) translate(${-right} ${-y})">
+            <path d="M224 167 Q242 157 260 167" fill="white" stroke="var(--line)" stroke-width="3"/>
+            <path d="M226 170 Q242 180 258 170" fill="none" stroke="var(--line)" stroke-width="3"/>
+            <ellipse cx="${right}" cy="${y+1}" rx="7" ry="5" fill="${iris}"/>
+          </g>
+        `;
+      }
+
+      return `
+        <g transform="translate(${left} ${y}) scale(${eyeScale}) translate(${-left} ${-y})">
+          <ellipse cx="${left}" cy="${y}" rx="17" ry="20" fill="white" stroke="var(--line)" stroke-width="3"/>
+          <circle cx="${left}" cy="${y+2}" r="8" fill="${iris}"/>
+          <circle cx="${left-2}" cy="${y}" r="4" fill="#2d2a35"/>
+          <circle cx="${left-5}" cy="${y-5}" r="2.5" fill="white"/>
+          <path d="M160 148 Q178 136 196 148" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+        </g>
+        <g transform="translate(${right} ${y}) scale(${eyeScale}) translate(${-right} ${-y})">
+          <ellipse cx="${right}" cy="${y}" rx="17" ry="20" fill="white" stroke="var(--line)" stroke-width="3"/>
+          <circle cx="${right}" cy="${y+2}" r="8" fill="${iris}"/>
+          <circle cx="${right-2}" cy="${y}" r="4" fill="#2d2a35"/>
+          <circle cx="${right-5}" cy="${y-5}" r="2.5" fill="white"/>
+          <path d="M224 148 Q242 136 260 148" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+        </g>
+      `;
+    }
+
+    function drawMouth() {
+      if (state.mouthStyle === "small") {
+        return `<path d="M196 216 Q210 222 224 216" fill="none" stroke="var(--line)" stroke-width="3.5" stroke-linecap="round"/>`;
+      }
+      if (state.mouthStyle === "open") {
+        return `
+          <path d="M192 212 Q210 228 228 212" fill="#d96f84" stroke="var(--line)" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M196 214 Q210 221 224 214" fill="none" stroke="white" stroke-width="2" />
+        `;
+      }
+      return `<path d="M192 212 Q210 228 228 212" fill="none" stroke="var(--line)" stroke-width="3.5" stroke-linecap="round"/>`;
+    }
+
+    function drawFace() {
+      return `
+        ${drawEyes()}
+        <ellipse cx="176" cy="196" rx="9" ry="5" fill="#f3a4b0" opacity="0.55"/>
+        <ellipse cx="244" cy="196" rx="9" ry="5" fill="#f3a4b0" opacity="0.55"/>
+        <path d="M210 185 Q214 192 210 197" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+        ${drawMouth()}
+      `;
+    }
+
+    function drawAccessory() {
+      const ac = state.accentColor;
+      if (state.accessory === "flower") {
+        return `
+          <g transform="translate(272 125)">
+            <circle cx="0" cy="0" r="8" fill="${ac}" />
+            <circle cx="-10" cy="0" r="7" fill="#fff0f7" stroke="var(--line)" stroke-width="2"/>
+            <circle cx="10" cy="0" r="7" fill="#fff0f7" stroke="var(--line)" stroke-width="2"/>
+            <circle cx="0" cy="-10" r="7" fill="#fff0f7" stroke="var(--line)" stroke-width="2"/>
+            <circle cx="0" cy="10" r="7" fill="#fff0f7" stroke="var(--line)" stroke-width="2"/>
+            <circle cx="0" cy="0" r="5" fill="${ac}" stroke="var(--line)" stroke-width="2"/>
+          </g>
+        `;
+      }
+      if (state.accessory === "hat") {
+        return `
+          <g>
+            <ellipse cx="210" cy="94" rx="82" ry="16" fill="${ac}" stroke="var(--line)" stroke-width="4"/>
+            <path d="M155 92 Q168 40 210 40 Q252 40 265 92 Z" fill="${ac}" stroke="var(--line)" stroke-width="4"/>
+            <path d="M175 73 Q210 96 245 73" fill="none" stroke="#ffffffaa" stroke-width="6" stroke-linecap="round"/>
+          </g>
+        `;
+      }
+      if (state.accessory === "glasses") {
+        return `
+          <g>
+            <circle cx="178" cy="168" r="21" fill="transparent" stroke="var(--line)" stroke-width="3"/>
+            <circle cx="242" cy="168" r="21" fill="transparent" stroke="var(--line)" stroke-width="3"/>
+            <path d="M199 166 L221 166" stroke="var(--line)" stroke-width="3"/>
+          </g>
+        `;
+      }
+      return "";
+    }
+
+    function drawOutfit() {
+      const c = state.outfitColor;
+      const ac = state.accentColor;
+
+      if (state.outfitStyle === "dress") {
+        return `
+          <path d="M160 245
+                   Q210 215 260 245
+                   L290 405
+                   Q210 448 130 405 Z"
+                fill="${c}" stroke="var(--line)" stroke-width="4"/>
+          <path d="M170 262 Q210 288 250 262" fill="none" stroke="${ac}" stroke-width="8" stroke-linecap="round"/>
+          <ellipse cx="210" cy="244" rx="28" ry="16" fill="#fff8ff" stroke="var(--line)" stroke-width="3"/>
+        `;
+      }
+
+      if (state.outfitStyle === "overall") {
+        return `
+          <rect x="145" y="240" width="130" height="150" rx="30" fill="#fff5fb" stroke="var(--line)" stroke-width="4"/>
+          <rect x="160" y="265" width="100" height="125" rx="28" fill="${c}" stroke="var(--line)" stroke-width="4"/>
+          <rect x="166" y="250" width="14" height="50" rx="7" fill="${ac}" stroke="var(--line)" stroke-width="3"/>
+          <rect x="240" y="250" width="14" height="50" rx="7" fill="${ac}" stroke="var(--line)" stroke-width="3"/>
+          <circle cx="173" cy="280" r="5" fill="#fff"/>
+          <circle cx="247" cy="280" r="5" fill="#fff"/>
+        `;
+      }
+
+      if (state.outfitStyle === "hoodie") {
+        return `
+          <path d="M142 246
+                   Q150 220 175 216
+                   Q190 230 210 230
+                   Q230 230 245 216
+                   Q270 220 278 246
+                   L290 392
+                   Q210 420 130 392 Z"
+                fill="${c}" stroke="var(--line)" stroke-width="4"/>
+          <path d="M175 236 Q210 268 245 236" fill="none" stroke="#ffffffaa" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="198" cy="292" r="4" fill="#fff"/>
+          <circle cx="222" cy="292" r="4" fill="#fff"/>
+          <path d="M198 296 L190 330 M222 296 L230 330" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        `;
+      }
+
+      return `
+        <path d="M145 240
+                 Q210 210 275 240
+                 L285 392
+                 Q210 418 135 392 Z"
+              fill="${c}" stroke="var(--line)" stroke-width="4"/>
+        <rect x="165" y="250" width="90" height="28" rx="12" fill="#fff7fb" stroke="var(--line)" stroke-width="3"/>
+        <path d="M210 278 L210 392" stroke="${ac}" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="210" cy="304" r="5" fill="#fff"/>
+        <circle cx="210" cy="330" r="5" fill="#fff"/>
+      `;
+    }
+
+    function drawPet() {
+      const ac = state.accentColor;
+      if (state.pet === "cat") {
+        return `
+          <g transform="translate(88 400)">
+            <ellipse cx="0" cy="58" rx="42" ry="12" fill="rgba(80,60,90,0.08)"/>
+            <circle cx="0" cy="20" r="30" fill="#fff6f0" stroke="var(--line)" stroke-width="4"/>
+            <path d="M-18 0 L-6 -22 L4 2 Z" fill="#fff6f0" stroke="var(--line)" stroke-width="4"/>
+            <path d="M18 0 L6 -22 L-4 2 Z" transform="scale(-1,1)" fill="#fff6f0" stroke="var(--line)" stroke-width="4"/>
+            <circle cx="-10" cy="18" r="4" fill="#2d2a35"/>
+            <circle cx="10" cy="18" r="4" fill="#2d2a35"/>
+            <path d="M-5 28 Q0 34 5 28" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M-22 26 L-36 22 M-22 30 L-36 30 M22 26 L36 22 M22 30 L36 30"
+                  stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M30 46 Q58 32 62 10" fill="none" stroke="${ac}" stroke-width="8" stroke-linecap="round"/>
+          </g>
+        `;
+      }
+
+      if (state.pet === "dog") {
+        return `
+          <g transform="translate(88 404)">
+            <ellipse cx="0" cy="54" rx="42" ry="12" fill="rgba(80,60,90,0.08)"/>
+            <circle cx="0" cy="20" r="30" fill="#f4e3c8" stroke="var(--line)" stroke-width="4"/>
+            <ellipse cx="-22" cy="12" rx="10" ry="18" fill="#c58c65" stroke="var(--line)" stroke-width="3"/>
+            <ellipse cx="22" cy="12" rx="10" ry="18" fill="#c58c65" stroke="var(--line)" stroke-width="3"/>
+            <circle cx="-10" cy="18" r="4" fill="#2d2a35"/>
+            <circle cx="10" cy="18" r="4" fill="#2d2a35"/>
+            <ellipse cx="0" cy="28" rx="7" ry="5" fill="#2d2a35"/>
+            <path d="M-6 36 Q0 42 6 36" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="28" cy="44" r="8" fill="${ac}" stroke="var(--line)" stroke-width="3"/>
+          </g>
+        `;
+      }
+
+      if (state.pet === "slime") {
+        return `
+          <g transform="translate(88 428)">
+            <ellipse cx="0" cy="30" rx="38" ry="10" fill="rgba(80,60,90,0.08)"/>
+            <path d="M-28 26 Q-28 -18 0 -18 Q28 -18 28 26 Q18 40 0 40 Q-18 40 -28 26 Z"
+                  fill="${ac}" stroke="var(--line)" stroke-width="4"/>
+            <circle cx="-8" cy="8" r="4" fill="#2d2a35"/>
+            <circle cx="8" cy="8" r="4" fill="#2d2a35"/>
+            <path d="M-6 20 Q0 25 6 20" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+          </g>
+        `;
+      }
+
+      return "";
+    }
+
+    function render() {
+      setCSSVars();
+
+      $("hairBackLayer").innerHTML = drawHairBack();
+      $("hairFrontLayer").innerHTML = drawHairFront();
+      $("faceLayer").innerHTML = drawFace();
+      $("accessoryLayer").innerHTML = drawAccessory();
+      $("outfitLayer").innerHTML = drawOutfit();
+      $("petLayer").innerHTML = drawPet();
+
+      const headScaleWrap = $("headScaleWrap");
+      const hs = parseFloat(state.headScale);
+      headScaleWrap.setAttribute(
+        "transform",
+        `translate(210 165) scale(${hs}) translate(-210 -165)`
+      );
+    }
+
+    function syncFromInputs() {
+      Object.keys(state).forEach((key) => {
+        const el = $(key);
+        if (el) state[key] = el.value;
+      });
+      render();
+    }
+
+    function syncToInputs() {
+      Object.entries(state).forEach(([key, val]) => {
+        const el = $(key);
+        if (el) el.value = val;
+      });
+      render();
+    }
+
+    function resetState() {
+      Object.assign(state, defaults);
+      syncToInputs();
+    }
+
+    function randomHex() {
+      const n = () => Math.floor(Math.random() * 200 + 30).toString(16).padStart(2, "0");
+      return `#${n()}${n()}${n()}`;
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function randomize() {
+      const names = ["하트", "루나", "모카", "유이", "다온", "솔비", "나나", "코코", "도리", "베리"];
+      const skinList = ["#f6c9a5", "#f1bb8f", "#e6a97e", "#ffd9bf", "#c98b6d"];
+      const hairList = ["#5b3a29", "#2d2430", "#a56b45", "#d7b36c", "#7a4ea3", "#d86a8a"];
+      const eyeList = ["#5a7bd8", "#66a97c", "#b57ad8", "#d48b4d", "#3c4c9f"];
+      const outfitList = ["#96d4c5", "#ffb4c8", "#f5d17f", "#9fbaf7", "#c9b3ff"];
+      const accessoryList = ["none", "flower", "hat", "glasses"];
+      const petList = ["none", "cat", "dog", "slime"];
+      const hairStyles = ["short", "bob", "long", "twin"];
+      const eyeStyles = ["round", "sleepy", "sparkle"];
+      const mouthStyles = ["smile", "small", "open"];
+      const outfitStyles = ["shirt", "dress", "overall", "hoodie"];
+      const bgList = ["#dff7ff", "#fff1f7", "#f0ffe8", "#fff5d8", "#ece7ff"];
+
+      state.charName = pick(names);
+      state.skinColor = pick(skinList);
+      state.hairColor = pick(hairList);
+      state.eyeColor = pick(eyeList);
+      state.outfitColor = pick(outfitList);
+      state.accentColor = randomHex();
+      state.bgTint = pick(bgList);
+      state.hairStyle = pick(hairStyles);
+      state.eyeStyle = pick(eyeStyles);
+      state.mouthStyle = pick(mouthStyles);
+      state.outfitStyle = pick(outfitStyles);
+      state.accessory = pick(accessoryList);
+      state.pet = pick(petList);
+      state.headScale = (Math.random() * 0.35 + 0.85).toFixed(2);
+      state.eyeScale = (Math.random() * 0.55 + 0.8).toFixed(2);
+
+      syncToInputs();
+    }
+
+    function saveJson() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], {
+        type: "application/json"
+      });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${(state.charName || "character").trim()}_preset.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function loadJsonFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          Object.keys(defaults).forEach((k) => {
+            if (data[k] !== undefined) state[k] = String(data[k]);
+          });
+          syncToInputs();
+        } catch (err) {
+          alert("JSON 파일 형식이 올바르지 않습니다.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    Object.keys(defaults).forEach((key) => {
+      const el = $(key);
+      if (el) {
+        el.addEventListener("input", syncFromInputs);
+        el.addEventListener("change", syncFromInputs);
+      }
+    });
+
+    $("randomBtn").addEventListener("click", randomize);
+    $("resetBtn").addEventListener("click", resetState);
+    $("saveJsonBtn").addEventListener("click", saveJson);
+    $("loadJsonBtn").addEventListener("click", () => $("jsonFile").click());
+    $("jsonFile").addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (file) loadJsonFile(file);
+      e.target.value = "";
+    });
+
+    syncToInputs();
+  </script>
 </body>
 </html>
