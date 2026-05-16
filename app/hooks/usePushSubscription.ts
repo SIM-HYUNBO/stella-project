@@ -72,7 +72,9 @@ export function usePushSubscription(nickname: string | null) {
 
     check().catch(() => {});
   }, [nickname]);
-
+const toggle = async () => {
+  console.log("toggle 실행됨!", nickname); // 추가
+  if (!nickname) return;
   // 🔔 버튼 클릭 시 호출
   const toggle = async () => {
     if (!nickname) return;
@@ -130,4 +132,5 @@ export function usePushSubscription(nickname: string | null) {
   };
 
   return { isSubscribed, isBlocked, toggle };
+}
 }
