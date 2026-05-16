@@ -406,6 +406,20 @@ export default function GroupChat() {
           readBy: [nickname],
         }
       );
+
+      const targets = currentRoom.members.filter((m) => m !== nickname);
+      if (targets.length > 0) {
+        fetch("/api/fcm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            toNicknames: targets,
+            fromNickname: nickname,
+            message: "📷 사진을 보냈어요",
+            roomName: currentRoom.name,
+          }),
+        }).catch(() => {});
+      }
     } finally {
       setImgUploading(false);
     }
