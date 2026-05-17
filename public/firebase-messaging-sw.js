@@ -15,8 +15,8 @@ messaging.onBackgroundMessage((payload) => {
   const body = payload.data?.body ?? payload.notification?.body ?? "";
   self.registration.showNotification(title, {
     body,
-    icon: "/favicon.png",
-    badge: "/favicon.png",
+    icon: "/wag.png",
+    badge: "/wag.png",
     vibrate: [200, 100, 200, 100, 200],
     tag: "fcm-bg",
     renotify: true,
