@@ -2,7 +2,12 @@ import OpenAI from "openai";
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) return null;
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+}
 
 let userWinCount = 0;
 
@@ -24,7 +29,10 @@ export async function POST(req: Request) {
       },
     ];
 
-    const response = await openai.chat.completions.create({
+    const client = getOpenAI();
+    if (!client) return Response.json({ text: "AI 기능이 설정되지 않았어요." }, { status: 503 });
+
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: prompt,
     });
