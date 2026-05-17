@@ -8,7 +8,6 @@ import { auth, db } from "@/app/firebase";
 import {
   onAuthStateChanged,
   signOut,
-  deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential,
   updateProfile,
@@ -158,12 +157,21 @@ export default function ProfilePage() {
       );
 
       await reauthenticateWithCredential(user, credential);
-      await deleteUser(user);
+
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, nickname: nickname || user.uid }),
+      });
+
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "서버 오류");
 
       alert("탈퇴 완료");
       router.push("/");
-    } catch {
-      alert("탈퇴 실패");
+    } catch (err: any) {
+      alert("탈퇴 실패: " + (err?.message ?? ""));
     }
   };
 
