@@ -40,25 +40,11 @@ export async function POST(req: NextRequest) {
         try {
           await admin.messaging().send({
             token,
-            webpush: {
-              notification: {
-                title,
-                body: message,
-                icon: "/wag.png",
-                badge: "/wag.png",
-                tag: `chat-${nickname}`,
-                renotify: true,
-                data: { url: "/home" },
-              },
-              headers: { Urgency: "high" },
-            },
+            notification: { title, body: message },
+            webpush: { headers: { Urgency: "high" } },
             android: {
               priority: "high",
-              notification: {
-                title,
-                body: message,
-                sound: "default",
-              },
+              notification: { sound: "default" },
             },
           });
           details.push({ nickname, status: "sent" });

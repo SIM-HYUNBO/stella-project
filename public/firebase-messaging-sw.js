@@ -10,6 +10,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+messaging.onBackgroundMessage((payload) => {
+  const title = payload.notification?.title ?? payload.data?.title ?? "새 메시지";
+  const body = payload.notification?.body ?? payload.data?.body ?? "";
+  self.registration.showNotification(title, {
+    body,
+    icon: "/wag.png",
+    badge: "/wag.png",
+    vibrate: [200, 100, 200],
+    tag: "fcm-msg",
+    renotify: true,
+    data: { url: "/home" },
+  });
+});
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
