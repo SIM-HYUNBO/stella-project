@@ -10,19 +10,8 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.data?.title ?? payload.notification?.title ?? "새 메시지";
-  const body = payload.data?.body ?? payload.notification?.body ?? "";
-  self.registration.showNotification(title, {
-    body,
-    icon: "/wag.png",
-    badge: "/wag.png",
-    vibrate: [200, 100, 200, 100, 200],
-    tag: "fcm-bg",
-    renotify: true,
-    requireInteraction: false,
-    data: { url: payload.data?.link ?? payload.fcmOptions?.link ?? "/home" },
-  });
+messaging.onBackgroundMessage((_payload) => {
+  // webpush.notification 필드로 Firebase가 자동 표시 — 여기서 추가 표시하면 중복
 });
 
 self.addEventListener("notificationclick", (event) => {

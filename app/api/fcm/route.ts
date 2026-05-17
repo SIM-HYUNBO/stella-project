@@ -40,10 +40,26 @@ export async function POST(req: NextRequest) {
         try {
           await admin.messaging().send({
             token,
-            // notification 필드 제거 → 서비스 워커가 직접 표시 (중복 방지)
-            data: { title, body: message, link: "/home" },
-            webpush: { headers: { Urgency: "high" } },
-            android: { priority: "high" },
+            webpush: {
+              notification: {
+                title,
+                body: message,
+                icon: "/wag.png",
+                badge: "/wag.png",
+                tag: `chat-${nickname}`,
+                renotify: true,
+                data: { url: "/home" },
+              },
+              headers: { Urgency: "high" },
+            },
+            android: {
+              priority: "high",
+              notification: {
+                title,
+                body: message,
+                sound: "default",
+              },
+            },
           });
           details.push({ nickname, status: "sent" });
         } catch (sendErr: any) {
