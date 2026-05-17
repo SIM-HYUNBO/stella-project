@@ -12,6 +12,7 @@ import { FontProvider } from "./FontContext";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import FCMToken from "@/components/FCMToken";
 import BirthdayNotification from "@/components/BirthdayNotification";
+import FriendRequestPopup from "@/components/FriendRequestPopup";
 
 import "./globals.css";
 
@@ -68,6 +69,9 @@ export default function RootLayout({ children }) {
 
             {/* 생일 알림 */}
             <BirthdayNotification />
+
+            {/* 친구 요청 팝업 */}
+            <FriendRequestPopup />
 
             {children}
 
