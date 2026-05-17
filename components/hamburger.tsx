@@ -10,7 +10,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
-import { doc, getDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, deleteDoc, collection, query, where, getDocs, arrayRemove, updateDoc } from "firebase/firestore";
 import TextAvatar from "./TextAvatar";
 import { useRouter } from "next/navigation";
 
@@ -85,6 +85,7 @@ export default function HamburgerMenuWithDelete() {
       await reauthenticateWithCredential(user, credential);
 
       const uid = user.uid;
+      const nick = nickname || uid;
 
       // friends 삭제
       const friendsSnap = await getDocs(query(collection(db, "friends"), where("users", "array-contains", uid)));
@@ -95,8 +96,25 @@ export default function HamburgerMenuWithDelete() {
       const recvSnap = await getDocs(query(collection(db, "friend_requests"), where("to", "==", uid)));
       await Promise.all([...sentSnap.docs, ...recvSnap.docs].map((d) => deleteDoc(d.ref)));
 
+      // blocked / hidden / muted 삭제 (내가 등록한 것 + 나를 등록한 것)
+      for (const col of ["blocked", "hidden", "muted"]) {
+        const mySnap = await getDocs(query(collection(db, col), where("user_id", "==", nick)));
+        const meSnap = await getDocs(query(collection(db, col), where("blocked_id", "==", nick)));
+        await Promise.all([...mySnap.docs, ...meSnap.docs].map((d) => deleteDoc(d.ref)));
+      }
+
+      // group_rooms: members 배열에서 닉네임 제거
+      const grSnap = await getDocs(query(collection(db, "group_rooms"), where("members", "array-contains", nick)));
+      await Promise.all(grSnap.docs.map((d) => updateDoc(d.ref, { members: arrayRemove(nick) })));
+
+      // aroom (관리자 톡) 삭제
+      await deleteDoc(doc(db, "aroom", nick)).catch(() => {});
+
+      // presence 삭제
+      await deleteDoc(doc(db, "presence", uid)).catch(() => {});
+
       // fcm_tokens 삭제
-      await deleteDoc(doc(db, "fcm_tokens", nickname || uid)).catch(() => {});
+      await deleteDoc(doc(db, "fcm_tokens", nick)).catch(() => {});
 
       // users 문서 삭제
       await deleteDoc(doc(db, "users", uid));
