@@ -19,23 +19,10 @@ export default function FCMToken() {
         const title = payload.notification?.title ?? "새 메시지";
         const body = payload.notification?.body ?? "";
 
-        // 구슬 반응 이벤트
+        // 포그라운드일 땐 구슬 반응만 (서비스 워커가 백그라운드 알림 담당)
         window.dispatchEvent(new CustomEvent("newChatMessage", {
           detail: { title, body }
         }));
-
-        if (document.visibilityState === "hidden") return;
-        try {
-          new Notification(title, {
-            body,
-            icon: "/favicon.png",
-            badge: "/favicon.png",
-            tag: "fcm-fg",
-            renotify: true,
-          });
-        } catch {
-          // 포그라운드 알림 미지원 환경
-        }
       });
     };
 
