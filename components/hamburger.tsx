@@ -6,12 +6,11 @@ import Link from "next/link";
 import { auth, db } from "@/app/firebase";
 import {
   onAuthStateChanged,
-  signOut,
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
 import TextAvatar from "./TextAvatar";
 import { useRouter } from "next/navigation";
 
@@ -82,21 +81,33 @@ export default function HamburgerMenuWithDelete() {
     setLoading(true);
 
     try {
-      const credential = EmailAuthProvider.credential(
-        user.email!,
-        password
-      );
-
+      const credential = EmailAuthProvider.credential(user.email!, password);
       await reauthenticateWithCredential(user, credential);
 
-      await deleteDoc(doc(db, "users", user.uid));
+      const uid = user.uid;
+
+      // friends 삭제
+      const friendsSnap = await getDocs(query(collection(db, "friends"), where("users", "array-contains", uid)));
+      await Promise.all(friendsSnap.docs.map((d) => deleteDoc(d.ref)));
+
+      // friend_requests 삭제 (보낸 것 + 받은 것)
+      const sentSnap = await getDocs(query(collection(db, "friend_requests"), where("from", "==", uid)));
+      const recvSnap = await getDocs(query(collection(db, "friend_requests"), where("to", "==", uid)));
+      await Promise.all([...sentSnap.docs, ...recvSnap.docs].map((d) => deleteDoc(d.ref)));
+
+      // fcm_tokens 삭제
+      await deleteDoc(doc(db, "fcm_tokens", nickname || uid)).catch(() => {});
+
+      // users 문서 삭제
+      await deleteDoc(doc(db, "users", uid));
+
+      // Firebase Auth 삭제
       await deleteUser(user);
 
       alert("계정이 삭제되었습니다.");
-      await signOut(auth);
       router.push("/");
     } catch (err: any) {
-      alert("계정 삭제 실패");
+      alert("계정 삭제 실패: " + (err?.message ?? ""));
     } finally {
       setLoading(false);
       setConfirmDeleteOpen(false);
