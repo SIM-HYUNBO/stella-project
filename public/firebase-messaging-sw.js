@@ -10,9 +10,6 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((_payload) => {
-  // webpush.notification 필드로 Firebase가 자동 표시 — 여기서 추가 표시하면 중복
-});
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
