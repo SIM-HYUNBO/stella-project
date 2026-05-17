@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ARPhotoPage() {
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const captureRef = useRef<HTMLDivElement | null>(null);
 
@@ -179,6 +181,17 @@ export default function ARPhotoPage() {
 
   return (
     <div className="page" ref={captureRef}>
+      <button
+        onClick={() => router.back()}
+        style={{
+          position: "fixed", top: 16, left: 16, zIndex: 100,
+          background: "rgba(255,255,255,0.8)", border: "none",
+          borderRadius: 12, padding: "6px 14px", fontSize: 14,
+          fontWeight: 600, cursor: "pointer", backdropFilter: "blur(6px)",
+        }}
+      >
+        ← 뒤로
+      </button>
       <video ref={videoRef} autoPlay playsInline muted className="camera" />
 
       {!ready && <div className="loading">카메라 켜는 중...</div>}
