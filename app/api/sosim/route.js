@@ -1,8 +1,11 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai = null;
+const getOpenAI = () => {
+  if (!process.env.OPENAI_API_KEY) return null;
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _openai;
+};
 
 // 서버 전역 점수 (임시)
 let usergoodCount = 0;
@@ -57,6 +60,8 @@ export async function POST(req) {
     ];
 
     // 4️⃣ OpenAI 호출
+    const openai = getOpenAI();
+    if (!openai) return Response.json({ text: "소심이가 잠깐 쉬는 중이야..." });
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: prompt,

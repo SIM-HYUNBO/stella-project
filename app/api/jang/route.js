@@ -2,9 +2,12 @@ import OpenAI from "openai";
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let _openai = null;
+const getOpenAI = () => {
+  if (!process.env.OPENAI_API_KEY) return null;
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _openai;
+};
 
 let prankWinCount = 0;
 
@@ -39,6 +42,8 @@ export async function POST(req) {
       }
     ];
 
+    const openai = getOpenAI();
+    if (!openai) return Response.json({ text: "장난이가 잠깐 쉬는 중이야!" });
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: prompt

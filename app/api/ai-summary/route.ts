@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const client = new OpenAI();
+let _client: OpenAI | null = null;
+const client = () => {
+  if (!process.env.OPENAI_API_KEY) return null;
+  if (!_client) _client = new OpenAI();
+  return _client;
+};
 
 type Message = {
   from: string;
@@ -20,7 +25,9 @@ export async function POST(req: NextRequest) {
       .map((m) => `${m.from}: ${m.content}`)
       .join("\n");
 
-    const response = await client.chat.completions.create({
+    const c = client();
+    if (!c) return NextResponse.json({ summary: "AI 기능이 설정되지 않았어요." });
+    const response = await c.chat.completions.create({
       model: "gpt-4o-mini",
       max_tokens: 300,
       messages: [
