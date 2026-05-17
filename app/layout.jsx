@@ -11,6 +11,7 @@ import { FontProvider } from "./FontContext";
 
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import FCMToken from "@/components/FCMToken";
+import BirthdayNotification from "@/components/BirthdayNotification";
 
 import "./globals.css";
 
@@ -64,6 +65,9 @@ export default function RootLayout({ children }) {
 
             {/* FCM 초기화 */}
             <FCMToken />
+
+            {/* 생일 알림 */}
+            <BirthdayNotification />
 
             {children}
 
