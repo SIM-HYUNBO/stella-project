@@ -40,12 +40,9 @@ export async function POST(req: NextRequest) {
         try {
           await admin.messaging().send({
             token,
-            notification: { title, body: message },
+            data: { title, body: message },
             webpush: { headers: { Urgency: "high" } },
-            android: {
-              priority: "high",
-              notification: { sound: "default" },
-            },
+            android: { priority: "high" },
           });
           details.push({ nickname, status: "sent" });
         } catch (sendErr: any) {

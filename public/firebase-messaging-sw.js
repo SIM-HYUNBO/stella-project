@@ -11,8 +11,8 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title ?? payload.data?.title ?? "새 메시지";
-  const body = payload.notification?.body ?? payload.data?.body ?? "";
+  const title = payload.data?.title ?? "새 메시지";
+  const body = payload.data?.body ?? "";
   self.registration.showNotification(title, {
     body,
     icon: "/wag.png",
