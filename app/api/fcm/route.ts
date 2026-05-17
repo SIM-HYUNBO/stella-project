@@ -11,50 +11,68 @@ export async function POST(req: NextRequest) {
 
     const admin = getAdmin();
     if (!admin) {
-      console.warn("[FCM] Admin SDK not configured. Add FCM_SERVICE_ACCOUNT_KEY to env.");
-      return NextResponse.json({ ok: false, reason: "FCM not configured" });
+      console.warn("[FCM] Admin SDK not configured.");
+      return NextResponse.json({ ok: false, reason: "admin_not_configured" });
     }
 
     const firestore = admin.firestore();
 
-    const results = await Promise.allSettled(
+    const details: any[] = [];
+
+    await Promise.allSettled(
       targets.map(async (nickname) => {
         const snap = await firestore.doc(`fcm_tokens/${nickname}`).get();
-        if (!snap.exists) return;
+        if (!snap.exists) {
+          details.push({ nickname, status: "no_token" });
+          return;
+        }
 
         const token = snap.data()?.token;
-        if (!token) return;
+        if (!token) {
+          details.push({ nickname, status: "token_empty" });
+          return;
+        }
 
         const title = roomName
           ? `[${roomName}] ${fromNickname}`
           : `${fromNickname}님의 메시지`;
 
-        await admin.messaging().send({
-          token,
-          notification: { title, body: message },
-          webpush: {
-            fcmOptions: { link: "/home" },
-            notification: {
-              icon: "/favicon.png",
-              badge: "/favicon.png",
-              vibrate: [200, 100, 200, 100, 200],
-              tag: `chat-${nickname}`,
-              renotify: true,
+        try {
+          await admin.messaging().send({
+            token,
+            notification: { title, body: message },
+            webpush: {
+              fcmOptions: { link: "/home" },
+              notification: {
+                icon: "/favicon.png",
+                badge: "/favicon.png",
+                vibrate: [200, 100, 200, 100, 200],
+                tag: `chat-${nickname}`,
+                renotify: true,
+                requireInteraction: false,
+              },
+              headers: { Urgency: "high" },
             },
-          },
-          android: {
-            notification: {
-              sound: "default",
+            android: {
               priority: "high",
+              notification: {
+                sound: "default",
+                priority: "high",
+                channelId: "chat",
+              },
             },
-          },
-        });
+          });
+          details.push({ nickname, status: "sent" });
+        } catch (sendErr: any) {
+          details.push({ nickname, status: "send_failed", error: sendErr?.message });
+          console.error("[FCM] send error for", nickname, sendErr?.message);
+        }
       })
     );
 
-    return NextResponse.json({ ok: true, results: results.length });
-  } catch (e) {
+    return NextResponse.json({ ok: true, details });
+  } catch (e: any) {
     console.error("FCM 전송 오류:", e);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return NextResponse.json({ ok: false, error: e?.message }, { status: 500 });
   }
 }
