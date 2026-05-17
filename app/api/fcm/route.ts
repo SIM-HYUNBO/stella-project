@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import getAdmin from "@/lib/firebaseAdmin";
-import { db } from "@/app/firebase";
-import { doc, getDoc } from "firebase/firestore";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,13 +11,16 @@ export async function POST(req: NextRequest) {
 
     const admin = getAdmin();
     if (!admin) {
-      return NextResponse.json({ ok: false, reason: "FCM not configured — add FCM_SERVICE_ACCOUNT_KEY to env" });
+      console.warn("[FCM] Admin SDK not configured. Add FCM_SERVICE_ACCOUNT_KEY to env.");
+      return NextResponse.json({ ok: false, reason: "FCM not configured" });
     }
+
+    const firestore = admin.firestore();
 
     const results = await Promise.allSettled(
       targets.map(async (nickname) => {
-        const snap = await getDoc(doc(db, "fcm_tokens", nickname));
-        if (!snap.exists()) return;
+        const snap = await firestore.doc(`fcm_tokens/${nickname}`).get();
+        if (!snap.exists) return;
 
         const token = snap.data()?.token;
         if (!token) return;
