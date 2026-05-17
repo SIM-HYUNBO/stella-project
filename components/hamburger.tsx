@@ -87,39 +87,44 @@ export default function HamburgerMenuWithDelete() {
       const uid = user.uid;
       const nick = nickname || uid;
 
+      const safeDelete = async (fn: () => Promise<any>) => { try { await fn(); } catch {} };
+
       // friends 삭제
-      const friendsSnap = await getDocs(query(collection(db, "friends"), where("users", "array-contains", uid)));
-      await Promise.all(friendsSnap.docs.map((d) => deleteDoc(d.ref)));
+      await safeDelete(async () => {
+        const snap = await getDocs(query(collection(db, "friends"), where("users", "array-contains", uid)));
+        await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+      });
 
-      // friend_requests 삭제 (보낸 것 + 받은 것)
-      const sentSnap = await getDocs(query(collection(db, "friend_requests"), where("from", "==", uid)));
-      const recvSnap = await getDocs(query(collection(db, "friend_requests"), where("to", "==", uid)));
-      await Promise.all([...sentSnap.docs, ...recvSnap.docs].map((d) => deleteDoc(d.ref)));
+      // friend_requests 삭제
+      await safeDelete(async () => {
+        const a = await getDocs(query(collection(db, "friend_requests"), where("from", "==", uid)));
+        const b = await getDocs(query(collection(db, "friend_requests"), where("to", "==", uid)));
+        await Promise.all([...a.docs, ...b.docs].map((d) => deleteDoc(d.ref)));
+      });
 
-      // blocked / hidden / muted 삭제 (내가 등록한 것 + 나를 등록한 것)
+      // blocked / hidden / muted 삭제
       for (const col of ["blocked", "hidden", "muted"]) {
-        const mySnap = await getDocs(query(collection(db, col), where("user_id", "==", nick)));
-        const meSnap = await getDocs(query(collection(db, col), where("blocked_id", "==", nick)));
-        await Promise.all([...mySnap.docs, ...meSnap.docs].map((d) => deleteDoc(d.ref)));
+        await safeDelete(async () => {
+          const snap = await getDocs(query(collection(db, col), where("user_id", "==", nick)));
+          await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+        });
       }
 
-      // group_rooms: members 배열에서 닉네임 제거
-      const grSnap = await getDocs(query(collection(db, "group_rooms"), where("members", "array-contains", nick)));
-      await Promise.all(grSnap.docs.map((d) => updateDoc(d.ref, { members: arrayRemove(nick) })));
+      // group_rooms 멤버에서 제거
+      await safeDelete(async () => {
+        const snap = await getDocs(query(collection(db, "group_rooms"), where("members", "array-contains", nick)));
+        await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { members: arrayRemove(nick) })));
+      });
 
-      // aroom (관리자 톡) 삭제
-      await deleteDoc(doc(db, "aroom", nick)).catch(() => {});
+      // aroom / presence / fcm_tokens 삭제
+      await safeDelete(() => deleteDoc(doc(db, "aroom", nick)));
+      await safeDelete(() => deleteDoc(doc(db, "presence", uid)));
+      await safeDelete(() => deleteDoc(doc(db, "fcm_tokens", nick)));
 
-      // presence 삭제
-      await deleteDoc(doc(db, "presence", uid)).catch(() => {});
-
-      // fcm_tokens 삭제
-      await deleteDoc(doc(db, "fcm_tokens", nick)).catch(() => {});
-
-      // users 문서 삭제
+      // ★ 반드시 실행: users 문서 삭제
       await deleteDoc(doc(db, "users", uid));
 
-      // Firebase Auth 삭제
+      // ★ 반드시 실행: Firebase Auth 삭제
       await deleteUser(user);
 
       alert("계정이 삭제되었습니다.");
