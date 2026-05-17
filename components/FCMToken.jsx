@@ -18,6 +18,12 @@ export default function FCMToken() {
       unsubscribe = onMessage(messaging, (payload) => {
         const title = payload.notification?.title ?? "새 메시지";
         const body = payload.notification?.body ?? "";
+
+        // 구슬 반응 이벤트
+        window.dispatchEvent(new CustomEvent("newChatMessage", {
+          detail: { title, body }
+        }));
+
         if (document.visibilityState === "hidden") return;
         try {
           new Notification(title, {

@@ -27,6 +27,8 @@ export default function AvatarPage() {
   const [reaction, setReaction] = useState("");
   const [dizzy, setDizzy] = useState(false);
   const [motionReady, setMotionReady] = useState(false);
+  const [msgBuzz, setMsgBuzz] = useState(false);
+  const [msgFrom, setMsgFrom] = useState("");
 
   const moodType =
     mood >= 80
@@ -259,6 +261,24 @@ export default function AvatarPage() {
   }, [motionReady, dizzy]);
 
   /* =========================
+      새 메시지 반응
+  ========================= */
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { title } = e.detail ?? {};
+      setMsgFrom(title ?? "누가 말 걸었어!");
+      setMsgBuzz(true);
+      changeMood(5, "💬 메시지 왔어!");
+      setTimeout(() => {
+        setMsgBuzz(false);
+        setMsgFrom("");
+      }, 2000);
+    };
+    window.addEventListener("newChatMessage", handler);
+    return () => window.removeEventListener("newChatMessage", handler);
+  }, []);
+
+  /* =========================
       외로움 감소
   ========================= */
   useEffect(() => {
@@ -364,11 +384,15 @@ export default function AvatarPage() {
             </div>
           )}
 
+          {msgFrom && (
+            <div className="msg-bubble">
+              {msgFrom}
+            </div>
+          )}
+
           <div
             ref={orbRef}
-            className={`orb ${moodType} ${
-              dizzy ? "dizzy" : ""
-            }`}
+            className={`orb ${moodType} ${dizzy ? "dizzy" : ""} ${msgBuzz ? "msg-buzz" : ""}`}
             onClick={() =>
               setMenuOpen(!menuOpen)
             }
@@ -1016,6 +1040,42 @@ export default function AvatarPage() {
             95% {
               transform: scaleY(0.2);
             }
+          }
+
+          .msg-buzz {
+            animation: msgBuzz 0.6s ease forwards, float 3.2s ease-in-out infinite 0.6s !important;
+            box-shadow:
+              0 0 0 12px rgba(255, 220, 100, 0.35),
+              0 0 0 24px rgba(255, 220, 100, 0.15),
+              0 35px 80px var(--orb-color, #9b7cff77),
+              inset 18px 18px 35px rgba(255,255,255,0.75),
+              inset -25px -30px 45px rgba(105,70,210,0.35) !important;
+          }
+
+          .msg-bubble {
+            position: absolute;
+            top: -44px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #7c54d9;
+            font-weight: 900;
+            font-size: 13px;
+            white-space: nowrap;
+            animation: pop 2s ease forwards;
+            box-shadow: 0 4px 16px rgba(124, 84, 217, 0.2);
+          }
+
+          @keyframes msgBuzz {
+            0%   { transform: scale(1) translateY(0); }
+            20%  { transform: scale(1.12) translateY(-12px); }
+            40%  { transform: scale(0.95) translateY(6px); }
+            60%  { transform: scale(1.07) translateY(-8px); }
+            80%  { transform: scale(0.98) translateY(3px); }
+            100% { transform: scale(1) translateY(0); }
           }
 
           @keyframes pop {
