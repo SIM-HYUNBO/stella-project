@@ -40,27 +40,10 @@ export async function POST(req: NextRequest) {
         try {
           await admin.messaging().send({
             token,
-            notification: { title, body: message },
-            webpush: {
-              fcmOptions: { link: "/home" },
-              notification: {
-                icon: "/favicon.png",
-                badge: "/favicon.png",
-                vibrate: [200, 100, 200, 100, 200],
-                tag: `chat-${nickname}`,
-                renotify: true,
-                requireInteraction: false,
-              },
-              headers: { Urgency: "high" },
-            },
-            android: {
-              priority: "high",
-              notification: {
-                sound: "default",
-                priority: "high",
-                channelId: "chat",
-              },
-            },
+            // notification 필드 제거 → 서비스 워커가 직접 표시 (중복 방지)
+            data: { title, body: message, link: "/home" },
+            webpush: { headers: { Urgency: "high" } },
+            android: { priority: "high" },
           });
           details.push({ nickname, status: "sent" });
         } catch (sendErr: any) {

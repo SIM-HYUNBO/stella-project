@@ -11,8 +11,8 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title ?? "새 메시지";
-  const body = payload.notification?.body ?? "";
+  const title = payload.data?.title ?? payload.notification?.title ?? "새 메시지";
+  const body = payload.data?.body ?? payload.notification?.body ?? "";
   self.registration.showNotification(title, {
     body,
     icon: "/favicon.png",
@@ -21,7 +21,7 @@ messaging.onBackgroundMessage((payload) => {
     tag: "fcm-bg",
     renotify: true,
     requireInteraction: false,
-    data: { url: payload.fcmOptions?.link ?? "/home" },
+    data: { url: payload.data?.link ?? payload.fcmOptions?.link ?? "/home" },
   });
 });
 
