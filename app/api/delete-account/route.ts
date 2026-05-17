@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
     // ★ users 문서 삭제
     await db.doc(`users/${uid}`).delete();
 
-    // ★ Firebase Auth 삭제
-    await admin.auth().deleteUser(uid);
+    // ★ Firebase Auth 삭제 (이미 삭제된 경우 무시)
+    await safeDelete(() => admin.auth().deleteUser(uid));
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
