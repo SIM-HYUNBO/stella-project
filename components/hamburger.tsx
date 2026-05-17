@@ -176,7 +176,7 @@ export default function HamburgerMenuWithDelete() {
                 href="/cam"
                 className="p-2 rounded-xl hover:bg-gray-100"
               >
-                🔮 유리구슬과 놀기
+                🔮 유리구슬 포토부스
               </Link>
             </>
 

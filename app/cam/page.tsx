@@ -2,11 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export default function ARGlassOrbPage() {
+export default function ARPhotoPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const captureRef = useRef<HTMLDivElement | null>(null);
+
   const [ready, setReady] = useState(false);
-  const [smile, setSmile] = useState(false);
-  const [paused, setPaused] = useState(false);
+  const [pose, setPose] = useState<"normal" | "cute" | "wink" | "happy">(
+    "normal"
+  );
+  const [flash, setFlash] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
 
   useEffect(() => {
     const startCamera = async () => {
@@ -33,51 +38,193 @@ export default function ARGlassOrbPage() {
     };
   }, []);
 
-  const pet = () => {
-    setSmile(true);
-    setTimeout(() => setSmile(false), 900);
+  const changePose = () => {
+    const poses: typeof pose[] = ["normal", "cute", "wink", "happy"];
+    const current = poses.indexOf(pose);
+    setPose(poses[(current + 1) % poses.length]);
+  };
+
+  const takePhoto = async () => {
+    if (!videoRef.current) return;
+
+    setFlash(true);
+    setTimeout(() => setFlash(false), 180);
+
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+
+    canvas.width = video.videoWidth || window.innerWidth;
+    canvas.height = video.videoHeight || window.innerHeight;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const orbSize = canvas.width * 0.28;
+    const orbX = canvas.width * 0.5 - orbSize / 2;
+    const orbY = canvas.height * 0.58 - orbSize / 2;
+
+    const gradient = ctx.createRadialGradient(
+      orbX + orbSize * 0.32,
+      orbY + orbSize * 0.25,
+      orbSize * 0.05,
+      orbX + orbSize * 0.5,
+      orbY + orbSize * 0.5,
+      orbSize * 0.55
+    );
+
+    gradient.addColorStop(0, "rgba(255,255,255,0.95)");
+    gradient.addColorStop(0.28, "rgba(210,190,255,0.75)");
+    gradient.addColorStop(1, "rgba(120,90,230,0.82)");
+
+    ctx.save();
+
+    ctx.shadowColor = "rgba(80,60,160,0.45)";
+    ctx.shadowBlur = 40;
+    ctx.beginPath();
+    ctx.arc(orbX + orbSize / 2, orbY + orbSize / 2, orbSize / 2, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.beginPath();
+    ctx.arc(orbX + orbSize / 2, orbY + orbSize / 2, orbSize / 2 - 8, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255,255,255,0.45)";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+    ctx.ellipse(
+      orbX + orbSize * 0.32,
+      orbY + orbSize * 0.24,
+      orbSize * 0.14,
+      orbSize * 0.07,
+      -0.55,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(50,40,70,0.9)";
+
+    const eyeY = orbY + orbSize * 0.45;
+    const leftEyeX = orbX + orbSize * 0.38;
+    const rightEyeX = orbX + orbSize * 0.62;
+
+    if (pose === "wink") {
+      ctx.beginPath();
+      ctx.ellipse(leftEyeX, eyeY, orbSize * 0.035, orbSize * 0.06, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(rightEyeX - orbSize * 0.04, eyeY);
+      ctx.lineTo(rightEyeX + orbSize * 0.04, eyeY);
+      ctx.strokeStyle = "rgba(50,40,70,0.9)";
+      ctx.stroke();
+    } else if (pose === "happy" || pose === "cute") {
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(leftEyeX, eyeY, orbSize * 0.045, 0, Math.PI);
+      ctx.strokeStyle = "rgba(50,40,70,0.9)";
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(rightEyeX, eyeY, orbSize * 0.045, 0, Math.PI);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(leftEyeX, eyeY, orbSize * 0.035, orbSize * 0.06, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(rightEyeX, eyeY, orbSize * 0.035, orbSize * 0.06, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.arc(
+      orbX + orbSize * 0.5,
+      orbY + orbSize * 0.59,
+      pose === "happy" ? orbSize * 0.08 : orbSize * 0.06,
+      0,
+      Math.PI
+    );
+    ctx.strokeStyle = "rgba(50,40,70,0.82)";
+    ctx.stroke();
+
+    if (pose === "cute") {
+      ctx.fillStyle = "rgba(255,130,180,0.55)";
+      ctx.beginPath();
+      ctx.ellipse(orbX + orbSize * 0.28, orbY + orbSize * 0.56, orbSize * 0.08, orbSize * 0.04, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(orbX + orbSize * 0.72, orbY + orbSize * 0.56, orbSize * 0.08, orbSize * 0.04, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    const url = canvas.toDataURL("image/png");
+    setPhotoUrl(url);
   };
 
   return (
-    <div className="page">
+    <div className="page" ref={captureRef}>
       <video ref={videoRef} autoPlay playsInline muted className="camera" />
 
       {!ready && <div className="loading">카메라 켜는 중...</div>}
 
-      <div className={`flight ${paused ? "paused" : ""}`}>
-        <div className="orb-shadow" />
+      <div className={`orb ${pose}`} onClick={changePose}>
+        <span className="glitter g1" />
+        <span className="glitter g2" />
+        <span className="glitter g3" />
 
-        <div
-          className="orb"
-          onClick={() => setPaused((prev) => !prev)}
-          onMouseMove={pet}
-          onTouchMove={pet}
-        >
-          {Array.from({ length: 26 }).map((_, i) => (
-            <span
-              key={i}
-              className="glitter"
-              style={{
-                left: `${(i * 37) % 100}%`,
-                top: `${(i * 53) % 100}%`,
-                animationDelay: `${i * 0.17}s`,
-              }}
-            />
-          ))}
+        <div className="shine big" />
+        <div className="shine small" />
 
-          <div className="lens" />
-          <div className="shine big" />
-          <div className="shine small" />
-
-          <div className="face">
-            <div className={`eye left ${smile ? "smile" : ""}`} />
-            <div className={`eye right ${smile ? "smile" : ""}`} />
-            <div className={`mouth ${smile ? "happy" : ""}`} />
-          </div>
-
-          {smile && <div className="bubble">헤헤...</div>}
+        <div className="face">
+          <div className="eye left" />
+          <div className="eye right" />
+          <div className="mouth" />
+          {pose === "cute" && (
+            <>
+              <div className="cheek left-cheek" />
+              <div className="cheek right-cheek" />
+            </>
+          )}
         </div>
+
+        <div className="pose-text">찰칵 포즈!</div>
       </div>
+
+      <button className="pose-btn" onClick={changePose}>
+        포즈 바꾸기
+      </button>
+
+      <button className="shoot-btn" onClick={takePhoto}>
+        📸 사진 찍기
+      </button>
+
+      {flash && <div className="flash" />}
+
+      {photoUrl && (
+        <div className="preview">
+          <img src={photoUrl} alt="찍은 사진" />
+          <a href={photoUrl} download="wagie-orb-photo.png">
+            저장하기
+          </a>
+          <button onClick={() => setPhotoUrl("")}>닫기</button>
+        </div>
+      )}
 
       <style jsx>{`
         .page {
@@ -93,7 +240,6 @@ export default function ARGlassOrbPage() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: contrast(1.04) saturate(1.05);
         }
 
         .loading {
@@ -104,60 +250,31 @@ export default function ARGlassOrbPage() {
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 20px;
           font-weight: 900;
+          font-size: 20px;
           background: rgba(0, 0, 0, 0.45);
-        }
-
-        .flight {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          z-index: 5;
-          width: 1px;
-          height: 1px;
-          perspective: 900px;
-          animation: flyPath 13s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-        }
-
-        .flight.paused {
-          animation-play-state: paused;
-        }
-
-        .flight.paused .orb,
-        .flight.paused .orb-shadow,
-        .flight.paused .glitter {
-          animation-play-state: paused;
         }
 
         .orb {
           position: absolute;
-          left: 0;
-          top: 0;
-          width: 170px;
-          height: 170px;
+          left: 50%;
+          top: 58%;
+          width: 180px;
+          height: 180px;
           transform: translate(-50%, -50%);
           border-radius: 50%;
-          overflow: hidden;
-          touch-action: none;
+          overflow: visible;
           cursor: pointer;
-
+          touch-action: none;
           background:
-            radial-gradient(circle at 28% 20%, rgba(255,255,255,0.95), rgba(255,255,255,0.26) 16%, transparent 34%),
-            radial-gradient(circle at 65% 78%, rgba(255,220,125,0.42), transparent 34%),
-            radial-gradient(circle at 38% 64%, rgba(155,124,255,0.84), transparent 43%),
-            linear-gradient(145deg, rgba(255,255,255,0.43), rgba(130,95,235,0.64));
-
+            radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95), rgba(255,255,255,0.24) 18%, transparent 35%),
+            radial-gradient(circle at 35% 65%, rgba(155,124,255,0.94), transparent 42%),
+            linear-gradient(145deg, rgba(255,255,255,0.55), rgba(155,124,255,0.82));
           box-shadow:
-            0 18px 50px rgba(120, 90, 210, 0.35),
-            inset 16px 18px 32px rgba(255,255,255,0.58),
-            inset -18px -24px 42px rgba(38,28,100,0.4);
-
-          backdrop-filter: blur(8px) saturate(1.35);
-          -webkit-backdrop-filter: blur(8px) saturate(1.35);
-
-          opacity: 0.96;
-          animation: hoverBody 4.2s ease-in-out infinite;
+            0 20px 60px rgba(120, 90, 210, 0.45),
+            inset 18px 18px 35px rgba(255,255,255,0.68),
+            inset -20px -24px 40px rgba(70,45,160,0.38);
+          animation: poseFloat 3s ease-in-out infinite;
         }
 
         .orb::before {
@@ -165,67 +282,65 @@ export default function ARGlassOrbPage() {
           position: absolute;
           inset: 10px;
           border-radius: 50%;
-          border: 1.5px solid rgba(255,255,255,0.42);
-          z-index: 6;
-          pointer-events: none;
+          border: 2px solid rgba(255,255,255,0.42);
         }
 
-        .orb-shadow {
-          position: absolute;
-          left: 0;
-          top: 105px;
-          width: 120px;
-          height: 28px;
-          transform: translate(-50%, -50%);
-          border-radius: 50%;
-          background: rgba(0, 0, 0, 0.28);
-          filter: blur(14px);
-          animation: shadowFloat 13s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+        .orb.cute {
+          transform: translate(-50%, -50%) rotate(-4deg) scale(1.03);
         }
 
-        .lens {
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          background:
-            radial-gradient(circle at 50% 110%, rgba(0,0,0,0.16), transparent 42%),
-            radial-gradient(circle at 18% 42%, rgba(255,255,255,0.26), transparent 28%),
-            linear-gradient(100deg, rgba(255,255,255,0.12), transparent 45%, rgba(0,0,0,0.08));
-          z-index: 3;
-          pointer-events: none;
+        .orb.wink {
+          transform: translate(-50%, -50%) rotate(5deg);
+        }
+
+        .orb.happy {
+          transform: translate(-50%, -50%) scale(1.08);
         }
 
         .glitter {
           position: absolute;
-          width: 5px;
-          height: 5px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.9);
-          box-shadow:
-            0 0 8px rgba(255,255,255,0.95),
-            0 0 18px rgba(255,255,255,0.55);
-          z-index: 2;
-          animation: glitter 5.5s ease-in-out infinite;
+          background: white;
+          box-shadow: 0 0 12px white;
+          animation: glitter 3s ease-in-out infinite;
+        }
+
+        .g1 {
+          left: 45px;
+          top: 65px;
+        }
+
+        .g2 {
+          right: 48px;
+          top: 48px;
+          animation-delay: 0.4s;
+        }
+
+        .g3 {
+          left: 92px;
+          bottom: 48px;
+          animation-delay: 0.8s;
         }
 
         .shine {
           position: absolute;
-          z-index: 8;
           border-radius: 50%;
-          background: rgba(255,255,255,0.82);
+          background: rgba(255,255,255,0.9);
         }
 
         .shine.big {
-          top: 25px;
-          left: 39px;
-          width: 42px;
+          top: 30px;
+          left: 42px;
+          width: 40px;
           height: 20px;
-          transform: rotate(-34deg);
+          transform: rotate(-35deg);
         }
 
         .shine.small {
-          top: 56px;
-          left: 27px;
+          top: 60px;
+          left: 28px;
           width: 16px;
           height: 10px;
         }
@@ -233,175 +348,178 @@ export default function ARGlassOrbPage() {
         .face {
           position: absolute;
           inset: 0;
-          z-index: 9;
+          z-index: 3;
         }
 
         .eye {
           position: absolute;
-          top: 72px;
+          top: 78px;
           width: 14px;
           height: 20px;
           border-radius: 50%;
-          background: rgba(48, 38, 68, 0.9);
-          transition: 0.18s ease;
+          background: rgba(50,40,70,0.9);
         }
 
         .eye.left {
-          left: 58px;
+          left: 62px;
         }
 
         .eye.right {
-          right: 58px;
+          right: 62px;
         }
 
-        .eye.smile {
-          top: 80px;
+        .wink .eye.right,
+        .happy .eye,
+        .cute .eye {
           height: 7px;
+          top: 84px;
           border-radius: 0 0 18px 18px;
+        }
+
+        .wink .eye.right {
+          transform: rotate(-8deg);
         }
 
         .mouth {
           position: absolute;
           left: 50%;
-          top: 102px;
-          width: 22px;
+          top: 108px;
+          width: 24px;
           height: 10px;
           transform: translateX(-50%);
-          border-bottom: 4px solid rgba(48, 38, 68, 0.82);
-          border-radius: 0 0 18px 18px;
-          transition: 0.18s ease;
+          border-bottom: 4px solid rgba(50,40,70,0.85);
+          border-radius: 0 0 20px 20px;
         }
 
-        .mouth.happy {
-          width: 30px;
-          height: 14px;
+        .happy .mouth,
+        .cute .mouth {
+          width: 32px;
+          height: 15px;
         }
 
-        .bubble {
+        .cheek {
+          position: absolute;
+          top: 102px;
+          width: 28px;
+          height: 12px;
+          border-radius: 50%;
+          background: rgba(255,120,170,0.55);
+          filter: blur(1px);
+        }
+
+        .left-cheek {
+          left: 35px;
+        }
+
+        .right-cheek {
+          right: 35px;
+        }
+
+        .pose-text {
           position: absolute;
           top: -34px;
           left: 50%;
-          z-index: 20;
           transform: translateX(-50%);
-          padding: 8px 12px;
+          padding: 7px 12px;
           border-radius: 999px;
-          background: rgba(255,255,255,0.88);
+          background: rgba(255,255,255,0.9);
           color: #7658e8;
           font-weight: 900;
           white-space: nowrap;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-          animation: pop 0.9s ease forwards;
         }
 
-        @keyframes flyPath {
-          0% {
-            transform: translate(-32vw, 22vh) scale(0.72) rotateZ(-8deg);
-          }
-
-          12% {
-            transform: translate(-22vw, 8vh) scale(0.86) rotateZ(4deg);
-          }
-
-          26% {
-            transform: translate(18vw, -18vh) scale(1.04) rotateZ(8deg);
-          }
-
-          38% {
-            transform: translate(30vw, -6vh) scale(0.92) rotateZ(-4deg);
-          }
-
-          52% {
-            transform: translate(10vw, 18vh) scale(1.18) rotateZ(3deg);
-          }
-
-          64% {
-            transform: translate(-8vw, 4vh) scale(1) rotateZ(-2deg);
-          }
-
-          78% {
-            transform: translate(-28vw, -14vh) scale(0.82) rotateZ(7deg);
-          }
-
-          100% {
-            transform: translate(-32vw, 22vh) scale(0.72) rotateZ(-8deg);
-          }
+        .pose-btn,
+        .shoot-btn {
+          position: fixed;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 10;
+          width: 170px;
+          border: none;
+          border-radius: 999px;
+          padding: 13px 16px;
+          color: white;
+          font-weight: 900;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.28);
         }
 
-        @keyframes hoverBody {
+        .pose-btn {
+          bottom: 88px;
+          background: rgba(255,255,255,0.24);
+          backdrop-filter: blur(12px);
+        }
+
+        .shoot-btn {
+          bottom: 28px;
+          background: #7b5cff;
+        }
+
+        .flash {
+          position: fixed;
+          inset: 0;
+          z-index: 30;
+          background: white;
+          animation: flash 0.18s ease forwards;
+        }
+
+        .preview {
+          position: fixed;
+          inset: 0;
+          z-index: 40;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
+          background: rgba(0,0,0,0.78);
+          padding: 20px;
+        }
+
+        .preview img {
+          max-width: 90vw;
+          max-height: 70vh;
+          border-radius: 24px;
+        }
+
+        .preview a,
+        .preview button {
+          width: 180px;
+          text-align: center;
+          border: none;
+          border-radius: 999px;
+          padding: 12px;
+          background: white;
+          color: #7658e8;
+          font-weight: 900;
+          text-decoration: none;
+        }
+
+        @keyframes poseFloat {
           0%, 100% {
-            transform: translate(-50%, -50%) translateY(0) scale(1);
-            filter: brightness(1);
+            margin-top: 0;
           }
-
-          45% {
-            transform: translate(-50%, -50%) translateY(-8px) scale(1.035);
-            filter: brightness(1.08);
-          }
-
-          70% {
-            transform: translate(-50%, -50%) translateY(2px) scale(0.99);
-            filter: brightness(0.98);
-          }
-        }
-
-        @keyframes shadowFloat {
-          0% {
-            transform: translate(-50%, -50%) scale(0.72);
-            opacity: 0.16;
-          }
-
-          26% {
-            transform: translate(-50%, -50%) scale(0.92);
-            opacity: 0.24;
-          }
-
-          52% {
-            transform: translate(-50%, -50%) scale(1.18);
-            opacity: 0.32;
-          }
-
-          78% {
-            transform: translate(-50%, -50%) scale(0.82);
-            opacity: 0.2;
-          }
-
-          100% {
-            transform: translate(-50%, -50%) scale(0.72);
-            opacity: 0.16;
+          50% {
+            margin-top: -10px;
           }
         }
 
         @keyframes glitter {
           0%, 100% {
-            transform: translate(0, 0) scale(0.75);
-            opacity: 0.3;
+            opacity: 0.35;
+            transform: scale(0.8);
           }
-
-          30% {
-            transform: translate(7px, -10px) scale(1.1);
-            opacity: 0.8;
-          }
-
-          60% {
-            transform: translate(-5px, -18px) scale(1.3);
+          50% {
             opacity: 1;
+            transform: scale(1.3);
           }
         }
 
-        @keyframes pop {
-          0% {
-            opacity: 0;
-            transform: translateX(-50%) translateY(8px) scale(0.8);
+        @keyframes flash {
+          from {
+            opacity: 0.95;
           }
-
-          30% {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0) scale(1.05);
-          }
-
-          100% {
+          to {
             opacity: 0;
-            transform: translateX(-50%) translateY(-10px) scale(1);
           }
         }
       `}</style>
