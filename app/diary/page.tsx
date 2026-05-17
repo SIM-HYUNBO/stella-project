@@ -12,9 +12,7 @@ import {
   setDoc,
   query,
   where,
-  orderBy,
   limit,
-  Timestamp,
 } from "firebase/firestore";
 
 const MOODS = ["😊", "🥰", "😢", "😡", "😴", "🤔", "🥳", "😌", "🫠", "💪"];
@@ -84,22 +82,27 @@ export default function DiaryPage() {
   }, [user, tab]);
 
   const loadMyEntries = async () => {
-    const q = query(
-      collection(db, "diaries"),
-      where("uid", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(30)
-    );
-    const snap = await getDocs(q);
-    const entries = snap.docs.map((d) => ({ id: d.id, ...d.data() } as DiaryEntry));
-    setMyEntries(entries);
+    try {
+      const q = query(
+        collection(db, "diaries"),
+        where("uid", "==", user.uid),
+        limit(30)
+      );
+      const snap = await getDocs(q);
+      const entries = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as DiaryEntry))
+        .sort((a, b) => b.createdAt - a.createdAt);
+      setMyEntries(entries);
 
-    const te = entries.find((e) => e.date === today);
-    if (te) {
-      setTodayEntry(te);
-      setSelectedMood(te.mood);
-      setContent(te.content);
-      setIsPublic(te.isPublic);
+      const te = entries.find((e) => e.date === today);
+      if (te) {
+        setTodayEntry(te);
+        setSelectedMood(te.mood);
+        setContent(te.content);
+        setIsPublic(te.isPublic);
+      }
+    } catch (e) {
+      console.error("일기 로드 실패:", e);
     }
   };
 
@@ -121,33 +124,37 @@ export default function DiaryPage() {
         collection(db, "diaries"),
         where("uid", "in", chunk),
         where("isPublic", "==", true),
-        orderBy("createdAt", "desc"),
-        limit(30)
+        limit(50)
       );
       const snap = await getDocs(q);
       snap.docs.forEach((d) => chunks.push({ id: d.id, ...d.data() } as DiaryEntry));
     }
     chunks.sort((a, b) => b.createdAt - a.createdAt);
-    setFriendEntries(chunks);
+    setFriendEntries(chunks.slice(0, 30));
   };
 
   const handleSave = async () => {
     if (!user || !content.trim()) return;
     setSaving(true);
-    const id = `${user.uid}_${today}`;
-    await setDoc(doc(db, "diaries", id), {
-      uid: user.uid,
-      nickname,
-      profileImage: profileImage || "",
-      date: today,
-      content: content.trim(),
-      mood: selectedMood,
-      isPublic,
-      createdAt: Date.now(),
-    });
-    await loadMyEntries();
-    setEditing(false);
-    setSaving(false);
+    try {
+      const id = `${user.uid}_${today}`;
+      await setDoc(doc(db, "diaries", id), {
+        uid: user.uid,
+        nickname,
+        profileImage: profileImage || "",
+        date: today,
+        content: content.trim(),
+        mood: selectedMood,
+        isPublic,
+        createdAt: Date.now(),
+      });
+      await loadMyEntries();
+      setEditing(false);
+    } catch (e) {
+      alert("저장 실패 ㅠ");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const colorFor = (date: string) => {
