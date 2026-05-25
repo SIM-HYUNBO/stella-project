@@ -22,7 +22,7 @@ export default function AppInfoPage() {
 
         {/* 고객센터 */}
         <button
-          onClick={() => window.location.href = "mailto:hbsim0605@gmail.com"}
+          onClick={() => router.push("/tools/contact")}
           className="flex justify-between items-center px-4 py-4 border-b"
         >
           <span>고객센터</span>
