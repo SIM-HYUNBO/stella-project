@@ -12,14 +12,11 @@ export default function ContactPage() {
         <div className="text-base font-semibold">고객센터</div>
       </div>
 
-      <div className="flex flex-col items-center justify-center pt-20 gap-3">
-        <div className="text-lg font-bold">WAGIE 고객센터</div>
-        <a
-          href="mailto:hbsim0605@gmail.com"
-          className="text-violet-500 text-sm"
-        >
-          hbsim0605@gmail.com
-        </a>
+      <div className="flex flex-col items-center justify-center mt-32 gap-3">
+        <div className="text-5xl">💌</div>
+        <div className="text-lg font-bold mt-2">WAGIE 고객센터</div>
+        <div className="text-sm text-gray-500">skwst0730@gmail.com</div>
+        <div className="text-sm text-gray-400">010-0000-0000</div>
       </div>
     </div>
   );
