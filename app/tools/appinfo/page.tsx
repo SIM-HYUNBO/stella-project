@@ -21,21 +21,13 @@ export default function AppInfoPage() {
         </div>
 
         {/* 고객센터 */}
-        <a
-          href="mailto:hbsim0605@gmail.com"
-          className="flex justify-between items-center px-4 py-4 border-b active:bg-gray-50"
+        <button
+          onClick={() => window.location.href = "mailto:hbsim0605@gmail.com"}
+          className="flex justify-between items-center px-4 py-4 border-b"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center text-lg">
-              💌
-            </div>
-            <div>
-              <div className="text-sm font-semibold">고객센터</div>
-              <div className="text-xs text-gray-400">hbsim0605@gmail.com</div>
-            </div>
-          </div>
+          <span>고객센터</span>
           <span className="text-gray-400">›</span>
-        </a>
+        </button>
       </div>
     </div>
   );
