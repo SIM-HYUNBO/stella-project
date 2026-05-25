@@ -3,7 +3,7 @@ import getAdmin from "@/lib/firebaseAdmin";
 
 export async function POST(req: NextRequest) {
   try {
-    const { toNicknames, fromNickname, message, roomName } = await req.json();
+    const { toNicknames, fromNickname, message, roomName, url } = await req.json();
 
     const targets: string[] = Array.isArray(toNicknames)
       ? toNicknames
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         try {
           await admin.messaging().send({
             token,
-            data: { title, body: message },
+            data: { title, body: message, url: url || "/home" },
             webpush: { headers: { Urgency: "high" } },
             android: { priority: "high" },
           });

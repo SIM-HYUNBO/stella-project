@@ -201,6 +201,7 @@ export default function ChatPage() {
           fromNickname: nickname,
           message: text.length > 60 ? text.slice(0, 60) + "…" : text,
           roomName: "관리자 톡",
+          url: "/admintalk",
         }),
       }).catch(() => {});
     }

@@ -566,6 +566,7 @@ export default function Chat() {
         toNicknames: [currentChatUser.nickname],
         fromNickname: nickname,
         message: input.trim().length > 60 ? input.trim().slice(0, 60) + "…" : input.trim(),
+        url: "/avatar",
       }),
     }).catch(() => {});
 
@@ -636,6 +637,7 @@ export default function Chat() {
           toNicknames: [currentChatUser.nickname],
           fromNickname: nickname,
           message: "📷 사진을 보냈어요",
+          url: "/avatar",
         }),
       }).catch(() => {});
     } finally {

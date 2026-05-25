@@ -1,4 +1,4 @@
-// v5 - wag.png icon
+// v6 - url navigation on click
 importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js");
 
@@ -14,14 +14,16 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   const title = payload.data?.title ?? "새 메시지";
   const body = payload.data?.body ?? "";
+  const url = payload.data?.url ?? "/home";
   self.registration.showNotification(title, {
     body,
     icon: "/wag.png",
     badge: "/wag.png",
-    vibrate: [200, 100, 200],
+    vibrate: [300, 100, 300, 100, 300],
     tag: "fcm-msg",
     renotify: true,
-    data: { url: "/home" },
+    requireInteraction: false,
+    data: { url },
   });
 });
 

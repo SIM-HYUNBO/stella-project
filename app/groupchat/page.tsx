@@ -321,6 +321,7 @@ export default function GroupChat() {
           fromNickname: nickname,
           message: text.length > 60 ? text.slice(0, 60) + "…" : text,
           roomName: currentRoom.name,
+          url: "/groupchat",
         }),
       }).catch(() => {});
     }
@@ -417,6 +418,7 @@ export default function GroupChat() {
             fromNickname: nickname,
             message: "📷 사진을 보냈어요",
             roomName: currentRoom.name,
+            url: "/groupchat",
           }),
         }).catch(() => {});
       }
