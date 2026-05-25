@@ -12,7 +12,8 @@
       "Bash(grep -E \"\\\\.\\(png|jpg|jpeg|ico|webp|svg\\)$\")",
       "Bash(Get-ChildItem -Path \"C:\\\\Project\\\\stella-project\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
-      "Bash(Format-Table)"
+      "Bash(Format-Table)",
+      "Bash(npx vercel *)"
     ]
   }
 }

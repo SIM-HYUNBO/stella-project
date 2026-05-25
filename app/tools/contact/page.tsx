@@ -16,7 +16,7 @@ export default function ContactPage() {
         <div className="text-8xl">💌</div>
         <div className="text-2xl font-bold mt-4">WAGIE 고객센터</div>
         <div className="text-lg text-gray-500">skwst0730@gmail.com</div>
-        <div className="text-lg text-gray-400">010-0000-0000</div>
+        <div className="text-lg text-gray-400">010-9117-7823</div>
       </div>
     </div>
   );
