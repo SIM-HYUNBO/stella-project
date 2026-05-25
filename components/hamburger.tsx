@@ -155,7 +155,6 @@ export default function HamburgerMenuWithDelete() {
             ["/friendmenu", "친구 목록"],
             ["/avatar", "1:1 채팅"],
             ["/groupchat", "단체 채팅"],
-            ["/admintalk", "관리자 톡"],
             ["/tools", "설정"],
           ].map(([href, label]) => (
             <Link

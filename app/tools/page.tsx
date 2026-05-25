@@ -27,6 +27,15 @@ export default function TopButtons() {
       {/* 📋 메뉴 리스트 */}
       <div className="flex flex-col">
 
+        {/* 앱 정보 */}
+        <button
+          onClick={() => router.push("/tools/appinfo")}
+          className="flex justify-between items-center px-4 py-4 border-b"
+        >
+          <span>앱 정보</span>
+          <span className="text-gray-400">›</span>
+        </button>
+
         {/* 🔔 알림 */}
         <button
           onClick={() => router.push("/no")}
