@@ -17,7 +17,7 @@ export default function AppInfoPage() {
         {/* 버전 */}
         <div className="flex justify-between items-center px-4 py-4 border-b">
           <span>버전</span>
-          <span className="text-gray-400 text-sm">0.1.0</span>
+          <span className="text-gray-400 text-sm">v0.1.0</span>
         </div>
 
         {/* 고객센터 */}
