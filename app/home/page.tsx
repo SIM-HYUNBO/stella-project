@@ -134,40 +134,6 @@ export default function HomePage() {
             <p className="mt-4 text-[17px] text-[#9d7556]">따뜻한 대화가 시작되는 곳</p>
           </div>
 
-          {/* IMAGE AREA */}
-          <div className="relative mt-10 px-6">
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] h-28 rounded-full bg-orange-100/70 blur-2xl" />
-
-            <div className="relative flex items-end justify-center gap-3">
-              {/* BIG CHARACTER */}
-              <div className="relative">
-                <div className="w-44 h-44 rounded-[45%] bg-[#fff7ef] shadow-[0_10px_30px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center relative">
-                  <div className="absolute top-5 left-2 w-10 h-16 rounded-full bg-[#fff7ef] rotate-[-25deg]" />
-                  <div className="absolute top-5 right-2 w-10 h-16 rounded-full bg-[#fff7ef] rotate-[25deg]" />
-                  <div className="flex gap-6 mt-4">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#6b4d38]" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#6b4d38]" />
-                  </div>
-                  <div className="mt-3 w-4 h-3 rounded-full border-b-[3px] border-[#6b4d38]" />
-                  <div className="mt-5 w-20 h-20 rounded-[30px] bg-gradient-to-br from-orange-300 to-amber-300 shadow-lg flex items-center justify-center text-3xl">
-                    🧡
-                  </div>
-                </div>
-              </div>
-
-              {/* SMALL CHARACTER */}
-              <div className="mb-2">
-                <div className="w-24 h-24 rounded-full bg-yellow-200 shadow-lg flex flex-col items-center justify-center">
-                  <div className="flex gap-3">
-                    <div className="w-2 h-2 rounded-full bg-[#6b4d38]" />
-                    <div className="w-2 h-2 rounded-full bg-[#6b4d38]" />
-                  </div>
-                  <div className="mt-2 bg-white rounded-full px-3 py-1 text-xs text-[#6b4d38]">...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* HOME MENU */}
           <div className="px-6 pt-8 pb-8 space-y-3">
             {/* 인사말 */}
