@@ -173,13 +173,6 @@ export default function HamburgerMenuWithDelete() {
               </div>
 
               <Link
-                href="/cam"
-                className="p-2 rounded-xl hover:bg-gray-100"
-              >
-                🔮 유리구슬 포토부스
-              </Link>
-
-              <Link
                 href="/diary"
                 className="p-2 rounded-xl hover:bg-gray-100"
               >
