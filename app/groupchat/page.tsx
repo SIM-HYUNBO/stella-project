@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
@@ -92,6 +92,7 @@ export default function GroupChat() {
     useRef<HTMLInputElement>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const check = () =>
@@ -160,6 +161,12 @@ export default function GroupChat() {
       });
 
       setRooms(list);
+
+      const roomParam = searchParams.get("room");
+      if (roomParam) {
+        const target = list.find((r) => r.id === roomParam);
+        if (target) setCurrentRoom(target);
+      }
     });
   }, [nickname]);
 
@@ -321,7 +328,7 @@ export default function GroupChat() {
           fromNickname: nickname,
           message: text.length > 60 ? text.slice(0, 60) + "…" : text,
           roomName: currentRoom.name,
-          url: "/groupchat",
+          url: `/groupchat?room=${currentRoom.id}`,
         }),
       }).catch(() => {});
     }
@@ -418,7 +425,7 @@ export default function GroupChat() {
             fromNickname: nickname,
             message: "📷 사진을 보냈어요",
             roomName: currentRoom.name,
-            url: "/groupchat",
+            url: `/groupchat?room=${currentRoom.id}`,
           }),
         }).catch(() => {});
       }

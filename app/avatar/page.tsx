@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
@@ -205,6 +205,7 @@ function SwipeUserItem({
 
 export default function Chat() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [nickname, setNickname] = useState<string | null>(null);
   const [uid, setUid] = useState<string | null>(null);
@@ -324,7 +325,14 @@ export default function Chat() {
         });
       });
 
-      setUsers(list.filter((u) => u.nickname !== nickname));
+      const filtered = list.filter((u) => u.nickname !== nickname);
+      setUsers(filtered);
+
+      const openNickname = searchParams.get("open");
+      if (openNickname) {
+        const target = filtered.find((u) => u.nickname === openNickname);
+        if (target) setCurrentChatUser(target);
+      }
     };
 
     fetchUsers();
@@ -566,7 +574,7 @@ export default function Chat() {
         toNicknames: [currentChatUser.nickname],
         fromNickname: nickname,
         message: input.trim().length > 60 ? input.trim().slice(0, 60) + "…" : input.trim(),
-        url: "/avatar",
+        url: `/avatar?open=${encodeURIComponent(nickname ?? "")}`,
       }),
     }).catch(() => {});
 
@@ -637,7 +645,7 @@ export default function Chat() {
           toNicknames: [currentChatUser.nickname],
           fromNickname: nickname,
           message: "📷 사진을 보냈어요",
-          url: "/avatar",
+          url: `/avatar?open=${encodeURIComponent(nickname ?? "")}`,
         }),
       }).catch(() => {});
     } finally {
