@@ -41,8 +41,31 @@ export async function POST(req: NextRequest) {
           await admin.messaging().send({
             token,
             data: { title, body: message, url: url || "/home" },
-            webpush: { headers: { Urgency: "high" } },
-            android: { priority: "high" },
+            webpush: {
+              headers: { Urgency: "high" },
+              notification: {
+                title,
+                body: message,
+                icon: "/wag.png",
+                badge: "/wag.png",
+                tag: `chat-${Date.now()}`,
+                renotify: true,
+              },
+              fcm_options: { link: url || "/home" },
+            },
+            android: {
+              priority: "high",
+              notification: {
+                sound: "default",
+                priority: "max",
+                defaultVibrateTimings: true,
+                defaultSound: true,
+              },
+            },
+            apns: {
+              payload: { aps: { sound: "default", badge: 1, contentAvailable: true } },
+              headers: { "apns-priority": "10" },
+            },
           });
           details.push({ nickname, status: "sent" });
         } catch (sendErr: any) {

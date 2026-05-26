@@ -1,4 +1,4 @@
-// v6 - url navigation on click
+// v7 - sound + strong click navigation
 importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js");
 
@@ -13,15 +13,17 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   const title = payload.data?.title ?? "새 메시지";
-  const body = payload.data?.body ?? "";
-  const url = payload.data?.url ?? "/home";
+  const body  = payload.data?.body  ?? "";
+  const url   = payload.data?.url   ?? "/home";
+
   self.registration.showNotification(title, {
     body,
-    icon: "/wag.png",
-    badge: "/wag.png",
-    vibrate: [300, 100, 300, 100, 300],
-    tag: "fcm-msg",
+    icon:     "/wag.png",
+    badge:    "/wag.png",
+    vibrate:  [200, 80, 200, 80, 400],
+    tag:      `chat-${Date.now()}`,
     renotify: true,
+    silent:   false,
     requireInteraction: false,
     data: { url },
   });
@@ -29,15 +31,18 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || "/home";
+  const url = event.notification.data?.url || "/home";
+  const fullUrl = self.location.origin + url;
+
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      const existing = list.find((c) => c.url.includes(self.location.origin));
-      if (existing) {
-        existing.focus();
-        return existing.navigate ? existing.navigate(url) : existing.focus();
+      for (const client of list) {
+        if (client.url.startsWith(self.location.origin)) {
+          client.focus();
+          return client.navigate(fullUrl);
+        }
       }
-      return clients.openWindow(url);
+      return clients.openWindow(fullUrl);
     })
   );
 });
