@@ -2,135 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../firebase";
 import { collection, doc, getDoc, getDocs, query, where, onSnapshot } from "firebase/firestore";
 import HamburgerMenuWithDelete from "@/components/hamburger";
 import TextAvatar from "@/components/TextAvatar";
 
 type Friend = { uid: string; nickname: string; profileImage: string | null };
-type WCode = "sunny" | "cloudy" | "fog" | "rain" | "snow" | "shower" | "thunder";
-
-function getWeatherType(code: number): WCode {
-  if (code === 0) return "sunny";
-  if (code <= 3)  return "cloudy";
-  if (code <= 48) return "fog";
-  if (code <= 67) return "rain";
-  if (code <= 77) return "snow";
-  if (code <= 82) return "shower";
-  return "thunder";
-}
-
-const WEATHER_INFO: Record<WCode, { bg: string; icon: string; text: string; accent: string }> = {
-  sunny:   { bg: "linear-gradient(160deg,#fff8e8,#fff0cc,#fffaf0)", icon: "☀️", text: "맑고 화창해요", accent: "#ffcc44" },
-  cloudy:  { bg: "linear-gradient(160deg,#eef2f8,#e4eaf4,#f2f5fa)", icon: "⛅", text: "구름이 조금 있어요", accent: "#aabbcc" },
-  fog:     { bg: "linear-gradient(160deg,#ebebeb,#e0e0e0,#f0f0f0)", icon: "🌫️", text: "안개가 꼈어요", accent: "#b0b8c0" },
-  rain:    { bg: "linear-gradient(160deg,#d8e8f8,#ccdcf0,#e4eef8)", icon: "🌧️", text: "비가 오고 있어요", accent: "#6699cc" },
-  snow:    { bg: "linear-gradient(160deg,#eef2ff,#e8eeff,#f5f7ff)", icon: "❄️", text: "눈이 내려요", accent: "#aabbee" },
-  shower:  { bg: "linear-gradient(160deg,#ccdcf0,#bccce8,#d8e8f8)", icon: "🌦️", text: "소나기가 내려요", accent: "#5588bb" },
-  thunder: { bg: "linear-gradient(160deg,#d0d4e8,#c4c8e0,#dcdfe8)", icon: "⛈️", text: "천둥번개가 쳐요", accent: "#8888cc" },
-};
-
-/* 비 */
-function RainLayer() {
-  const drops = Array.from({ length: 40 }, (_, i) => ({
-    id: i, left: (i * 7.3) % 100,
-    delay: (i * 0.11) % 1.2,
-    dur: 0.6 + (i % 5) * 0.08,
-    height: 14 + (i % 6) * 3,
-    opacity: 0.25 + (i % 4) * 0.12,
-  }));
-  return (
-    <>
-      {drops.map(d => (
-        <div key={d.id} style={{
-          position: "fixed", left: `${d.left}%`, top: -20, zIndex: 0,
-          width: 1.5, height: d.height, borderRadius: 4,
-          background: "linear-gradient(to bottom, transparent, #6699cc)",
-          opacity: d.opacity, pointerEvents: "none",
-          animation: `rain ${d.dur}s ${d.delay}s linear infinite`,
-        }} />
-      ))}
-    </>
-  );
-}
-
-/* 눈 */
-function SnowLayer() {
-  const flakes = Array.from({ length: 30 }, (_, i) => ({
-    id: i, left: (i * 11.3) % 100,
-    delay: (i * 0.25) % 5,
-    dur: 4 + (i % 5),
-    size: 4 + (i % 5),
-    opacity: 0.4 + (i % 3) * 0.15,
-    drift: -12 + (i % 7) * 4,
-  }));
-  return (
-    <>
-      {flakes.map(f => (
-        <div key={f.id} style={{
-          position: "fixed", left: `${f.left}%`, top: -20, zIndex: 0,
-          width: f.size, height: f.size, borderRadius: "50%",
-          background: "rgba(200,220,255,0.9)",
-          boxShadow: "0 0 4px rgba(180,200,255,0.8)",
-          opacity: f.opacity, pointerEvents: "none",
-          animation: `snow ${f.dur}s ${f.delay}s ease-in infinite`,
-          "--drift": `${f.drift}px`,
-        } as any} />
-      ))}
-    </>
-  );
-}
-
-/* 햇살 */
-function SunGlow() {
-  return (
-    <div style={{ position: "fixed", top: -60, right: -60, zIndex: 0, pointerEvents: "none" }}>
-      <div style={{
-        width: 200, height: 200, borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(255,220,80,0.5) 0%, rgba(255,200,60,0.2) 40%, transparent 70%)",
-        animation: "sunPulse 3s ease-in-out infinite",
-      }} />
-      {Array.from({ length: 8 }, (_, i) => (
-        <div key={i} style={{
-          position: "absolute", top: "50%", left: "50%",
-          width: 2, height: 40 + (i % 3) * 15,
-          background: "linear-gradient(to bottom, rgba(255,220,80,0.6), transparent)",
-          transformOrigin: "top center",
-          transform: `rotate(${i * 45}deg) translateX(-50%)`,
-          animation: `sunRay 3s ${i * 0.4}s ease-in-out infinite`,
-        }} />
-      ))}
-    </div>
-  );
-}
-
-/* 구름 */
-function CloudLayer() {
-  return (
-    <>
-      {[
-        { top: 30, scale: 1.2, delay: 0, dur: 22, opacity: 0.25 },
-        { top: 70, scale: 0.8, delay: 8, dur: 18, opacity: 0.18 },
-        { top: 110, scale: 1.0, delay: 4, dur: 25, opacity: 0.20 },
-      ].map((c, i) => (
-        <div key={i} style={{
-          position: "fixed", top: c.top, left: "-180px", zIndex: 0,
-          pointerEvents: "none",
-          animation: `cloudDrift ${c.dur}s ${c.delay}s linear infinite`,
-          opacity: c.opacity,
-          transform: `scale(${c.scale})`,
-        }}>
-          <div style={{ position: "relative", width: 160, height: 60 }}>
-            <div style={{ position: "absolute", bottom: 0, left: 20, width: 120, height: 40, borderRadius: 40, background: "rgba(180,190,210,0.9)" }} />
-            <div style={{ position: "absolute", bottom: 20, left: 30, width: 70, height: 50, borderRadius: 50, background: "rgba(190,200,220,0.9)" }} />
-            <div style={{ position: "absolute", bottom: 15, left: 70, width: 55, height: 45, borderRadius: 50, background: "rgba(185,195,215,0.9)" }} />
-          </div>
-        </div>
-      ))}
-    </>
-  );
-}
 
 export default function HomePage() {
   const router = useRouter();
@@ -140,7 +18,6 @@ export default function HomePage() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [dmUnread, setDmUnread] = useState(0);
   const [groupUnread, setGroupUnread] = useState(0);
-  const [wcode, setWcode] = useState<WCode>("sunny");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -153,16 +30,6 @@ export default function HomePage() {
       }
     });
     return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(async ({ coords }) => {
-      try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current_weather=true`);
-        const data = await res.json();
-        setWcode(getWeatherType(data.current_weather?.weathercode ?? 0));
-      } catch {}
-    }, () => {});
   }, []);
 
   useEffect(() => {
@@ -203,142 +70,192 @@ export default function HomePage() {
     });
   }, [nickname]);
 
-  const info = WEATHER_INFO[wcode];
-
-  const Badge = ({ count }: { count: number }) =>
-    count > 0 ? (
-      <div style={{
-        position: "absolute", top: 10, right: 10,
-        minWidth: 22, height: 22, borderRadius: 999,
-        background: "linear-gradient(135deg,#ff4d6d,#ff8c42)",
-        color: "#fff", fontSize: 11, fontWeight: 800,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "0 5px", zIndex: 2,
-        boxShadow: "0 0 0 3px rgba(255,77,109,0.2)",
-        animation: "pulse 1.8s ease-in-out infinite",
-      }}>{count > 99 ? "99+" : count}</div>
-    ) : null;
-
-  return (
-    <div style={{ minHeight: "100vh", background: info.bg, paddingBottom: 40, overflowX: "hidden", transition: "background 1.5s ease" }}>
-      <HamburgerMenuWithDelete />
-
-      {/* 날씨 이펙트 */}
-      {(wcode === "rain" || wcode === "shower") && <RainLayer />}
-      {wcode === "snow" && <SnowLayer />}
-      {wcode === "sunny" && <SunGlow />}
-      {(wcode === "cloudy" || wcode === "fog" || wcode === "thunder") && <CloudLayer />}
-
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* 헤더 */}
-        <div style={{ padding: "60px 24px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-          <div>
-            <p style={{ fontSize: 13, color: "#ffaa5e", fontWeight: 800, letterSpacing: 3, margin: 0 }}>WAGIE</p>
-            <p style={{ fontSize: 30, fontWeight: 900, color: "#1a0e00", margin: "6px 0 0", lineHeight: 1.1 }}>
-              안녕,{" "}
-              <span style={{ background: "linear-gradient(90deg,#FF9A8B,#FFB347)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                {nickname ?? "..."}
-              </span>
-            </p>
-            <p style={{ fontSize: 13, color: "#806050", margin: "8px 0 0", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 20 }}>{info.icon}</span>{info.text}
-            </p>
-          </div>
-          <button onClick={() => router.push("/profile")} style={{ border: "none", background: "none", padding: 0, cursor: "pointer", marginTop: 4 }}>
-            <div style={{ width: 50, height: 50, borderRadius: "50%", overflow: "hidden", boxShadow: "0 4px 20px rgba(255,163,97,0.4)" }}>
-              <TextAvatar nickname={nickname || "?"} size={50} profileImage={profileImage} />
-            </div>
-          </button>
-        </div>
-
-        {/* 친구 버블 */}
-        {friends.length > 0 && (
-          <div style={{ marginTop: 24, paddingLeft: 24 }}>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingRight: 24, paddingBottom: 2 }}>
-              {friends.map((f) => (
-                <button key={f.uid} onClick={() => router.push("/avatar")}
-                  style={{ border: "none", background: "none", padding: 0, cursor: "pointer", flexShrink: 0, textAlign: "center" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", boxShadow: "0 3px 12px rgba(0,0,0,0.12)", marginBottom: 5 }}>
-                    <TextAvatar nickname={f.nickname} size={48} profileImage={f.profileImage} />
-                  </div>
-                  <p style={{ fontSize: 10, color: "#a07060", fontWeight: 600, margin: 0, maxWidth: 48, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.nickname}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 벤토 그리드 */}
-        <div style={{ padding: "24px 20px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          <button onClick={() => router.push("/avatar")} style={{
-            gridColumn: "1 / 3",
-            background: "linear-gradient(135deg,#FF9A8B,#FFB347)",
-            borderRadius: 28, padding: "22px 22px 18px",
-            border: "none", cursor: "pointer", textAlign: "left",
-            position: "relative", overflow: "hidden",
-            boxShadow: "0 8px 32px rgba(255,154,139,0.35)",
-          }}>
-            <Badge count={dmUnread} />
-            <div style={{ position: "absolute", right: -20, bottom: -20, fontSize: 90, opacity: 0.12, lineHeight: 1 }}>💬</div>
-            <p style={{ fontSize: 36, margin: 0 }}>💬</p>
-            <p style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: "10px 0 3px" }}>1:1 채팅</p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", margin: 0 }}>친구와 대화해요</p>
-          </button>
-
-          <button onClick={() => router.push("/groupchat")} style={{
-            background: "linear-gradient(135deg,#FFD580,#FFA63E)",
-            borderRadius: 24, padding: "20px 18px 16px",
-            border: "none", cursor: "pointer", textAlign: "left",
-            position: "relative", overflow: "hidden",
-            boxShadow: "0 6px 24px rgba(255,166,62,0.3)",
-          }}>
-            <Badge count={groupUnread} />
-            <div style={{ position: "absolute", right: -12, bottom: -12, fontSize: 64, opacity: 0.12, lineHeight: 1 }}>👥</div>
-            <p style={{ fontSize: 30, margin: 0 }}>👥</p>
-            <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "8px 0 2px" }}>단체 채팅</p>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", margin: 0 }}>같이 얘기해요</p>
-          </button>
-
-          <button onClick={() => router.push("/diary")} style={{
-            background: "linear-gradient(135deg,#FFB6C1,#FF8FA3)",
-            borderRadius: 24, padding: "20px 18px 16px",
-            border: "none", cursor: "pointer", textAlign: "left",
-            position: "relative", overflow: "hidden",
-            boxShadow: "0 6px 24px rgba(255,143,163,0.3)",
-          }}>
-            <div style={{ position: "absolute", right: -12, bottom: -12, fontSize: 64, opacity: 0.12, lineHeight: 1 }}>📔</div>
-            <p style={{ fontSize: 30, margin: 0 }}>📔</p>
-            <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "8px 0 2px" }}>다이어리</p>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", margin: 0 }}>오늘을 기록해요</p>
-          </button>
-
-          <button onClick={() => router.push("/friendmenu")} style={{
-            gridColumn: "1 / 3",
-            background: "rgba(255,255,255,0.82)",
-            backdropFilter: "blur(12px)",
-            borderRadius: 24, padding: "18px 22px",
-            border: "none", cursor: "pointer", textAlign: "left",
-            display: "flex", alignItems: "center", gap: 16,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-          }}>
-            <div style={{ width: 46, height: 46, borderRadius: 16, flexShrink: 0, background: "linear-gradient(135deg,#FFECD2,#FCB69F)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🤝</div>
-            <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#1a0e00", margin: 0 }}>친구 목록</p>
-              <p style={{ fontSize: 12, color: "#b09080", margin: "2px 0 0" }}>친구를 관리해요</p>
-            </div>
-            <div style={{ marginLeft: "auto", color: "#ffb89a", fontSize: 20 }}>›</div>
-          </button>
+  if (!nickname) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7ef]">
+        <div className="relative">
+          <div className="w-14 h-14 rounded-full border-[6px] border-orange-200" />
+          <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-orange-400 animate-spin" />
         </div>
       </div>
+    );
+  }
 
-      <style>{`
-        @keyframes pulse       { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
-        @keyframes rain        { 0%{transform:translateY(-20px) skewX(-8deg);opacity:0} 100%{transform:translateY(110vh) skewX(-8deg);opacity:0.6} }
-        @keyframes snow        { 0%{transform:translateY(-20px) translateX(0);opacity:0.8} 100%{transform:translateY(110vh) translateX(var(--drift));opacity:0} }
-        @keyframes sunPulse    { 0%,100%{transform:scale(1);opacity:0.8} 50%{transform:scale(1.08);opacity:1} }
-        @keyframes sunRay      { 0%,100%{opacity:0.4;height:40px} 50%{opacity:0.8;height:60px} }
-        @keyframes cloudDrift  { 0%{transform:translateX(-200px) scale(var(--s,1))} 100%{transform:translateX(110vw) scale(var(--s,1))} }
-      `}</style>
-    </div>
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-[#fff7ef]">
+      <HamburgerMenuWithDelete />
+
+      {/* BACKGROUND LIGHT */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-120px] left-[-100px] w-[340px] h-[340px] rounded-full bg-orange-200/40 blur-3xl" />
+        <div className="absolute bottom-[-160px] right-[-120px] w-[420px] h-[420px] rounded-full bg-yellow-200/50 blur-3xl" />
+      </div>
+
+      {/* WINDOW LIGHT */}
+      <div className="absolute top-0 right-0 w-[55%] h-full bg-gradient-to-l from-white/50 to-transparent pointer-events-none" />
+
+      {/* CONTENT */}
+      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-10">
+        <div
+          className="
+            relative w-full max-w-[390px]
+            rounded-[42px]
+            bg-[#fff9f2]/90
+            border border-white/60
+            shadow-[0_20px_80px_rgba(255,180,80,0.25)]
+            backdrop-blur-xl
+            overflow-hidden
+          "
+        >
+          {/* TOP */}
+          <div className="relative px-8 pt-10 text-center">
+            {/* 프로필 버튼 */}
+            <button
+              onClick={() => router.push("/profile")}
+              className="absolute top-5 right-6"
+            >
+              <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shadow-md">
+                <TextAvatar nickname={nickname} size={44} profileImage={profileImage} />
+              </div>
+            </button>
+
+            {/* FLOAT ICON */}
+            <div className="mx-auto mb-5 relative w-fit">
+              <div className="absolute inset-0 bg-orange-300/40 blur-2xl rounded-full" />
+              <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 shadow-lg">
+                <span className="text-5xl">💬</span>
+              </div>
+            </div>
+
+            {/* TITLE */}
+            <h1 className="text-[56px] leading-none font-black tracking-[0.18em] text-[#6f4221]">
+              WAGIE
+            </h1>
+            <p className="mt-4 text-[17px] text-[#9d7556]">따뜻한 대화가 시작되는 곳</p>
+          </div>
+
+          {/* IMAGE AREA */}
+          <div className="relative mt-10 px-6">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] h-28 rounded-full bg-orange-100/70 blur-2xl" />
+
+            <div className="relative flex items-end justify-center gap-3">
+              {/* BIG CHARACTER */}
+              <div className="relative">
+                <div className="w-44 h-44 rounded-[45%] bg-[#fff7ef] shadow-[0_10px_30px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center relative">
+                  <div className="absolute top-5 left-2 w-10 h-16 rounded-full bg-[#fff7ef] rotate-[-25deg]" />
+                  <div className="absolute top-5 right-2 w-10 h-16 rounded-full bg-[#fff7ef] rotate-[25deg]" />
+                  <div className="flex gap-6 mt-4">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#6b4d38]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#6b4d38]" />
+                  </div>
+                  <div className="mt-3 w-4 h-3 rounded-full border-b-[3px] border-[#6b4d38]" />
+                  <div className="mt-5 w-20 h-20 rounded-[30px] bg-gradient-to-br from-orange-300 to-amber-300 shadow-lg flex items-center justify-center text-3xl">
+                    🧡
+                  </div>
+                </div>
+              </div>
+
+              {/* SMALL CHARACTER */}
+              <div className="mb-2">
+                <div className="w-24 h-24 rounded-full bg-yellow-200 shadow-lg flex flex-col items-center justify-center">
+                  <div className="flex gap-3">
+                    <div className="w-2 h-2 rounded-full bg-[#6b4d38]" />
+                    <div className="w-2 h-2 rounded-full bg-[#6b4d38]" />
+                  </div>
+                  <div className="mt-2 bg-white rounded-full px-3 py-1 text-xs text-[#6b4d38]">...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* HOME MENU */}
+          <div className="px-6 pt-8 pb-8 space-y-3">
+            {/* 인사말 */}
+            <div className="text-center mb-1">
+              <p className="text-lg font-bold text-[#6f4221]">
+                안녕, <span className="text-orange-500">{nickname}</span>! 👋
+              </p>
+            </div>
+
+            {/* 친구 버블 */}
+            {friends.length > 0 && (
+              <div className="flex gap-3 overflow-x-auto pb-1 justify-center" style={{ scrollbarWidth: "none" }}>
+                {friends.slice(0, 5).map((f) => (
+                  <button
+                    key={f.uid}
+                    onClick={() => router.push("/avatar")}
+                    className="flex-shrink-0 text-center border-none bg-transparent p-0 cursor-pointer"
+                  >
+                    <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-white shadow mx-auto">
+                      <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage} />
+                    </div>
+                    <p className="text-[9px] text-[#a07060] mt-1 w-11 truncate font-semibold">{f.nickname}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 1:1 채팅 */}
+            <button
+              onClick={() => router.push("/avatar")}
+              className="
+                group relative w-full h-16 rounded-2xl
+                bg-gradient-to-r from-orange-400 to-amber-300
+                text-white text-xl font-bold
+                shadow-[0_10px_30px_rgba(255,170,80,0.35)]
+                flex items-center justify-center gap-3
+                transition duration-200 hover:scale-[1.02] active:scale-95
+                overflow-hidden
+              "
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition" />
+              {dmUnread > 0 && (
+                <span className="absolute top-3 right-4 min-w-[22px] h-[22px] bg-white text-orange-500 text-xs font-black rounded-full flex items-center justify-center px-1.5 shadow">
+                  {dmUnread > 99 ? "99+" : dmUnread}
+                </span>
+              )}
+              <span className="text-2xl">💬</span>
+              <span>1:1 채팅</span>
+            </button>
+
+            {/* 단체채팅 + 다이어리 */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => router.push("/groupchat")}
+                className="relative h-[72px] rounded-2xl bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold shadow-md flex flex-col items-start justify-end p-4 active:scale-95 transition overflow-hidden"
+              >
+                {groupUnread > 0 && (
+                  <span className="absolute top-3 right-3 min-w-[20px] h-[20px] bg-white text-yellow-600 text-[10px] font-black rounded-full flex items-center justify-center px-1 shadow">
+                    {groupUnread > 99 ? "99+" : groupUnread}
+                  </span>
+                )}
+                <span className="text-xl mb-1">👥</span>
+                <span className="text-sm">단체채팅</span>
+              </button>
+
+              <button
+                onClick={() => router.push("/diary")}
+                className="h-[72px] rounded-2xl bg-gradient-to-br from-pink-300 to-rose-400 text-white font-bold shadow-md flex flex-col items-start justify-end p-4 active:scale-95 transition overflow-hidden"
+              >
+                <span className="text-xl mb-1">📔</span>
+                <span className="text-sm">다이어리</span>
+              </button>
+            </div>
+
+            {/* 친구 목록 */}
+            <button
+              onClick={() => router.push("/friendmenu")}
+              className="w-full h-14 rounded-2xl bg-white/80 border border-orange-100 text-[#6f4221] font-semibold text-base shadow-sm flex items-center justify-between px-5 active:scale-95 transition"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🤝</span>
+                <span>친구 목록</span>
+              </div>
+              <span className="text-orange-300 text-2xl font-light">›</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
