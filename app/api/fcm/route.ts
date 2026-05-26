@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
                 tag: `chat-${Date.now()}`,
                 renotify: true,
               },
-              fcm_options: { link: url || "/home" },
+              fcmOptions: { link: url || "/home" },
             },
             android: {
               priority: "high",
