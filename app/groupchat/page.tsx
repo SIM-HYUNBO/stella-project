@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import EmojiPicker from "@/components/EmojiPicker";
 import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
@@ -82,8 +81,6 @@ export default function GroupChat() {
 
   const [profileUploading, setProfileUploading] =
     useState(false);
-
-  const [showEmoji, setShowEmoji] = useState(false);
 
   const messagesEndRef =
     useRef<HTMLDivElement | null>(null);
@@ -793,23 +790,8 @@ export default function GroupChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 이모지 피커 */}
-      {showEmoji && (
-        <EmojiPicker
-          onSelect={(e) => setInput((prev) => prev + e)}
-          onClose={() => setShowEmoji(false)}
-        />
-      )}
-
       {/* 입력창 */}
       <div className="p-3 bg-white border-t flex items-center gap-2 shrink-0">
-        <button
-          onClick={() => setShowEmoji((v) => !v)}
-          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg hover:bg-gray-200"
-        >
-          🙂
-        </button>
-
         <button
           onClick={() =>
             imageInputRef.current?.click()
@@ -846,7 +828,6 @@ export default function GroupChat() {
           onChange={(e) =>
             setInput(e.target.value)
           }
-          onFocus={() => setShowEmoji(false)}
           onKeyDown={(e) => {
             if (
               e.key === "Enter" &&

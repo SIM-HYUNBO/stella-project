@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import PageContainer from "../../components/PageContainer";
-import EmojiPicker from "@/components/EmojiPicker";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
@@ -38,7 +37,6 @@ export default function ChatPage() {
   const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
 
   // 모바일 화면 상태
   const [mobileStep, setMobileStep] = useState<"list" | "chat">("list");
@@ -279,27 +277,12 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 이모지 피커 */}
-      {showEmoji && (
-        <EmojiPicker
-          onSelect={(e) => setInput((prev) => prev + e)}
-          onClose={() => setShowEmoji(false)}
-        />
-      )}
-
       {/* 입력 */}
       <div className="flex border-t p-3 gap-2">
-        <button
-          onClick={() => setShowEmoji((v) => !v)}
-          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg hover:bg-gray-200"
-        >
-          🙂
-        </button>
         <input
           className="flex-1 border rounded-xl px-3 py-2"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onFocus={() => setShowEmoji(false)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
         <button onClick={sendMessage} className="px-4 bg-blue-200 rounded-xl">
