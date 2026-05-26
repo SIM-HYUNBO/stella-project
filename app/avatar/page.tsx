@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import EmojiPicker from "@/components/EmojiPicker";
 import PageContainer from "../../components/PageContainer";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
@@ -219,6 +220,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [input, setInput] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
 
   const [blocked, setBlocked] = useState<any[]>([]);
 
@@ -1077,7 +1079,20 @@ export default function Chat() {
         </div>
       )}
 
+      {showEmoji && (
+        <EmojiPicker
+          onSelect={(e) => setInput((prev) => prev + e)}
+          onClose={() => setShowEmoji(false)}
+        />
+      )}
+
       <div className="p-3 bg-white border-t flex items-center gap-2 shrink-0">
+        <button
+          onClick={() => { setShowEmoji((v) => !v); }}
+          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl hover:bg-gray-200"
+        >
+          🙂
+        </button>
         <button
           onClick={() =>
             imageInputRef.current?.click()
@@ -1111,13 +1126,9 @@ export default function Chat() {
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
+          onFocus={() => setShowEmoji(false)}
           onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey
-            ) {
-              sendMessage();
-            }
+            if (e.key === "Enter" && !e.shiftKey) sendMessage();
           }}
         />
 
