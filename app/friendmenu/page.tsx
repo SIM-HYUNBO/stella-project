@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import TextAvatar from "@/components/TextAvatar";
 
 export default function FriendsPage() {
   const router = useRouter();
@@ -182,7 +183,12 @@ export default function FriendsPage() {
           <h2 className="font-bold mb-3 text-gray-700">친구 요청 ({requests.length})</h2>
           {requests.map((r) => (
             <div key={r.id} className="bg-white p-4 rounded-xl flex justify-between items-center mb-2 shadow-sm">
-              <span className="font-medium">{r.fromNickname || r.from}</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                  <TextAvatar nickname={r.fromNickname || r.from} size={40} profileImage={null} />
+                </div>
+                <span className="font-medium">{r.fromNickname || r.from}</span>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => acceptRequest(r)}
@@ -208,7 +214,12 @@ export default function FriendsPage() {
           <h2 className="font-bold mb-3 text-gray-700">내 친구 ({friends.length})</h2>
           {friends.map((f) => (
             <div key={f.uid} className="bg-white p-4 rounded-xl flex justify-between items-center mb-2 shadow-sm">
-              <span className="font-medium">{f.nickname}</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                  <TextAvatar nickname={f.nickname} size={40} profileImage={f.profileImage ?? null} />
+                </div>
+                <span className="font-medium">{f.nickname}</span>
+              </div>
               <button
                 onClick={() => removeFriend(f.uid)}
                 className="bg-red-100 text-red-500 px-3 py-1.5 rounded-lg text-sm"
@@ -228,7 +239,12 @@ export default function FriendsPage() {
           const alreadySent = sentRequests.has(user.uid);
           return (
             <div key={user.uid} className="bg-white p-4 rounded-xl flex justify-between items-center mb-2 shadow-sm">
-              <span className="font-medium">{user.nickname}</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                  <TextAvatar nickname={user.nickname} size={40} profileImage={user.profileImage ?? null} />
+                </div>
+                <span className="font-medium">{user.nickname}</span>
+              </div>
               {alreadyFriend ? (
                 <span className="text-xs text-green-500 font-medium">친구</span>
               ) : alreadySent ? (

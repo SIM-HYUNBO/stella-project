@@ -886,6 +886,13 @@ export default function Chat() {
           >
             🔍
           </button>
+
+          <button
+            onClick={() => setCurrentChatUser(null)}
+            className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm font-medium transition"
+          >
+            나가기
+          </button>
         </div>
       )}
 
