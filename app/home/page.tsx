@@ -18,6 +18,17 @@ function getGreeting() {
   return "좋은 저녁이에요 🌆";
 }
 
+function getTodayQuote() {
+  const quotes = [
+    "오늘도 빛나는 하루예요 🌟",
+    "작은 대화가 큰 힘이 돼요 💬",
+    "친구가 있어 든든해요 🤝",
+    "오늘 하루도 수고했어요 🧡",
+    "좋은 사람과 함께라면 충분해요 ✨",
+  ];
+  return quotes[new Date().getDay() % quotes.length];
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
@@ -93,48 +104,76 @@ export default function HomePage() {
     <PageContainer>
       <div className="relative min-h-screen overflow-hidden -m-4">
 
-        {/* ── 배경 ── */}
+        {/* ── 배경 오브 ── */}
         <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0] -z-10" />
         <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
         <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
         <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-pink-200/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
+        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-violet-200/20 blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" />
 
-        <div className="px-5 pt-4 pb-20 space-y-7">
+        {/* ── 떠다니는 파티클 ── */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+          <span className="absolute top-[10%] left-[6%]  text-2xl opacity-15 animate-[floatA_8s_ease-in-out_infinite_alternate]">💬</span>
+          <span className="absolute top-[22%] right-[8%] text-xl  opacity-15 animate-[floatB_10s_ease-in-out_infinite_alternate]">✨</span>
+          <span className="absolute top-[45%] left-[3%] text-lg  opacity-10 animate-[floatC_12s_ease-in-out_infinite_alternate]">🧡</span>
+          <span className="absolute top-[58%] right-[5%] text-2xl opacity-15 animate-[floatD_9s_ease-in-out_infinite_alternate]">🌸</span>
+          <span className="absolute top-[75%] left-[7%] text-xl  opacity-10 animate-[floatE_11s_ease-in-out_infinite_alternate]">⭐</span>
+          <span className="absolute top-[88%] right-[10%] text-lg opacity-15 animate-[floatA_13s_ease-in-out_infinite_alternate]">🌙</span>
+          <span className="absolute top-[32%] right-[18%] text-sm opacity-15 animate-[floatB_7s_ease-in-out_infinite_alternate]">💫</span>
+        </div>
+
+        <div className="px-5 pt-4 pb-24 space-y-6">
 
           {/* ── 히어로 ── */}
-          <div className="relative rounded-[32px] overflow-hidden bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 p-6 shadow-[0_20px_60px_rgba(255,160,50,0.4)]">
-            <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
+          <div className="relative rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(255,160,50,0.45)]">
+            <div className="bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 p-6 relative">
+              {/* 데코 원 */}
+              <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute top-4 left-1/2 w-20 h-20 rounded-full bg-white/5 -translate-x-1/2" />
+              {/* shimmer */}
+              <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
 
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm font-semibold mb-1">{getGreeting()}</p>
-                <h1 className="text-4xl font-black text-white leading-tight">
-                  안녕,<br />{nickname} 👋
-                </h1>
-                <p className="text-white/70 text-sm mt-2 font-medium">오늘도 좋은 하루 보내요</p>
-              </div>
-              <button onClick={() => router.push("/profile")} className="shrink-0">
-                <div className="w-[72px] h-[72px] rounded-full overflow-hidden ring-4 ring-white/50 shadow-xl">
-                  <TextAvatar nickname={nickname} size={72} profileImage={profileImage} />
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm font-semibold mb-1">{getGreeting()}</p>
+                  <h1 className="text-4xl font-black text-white leading-tight">
+                    안녕,<br />{nickname} 👋
+                  </h1>
+                  <p className="text-white/70 text-sm mt-2 font-medium">오늘도 좋은 하루 보내요</p>
                 </div>
-              </button>
+                {/* 아바타 + 회전 링 */}
+                <button onClick={() => router.push("/profile")} className="shrink-0">
+                  <div className="relative w-[80px] h-[80px] flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-[spinSlow_6s_linear_infinite]" />
+                    <div className="absolute w-[68px] h-[68px] rounded-full border-2 border-white/25 animate-[spinSlow_4s_linear_infinite_reverse]" />
+                    <div className="w-[64px] h-[64px] rounded-full overflow-hidden ring-4 ring-white/60 shadow-xl relative z-10">
+                      <TextAvatar nickname={nickname} size={64} profileImage={profileImage} />
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* 스탯 칩 */}
+              <div className="relative mt-5 flex gap-3">
+                {[
+                  { val: dmUnread || 0,      label: "안 읽은 DM",  icon: "💬" },
+                  { val: groupUnread || 0,   label: "단체 미확인", icon: "👥" },
+                  { val: friends.length,     label: "친구",        icon: "🤝" },
+                ].map(({ val, label, icon }) => (
+                  <div key={label} className="flex-1 bg-white/25 backdrop-blur-sm rounded-2xl px-3 py-3 text-center">
+                    <p className="text-lg mb-0.5">{icon}</p>
+                    <p className="text-white font-black text-xl leading-none">{val}</p>
+                    <p className="text-white/80 text-[10px] font-semibold mt-0.5">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* 스탯 */}
-            <div className="relative mt-5 flex gap-3">
-              <div className="flex-1 bg-white/25 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
-                <p className="text-white font-black text-2xl">{dmUnread || 0}</p>
-                <p className="text-white/80 text-xs font-semibold mt-0.5">안 읽은 DM</p>
-              </div>
-              <div className="flex-1 bg-white/25 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
-                <p className="text-white font-black text-2xl">{groupUnread || 0}</p>
-                <p className="text-white/80 text-xs font-semibold mt-0.5">단체 미확인</p>
-              </div>
-              <div className="flex-1 bg-white/25 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
-                <p className="text-white font-black text-2xl">{friends.length}</p>
-                <p className="text-white/80 text-xs font-semibold mt-0.5">친구</p>
-              </div>
+            {/* 오늘의 한마디 */}
+            <div className="bg-white/80 backdrop-blur-sm px-5 py-3 flex items-center gap-2 border-t border-orange-100">
+              <span className="text-base">💡</span>
+              <p className="text-[#c07030] text-xs font-semibold">{getTodayQuote()}</p>
             </div>
           </div>
 
@@ -149,8 +188,12 @@ export default function HomePage() {
                 {friends.map((f) => (
                   <button key={f.uid} onClick={() => router.push("/avatar")}
                     className="flex-shrink-0 text-center bg-transparent border-none p-0 cursor-pointer">
-                    <div className="relative mx-auto w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-orange-200 shadow-lg">
-                      <TextAvatar nickname={f.nickname} size={56} profileImage={f.profileImage} />
+                    <div className="relative mx-auto w-14 h-14">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-300 to-amber-300 blur-[6px] opacity-50" />
+                      <div className="relative w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-orange-200 shadow-lg">
+                        <TextAvatar nickname={f.nickname} size={56} profileImage={f.profileImage} />
+                      </div>
+                      <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white shadow-sm" />
                     </div>
                     <p className="text-[10px] text-[#a07060] mt-1.5 w-14 truncate font-semibold">{f.nickname}</p>
                   </button>
@@ -159,6 +202,21 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* ── 빠른 액션 ── */}
+          <div className="grid grid-cols-3 gap-2.5">
+            {[
+              { icon: "💬", label: "DM 보내기",  color: "from-orange-400 to-red-400",    path: "/avatar" },
+              { icon: "👥", label: "단체방",      color: "from-yellow-400 to-orange-400", path: "/groupchat" },
+              { icon: "📔", label: "일기 쓰기",   color: "from-pink-400 to-rose-500",     path: "/diary" },
+            ].map(({ icon, label, color, path }) => (
+              <button key={label} onClick={() => router.push(path)}
+                className={`rounded-[20px] bg-gradient-to-br ${color} px-3 py-4 text-center shadow-md active:scale-[0.97] transition-transform`}>
+                <p className="text-2xl mb-1">{icon}</p>
+                <p className="text-white font-black text-xs">{label}</p>
+              </button>
+            ))}
+          </div>
+
           {/* ── 메뉴 ── */}
           <div>
             <p className="font-black text-[#3d1f00] text-base mb-3 px-1">메뉴 ✨</p>
@@ -166,15 +224,17 @@ export default function HomePage() {
 
               {/* 1:1 채팅 */}
               <button onClick={() => router.push("/avatar")}
-                className="group relative w-full rounded-[26px] overflow-hidden shadow-[0_12px_40px_rgba(255,100,60,0.28)] active:scale-[0.98] transition-transform">
-                <div className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 px-6 py-5 flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0 shadow-inner">💬</div>
-                  <div className="text-left flex-1">
+                className="group relative w-full rounded-[26px] overflow-hidden shadow-[0_12px_40px_rgba(255,100,60,0.3)] active:scale-[0.98] transition-transform">
+                <div className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 px-6 py-5 flex items-center gap-4 relative">
+                  <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
+                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
+                  <div className="relative w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0 shadow-inner">💬</div>
+                  <div className="relative text-left flex-1">
                     <p className="text-white font-black text-xl">1:1 채팅</p>
                     <p className="text-white/70 text-sm">친구와 나만의 대화</p>
                   </div>
                   {dmUnread > 0 && (
-                    <span className="bg-white text-orange-500 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 shadow-lg">
+                    <span className="relative bg-white text-orange-500 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 shadow-lg animate-[pulse_2s_infinite]">
                       {dmUnread > 99 ? "99+" : dmUnread}
                     </span>
                   )}
@@ -185,12 +245,13 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(255,180,30,0.3)] active:scale-[0.97] transition-transform">
-                  <div className="bg-gradient-to-br from-yellow-400 to-orange-400 px-5 py-5">
+                  <div className="bg-gradient-to-br from-yellow-400 to-orange-400 px-5 py-5 relative">
+                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
                     <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">👥</div>
                     <p className="text-white font-black text-base">단체채팅</p>
                     <p className="text-white/70 text-xs mt-0.5">같이 얘기해요</p>
                     {groupUnread > 0 && (
-                      <span className="absolute top-3 right-3 bg-white text-yellow-600 font-black text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow">
+                      <span className="absolute top-3 right-3 bg-white text-yellow-600 font-black text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow animate-[pulse_2s_infinite]">
                         {groupUnread > 99 ? "99+" : groupUnread}
                       </span>
                     )}
@@ -198,8 +259,9 @@ export default function HomePage() {
                 </button>
 
                 <button onClick={() => router.push("/diary")}
-                  className="rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(255,100,160,0.28)] active:scale-[0.97] transition-transform">
-                  <div className="bg-gradient-to-br from-pink-400 to-rose-500 px-5 py-5">
+                  className="rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(255,100,160,0.28)] active:scale-[0.97] transition-transform relative">
+                  <div className="bg-gradient-to-br from-pink-400 to-rose-500 px-5 py-5 relative">
+                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
                     <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">📔</div>
                     <p className="text-white font-black text-base">다이어리</p>
                     <p className="text-white/70 text-xs mt-0.5">오늘을 기록해요</p>
@@ -220,6 +282,19 @@ export default function HomePage() {
                 </div>
               </button>
 
+              {/* 고객센터 */}
+              <button onClick={() => router.push("/support")}
+                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(150,80,255,0.1)] active:scale-[0.98] transition-transform">
+                <div className="bg-white/90 backdrop-blur-sm border border-violet-100 px-6 py-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-2xl shadow">🎧</div>
+                  <div className="text-left flex-1">
+                    <p className="text-[#3d1f00] font-black text-base">고객센터</p>
+                    <p className="text-[#c09070] text-sm">도움이 필요하면 언제든지</p>
+                  </div>
+                  <span className="text-violet-300 text-2xl">›</span>
+                </div>
+              </button>
+
             </div>
           </div>
 
@@ -232,9 +307,14 @@ export default function HomePage() {
       </div>
 
       <style>{`
-        @keyframes floatA { 0%{transform:translate(0,0)} 100%{transform:translate(-30px,40px)} }
-        @keyframes floatB { 0%{transform:translate(0,0)} 100%{transform:translate(40px,-30px)} }
-        @keyframes floatC { 0%{transform:translate(0,0)} 100%{transform:translate(-20px,25px)} }
+        @keyframes floatA { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(-30px,40px) rotate(10deg)} }
+        @keyframes floatB { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(40px,-30px) rotate(-8deg)} }
+        @keyframes floatC { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(-20px,25px) rotate(5deg)} }
+        @keyframes floatD { 0%{transform:translate(0,0)} 100%{transform:translate(-25px,-35px)} }
+        @keyframes floatE { 0%{transform:translate(0,0)} 100%{transform:translate(20px,30px)} }
+        @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes spinSlowReverse { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+        @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
       `}</style>
     </PageContainer>
   );
