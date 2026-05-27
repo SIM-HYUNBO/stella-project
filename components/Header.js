@@ -8,7 +8,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* 배경 그라디언트 */}
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-300 via-amber-200 to-yellow-200" />
       {/* shimmer */}
       <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
       {/* 하단 그림자 */}

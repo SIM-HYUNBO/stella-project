@@ -920,7 +920,7 @@ export default function GroupChat() {
             }
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border shadow-sm transition text-left ${
               currentRoom?.id === room.id
-                ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_4px_14px_rgba(255,160,50,0.3)]"
+                ? "bg-gradient-to-r from-orange-200 to-amber-100 border-orange-200 shadow-sm"
                 : "bg-white/80 hover:bg-orange-50 border-orange-100"
             }`}
           >
@@ -937,11 +937,11 @@ export default function GroupChat() {
             )}
 
             <div className="flex-1 min-w-0">
-              <div className={`font-black text-sm truncate ${currentRoom?.id === room.id ? "text-white" : "text-[#3d1f00]"}`}>
+              <div className="font-black text-sm truncate text-[#3d1f00]">
                 {room.name}
               </div>
 
-              <div className={`text-xs truncate ${currentRoom?.id === room.id ? "text-white/70" : "text-[#c09070]"}`}>
+              <div className="text-xs truncate text-[#c09070]">
                 멤버{" "}
                 {room.members.length}명
               </div>
