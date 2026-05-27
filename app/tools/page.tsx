@@ -2,73 +2,43 @@
 
 import { useRouter } from "next/navigation";
 
-export default function TopButtons() {
+const menus = [
+  { icon: "ℹ️", label: "앱 정보", path: "/tools/appinfo" },
+  { icon: "🔔", label: "알림",   path: "/no" },
+  { icon: "👥", label: "친구",   path: "/fri" },
+  { icon: "✍️", label: "글씨체", path: "/font" },
+  { icon: "🎨", label: "테마",   path: "/themes" },
+];
+
+export default function SettingsPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen">
-      
-      {/* 🔝 상단 헤더 */}
-      <div className="flex items-center h-12 px-3 border-b">
-        {/* ← 뒤로가기 */}
-        <button
-          onClick={() => router.back()}
-          className="text-xl mr-2"
-        >
-          ←
-        </button>
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="relative z-10">
+        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[#3d1f00] text-base">⚙️ 설정</span>
+        </div>
 
-        {/* 타이틀 */}
-        <div className="text-base font-semibold">
-          설정
+        <div className="px-5 pt-6 pb-16 space-y-3">
+          {menus.map(({ icon, label, path }) => (
+            <button key={path} onClick={() => router.push(path)}
+              className="w-full rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-xl shrink-0 shadow-sm">{icon}</div>
+                <span className="font-black text-[#3d1f00] text-sm">{label}</span>
+              </div>
+              <span className="text-orange-300 text-lg font-bold">›</span>
+            </button>
+          ))}
+
+          <div className="rounded-[20px] bg-orange-50 border border-orange-100 px-5 py-4 text-center mt-2">
+            <p className="text-[#c07030] text-sm font-semibold">✨ 더 많은 기능을 기대해 주세요</p>
+          </div>
         </div>
       </div>
-
-      {/* 📋 메뉴 리스트 */}
-      <div className="flex flex-col">
-
-        {/* 앱 정보 */}
-        <button
-          onClick={() => router.push("/tools/appinfo")}
-          className="flex justify-between items-center px-4 py-4 border-b"
-        >
-          <span>앱 정보</span>
-          <span className="text-gray-400">›</span>
-        </button>
-
-        {/* 🔔 알림 */}
-        <button
-          onClick={() => router.push("/no")}
-          className="flex justify-between items-center px-4 py-4 border-b"
-        >
-          <span>알림</span>
-          <span className="text-gray-400">›</span>
-        </button>
-         <button
-          onClick={() => router.push("/fri")}
-          className="flex justify-between items-center px-4 py-4 border-b"
-        >
-          <span>친구</span>
-          <span className="text-gray-400">›</span>
-        </button>
-         <button
-          onClick={() => router.push("/font")}
-          className="flex justify-between items-center px-4 py-4 border-b"
-        >
-          <span>글씨체</span>
-          <span className="text-gray-400">›</span>
-        </button>
-          <button
-          onClick={() => router.push("/themes")}
-          className="flex justify-between items-center px-4 py-4 border-b"
-        >
-          <span>테마</span>
-          <span className="text-gray-400">›</span>
-        </button>
- <div className="text-center mt-5 text-gray-500">
- 더 많은 기능을 기대해 주세요~
- </div>
-      </div>
-    </div>
+    </main>
   );
 }
