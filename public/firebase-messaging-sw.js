@@ -1,4 +1,4 @@
-// v7 - sound + strong click navigation
+// v8 - app badge support
 importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js");
 
@@ -16,6 +16,9 @@ messaging.onBackgroundMessage((payload) => {
   const body  = payload.data?.body  ?? "";
   const url   = payload.data?.url   ?? "/home";
 
+  // 앱 아이콘 배지 표시 (백그라운드)
+  self.registration.setAppBadge?.().catch?.(() => {});
+
   self.registration.showNotification(title, {
     body,
     icon:     "/wag.png",
@@ -31,6 +34,8 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  // 알림 클릭 시 배지 제거 (앱이 열리면 AppBadge 컴포넌트가 정확한 값으로 재설정)
+  self.registration.clearAppBadge?.().catch?.(() => {});
   const url = event.notification.data?.url || "/home";
   const fullUrl = self.location.origin + url;
 
