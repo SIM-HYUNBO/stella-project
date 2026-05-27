@@ -1,3 +1,12 @@
+export const metadata = {
+  title: "WAGIE",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/wag.png",
+    apple: "/wag.png",
+  },
+};
+
 import localFont from "next/font/local";
 import {
   Noto_Sans_KR,
