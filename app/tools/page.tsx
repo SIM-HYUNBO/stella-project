@@ -7,7 +7,6 @@ const menus = [
   { icon: "🔔", label: "알림",   path: "/no" },
   { icon: "👥", label: "친구",   path: "/fri" },
   { icon: "✍️", label: "글씨체", path: "/font" },
-  { icon: "🎨", label: "테마",   path: "/themes" },
 ];
 
 export default function SettingsPage() {
