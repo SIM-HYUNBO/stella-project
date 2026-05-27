@@ -2,202 +2,148 @@
 
 import { useEffect, useRef, useState } from "react";
 import { db, auth } from "@/app/firebase";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  serverTimestamp,
-} from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
-type Message = {
-  id: string;
-  from: string;
-  content: string;
-  createdAt?: any;
-};
+type Message = { id: string; from: string; content: string; createdAt?: any; };
 
 export default function MeatChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-
-  /* ================= 유저 ================= */
   const [nickname, setNickname] = useState<string>("guest");
-
-  /* ================= 고기 상태 ================= */
   const [startTime, setStartTime] = useState<number | null>(null);
   const [flipped, setFlipped] = useState(false);
-  const [state, setState] = useState<
-    "raw" | "grilling" | "perfect" | "burn"
-  >("raw");
-
+  const [state, setState] = useState<"raw" | "grilling" | "perfect" | "burn">("raw");
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  /* ================= 로그인 ================= */
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user?.displayName) setNickname(user.displayName);
-      else setNickname("guest");
+      setNickname(user?.displayName || "guest");
     });
-
     return () => unsub();
   }, []);
 
-  /* ================= 채팅 ================= */
   useEffect(() => {
     const q = query(collection(db, "meat_chat"), orderBy("createdAt", "asc"));
-
     return onSnapshot(q, (snap) => {
-      setMessages(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as any),
-        }))
-      );
+      setMessages(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     });
   }, []);
 
-  /* ================= 소리 ================= */
   useEffect(() => {
     audioRef.current = new Audio("/sounds/sizzles.mp3");
     audioRef.current.loop = true;
   }, []);
 
-  /* ================= 타이머 ================= */
   useEffect(() => {
     if (!startTime) return;
-
     const interval = setInterval(() => {
       const diff = Date.now() - startTime;
-
-      if (diff < 60000) {
-        setState("grilling");
-      } else if (diff < 90000) {
-        setState("perfect");
-      } else {
-        setState("burn");
-      }
+      if (diff < 60000) setState("grilling");
+      else if (diff < 90000) setState("perfect");
+      else setState("burn");
     }, 200);
-
     return () => clearInterval(interval);
   }, [startTime]);
 
-  /* ================= 고기 클릭 ================= */
   const handleMeatClick = () => {
     if (!startTime) {
       setStartTime(Date.now());
       audioRef.current?.play().catch(() => {});
     }
-
     setFlipped((v) => !v);
   };
 
-  /* ================= 전송 ================= */
   const sendMessage = async () => {
     if (!input.trim()) return;
-
-    if (state !== "perfect") {
-      alert("🔥 완벽 타이밍일 때만 전송 가능");
-      return;
-    }
-
-    await addDoc(collection(db, "meat_chat"), {
-      from: nickname,   // 🔥 여기만 변경됨
-      content: input,
-      createdAt: serverTimestamp(),
-    });
-
+    if (state !== "perfect") { alert("🔥 완벽 타이밍일 때만 전송 가능"); return; }
+    await addDoc(collection(db, "meat_chat"), { from: nickname, content: input, createdAt: serverTimestamp() });
     setInput("");
   };
 
-  /* ================= 다시 시작 ================= */
   const resetGame = () => {
     setStartTime(null);
     setState("raw");
     setFlipped(false);
-
     audioRef.current?.pause();
     if (audioRef.current) audioRef.current.currentTime = 0;
   };
 
-  /* ================= 고기 표시 ================= */
   const getMeat = () => {
     if (state === "raw") return "🥩";
     if (state === "grilling") return flipped ? "🥩" : "🥩";
-    if (state === "perfect") return flipped ? "🍖" : "🍖";
+    if (state === "perfect") return "🍖";
     return "🔥";
   };
 
+  const stateColors: Record<string, string> = {
+    raw: "text-[#c09070]", grilling: "text-orange-500", perfect: "text-green-500", burn: "text-red-500",
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <main className="relative h-screen overflow-hidden flex flex-col">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
 
-      {/* ================= 고기 영역 ================= */}
-      <div className="flex-1 flex flex-col items-center justify-center">
+      {/* 고기 영역 */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4">
+        <div className="rounded-[28px] bg-white/80 backdrop-blur-sm border border-orange-100 px-10 py-8 shadow-[0_8px_30px_rgba(255,150,80,0.15)] flex flex-col items-center gap-4">
+          <p className="font-black text-[#3d1f00] text-lg">🥩 고기 굽기</p>
 
-        <div
-          onClick={handleMeatClick}
-          className={`text-[140px] cursor-pointer transition-transform duration-500 ${
-            flipped ? "rotate-180" : ""
-          }`}
-        >
-          {getMeat()}
-        </div>
-
-        <div className="mt-4 text-center font-semibold text-gray-700">
-          {state === "raw" && "🥩 고기 올림"}
-          {state === "grilling" && "🔥 굽는 중 (60초 이상)"}
-          {state === "perfect" && "🍖 완벽 타이밍! 전송 가능"}
-          {state === "burn" && "🔥 탔다..."}
-        </div>
-
-        {state === "burn" && (
-          <button
-            onClick={resetGame}
-            className="mt-4 px-6 py-2 bg-red-600 text-white rounded-xl font-bold"
+          <div
+            onClick={handleMeatClick}
+            className={`text-[120px] cursor-pointer transition-all duration-500 select-none ${flipped ? "scale-x-[-1]" : ""}`}
+            style={{ filter: state === "burn" ? "grayscale(0.5) brightness(0.7)" : state === "perfect" ? "drop-shadow(0 0 12px rgba(255,160,50,0.6))" : "none" }}
           >
-            🔄 다시 굽기
-          </button>
-        )}
+            {getMeat()}
+          </div>
 
-        {/* 🔥 현재 유저 표시 (옵션, UI 안 건드림 느낌 유지) */}
-        <div className="mt-2 text-xs text-gray-500">
-          {nickname}
+          <p className={`font-black text-sm ${stateColors[state]}`}>
+            {state === "raw" && "🥩 올려서 굽기 시작"}
+            {state === "grilling" && "🔥 굽는 중... (60초 이상 기다려)"}
+            {state === "perfect" && "🍖 완벽 타이밍! 지금 전송 가능 ✓"}
+            {state === "burn" && "💀 탔다... 다시 구워야 해"}
+          </p>
+
+          {state === "burn" && (
+            <button onClick={resetGame}
+              className="px-6 py-3 rounded-[16px] bg-gradient-to-r from-red-400 to-orange-400 text-white font-black text-sm shadow-md active:scale-95 transition-transform">
+              🔄 다시 굽기
+            </button>
+          )}
+
+          <p className="text-[10px] text-[#c09070] font-semibold">{nickname}</p>
         </div>
-
       </div>
 
-      {/* ================= 입력 ================= */}
-      <div className="border-t bg-white p-3 flex gap-2 items-center">
-
-        <input
-          className="flex-1 border rounded px-3 py-2"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="메시지 입력"
-        />
-
-        <button
-          onClick={sendMessage}
-          className={`px-4 py-2 rounded text-white ${
-            state === "perfect" ? "bg-red-500" : "bg-gray-400"
-          }`}
-        >
-          전송
-        </button>
-
-      </div>
-
-      {/* ================= 채팅 로그 ================= */}
-      <div className="h-52 overflow-y-auto bg-white border-t p-2 text-sm">
+      {/* 채팅 로그 */}
+      <div className="relative z-10 h-44 overflow-y-auto bg-white/70 backdrop-blur-md border-t border-orange-100 px-4 py-3 space-y-1">
         {messages.map((m) => (
-          <div key={m.id}>
-            <b>{m.from}</b> : {m.content}
+          <div key={m.id} className="text-sm">
+            <span className="font-black text-orange-500">{m.from}</span>
+            <span className="text-[#3d1f00]"> : {m.content}</span>
           </div>
         ))}
+        <div ref={chatEndRef} />
       </div>
 
-    </div>
+      {/* 입력 */}
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white/70 backdrop-blur-md border-t border-orange-100 shrink-0">
+        <input
+          className="flex-1 bg-orange-50 border border-orange-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder={state === "perfect" ? "완벽! 지금 전송하세요 🍖" : "고기가 완벽해질 때까지 기다려..."}
+        />
+        <button onClick={sendMessage}
+          className={`w-11 h-11 rounded-[14px] text-white font-black shadow-md active:scale-95 transition-transform flex items-center justify-center ${
+            state === "perfect" ? "bg-gradient-to-r from-orange-400 to-amber-300 shadow-[0_4px_14px_rgba(255,160,50,0.35)]" : "bg-gray-300"
+          }`}>
+          ▶
+        </button>
+      </div>
+    </main>
   );
 }

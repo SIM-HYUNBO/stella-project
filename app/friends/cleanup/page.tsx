@@ -5,34 +5,35 @@ import { useRouter } from "next/navigation";
 export default function CleanupPage() {
   const router = useRouter();
 
+  const items = [
+    { icon: "💬", label: "최근 대화 없는 친구", sub: "30일 이상 대화가 없는 친구" },
+    { icon: "😴", label: "활동 없는 친구",       sub: "최근 활동이 없는 친구" },
+    { icon: "🖼️", label: "프로필 없는 친구",    sub: "프로필 사진이 없는 친구" },
+  ];
+
   return (
-    <div className="p-4">
-
-      <div className="flex items-center gap-2 mb-4">
-        <button onClick={() => router.back()}>←</button>
-        <h1 className="font-bold">친구 정리</h1>
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="relative z-10">
+        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[#3d1f00] text-base">🧹 친구 정리</span>
+        </div>
+        <div className="px-5 pt-6 pb-16 space-y-3">
+          {items.map(({ icon, label, sub }) => (
+            <div key={label} className="rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 flex items-center gap-4 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center text-2xl shrink-0 shadow">{icon}</div>
+              <div>
+                <p className="font-black text-[#3d1f00] text-sm">{label}</p>
+                <p className="text-[#c09070] text-xs mt-0.5">{sub}</p>
+              </div>
+            </div>
+          ))}
+          <div className="rounded-[20px] bg-orange-50 border border-orange-100 px-5 py-4 mt-2">
+            <p className="text-[#c07030] text-sm font-semibold">👉 실제 정리 기능은 추후 업데이트 예정이에요.</p>
+          </div>
+        </div>
       </div>
-
-      <div className="space-y-3">
-
-        <div className="p-4 bg-white rounded shadow">
-          최근 대화 없는 친구
-        </div>
-
-        <div className="p-4 bg-white rounded shadow">
-          활동 없는 친구
-        </div>
-
-        <div className="p-4 bg-white rounded shadow">
-          프로필 없는 친구
-        </div>
-
-        <div className="p-4 bg-white rounded shadow text-gray-500">
-          👉 실제 기능은 추후 구현
-        </div>
-
-      </div>
-
-    </div>
+    </main>
   );
 }

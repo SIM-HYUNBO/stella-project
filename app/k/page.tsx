@@ -1,140 +1,94 @@
 "use client";
-import React, { useState, useEffect } from "react";
 
-interface Note {
-  id: number;
-  content: string;
-}
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const LinedNotepad: React.FC = () => {
+interface Note { id: number; content: string; }
+
+export default function LinedNotepad() {
+  const router = useRouter();
   const [text, setText] = useState("");
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  // 저장된 메모 불러오기
   useEffect(() => {
     const saved = localStorage.getItem("myNotes");
-    if (saved) {
-      setNotes(JSON.parse(saved));
-    }
+    if (saved) setNotes(JSON.parse(saved));
   }, []);
 
-  // 메모 저장
   const handleSave = () => {
     if (selectedId !== null) {
-      // 기존 메모 수정
-      const updated = notes.map((note) =>
-        note.id === selectedId ? { ...note, content: text } : note
-      );
+      const updated = notes.map((n) => n.id === selectedId ? { ...n, content: text } : n);
       setNotes(updated);
       localStorage.setItem("myNotes", JSON.stringify(updated));
-      alert("메모가 수정되었습니다!");
     } else {
-      // 새 메모 추가
-      const newNote: Note = { id: Date.now(), content: text };
-      const updated = [...notes, newNote];
+      const updated = [...notes, { id: Date.now(), content: text }];
       setNotes(updated);
       localStorage.setItem("myNotes", JSON.stringify(updated));
-      alert("새 메모가 저장되었습니다!");
     }
-    setText("");
-    setSelectedId(null);
+    setText(""); setSelectedId(null);
   };
 
-  // 메모 선택
   const handleSelect = (id: number) => {
     const note = notes.find((n) => n.id === id);
-    if (note) {
-      setText(note.content);
-      setSelectedId(id);
-    }
+    if (note) { setText(note.content); setSelectedId(id); }
+  };
+
+  const handleDelete = (id: number) => {
+    const updated = notes.filter((n) => n.id !== id);
+    setNotes(updated);
+    localStorage.setItem("myNotes", JSON.stringify(updated));
+    if (selectedId === id) { setText(""); setSelectedId(null); }
   };
 
   return (
-    <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
-      {/* 메모장 */}
-      <div
-        style={{
-          width: "600px",
-          height: "800px",
-          border: "1px solid #ccc",
-          backgroundColor: "white",
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {/* 줄 배경 */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 40,
-            backgroundImage:
-              "repeating-linear-gradient(to bottom, transparent, transparent 18px, #ddd 19px)",
-            pointerEvents: "none",
-          }}
-        />
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="relative z-10 flex flex-col h-screen">
+        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20 shrink-0">
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[#3d1f00] text-base">📝 메모장</span>
+        </div>
 
-        {/* 입력창 */}
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          style={{
-            flex: 1,
-            border: "none",
-            resize: "none",
-            background: "transparent",
-            fontSize: "16px",
-            lineHeight: "20px",
-            padding: "10px",
-            boxSizing: "border-box",
-            position: "relative",
-          }}
-          placeholder="여기에 내용을 입력하세요..."
-        />
+        <div className="flex flex-1 overflow-hidden gap-3 p-4">
+          {/* 작성 영역 */}
+          <div className="flex-1 flex flex-col rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] overflow-hidden">
+            <div className="px-4 py-3 border-b border-orange-50 flex items-center gap-2">
+              <span className="text-lg">✏️</span>
+              <p className="font-black text-[#3d1f00] text-sm">{selectedId ? "메모 수정" : "새 메모"}</p>
+              {selectedId && (
+                <button onClick={() => { setText(""); setSelectedId(null); }}
+                  className="ml-auto text-xs text-[#c09070] font-semibold">취소</button>
+              )}
+            </div>
+            <textarea value={text} onChange={(e) => setText(e.target.value)}
+              className="flex-1 resize-none bg-transparent px-4 py-3 text-sm text-[#3d1f00] outline-none placeholder:text-[#d4a07a] leading-7"
+              style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 27px, rgba(255,150,80,0.1) 28px)" }}
+              placeholder="여기에 내용을 입력하세요..." />
+            <button onClick={handleSave}
+              className="mx-4 mb-4 h-12 rounded-[16px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black text-sm shadow-[0_6px_20px_rgba(255,160,50,0.35)] active:scale-[0.98] transition-transform">
+              {selectedId ? "수정하기 ✓" : "저장하기 💾"}
+            </button>
+          </div>
 
-        {/* 저장 버튼 */}
-        <button
-          onClick={handleSave}
-          style={{
-            height: "40px",
-            border: "none",
-            backgroundColor: "#ffa9a9",
-            color: "white",
-            fontSize: "16px",
-            cursor: "pointer",
-          }}
-        >
-          {selectedId ? "수정하기" : "저장하기"}
-        </button>
+          {/* 목록 */}
+          <div className="w-40 flex flex-col gap-2 overflow-y-auto">
+            <p className="font-black text-[#3d1f00] text-xs px-1 mb-1">메모 목록</p>
+            {notes.length === 0 && <p className="text-[#d4a07a] text-xs text-center py-4">아직 없어요</p>}
+            {notes.map((note) => (
+              <div key={note.id}
+                className={`rounded-[16px] border px-3 py-3 cursor-pointer transition-all shadow-sm ${note.id === selectedId ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent" : "bg-white/80 border-orange-100"}`}
+                onClick={() => handleSelect(note.id)}>
+                <p className={`text-xs font-semibold truncate ${note.id === selectedId ? "text-white" : "text-[#3d1f00]"}`}>
+                  {note.content.slice(0, 20) || "빈 메모"}
+                </p>
+                <button onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}
+                  className={`text-[10px] mt-1 font-bold ${note.id === selectedId ? "text-white/70" : "text-red-300"}`}>삭제</button>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-
-      {/* 목록 보기 */}
-      <div style={{ width: "250px" }}>
-        <h3>메모 목록</h3>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {notes.map((note) => (
-            <li
-              key={note.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "10px",
-                marginBottom: "10px",
-                cursor: "pointer",
-                backgroundColor: note.id === selectedId ? "#fcffbe" : "white",
-              }}
-              onClick={() => handleSelect(note.id)}
-            >
-              {note.content.slice(0, 20)}...
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    </main>
   );
-};
-
-export default LinedNotepad;
+}

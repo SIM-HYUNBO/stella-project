@@ -10,13 +10,11 @@ interface Message {
 
 export default function Page() {
   const router = useRouter();
-
   const userId = "user_123";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const [userWinCount, setUserWinCount] = useState(0);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -28,7 +26,6 @@ export default function Page() {
         });
         const data = await res.json();
         setMessages(data.messages || []);
-        setUserWinCount(data.userWinCount || 0);
       } catch (err) {
         console.error(err);
       }
@@ -42,98 +39,85 @@ export default function Page() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
     const userMessage: Message = { role: "user", content: input };
     const newMessages = [...messages, userMessage];
-
     setMessages(newMessages);
     setInput("");
     setLoading(true);
-
     try {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, messages: newMessages }),
       });
-
       const data = await res.json();
-
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: data.text },
-      ]);
-
-      setUserWinCount(data.userWinCount);
+      setMessages([...newMessages, { role: "assistant", content: data.text }]);
     } catch (err) {
       console.error(err);
     }
-
     setLoading(false);
   };
 
   return (
-    <div className="flex flex-col h-screen p-4 bg-gray-100">
+    <main className="relative h-screen overflow-hidden flex flex-col">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
 
-      <div className="flex-1 flex flex-col p-2 space-y-2 bg-white rounded-lg">
-
-        {/* 상단 헤더 (뒤로가기 추가) */}
-        <div className="flex items-center mb-2 font-medium text-gray-700">
-          <button
-            onClick={() => router.back()}
-            className="mr-2 text-xl font-bold"
-          >
-            ←
-          </button>
-          <span>이효린</span>
+      {/* 헤더 */}
+      <div className="relative z-10 flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 shrink-0">
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-300 to-purple-400 flex items-center justify-center text-lg mr-2 shadow-sm">🧠</div>
+        <div>
+          <p className="font-black text-[#3d1f00] text-sm leading-tight">이효린</p>
+          <p className="text-[10px] text-green-500 font-semibold">온라인</p>
         </div>
+      </div>
 
-        {/* 채팅 영역 */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50 rounded-lg">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`flex ${
-                m.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`px-3 py-2 max-w-xs rounded-lg break-words 
-                ${
-                  m.role === "user"
-                    ? "bg-blue-400 text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
-              >
-                {m.content}
+      {/* 메시지 영역 */}
+      <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} items-end gap-2`}>
+            {m.role === "assistant" && (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-300 to-purple-400 flex items-center justify-center text-sm shrink-0 shadow-sm">🧠</div>
+            )}
+            <div className={`px-4 py-2.5 rounded-[18px] max-w-[72%] text-sm leading-relaxed shadow-sm ${
+              m.role === "user"
+                ? "bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-br-[6px]"
+                : "bg-white/90 border border-orange-100 text-[#3d1f00] rounded-bl-[6px]"
+            }`}>
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start items-end gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-300 to-purple-400 flex items-center justify-center text-sm shrink-0 shadow-sm">🧠</div>
+            <div className="px-4 py-3 rounded-[18px] rounded-bl-[6px] bg-white/90 border border-orange-100 shadow-sm">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 rounded-full bg-orange-300 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-orange-300 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-orange-300 animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
-          ))}
-
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* 입력 */}
-        <div className="flex mt-2">
-          <input
-            className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="야, 오늘 뭐 했어?"
-            disabled={loading}
-          />
-
-          <button
-            onClick={sendMessage}
-            className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            disabled={loading}
-          >
-            {loading ? "..." : "전송"}
-          </button>
-        </div>
-
+          </div>
+        )}
+        <div ref={chatEndRef} />
       </div>
-    </div>
+
+      {/* 입력 */}
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white/70 backdrop-blur-md border-t border-orange-100 shrink-0">
+        <input
+          className="flex-1 bg-orange-50 border border-orange-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="야, 오늘 뭐 했어?"
+          disabled={loading}
+        />
+        <button onClick={sendMessage} disabled={loading}
+          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black text-sm shadow-[0_4px_14px_rgba(255,160,50,0.35)] active:scale-95 transition-transform flex items-center justify-center">
+          {loading ? "·" : "▶"}
+        </button>
+      </div>
+    </main>
   );
 }

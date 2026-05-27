@@ -5,34 +5,40 @@ import { useRouter } from "next/navigation";
 export default function FriendSettingsMenu() {
   const router = useRouter();
 
+  const menus = [
+    { icon: "🚫", label: "차단 친구",   sub: "차단한 사용자 관리",   path: "/friends/blocked",  color: "from-red-400 to-rose-400" },
+    { icon: "🙈", label: "숨긴 친구",   sub: "숨김 처리한 친구 목록", path: "/friends/hidden",   color: "from-slate-400 to-gray-500" },
+    { icon: "🔕", label: "알림 끈 친구", sub: "알림을 끈 친구 목록",  path: "/friends/muted",    color: "from-violet-400 to-purple-500" },
+    { icon: "🧹", label: "친구 정리",   sub: "비활성 친구 정리하기",  path: "/friends/cleanup",  color: "from-amber-400 to-orange-400" },
+  ];
+
   return (
-    <div className="p-4 flex flex-col gap-4">
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
 
-      {/* ================= 헤더 ================= */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="relative z-10">
+        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+          <button onClick={() => router.back()}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[#3d1f00] text-base">친구 설정 ⚙️</span>
+        </div>
 
-        {/* 뒤로가기 버튼 */}
-        <button
-          onClick={() => router.back()}
-          className="text-xl font-bold px-2"
-        >
-          ←
-        </button>
-
-        {/* 타이틀 */}
-        <h1 className="text-lg font-bold">친구 설정</h1>
+        <div className="px-5 pt-6 pb-16 space-y-3">
+          {menus.map(({ icon, label, sub, path, color }) => (
+            <button key={path} onClick={() => router.push(path)}
+              className="w-full rounded-[22px] overflow-hidden shadow-[0_6px_24px_rgba(255,150,80,0.15)] active:scale-[0.98] transition-transform">
+              <div className="bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-2xl shadow-md shrink-0`}>{icon}</div>
+                <div className="text-left flex-1">
+                  <p className="font-black text-[#3d1f00] text-base">{label}</p>
+                  <p className="text-[#c09070] text-xs mt-0.5">{sub}</p>
+                </div>
+                <span className="text-orange-300 text-2xl">›</span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
-
-      {/* ================= 메뉴 ================= */}
-      <button
-        onClick={() => router.push("/friends/blocked")}
-        className="flex justify-between items-center p-4 bg-white rounded shadow"
-      >
-        <span>차단 친구</span>
-        <span className="text-gray-400">{">"}</span>
-      </button>
-
-      
-    </div>
+    </main>
   );
 }

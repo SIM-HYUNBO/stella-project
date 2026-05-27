@@ -586,9 +586,9 @@ export default function GroupChat() {
 
   // 채팅
   const renderRoom = () => (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-white to-gray-50">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]">
       {/* 헤더 */}
-      <div className="px-4 py-3 border-b bg-white flex items-center justify-between shrink-0">
+      <div className="px-4 py-3 border-b border-orange-100 bg-white/70 backdrop-blur-md flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           {isMobile && (
             <button
@@ -680,8 +680,8 @@ export default function GroupChat() {
       </div>
 
       {/* 멤버 */}
-      <div className="px-4 py-2 border-b bg-white">
-        <div className="text-xs text-gray-400 truncate">
+      <div className="px-4 py-2 border-b border-orange-100 bg-white/60 backdrop-blur-md">
+        <div className="text-xs text-[#c09070] truncate font-semibold">
           👥{" "}
           {currentRoom?.members.join(", ")}
         </div>
@@ -791,16 +791,16 @@ export default function GroupChat() {
       </div>
 
       {/* 입력창 */}
-      <div className="p-3 bg-white border-t flex items-center gap-2 shrink-0">
+      <div className="p-3 bg-white/70 backdrop-blur-md border-t border-orange-100 flex items-center gap-2 shrink-0">
         <button
           onClick={() =>
             imageInputRef.current?.click()
           }
           disabled={imgUploading}
-          className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg ${
+          className={`w-10 h-10 rounded-[12px] bg-orange-50 flex items-center justify-center text-lg ${
             imgUploading
               ? "animate-pulse"
-              : "hover:bg-gray-200"
+              : "hover:bg-orange-100"
           }`}
         >
           📷
@@ -822,7 +822,7 @@ export default function GroupChat() {
         />
 
         <input
-          className="flex-1 h-11 rounded-full bg-gray-100 px-4 text-sm outline-none"
+          className="flex-1 h-11 rounded-[16px] bg-orange-50 border border-orange-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
           placeholder="메시지 입력"
           value={input}
           onChange={(e) =>
@@ -840,7 +840,7 @@ export default function GroupChat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-full bg-gradient-to-r from-yellow-300 to-orange-300 text-white shadow hover:scale-105 active:scale-95 transition"
+          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-[0_4px_14px_rgba(255,160,50,0.35)] hover:scale-105 active:scale-95 transition"
         >
           ➤
         </button>
@@ -850,8 +850,8 @@ export default function GroupChat() {
 
   // 방 목록
   const renderRoomList = () => (
-    <div className="flex flex-col h-full bg-white">
-      <div className="px-4 py-4 border-b">
+    <div className="flex flex-col h-full bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]">
+      <div className="px-4 py-4 border-b border-orange-100">
         <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
           WAGIE GROUP
         </div>
@@ -861,11 +861,11 @@ export default function GroupChat() {
         </div>
       </div>
 
-      <div className="px-3 py-3 border-b">
+      <div className="px-3 py-3 border-b border-orange-100">
         {showCreate ? (
           <div className="flex flex-col gap-2">
             <input
-              className="w-full h-11 rounded-2xl bg-gray-100 px-4 text-sm outline-none"
+              className="w-full h-11 rounded-[16px] bg-white/80 border border-orange-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
               placeholder="방 이름 입력"
               value={newRoomName}
               onChange={(e) =>
@@ -883,7 +883,7 @@ export default function GroupChat() {
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-300 text-white font-semibold shadow"
+                className="flex-1 h-11 rounded-[16px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-[0_4px_14px_rgba(255,160,50,0.3)]"
               >
                 만들기
               </button>
@@ -893,7 +893,7 @@ export default function GroupChat() {
                   setShowCreate(false);
                   setNewRoomName("");
                 }}
-                className="flex-1 h-11 rounded-2xl bg-gray-100 hover:bg-gray-200"
+                className="flex-1 h-11 rounded-[16px] bg-white/80 border border-orange-100 text-[#c09070] font-semibold"
               >
                 취소
               </button>
@@ -904,7 +904,7 @@ export default function GroupChat() {
             onClick={() =>
               setShowCreate(true)
             }
-            className="w-full h-11 rounded-2xl bg-gradient-to-r from-yellow-300 to-orange-300 text-white font-semibold shadow"
+            className="w-full h-11 rounded-[16px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-[0_4px_14px_rgba(255,160,50,0.3)]"
           >
             + 방 만들기
           </button>
@@ -918,10 +918,10 @@ export default function GroupChat() {
             onClick={() =>
               setCurrentRoom(room)
             }
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl mb-2 border shadow-sm transition text-left ${
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border shadow-sm transition text-left ${
               currentRoom?.id === room.id
-                ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-orange-100"
-                : "bg-white hover:bg-gray-50 border-gray-100"
+                ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_4px_14px_rgba(255,160,50,0.3)]"
+                : "bg-white/80 hover:bg-orange-50 border-orange-100"
             }`}
           >
             {room.profileImage ? (
@@ -937,11 +937,11 @@ export default function GroupChat() {
             )}
 
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-gray-800 truncate">
+              <div className={`font-black text-sm truncate ${currentRoom?.id === room.id ? "text-white" : "text-[#3d1f00]"}`}>
                 {room.name}
               </div>
 
-              <div className="text-xs text-gray-400 truncate">
+              <div className={`text-xs truncate ${currentRoom?.id === room.id ? "text-white/70" : "text-[#c09070]"}`}>
                 멤버{" "}
                 {room.members.length}명
               </div>
@@ -984,8 +984,8 @@ export default function GroupChat() {
 
   return (
     <PageContainer>
-      <div className="h-screen flex overflow-hidden bg-white rounded-none md:rounded-3xl shadow-xl">
-        <div className="w-[320px] border-r">
+      <div className="h-screen flex overflow-hidden bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0] rounded-none md:rounded-3xl shadow-xl">
+        <div className="w-[320px] border-r border-orange-100">
           {renderRoomList()}
         </div>
 
@@ -993,7 +993,7 @@ export default function GroupChat() {
           {currentRoom ? (
             renderRoom()
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-50">
+            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]">
               <div className="text-7xl mb-5">
                 💬
               </div>

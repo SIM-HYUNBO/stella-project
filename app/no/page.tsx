@@ -7,16 +7,16 @@ import { db, auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 const sounds = [
-  { id: "1", name: "와기 알림", file: "/sounds/alert1.mp3" },
-  { id: "2", name: "딩동", file: "/sounds/alert2.mp3" },
-  { id: "3", name: "짧은 딩동", file: "/sounds/alert3.mp3" },
-  { id: "4", name: "부드러운 알림", file: "/sounds/alert4.mp3" },
-  { id: "5", name: "경고음", file: "/sounds/alert5.mp3" },
-  { id: "6", name: "전자음", file: "/sounds/alert6.mp3" },
-  { id: "7", name: "벨", file: "/sounds/alert7.mp3" },
-  { id: "8", name: "물방울", file: "/sounds/alert8.mp3" },
-  { id: "9", name: "팝업", file: "/sounds/alert9.mp3" },
-  { id: "10", name: "VIP 전용", file: "/sounds/alert10.mp3" },
+  { id: "1",  name: "와기 알림",    file: "/sounds/alert1.mp3" },
+  { id: "2",  name: "딩동",         file: "/sounds/alert2.mp3" },
+  { id: "3",  name: "짧은 딩동",    file: "/sounds/alert3.mp3" },
+  { id: "4",  name: "부드러운 알림", file: "/sounds/alert4.mp3" },
+  { id: "5",  name: "경고음",       file: "/sounds/alert5.mp3" },
+  { id: "6",  name: "전자음",       file: "/sounds/alert6.mp3" },
+  { id: "7",  name: "벨",           file: "/sounds/alert7.mp3" },
+  { id: "8",  name: "물방울",       file: "/sounds/alert8.mp3" },
+  { id: "9",  name: "팝업",         file: "/sounds/alert9.mp3" },
+  { id: "10", name: "VIP 전용",     file: "/sounds/alert10.mp3" },
 ];
 
 export default function AlarmSoundPage() {
@@ -25,35 +25,28 @@ export default function AlarmSoundPage() {
   const [uid, setUid] = useState("");
   const router = useRouter();
 
-  /* 🔥 로그인 */
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) setUid(user.uid);
-    });
+    const unsub = onAuthStateChanged(auth, (user) => { if (user) setUid(user.uid); });
     return () => unsub();
   }, []);
 
-  /* 🔥 VIP Firestore */
   useEffect(() => {
-    const loadVip = async () => {
+    const load = async () => {
       if (!uid) return;
       const snap = await getDoc(doc(db, "users", uid));
-      // 수정 ✅
-setIsVip(snap.data()?.vip === true);
+      setIsVip(snap.data()?.vip === true);
     };
-    loadVip();
+    load();
   }, [uid]);
 
-  /* 기존 유지 */
   useEffect(() => {
-    const savedSound = localStorage.getItem("alarmSound");
-    if (savedSound) setSelected(savedSound);
+    const saved = localStorage.getItem("alarmSound");
+    if (saved) setSelected(saved);
   }, []);
 
   const playSound = (id: string, file: string) => {
     const finalFile = isVip && id === "10" ? "/sounds/alert10.mp3" : file;
-    const audio = new Audio(finalFile);
-    audio.play();
+    new Audio(finalFile).play();
   };
 
   const selectSound = (id: string) => {
@@ -62,51 +55,46 @@ setIsVip(snap.data()?.vip === true);
   };
 
   return (
-    <div className="min-h-screen p-4 bg-gray-50">
-      <div className="flex items-center gap-2 mb-4">
-        <button onClick={() => router.back()} className="text-xl">←</button>
-        <div className="text-xl font-bold">🔔 알림 소리 설정</div>
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="relative z-10">
+        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[#3d1f00] text-base">🔔 알림 소리 설정</span>
+        </div>
+        <div className="px-5 pt-6 pb-16 space-y-3">
+
+          {/* VIP 상태 */}
+          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border shadow-sm ${isVip ? "bg-gradient-to-r from-yellow-400 to-amber-300 border-transparent" : "bg-white/80 border-orange-100"}`}>
+            <span className="text-2xl">{isVip ? "💎" : "👤"}</span>
+            <p className={`font-black text-sm ${isVip ? "text-white" : "text-[#3d1f00]"}`}>{isVip ? "VIP 활성 상태" : "일반 사용자"}</p>
+          </div>
+
+          {sounds.map((s) => {
+            const isVipOnly = s.id === "10";
+            const isSelected = selected === s.id;
+            const locked = isVipOnly && !isVip;
+            return (
+              <div key={s.id} onClick={() => { if (locked) { alert("VIP 전용입니다"); return; } selectSound(s.id); }}
+                className={`rounded-[20px] px-5 py-4 flex items-center justify-between cursor-pointer border transition-all active:scale-[0.98] shadow-sm
+                  ${isSelected ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_6px_20px_rgba(255,160,50,0.35)]" : "bg-white/80 border-orange-100"}
+                  ${locked ? "opacity-50" : ""}`}>
+                <div className="flex items-center gap-3">
+                  {isSelected ? <span className="text-white text-lg">✓</span> : <span className="text-[#d4a07a] text-lg">🔈</span>}
+                  <div>
+                    <p className={`font-black text-sm ${isSelected ? "text-white" : "text-[#3d1f00]"}`}>{s.name}</p>
+                    {isVipOnly && <p className={`text-[10px] font-bold ${isSelected ? "text-white/70" : "text-amber-500"}`}>💎 VIP 전용</p>}
+                  </div>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); if (locked) return alert("VIP 전용"); playSound(s.id, s.file); }}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-base shadow ${isSelected ? "bg-white/25 text-white" : "bg-orange-50 text-orange-400"}`}>
+                  ▶
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
-
-      <div className={`mb-4 p-3 rounded-xl text-sm ${
-        isVip ? "bg-yellow-100 text-yellow-700" : "bg-gray-200"
-      }`}>
-        {isVip ? "💎 VIP 활성 상태" : "일반 사용자"}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {sounds.map((s) => {
-          const isVipOnly = s.id === "10";
-
-          return (
-            <div
-              key={s.id}
-              onClick={() => {
-                if (isVipOnly && !isVip) {
-                  alert("VIP 전용입니다");
-                  return;
-                }
-                selectSound(s.id);
-              }}
-              className={`flex items-center justify-between p-4 rounded-xl cursor-pointer
-                ${selected === s.id ? "bg-blue-500 text-white" : "bg-white"}
-              `}
-            >
-              <span>{s.name}</span>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isVipOnly && !isVip) return alert("VIP 전용");
-                  playSound(s.id, s.file);
-                }}
-              >
-                ▶
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    </main>
   );
 }
