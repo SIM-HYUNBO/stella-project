@@ -877,22 +877,43 @@ export default function Chat() {
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              setShowMsgSearch((p) => !p);
-              setMsgSearch("");
-            }}
-            className="text-xl"
-          >
-            🔍
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowMsgSearch((p) => !p);
+                setMsgSearch("");
+              }}
+              className="text-xl"
+            >
+              🔍
+            </button>
 
-          <button
-            onClick={() => setCurrentChatUser(null)}
-            className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm font-medium transition"
-          >
-            나가기
-          </button>
+            <button
+              onClick={async () => {
+                if (!nickname || !currentChatUser) return;
+                if (!confirm(`${currentChatUser.nickname}님과의 대화를 모두 삭제하고 나가시겠습니까?`)) return;
+                const { getDocs: _getDocs, query: _query, collection: _col, where: _where, deleteDoc: _del, doc: _doc } = await import("firebase/firestore");
+                const snap = await _getDocs(_query(_col(db, "messages"),
+                  _where("from", "in", [nickname, currentChatUser.nickname]),
+                ));
+                await Promise.all(
+                  snap.docs
+                    .filter(d => {
+                      const data = d.data();
+                      return (
+                        (data.from === nickname && data.to === currentChatUser.nickname) ||
+                        (data.from === currentChatUser.nickname && data.to === nickname)
+                      );
+                    })
+                    .map(d => _del(_doc(db, "messages", d.id)))
+                );
+                setCurrentChatUser(null);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm font-medium transition"
+            >
+              나가기
+            </button>
+          </div>
         </div>
       )}
 
