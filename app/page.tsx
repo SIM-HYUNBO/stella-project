@@ -12,13 +12,9 @@ export default function RootPage() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        router.replace("/home");
-      } else {
-        setReady(true);
-      }
+      if (user) router.replace("/home");
+      else setReady(true);
     });
-
     return () => unsub();
   }, [router]);
 
@@ -34,113 +30,96 @@ export default function RootPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#fff7ef]">
-      {/* BACKGROUND LIGHT */}
-      <div className="absolute inset-0">
-        <div className="absolute top-[-120px] left-[-100px] w-[340px] h-[340px] rounded-full bg-orange-200/40 blur-3xl" />
-        <div className="absolute bottom-[-160px] right-[-120px] w-[420px] h-[420px] rounded-full bg-yellow-200/50 blur-3xl" />
-      </div>
+    <main className="relative min-h-screen overflow-hidden">
 
-      {/* WINDOW LIGHT */}
-      <div className="absolute top-0 right-0 w-[55%] h-full bg-gradient-to-l from-white/50 to-transparent pointer-events-none" />
+      {/* ── 배경 ── */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
+      <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
+      <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-pink-200/15 blur-[80px] animate-[floatC_8s_ease-in-out_infinite_alternate]" />
 
-      {/* CONTENT */}
-      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-10">
-        <div
-          className="
-            relative w-full max-w-[390px]
-            rounded-[42px]
-            bg-[#fff9f2]/90
-            border border-white/60
-            shadow-[0_20px_80px_rgba(255,180,80,0.25)]
-            backdrop-blur-xl
-            overflow-hidden
-          "
-        >
-          {/* TOP */}
-          <div className="relative px-8 pt-10 text-center">
-            {/* FLOAT ICON */}
-            <div className="mx-auto mb-5 relative w-fit">
-              <div className="absolute inset-0 bg-orange-300/40 blur-2xl rounded-full" />
-              <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 shadow-lg">
-                <span className="text-5xl">💬</span>
-              </div>
-            </div>
+      <div className="relative z-10 min-h-screen flex flex-col px-5 pt-16 pb-10">
 
-            {/* TITLE */}
-            <h1 className="text-[56px] leading-none font-black tracking-[0.18em] text-[#6f4221]">
-              WAGIE
-            </h1>
-
-            <p className="mt-4 text-[17px] text-[#9d7556]">따뜻한 대화가 시작되는 곳</p>
+        {/* ── 브랜드 헤더 ── */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-gradient-to-br from-orange-400 to-amber-300 shadow-[0_16px_40px_rgba(255,160,50,0.45)] mb-5">
+            <span className="text-4xl">💬</span>
           </div>
+          <h1 className="text-[56px] font-black tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-br from-orange-500 via-amber-400 to-yellow-400 leading-none">
+            WAGIE
+          </h1>
+          <p className="mt-3 text-[#b07848] font-semibold text-base">따뜻한 대화가 시작되는 곳 🧡</p>
+        </div>
 
-          {/* CHAT PREVIEW */}
-          <div className="px-7 mt-10 space-y-3">
-            <div className="flex">
-              <div className="max-w-[75%] rounded-[22px] rounded-bl-md bg-white px-5 py-3.5 text-sm text-zinc-700 shadow-md shadow-orange-100">
-                오늘 진짜 힘들었다 😭
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <div className="max-w-[75%] rounded-[22px] rounded-br-md bg-gradient-to-r from-orange-300 to-amber-300 px-5 py-3.5 text-sm text-white shadow-md shadow-orange-200">
-                고생했어... 내가 안아줄게 ☁️
-              </div>
-            </div>
-            <div className="flex">
-              <div className="max-w-[75%] rounded-[22px] rounded-bl-md bg-white px-5 py-3.5 text-sm text-zinc-700 shadow-md shadow-orange-100">
-                여기 오니까 마음 편하다 🧡
-              </div>
+        {/* ── 채팅 미리보기 ── */}
+        <div className="space-y-3 mb-10 px-1">
+          <div className="flex items-end gap-2">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-300 to-amber-300 flex items-center justify-center text-lg shrink-0 shadow-md">🐣</div>
+            <div className="max-w-[72%] rounded-[20px] rounded-bl-md bg-white/90 backdrop-blur-sm px-5 py-3.5 text-sm text-zinc-700 shadow-[0_4px_20px_rgba(255,150,80,0.15)] border border-orange-50">
+              오늘 진짜 힘들었다 😭
             </div>
           </div>
 
-          {/* BUTTONS */}
-          <div className="px-6 pt-10 pb-8 space-y-4">
-            <Link
-              href="/login"
-              className="
-                group relative flex items-center justify-center
-                h-16 rounded-full
-                bg-gradient-to-r from-orange-400 to-amber-300
-                text-white text-xl font-bold
-                shadow-[0_10px_30px_rgba(255,170,80,0.35)]
-                transition duration-300
-                hover:scale-[1.02]
-                active:scale-95
-                overflow-hidden
-              "
-            >
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition" />
-              <span className="relative">Sign in</span>
-              <span className="absolute right-6 text-2xl">💭</span>
-            </Link>
+          <div className="flex justify-end items-end gap-2">
+            <div className="max-w-[72%] rounded-[20px] rounded-br-md bg-gradient-to-r from-orange-400 to-amber-300 px-5 py-3.5 text-sm text-white shadow-[0_4px_20px_rgba(255,160,50,0.35)]">
+              고생했어... 내가 안아줄게 ☁️
+            </div>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-300 to-rose-300 flex items-center justify-center text-lg shrink-0 shadow-md">🌸</div>
+          </div>
 
-            <Link
-              href="/signup"
-              className="
-                flex items-center justify-center
-                h-16 rounded-full
-                bg-white/90
-                border border-orange-100
-                text-[#c97a2f]
-                text-xl font-bold
-                shadow-lg
-                transition duration-300
-                hover:bg-orange-50
-                active:scale-95
-                relative
-              "
-            >
-              <span>Sign up</span>
-              <span className="absolute right-6 text-xl">✨</span>
-            </Link>
+          <div className="flex items-end gap-2">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-300 to-amber-300 flex items-center justify-center text-lg shrink-0 shadow-md">🐣</div>
+            <div className="max-w-[72%] rounded-[20px] rounded-bl-md bg-white/90 backdrop-blur-sm px-5 py-3.5 text-sm text-zinc-700 shadow-[0_4px_20px_rgba(255,150,80,0.15)] border border-orange-50">
+              여기 오니까 마음 편하다 🧡
+            </div>
+          </div>
 
-            <p className="pt-2 text-center text-sm text-[#b88a65] leading-relaxed">
-              친구들과, 마음을 나눠요 🧡
-            </p>
+          <div className="flex justify-end items-end gap-2">
+            <div className="max-w-[72%] rounded-[20px] rounded-br-md bg-gradient-to-r from-orange-400 to-amber-300 px-5 py-3.5 text-sm text-white shadow-[0_4px_20px_rgba(255,160,50,0.35)]">
+              나도! 매일 여기서 얘기하자 ✨
+            </div>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-300 to-rose-300 flex items-center justify-center text-lg shrink-0 shadow-md">🌸</div>
           </div>
         </div>
-      </section>
+
+        {/* ── 기능 태그 ── */}
+        <div className="flex flex-wrap gap-2 justify-center mb-10">
+          {[["💬", "1:1 채팅"], ["👥", "단체채팅"], ["📔", "다이어리"], ["🤝", "친구 맺기"]].map(([icon, label]) => (
+            <span key={label} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-orange-100 text-sm font-semibold text-[#c07040] shadow-sm">
+              <span>{icon}</span>{label}
+            </span>
+          ))}
+        </div>
+
+        {/* ── 버튼 ── */}
+        <div className="space-y-3 mt-auto">
+          <Link
+            href="/login"
+            className="group relative flex items-center justify-center h-16 rounded-[22px] overflow-hidden shadow-[0_12px_40px_rgba(255,160,50,0.4)] active:scale-[0.98] transition-transform"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400" />
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition" />
+            <span className="relative text-white text-xl font-black tracking-wide">로그인</span>
+            <span className="absolute right-6 text-2xl">💭</span>
+          </Link>
+
+          <Link
+            href="/signup"
+            className="flex items-center justify-center h-16 rounded-[22px] bg-white/85 backdrop-blur-sm border border-orange-100 shadow-[0_6px_24px_rgba(255,150,80,0.15)] active:scale-[0.98] transition-transform relative"
+          >
+            <span className="text-[#c07030] text-xl font-black tracking-wide">회원가입</span>
+            <span className="absolute right-6 text-xl">✨</span>
+          </Link>
+        </div>
+
+        <p className="text-center text-sm text-[#d4a57a] font-medium mt-6">✦ 친구들과, 마음을 나눠요 ✦</p>
+      </div>
+
+      <style>{`
+        @keyframes floatA { 0%{transform:translate(0,0)} 100%{transform:translate(-30px,40px)} }
+        @keyframes floatB { 0%{transform:translate(0,0)} 100%{transform:translate(40px,-30px)} }
+        @keyframes floatC { 0%{transform:translate(0,0)} 100%{transform:translate(-20px,25px)} }
+      `}</style>
     </main>
   );
 }
