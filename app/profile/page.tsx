@@ -2,172 +2,96 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-
 import { auth, db } from "@/app/firebase";
-
-import {
-  onAuthStateChanged,
-  signOut,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updateProfile,
-} from "firebase/auth";
-
-import {
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function ProfilePage() {
   const router = useRouter();
-
   const [user, setUser] = useState<any>(null);
-
   const [nickname, setNickname] = useState("");
   const [status, setStatus] = useState("");
-
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
-
   const [editNickname, setEditNickname] = useState(false);
   const [editStatus, setEditStatus] = useState(false);
-
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [password, setPassword] = useState("");
-
   const profileRef = useRef<HTMLInputElement | null>(null);
   const coverRef = useRef<HTMLInputElement | null>(null);
 
-  /* =========================
-      USER LOAD
-  ========================= */
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) return;
-
       setUser(u);
-
       const snap = await getDoc(doc(db, "users", u.uid));
       if (snap.exists()) {
         const data = snap.data();
-
         setNickname(data.nickname || "");
         setStatus(data.status || "");
-
         setProfileImage(data.profileImage || null);
         setCoverImage(data.coverImage || null);
       }
     });
-
     return () => unsub();
   }, []);
 
-  /* =========================
-      PROFILE IMAGE
-  ========================= */
   const changeProfileImage = (e: any) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result as string;
-
       setProfileImage(base64);
-
-      await updateDoc(doc(db, "users", user.uid), {
-        profileImage: base64,
-      });
+      await updateDoc(doc(db, "users", user.uid), { profileImage: base64 });
     };
-
     reader.readAsDataURL(file);
   };
 
-  /* =========================
-      COVER IMAGE
-  ========================= */
   const changeCoverImage = (e: any) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result as string;
-
       setCoverImage(base64);
-
-      await updateDoc(doc(db, "users", user.uid), {
-        coverImage: base64,
-      });
+      await updateDoc(doc(db, "users", user.uid), { coverImage: base64 });
     };
-
     reader.readAsDataURL(file);
   };
 
-  /* =========================
-      SAVE NICKNAME
-  ========================= */
   const saveNickname = async () => {
     if (!user) return;
-
-    await updateDoc(doc(db, "users", user.uid), {
-      nickname,
-    });
-
-    await updateProfile(user, {
-      displayName: nickname,
-    });
-
+    await updateDoc(doc(db, "users", user.uid), { nickname });
+    await updateProfile(user, { displayName: nickname });
     setEditNickname(false);
   };
 
-  /* =========================
-      SAVE STATUS
-  ========================= */
   const saveStatus = async () => {
     if (!user) return;
-
-    await updateDoc(doc(db, "users", user.uid), {
-      status,
-    });
-
+    await updateDoc(doc(db, "users", user.uid), { status });
     setEditStatus(false);
   };
 
-  /* =========================
-      LOGOUT
-  ========================= */
   const handleLogout = async () => {
     await signOut(auth);
     router.push("/");
   };
 
-  /* =========================
-      DELETE ACCOUNT
-  ========================= */
   const handleDelete = async () => {
     if (!user) return;
     if (!password) return alert("비밀번호 입력");
-
     try {
-      const credential = EmailAuthProvider.credential(
-        user.email!,
-        password
-      );
-
+      const credential = EmailAuthProvider.credential(user.email!, password);
       await reauthenticateWithCredential(user, credential);
-
       const idToken = await user.getIdToken();
       const res = await fetch("/api/delete-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken, nickname: nickname || user.uid }),
       });
-
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "서버 오류");
-
       alert("탈퇴 완료");
       router.push("/");
     } catch (err: any) {
@@ -176,192 +100,123 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full min-h-screen overflow-hidden">
 
-      {/* =========================
-          BACK BUTTON
-      ========================= */}
-      <button
-        onClick={() => router.back()}
-        className="absolute top-4 left-4 z-50 bg-white/80 text-black px-3 py-1 rounded-xl shadow"
-      >
+      {/* 뒤로가기 */}
+      <button onClick={() => router.back()}
+        className="absolute top-4 left-4 z-50 flex items-center gap-1.5 bg-black/30 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
         ← 뒤로가기
       </button>
 
-      {/* =========================
-          COVER IMAGE
-      ========================= */}
-      <div
-        onClick={() => coverRef.current?.click()}
-        className="absolute inset-0"
-      >
+      {/* 커버 이미지 */}
+      <div onClick={() => coverRef.current?.click()} className="relative w-full h-72 cursor-pointer">
         {coverImage ? (
-          <img
-            src={coverImage}
-            className="w-full h-full object-cover"
-          />
+          <img src={coverImage} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gray-400 flex items-center justify-center text-white">
-            커버 이미지 클릭해서 설정
+          <div className="w-full h-full bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 flex flex-col items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
+            <span className="text-4xl">🖼️</span>
+            <p className="text-white/80 text-sm font-semibold">커버 이미지 설정하기</p>
           </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute bottom-3 right-3 bg-black/30 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">사진 변경</div>
       </div>
+      <input type="file" ref={coverRef} onChange={changeCoverImage} className="hidden" />
 
-      <input
-        type="file"
-        ref={coverRef}
-        onChange={changeCoverImage}
-        className="hidden"
-      />
+      {/* 프로필 카드 */}
+      <div className="relative z-10 -mt-16 px-5">
+        <div className="rounded-[28px] bg-white/90 backdrop-blur-md border border-orange-100 shadow-[0_12px_40px_rgba(255,150,80,0.2)] px-6 pt-6 pb-7">
 
-      {/* overlay */}
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-
-      {/* =========================
-          PROFILE AREA
-      ========================= */}
-      <div className="absolute bottom-8 left-6 text-white flex items-center gap-4">
-
-        {/* PROFILE IMAGE */}
-        <div
-          onClick={() => profileRef.current?.click()}
-          className="w-20 h-20 rounded-full bg-gray-300 overflow-hidden border-2 border-white cursor-pointer"
-        >
-          {profileImage ? (
-            <img
-              src={profileImage}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full text-xs">
-              +
+          {/* 프로필 이미지 */}
+          <div className="flex items-end gap-4 -mt-16 mb-5">
+            <div onClick={() => profileRef.current?.click()}
+              className="relative w-24 h-24 rounded-[22px] bg-gradient-to-br from-orange-200 to-amber-200 overflow-hidden ring-4 ring-white shadow-xl cursor-pointer shrink-0">
+              {profileImage ? (
+                <img src={profileImage} className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex items-center justify-center h-full text-3xl">+</div>
+              )}
+              <div className="absolute bottom-0 right-0 w-7 h-7 bg-gradient-to-br from-orange-400 to-amber-300 rounded-tl-xl flex items-center justify-center text-white text-xs">✏️</div>
             </div>
-          )}
-        </div>
+            <input type="file" ref={profileRef} onChange={changeProfileImage} className="hidden" />
+          </div>
 
-        <input
-          type="file"
-          ref={profileRef}
-          onChange={changeProfileImage}
-          className="hidden"
-        />
-
-        {/* TEXT */}
-        <div className="flex flex-col">
-
-          {/* NICKNAME */}
-          {editNickname ? (
-            <div className="flex gap-2">
-              <input
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                className="text-black px-2 py-1 rounded"
-              />
-              <button
-                onClick={saveNickname}
-                className="bg-white text-black px-2 rounded"
-              >
-                저장
+          {/* 닉네임 */}
+          <div className="mb-3">
+            <p className="text-[10px] font-black text-[#d4904a] tracking-widest mb-1">NICKNAME</p>
+            {editNickname ? (
+              <div className="flex gap-2">
+                <input value={nickname} onChange={(e) => setNickname(e.target.value)}
+                  className="flex-1 bg-orange-50 border border-orange-200 rounded-[14px] px-3 py-2 text-sm text-[#3d1f00] outline-none focus:ring-2 focus:ring-orange-300" />
+                <button onClick={saveNickname}
+                  className="px-4 py-2 bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-[14px] text-sm font-black shadow-md">저장</button>
+              </div>
+            ) : (
+              <button onClick={() => setEditNickname(true)} className="flex items-center gap-2 group">
+                <span className="text-xl font-black text-[#3d1f00]">{nickname || "닉네임 없음"}</span>
+                <span className="text-[#d4a07a] text-sm opacity-0 group-hover:opacity-100 transition">✏️</span>
               </button>
-            </div>
-          ) : (
-            <h2
-              onClick={() => setEditNickname(true)}
-              className="text-xl font-bold cursor-pointer"
-            >
-              {nickname || "닉네임 없음"}
-            </h2>
-          )}
+            )}
+          </div>
 
-          {/* STATUS */}
-          {editStatus ? (
-            <div className="flex gap-2 mt-1">
-              <input
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="text-black px-2 py-1 rounded"
-              />
-              <button
-                onClick={saveStatus}
-                className="bg-white text-black px-2 rounded"
-              >
-                저장
+          {/* 상태메시지 */}
+          <div className="mb-6">
+            <p className="text-[10px] font-black text-[#d4904a] tracking-widest mb-1">STATUS</p>
+            {editStatus ? (
+              <div className="flex gap-2">
+                <input value={status} onChange={(e) => setStatus(e.target.value)}
+                  className="flex-1 bg-orange-50 border border-orange-200 rounded-[14px] px-3 py-2 text-sm text-[#3d1f00] outline-none focus:ring-2 focus:ring-orange-300" />
+                <button onClick={saveStatus}
+                  className="px-4 py-2 bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-[14px] text-sm font-black shadow-md">저장</button>
+              </div>
+            ) : (
+              <button onClick={() => setEditStatus(true)} className="flex items-center gap-2 group">
+                <span className="text-sm text-[#9d7060]">{status || "상태 메시지를 입력해보세요"}</span>
+                <span className="text-[#d4a07a] text-sm opacity-0 group-hover:opacity-100 transition">✏️</span>
               </button>
-            </div>
-          ) : (
-            <p
-              onClick={() => setEditStatus(true)}
-              className="text-sm opacity-90 cursor-pointer"
-            >
-              {status || "상태 메시지"}
-            </p>
-          )}
+            )}
+          </div>
 
-          {/* ACTIONS */}
-          <div className="mt-4 flex flex-col gap-2">
-
-            <button
-              onClick={handleLogout}
-              className="bg-white text-black px-3 py-1 rounded"
-            >
+          {/* 버튼들 */}
+          <div className="space-y-3">
+            <button onClick={handleLogout}
+              className="w-full h-12 rounded-[18px] bg-white border border-orange-200 text-[#c07030] font-black text-sm shadow-sm active:scale-[0.98] transition-transform">
               로그아웃
             </button>
-
-            <button
-              onClick={() => setConfirmDelete(true)}
-              className="bg-red-500 text-white px-3 py-1 rounded"
-            >
+            <button onClick={() => setConfirmDelete(true)}
+              className="w-full h-12 rounded-[18px] bg-red-50 border border-red-100 text-red-500 font-black text-sm active:scale-[0.98] transition-transform">
               계정 탈퇴
             </button>
-
           </div>
-
         </div>
       </div>
 
-      {/* =========================
-          DELETE MODAL
-      ========================= */}
+      {/* 탈퇴 모달 */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-
-          <div className="bg-white p-6 rounded-xl w-80 space-y-4">
-
-            <h2 className="text-red-600 font-bold">
-              계정 탈퇴
-            </h2>
-
-            <input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border px-2 py-1 rounded"
-            />
-
-            <div className="flex justify-end gap-2">
-
-              <button
-                onClick={handleDelete}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                탈퇴
-              </button>
-
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="bg-gray-300 px-3 py-1 rounded"
-              >
-                취소
-              </button>
-
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-5">
+          <div className="w-full max-w-sm rounded-[28px] bg-white/95 border border-red-100 shadow-[0_20px_60px_rgba(0,0,0,0.2)] p-7 space-y-4">
+            <div className="text-center">
+              <span className="text-4xl">😢</span>
+              <p className="font-black text-[#3d1f00] text-lg mt-3">정말 탈퇴하시겠어요?</p>
+              <p className="text-[#c09070] text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
             </div>
-
+            <input type="password" placeholder="비밀번호 확인" value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-red-50 border border-red-100 rounded-[16px] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-200" />
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(false)}
+                className="flex-1 h-12 rounded-[16px] bg-orange-50 border border-orange-100 text-[#c07030] font-black text-sm">취소</button>
+              <button onClick={handleDelete}
+                className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm shadow-md">탈퇴</button>
+            </div>
           </div>
-
         </div>
       )}
 
+      <style>{`
+        @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
+      `}</style>
     </div>
   );
 }
