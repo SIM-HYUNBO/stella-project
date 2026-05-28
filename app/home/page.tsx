@@ -283,13 +283,13 @@ export default function HomePage() {
               </button>
 
               {/* 고객센터 */}
-              <button onClick={() => router.push("/support")}
+              <button onClick={() => router.push("/tools/contact")}
                 className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(150,80,255,0.1)] active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border border-violet-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-2xl shadow">🎧</div>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-2xl shadow">❓</div>
                   <div className="text-left flex-1">
-                    <p className="text-[#3d1f00] font-black text-base">고객센터</p>
-                    <p className="text-[#c09070] text-sm">도움이 필요하면 언제든지</p>
+                    <p className="text-[#3d1f00] font-black text-base">Q&A방</p>
+                    <p className="text-[#c09070] text-sm">궁금한 점을 남겨보세요</p>
                   </div>
                   <span className="text-violet-300 text-2xl">›</span>
                 </div>
