@@ -19,18 +19,18 @@ type Title = {
 };
 
 const ALL_TITLES = [
-  { id: "newcomer",    icon: "🌱", name: "새싹",       desc: "WAGIE에 처음 왔어요",         condition: "가입만 해도",        color: "from-green-400 to-emerald-400" },
-  { id: "talker",      icon: "💬", name: "수다쟁이",    desc: "메시지 10개 이상 보냄",         condition: "메시지 10개",        color: "from-blue-400 to-cyan-400" },
-  { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 50개 이상 보냄",         condition: "메시지 50개",        color: "from-orange-400 to-amber-400" },
-  { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 200개 이상 보냄",        condition: "메시지 200개",       color: "from-yellow-400 to-orange-400" },
-  { id: "talkgod",     icon: "⚡", name: "말신",        desc: "메시지 500개 이상 보냄",        condition: "메시지 500개",       color: "from-violet-500 to-purple-500" },
-  { id: "friendly",    icon: "🤝", name: "친화력 갑",   desc: "친구 3명 이상",                 condition: "친구 3명",           color: "from-pink-400 to-rose-400" },
-  { id: "popular",     icon: "😎", name: "인싸",        desc: "친구 7명 이상",                 condition: "친구 7명",           color: "from-indigo-400 to-blue-500" },
-  { id: "richfriend",  icon: "💎", name: "친구부자",    desc: "친구 15명 이상",                condition: "친구 15명",          color: "from-cyan-400 to-teal-400" },
-  { id: "partyperson", icon: "🎉", name: "파티피플",    desc: "단체 채팅방 2개 이상 참여",     condition: "단체방 2개",         color: "from-fuchsia-400 to-pink-500" },
-  { id: "groupmaster", icon: "🎪", name: "방장",        desc: "단체 채팅방 3개 이상 참여",     condition: "단체방 3개",         color: "from-amber-400 to-yellow-300" },
-  { id: "nightowl",    icon: "🦉", name: "야행성",      desc: "자정 이후 메시지 보냄",         condition: "자정 이후 접속",     color: "from-slate-500 to-gray-600" },
-  { id: "legend",      icon: "🌟", name: "레전드",      desc: "모든 칭호 10개 이상 획득",      condition: "칭호 10개",          color: "from-orange-400 via-pink-400 to-violet-400" },
+  { id: "newcomer",    icon: "🌱", name: "새싹",       desc: "WAGIE에 처음 왔어요",           condition: "가입만 해도",         color: "from-green-400 to-emerald-400" },
+  { id: "talker",      icon: "💬", name: "수다쟁이",    desc: "메시지 50개 이상 보냄",          condition: "메시지 50개",         color: "from-blue-400 to-cyan-400" },
+  { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 200개 이상 보냄",         condition: "메시지 200개",        color: "from-orange-400 to-amber-400" },
+  { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 500개 이상 보냄",         condition: "메시지 500개",        color: "from-yellow-400 to-orange-400" },
+  { id: "talkgod",     icon: "⚡", name: "말신",        desc: "메시지 1000개 이상 보냄",        condition: "메시지 1000개",       color: "from-violet-500 to-purple-500" },
+  { id: "friendly",    icon: "🤝", name: "친화력 갑",   desc: "친구 10명 이상",                 condition: "친구 10명",           color: "from-pink-400 to-rose-400" },
+  { id: "richfriend",  icon: "💎", name: "친구부자",    desc: "친구 50명 이상",                 condition: "친구 50명",           color: "from-cyan-400 to-teal-400" },
+  { id: "popular",     icon: "😎", name: "인싸",        desc: "친구 100명 이상",                condition: "친구 100명",          color: "from-indigo-400 to-blue-500" },
+  { id: "partyperson", icon: "🎉", name: "파티피플",    desc: "단체 채팅방 3개 이상 참여",      condition: "단체방 3개",          color: "from-fuchsia-400 to-pink-500" },
+  { id: "groupmaster", icon: "🎪", name: "방장",        desc: "단체 채팅방 5개 이상 참여",      condition: "단체방 5개",          color: "from-amber-400 to-yellow-300" },
+  { id: "nightowl",    icon: "🦉", name: "야행성",      desc: "자정 이후 메시지 보냄",          condition: "자정 이후 접속",      color: "from-slate-500 to-gray-600" },
+  { id: "legend",      icon: "🌟", name: "레전드",      desc: "모든 칭호 10개 이상 획득",       condition: "칭호 10개",           color: "from-orange-400 via-pink-400 to-violet-400" },
 ];
 
 export default function TitlesPage() {
@@ -81,15 +81,15 @@ export default function TitlesPage() {
 
     const earned = new Set<string>();
     earned.add("newcomer");
-    if (msgCount >= 10)  earned.add("talker");
-    if (msgCount >= 50)  earned.add("chatterer");
-    if (msgCount >= 200) earned.add("talkmaster");
-    if (msgCount >= 500) earned.add("talkgod");
-    if (friendCount >= 3)  earned.add("friendly");
-    if (friendCount >= 7)  earned.add("popular");
-    if (friendCount >= 15) earned.add("richfriend");
-    if (groupCount >= 2) earned.add("partyperson");
-    if (groupCount >= 3) earned.add("groupmaster");
+    if (msgCount >= 50)   earned.add("talker");
+    if (msgCount >= 200)  earned.add("chatterer");
+    if (msgCount >= 500)  earned.add("talkmaster");
+    if (msgCount >= 1000) earned.add("talkgod");
+    if (friendCount >= 10)  earned.add("friendly");
+    if (friendCount >= 50)  earned.add("richfriend");
+    if (friendCount >= 100) earned.add("popular");
+    if (groupCount >= 3) earned.add("partyperson");
+    if (groupCount >= 5) earned.add("groupmaster");
     if (nightOwl)        earned.add("nightowl");
     if (earned.size >= 10) earned.add("legend");
 
