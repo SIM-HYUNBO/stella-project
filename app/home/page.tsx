@@ -8,6 +8,21 @@ import { collection, doc, getDoc, getDocs, query, where, onSnapshot } from "fire
 import PageContainer from "@/components/PageContainer";
 import TextAvatar from "@/components/TextAvatar";
 
+const TITLE_MAP: Record<string, { icon: string; name: string }> = {
+  newcomer:    { icon: "🌱", name: "새싹" },
+  talker:      { icon: "💬", name: "수다쟁이" },
+  chatterer:   { icon: "🗣️", name: "채팅왕" },
+  talkmaster:  { icon: "👑", name: "말왕" },
+  talkgod:     { icon: "⚡", name: "말신" },
+  friendly:    { icon: "🤝", name: "친화력 갑" },
+  richfriend:  { icon: "💎", name: "친구부자" },
+  popular:     { icon: "😎", name: "인싸" },
+  partyperson: { icon: "🎉", name: "파티피플" },
+  groupmaster: { icon: "🎪", name: "방장" },
+  nightowl:    { icon: "🦉", name: "야행성" },
+  legend:      { icon: "🌟", name: "레전드" },
+};
+
 type Friend = { uid: string; nickname: string; profileImage: string | null };
 
 function getGreeting() {
@@ -37,6 +52,7 @@ export default function HomePage() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [dmUnread, setDmUnread] = useState(0);
   const [groupUnread, setGroupUnread] = useState(0);
+  const [title, setTitle] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -46,6 +62,7 @@ export default function HomePage() {
       if (snap.exists()) {
         setNickname(snap.data().nickname || "유저");
         setProfileImage(snap.data().profileImage || null);
+        setTitle(snap.data().title || null);
       }
     });
     return () => unsub();
@@ -140,7 +157,12 @@ export default function HomePage() {
                   <h1 className="text-4xl font-black text-white leading-tight">
                     안녕,<br />{nickname} 👋
                   </h1>
-                  <p className="text-white/70 text-sm mt-2 font-medium">오늘도 좋은 하루 보내요</p>
+                  {title && TITLE_MAP[title] && (
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/25 backdrop-blur-sm">
+                      <span className="text-sm">{TITLE_MAP[title].icon}</span>
+                      <span className="text-white text-xs font-black">{TITLE_MAP[title].name}</span>
+                    </div>
+                  )}
                 </div>
                 {/* 아바타 + 회전 링 */}
                 <button onClick={() => router.push("/profile")} className="shrink-0">
