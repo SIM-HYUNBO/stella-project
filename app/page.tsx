@@ -49,17 +49,17 @@ export default function RootPage() {
         {/* 브랜드 히어로 */}
         <div className="text-center">
           <div className="relative inline-flex items-center justify-center mb-6">
-            <div className="relative w-[88px] h-[88px] rounded-[30px] bg-orange-400 shadow-[0_8px_30px_rgba(255,160,50,0.35)] flex items-center justify-center">
+            <div className="relative w-[88px] h-[88px] rounded-[30px] bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 shadow-[0_8px_30px_rgba(255,160,50,0.35)] flex items-center justify-center">
               <span className="text-5xl">💬</span>
             </div>
           </div>
 
-          <h1 className="text-[64px] font-black tracking-[0.22em] leading-none text-orange-400">
-            WAGIE
+          <h1 className="text-[64px] font-black tracking-[0.22em] leading-none">
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-500 via-amber-400 to-yellow-400">WAGIE</span>
           </h1>
           <p className="mt-3 text-[#b07848] font-bold text-base">따뜻한 대화가 시작되는 곳 🧡</p>
 
-          <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-orange-400 shadow-[0_4px_16px_rgba(255,160,50,0.3)]">
+          <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-orange-400 to-amber-300 shadow-[0_4px_16px_rgba(255,160,50,0.3)]">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
             <span className="text-white text-xs font-black tracking-widest">LIVE · 지금 바로 시작해요</span>
           </div>
@@ -106,10 +106,10 @@ export default function RootPage() {
           <p className="font-black text-[#3d1f00] text-base mb-3 px-1">이런 게 있어요 ✨</p>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { bg: "bg-orange-400", icon: "💬", title: "1:1 채팅",   sub: "친구와 나만의\n소중한 대화" },
-              { bg: "bg-amber-400",  icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
-              { bg: "bg-pink-400",   icon: "📔", title: "다이어리",  sub: "오늘 하루를\n글로 남겨봐요" },
-              { bg: "bg-violet-400", icon: "🤝", title: "친구 맺기", sub: "새로운 인연을\n만들어봐요" },
+              { bg: "bg-gradient-to-br from-red-400 via-orange-400 to-amber-300", icon: "💬", title: "1:1 채팅",   sub: "친구와 나만의\n소중한 대화" },
+              { bg: "bg-gradient-to-br from-yellow-400 to-orange-400",           icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
+              { bg: "bg-gradient-to-br from-pink-400 to-rose-500",               icon: "📔", title: "다이어리",  sub: "오늘 하루를\n글로 남겨봐요" },
+              { bg: "bg-gradient-to-br from-violet-400 to-purple-500",           icon: "🤝", title: "친구 맺기", sub: "새로운 인연을\n만들어봐요" },
             ].map(({ bg, icon, title, sub }) => (
               <div key={title} className={`rounded-[24px] ${bg} px-5 py-5 shadow-sm`}>
                 <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">{icon}</div>
@@ -121,7 +121,7 @@ export default function RootPage() {
         </div>
 
         {/* WHY WAGIE 배너 */}
-        <div className="rounded-[24px] bg-orange-400 px-6 py-7 shadow-sm">
+        <div className="rounded-[24px] bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 px-6 py-7 shadow-sm">
           <p className="text-white/75 text-[10px] font-black tracking-[0.2em] mb-2">WHY WAGIE?</p>
           <p className="text-white font-black text-2xl leading-snug">어떤 날도<br />혼자가 아니에요 🌙</p>
           <p className="text-white/80 text-sm mt-3 leading-relaxed">기쁜 날도, 힘든 날도<br />늘 곁에 있는 친구들과 함께해요.</p>
@@ -147,7 +147,7 @@ export default function RootPage() {
         {/* 버튼 */}
         <div className="space-y-3 pt-2">
           <Link href="/login"
-            className="flex items-center justify-center h-16 rounded-[24px] bg-orange-400 shadow-[0_8px_24px_rgba(255,160,50,0.35)] active:scale-[0.98] transition-transform relative overflow-hidden">
+            className="flex items-center justify-center h-16 rounded-[24px] bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 shadow-[0_8px_24px_rgba(255,160,50,0.35)] active:scale-[0.98] transition-transform relative overflow-hidden">
             <span className="text-white text-xl font-black tracking-wide">로그인</span>
             <span className="absolute right-6 text-2xl">💭</span>
           </Link>
