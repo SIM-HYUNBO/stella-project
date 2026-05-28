@@ -45,6 +45,22 @@ type User = {
   id: string;
   nickname: string;
   profileImage?: string | null;
+  title?: string | null;
+};
+
+const TITLE_MAP: Record<string, { icon: string; name: string }> = {
+  newcomer:    { icon: "🌱", name: "새싹" },
+  talker:      { icon: "💬", name: "수다쟁이" },
+  chatterer:   { icon: "🗣️", name: "채팅왕" },
+  talkmaster:  { icon: "👑", name: "말왕" },
+  talkgod:     { icon: "⚡", name: "말신" },
+  friendly:    { icon: "🤝", name: "친화력 갑" },
+  richfriend:  { icon: "💎", name: "친구부자" },
+  popular:     { icon: "😎", name: "인싸" },
+  partyperson: { icon: "🎉", name: "파티피플" },
+  groupmaster: { icon: "🎪", name: "방장" },
+  nightowl:    { icon: "🦉", name: "야행성" },
+  legend:      { icon: "🌟", name: "레전드" },
 };
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
@@ -322,6 +338,7 @@ export default function Chat() {
           id: d.id,
           nickname: data.nickname,
           profileImage: data.profileImage ?? null,
+          title: data.title ?? null,
         });
       });
 
@@ -986,8 +1003,13 @@ export default function Chat() {
               )}
               <div className="max-w-[75%]">
                 {!isMine && (
-                  <div className="text-xs text-gray-400 mb-1 ml-1">
-                    {m.from}
+                  <div className="flex items-center gap-1.5 mb-1 ml-1">
+                    <span className="text-xs text-gray-400">{m.from}</span>
+                    {currentChatUser?.title && TITLE_MAP[currentChatUser.title] && (
+                      <span className="text-[10px] bg-orange-50 text-orange-400 font-black px-1.5 py-0.5 rounded-full">
+                        {TITLE_MAP[currentChatUser.title].icon} {TITLE_MAP[currentChatUser.title].name}
+                      </span>
+                    )}
                   </div>
                 )}
 

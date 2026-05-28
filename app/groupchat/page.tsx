@@ -18,7 +18,23 @@ import {
   arrayUnion,
   arrayRemove,
   where,
+  getDocs,
 } from "firebase/firestore";
+
+const TITLE_MAP: Record<string, { icon: string; name: string }> = {
+  newcomer:    { icon: "🌱", name: "새싹" },
+  talker:      { icon: "💬", name: "수다쟁이" },
+  chatterer:   { icon: "🗣️", name: "채팅왕" },
+  talkmaster:  { icon: "👑", name: "말왕" },
+  talkgod:     { icon: "⚡", name: "말신" },
+  friendly:    { icon: "🤝", name: "친화력 갑" },
+  richfriend:  { icon: "💎", name: "친구부자" },
+  popular:     { icon: "😎", name: "인싸" },
+  partyperson: { icon: "🎉", name: "파티피플" },
+  groupmaster: { icon: "🎪", name: "방장" },
+  nightowl:    { icon: "🦉", name: "야행성" },
+  legend:      { icon: "🌟", name: "레전드" },
+};
 
 type GroupRoom = {
   id: string;
@@ -45,6 +61,7 @@ type User = {
 
 export default function GroupChat() {
   const [nickname, setNickname] = useState<string | null>(null);
+  const [memberTitles, setMemberTitles] = useState<Record<string, string>>({});
 
   const [rooms, setRooms] = useState<GroupRoom[]>([]);
 
@@ -251,6 +268,18 @@ export default function GroupChat() {
 
     return () => unsub();
   }, [currentRoom?.id, nickname]);
+
+  // 멤버 칭호 로드
+  useEffect(() => {
+    if (!currentRoom) return;
+    const fetchTitles = async () => {
+      const snap = await getDocs(query(collection(db, "users"), where("nickname", "in", currentRoom.members)));
+      const map: Record<string, string> = {};
+      snap.forEach((d) => { if (d.data().title) map[d.data().nickname] = d.data().title; });
+      setMemberTitles(map);
+    };
+    fetchTitles();
+  }, [currentRoom?.id]);
 
   // 사용자 목록
   useEffect(() => {
@@ -738,8 +767,13 @@ export default function GroupChat() {
                 <div className="max-w-[80%]">
                   {!isMine &&
                     showUser && (
-                      <div className="text-xs text-gray-400 mb-1 ml-1">
-                        {m.from}
+                      <div className="flex items-center gap-1.5 mb-1 ml-1">
+                        <span className="text-xs text-gray-400">{m.from}</span>
+                        {memberTitles[m.from] && TITLE_MAP[memberTitles[m.from]] && (
+                          <span className="text-[10px] bg-orange-50 text-orange-400 font-black px-1.5 py-0.5 rounded-full">
+                            {TITLE_MAP[memberTitles[m.from]].icon} {TITLE_MAP[memberTitles[m.from]].name}
+                          </span>
+                        )}
                       </div>
                     )}
 
