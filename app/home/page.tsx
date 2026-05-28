@@ -197,7 +197,7 @@ export default function HomePage() {
                             <TextAvatar nickname={r.friendNickname} size={44} profileImage={r.profileImage} />
                           </div>
                           {r.unread > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-400 text-white text-[10px] font-black flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-orange-400 to-amber-300 text-white text-[10px] font-black flex items-center justify-center">
                               {r.unread > 9 ? "9+" : r.unread}
                             </span>
                           )}
@@ -218,7 +218,7 @@ export default function HomePage() {
                           <p className="text-xs text-gray-400 mt-3">{r.friendNickname}님과의 1:1 대화방</p>
                           <button
                             onClick={() => router.push(`/avatar?open=${encodeURIComponent(r.friendNickname)}`)}
-                            className="mt-3 px-5 py-2 rounded-xl bg-orange-400 text-white font-black text-sm shadow-sm active:scale-95 transition-transform">
+                            className="mt-3 px-5 py-2 rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black text-sm shadow-sm active:scale-95 transition-transform">
                             열기
                           </button>
                         </div>
@@ -252,7 +252,7 @@ export default function HomePage() {
                               : r.name[0]}
                           </div>
                           {r.unread > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-400 text-white text-[10px] font-black flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-orange-400 to-amber-300 text-white text-[10px] font-black flex items-center justify-center">
                               {r.unread > 9 ? "9+" : r.unread}
                             </span>
                           )}
@@ -275,7 +275,7 @@ export default function HomePage() {
                           <p className="text-xs text-gray-400 mt-3">멤버 {r.members.length}명 · {r.members.slice(0, 3).join(", ")}{r.members.length > 3 ? " 외" : ""}</p>
                           <button
                             onClick={() => router.push(`/groupchat?room=${r.id}`)}
-                            className="mt-3 px-5 py-2 rounded-xl bg-orange-400 text-white font-black text-sm shadow-sm active:scale-95 transition-transform">
+                            className="mt-3 px-5 py-2 rounded-xl bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black text-sm shadow-sm active:scale-95 transition-transform">
                             열기
                           </button>
                         </div>
