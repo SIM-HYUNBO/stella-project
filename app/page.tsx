@@ -20,7 +20,7 @@ export default function RootPage() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7ef]">
         <div className="relative">
           <div className="w-14 h-14 rounded-full border-[6px] border-orange-200" />
           <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-orange-400 animate-spin" />
@@ -30,7 +30,7 @@ export default function RootPage() {
   }
 
   return (
-    <main className="relative overflow-hidden bg-gray-50 min-h-screen">
+    <main className="relative overflow-hidden bg-[#fff7ef] min-h-screen">
 
       {/* 떠다니는 이모티콘 파티클 */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
