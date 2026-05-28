@@ -65,39 +65,34 @@ export default function HomePage() {
         const friendNickname: string = uSnap.data().nickname;
         const profileImage: string | null = uSnap.data().profileImage || null;
 
-        // 마지막 메시지
-        const msgQ = query(
-          collection(db, "messages"),
-          where("from", "in", [nickname, friendNickname]),
-          orderBy("createdAt", "desc"),
-          limit(1)
-        );
-        const msgSnap = await getDocs(msgQ);
         let lastMsg = "대화를 시작해보세요";
         let lastAt = 0;
         let unread = 0;
 
-        msgSnap.forEach((m) => {
-          const data = m.data();
-          if (
-            (data.from === nickname && data.to === friendNickname) ||
-            (data.from === friendNickname && data.to === nickname)
-          ) {
-            lastMsg = data.type === "image" ? "🖼 사진" : (data.content || "");
-            lastAt = data.createdAt?.toMillis?.() || 0;
-          }
-        });
+        try {
+          // 복합 인덱스 없이 단방향 쿼리 2개로 분리
+          const [sentSnap, recvSnap] = await Promise.all([
+            getDocs(query(collection(db, "messages"), where("from", "==", nickname), where("to", "==", friendNickname))),
+            getDocs(query(collection(db, "messages"), where("from", "==", friendNickname), where("to", "==", nickname))),
+          ]);
 
-        // 안 읽은 수
-        const unreadQ = query(
-          collection(db, "messages"),
-          where("from", "==", friendNickname),
-          where("to", "==", nickname)
-        );
-        const unreadSnap = await getDocs(unreadQ);
-        unreadSnap.forEach((m) => {
-          if (!m.data().readBy?.includes(nickname)) unread++;
-        });
+          const all: any[] = [];
+          sentSnap.forEach((m) => all.push(m.data()));
+          recvSnap.forEach((m) => {
+            const data = m.data();
+            all.push(data);
+            if (!data.readBy?.includes(nickname)) unread++;
+          });
+
+          if (all.length > 0) {
+            all.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+            const latest = all[0];
+            lastMsg = latest.type === "image" ? "🖼 사진" : (latest.content || "");
+            lastAt = latest.createdAt?.toMillis?.() || 0;
+          }
+        } catch {
+          // 메시지 로드 실패해도 방은 표시
+        }
 
         rooms.push({ friendNickname, friendUid, profileImage, lastMsg, lastAt, unread });
       }
