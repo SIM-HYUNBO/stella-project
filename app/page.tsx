@@ -156,29 +156,6 @@ export default function RootPage() {
           </div>
         </div>
 
-        {/* ── 별점 리뷰 ── */}
-        <div className="rounded-[24px] bg-white/70 backdrop-blur-sm border border-orange-100 shadow-[0_4px_20px_rgba(255,150,80,0.1)] px-5 py-5">
-          <div className="flex items-center gap-1 mb-3">
-            {[...Array(5)].map((_, i) => <span key={i} className="text-amber-400 text-xl">★</span>)}
-            <span className="ml-2 text-[#e07020] font-black text-lg">4.9</span>
-          </div>
-          <div className="space-y-3">
-            {[
-              { avatar: "🐥", name: "혜진",   msg: "여기서 만난 친구들이랑 매일 얘기해요 💛" },
-              { avatar: "🐻", name: "민준",   msg: "다이어리 기능이 너무 귀여워요 ✍️" },
-              { avatar: "🐰", name: "수아",   msg: "단체채팅으로 과팅 잡았어요 😂🎉" },
-            ].map(({ avatar, name, msg }) => (
-              <div key={name} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-base shrink-0">{avatar}</div>
-                <div>
-                  <p className="text-[10px] font-black text-[#d4804a]">{name}</p>
-                  <p className="text-xs text-zinc-600 mt-0.5">{msg}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* ── 알림 소개 ── */}
         <div className="rounded-[24px] bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-100 px-5 py-5 flex items-center gap-4 shadow-sm">
           <div className="relative shrink-0">
