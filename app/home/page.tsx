@@ -104,23 +104,7 @@ export default function HomePage() {
     <PageContainer>
       <div className="relative min-h-screen overflow-hidden -m-4">
 
-        {/* ── 배경 오브 ── */}
-        <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0] -z-10" />
-        <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
-        <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-pink-200/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
-        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-violet-200/20 blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" />
-
-        {/* ── 떠다니는 파티클 ── */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-          <span className="absolute top-[10%] left-[6%]  text-2xl opacity-15 animate-[floatA_8s_ease-in-out_infinite_alternate]">💬</span>
-          <span className="absolute top-[22%] right-[8%] text-xl  opacity-15 animate-[floatB_10s_ease-in-out_infinite_alternate]">✨</span>
-          <span className="absolute top-[45%] left-[3%] text-lg  opacity-10 animate-[floatC_12s_ease-in-out_infinite_alternate]">🧡</span>
-          <span className="absolute top-[58%] right-[5%] text-2xl opacity-15 animate-[floatD_9s_ease-in-out_infinite_alternate]">🌸</span>
-          <span className="absolute top-[75%] left-[7%] text-xl  opacity-10 animate-[floatE_11s_ease-in-out_infinite_alternate]">⭐</span>
-          <span className="absolute top-[88%] right-[10%] text-lg opacity-15 animate-[floatA_13s_ease-in-out_infinite_alternate]">🌙</span>
-          <span className="absolute top-[32%] right-[18%] text-sm opacity-15 animate-[floatB_7s_ease-in-out_infinite_alternate]">💫</span>
-        </div>
+        <div className="fixed inset-0 bg-gray-50 -z-10" />
 
         <div className="px-5 pt-4 pb-24 space-y-6">
 
@@ -307,13 +291,7 @@ export default function HomePage() {
       </div>
 
       <style>{`
-        @keyframes floatA { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(-30px,40px) rotate(10deg)} }
-        @keyframes floatB { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(40px,-30px) rotate(-8deg)} }
-        @keyframes floatC { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(-20px,25px) rotate(5deg)} }
-        @keyframes floatD { 0%{transform:translate(0,0)} 100%{transform:translate(-25px,-35px)} }
-        @keyframes floatE { 0%{transform:translate(0,0)} 100%{transform:translate(20px,30px)} }
         @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes spinSlowReverse { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
         @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
       `}</style>
     </PageContainer>

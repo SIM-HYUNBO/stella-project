@@ -110,7 +110,7 @@ export default function ChatPage() {
 
   if (!nickname) return (
     <main className="relative min-h-screen flex items-center justify-center">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
       <p className="relative z-10 text-[#c09070] font-black">로딩중...</p>
     </main>
   );
@@ -135,7 +135,7 @@ export default function ChatPage() {
                 <div className={`px-4 py-2.5 rounded-[18px] text-sm leading-relaxed shadow-sm ${
                   m.user === nickname
                     ? "bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-br-[6px]"
-                    : "bg-white/90 border border-orange-100 text-[#3d1f00] rounded-bl-[6px]"
+                    : "bg-white border border-gray-100 text-[#3d1f00] rounded-bl-[6px]"
                 }`}>
                   {m.content}
                 </div>
@@ -147,9 +147,9 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex items-center gap-2 px-4 py-3 bg-white/70 backdrop-blur-md border-t border-orange-100 shrink-0">
+      <div className="flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100 shrink-0">
         <input
-          className="flex-1 bg-orange-50 border border-orange-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -166,7 +166,7 @@ export default function ChatPage() {
   return (
     <PageContainer>
       <div className="relative flex h-screen -m-4">
-        <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0] -z-10" />
+        <div className="fixed inset-0 bg-gray-50 -z-10" />
 
         {/* 모바일 */}
         <div className="md:hidden w-full h-full flex flex-col">
@@ -178,7 +178,7 @@ export default function ChatPage() {
               <div className="px-4 pt-4 space-y-3">
                 {rooms.map((r) => (
                   <div key={r.id} onClick={() => { setCurrentRoomId(r.id); setMobileStep("chat"); }}
-                    className="rounded-[20px] bg-white/80 border border-orange-100 px-5 py-4 flex items-center gap-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform">
+                    className="rounded-[20px] bg-white border border-gray-100 px-5 py-4 flex items-center gap-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-amber-300 flex items-center justify-center text-xl shrink-0">👤</div>
                     <p className="font-black text-[#3d1f00] text-sm">{r.name}</p>
                   </div>
@@ -202,7 +202,7 @@ export default function ChatPage() {
             <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
               {rooms.map((r) => (
                 <div key={r.id} onClick={() => setCurrentRoomId(r.id)}
-                  className={`rounded-[16px] px-4 py-3 flex items-center gap-3 cursor-pointer transition-all ${currentRoomId === r.id ? "bg-gradient-to-r from-orange-400 to-amber-300 shadow-md" : "bg-white/80 border border-orange-100 hover:bg-orange-50"}`}>
+                  className={`rounded-[16px] px-4 py-3 flex items-center gap-3 cursor-pointer transition-all ${currentRoomId === r.id ? "bg-gradient-to-r from-orange-400 to-amber-300 shadow-md" : "bg-white border border-gray-100 hover:bg-orange-50"}`}>
                   <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-sm">👤</div>
                   <p className={`font-black text-sm ${currentRoomId === r.id ? "text-white" : "text-[#3d1f00]"}`}>{r.name}</p>
                 </div>

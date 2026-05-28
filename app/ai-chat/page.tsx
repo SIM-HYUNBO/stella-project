@@ -80,10 +80,10 @@ export default function AIChatPage() {
 
   return (
     <main className="relative h-screen overflow-hidden flex flex-col">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 shrink-0">
+      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-2">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg">←</button>
           <span className="font-black text-[#3d1f00] text-sm">🧠 AI Chat</span>
@@ -108,7 +108,7 @@ export default function AIChatPage() {
             <div className={`px-4 py-2.5 rounded-[18px] max-w-[72%] text-sm leading-relaxed shadow-sm ${
               m.role === "user"
                 ? "bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-br-[6px]"
-                : "bg-white/90 border border-orange-100 text-[#3d1f00] rounded-bl-[6px]"
+                : "bg-white border border-gray-100 text-[#3d1f00] rounded-bl-[6px]"
             }`}>
               {m.content}
             </div>
@@ -117,9 +117,9 @@ export default function AIChatPage() {
       </div>
 
       {/* 입력 */}
-      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white/70 backdrop-blur-md border-t border-orange-100 shrink-0">
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100 shrink-0">
         <input
-          className="flex-1 bg-orange-50 border border-orange-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}

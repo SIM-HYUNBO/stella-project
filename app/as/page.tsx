@@ -19,16 +19,16 @@ export default function AISettingsPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">🧠 AI 요약</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-4">
 
           {/* 설명 카드 */}
-          <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-5 shadow-sm">
+          <div className="rounded-[24px] bg-white border border-gray-100 px-5 py-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-300 to-purple-400 flex items-center justify-center text-2xl shadow-md">🧠</div>
               <p className="font-black text-[#3d1f00] text-base">AI 요약 기능</p>
@@ -41,7 +41,7 @@ export default function AISettingsPage() {
           </div>
 
           {/* 토글 */}
-          <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 flex items-center justify-between shadow-sm">
+          <div className="rounded-[24px] bg-white border border-gray-100 px-5 py-4 flex items-center justify-between shadow-sm">
             <div>
               <p className="font-black text-[#3d1f00] text-base">AI 요약 사용</p>
               <p className={`text-xs font-semibold mt-0.5 ${enabled ? "text-green-500" : "text-[#c09070]"}`}>

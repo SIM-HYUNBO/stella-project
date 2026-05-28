@@ -172,10 +172,10 @@ export default function FriendsPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden" onClick={() => setMenuOpen(null)}>
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
-        <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white/70 backdrop-blur-md border-b border-orange-100">
+        <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white border-b border-gray-100">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">친구 🤝</span>
@@ -190,7 +190,7 @@ export default function FriendsPage() {
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#d4a07a] text-lg">🔍</span>
             <input value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/80 border border-orange-100 rounded-[18px] pl-11 pr-4 py-3.5 text-sm text-[#3d1f00] placeholder:text-[#d4b090] outline-none focus:ring-2 focus:ring-orange-200 shadow-sm"
+              className="w-full bg-white border border-gray-100 rounded-[18px] pl-11 pr-4 py-3.5 text-sm text-[#3d1f00] placeholder:text-[#d4b090] outline-none focus:ring-2 focus:ring-orange-200 shadow-sm"
               placeholder="사용자 검색" />
           </div>
 
@@ -200,7 +200,7 @@ export default function FriendsPage() {
               <p className="font-black text-[#3d1f00] text-base mb-3 px-1">받은 요청 🔔 <span className="text-orange-400">{requests.length}</span></p>
               <div className="space-y-2">
                 {requests.map((r) => (
-                  <div key={r.id} className="rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={r.id} className="rounded-[20px] bg-white border border-gray-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
                         <TextAvatar nickname={r.fromNickname || r.from} size={44} profileImage={null} />
@@ -214,7 +214,7 @@ export default function FriendsPage() {
                       <button onClick={() => acceptRequest(r)}
                         className="px-4 py-2 bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-[12px] text-xs font-black shadow-md">수락</button>
                       <button onClick={() => rejectRequest(r)}
-                        className="px-4 py-2 bg-orange-50 border border-orange-100 text-[#c07030] rounded-[12px] text-xs font-black">거절</button>
+                        className="px-4 py-2 bg-gray-50 border border-gray-100 text-[#c07030] rounded-[12px] text-xs font-black">거절</button>
                     </div>
                   </div>
                 ))}
@@ -228,7 +228,7 @@ export default function FriendsPage() {
               <p className="font-black text-[#3d1f00] text-base mb-3 px-1">내 친구 👫 <span className="text-orange-400">{visibleFriends.length}</span></p>
               <div className="space-y-2">
                 {visibleFriends.map((f) => (
-                  <div key={f.uid} className="relative rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={f.uid} className="relative rounded-[20px] bg-white border border-gray-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
@@ -282,7 +282,7 @@ export default function FriendsPage() {
                 const alreadyFriend = isFriend(user.uid);
                 const alreadySent = sentRequests.has(user.uid);
                 return (
-                  <div key={user.uid} className="rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={user.uid} className="rounded-[20px] bg-white border border-gray-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-100 shrink-0">
                         <TextAvatar nickname={user.nickname} size={44} profileImage={user.profileImage ?? null} />

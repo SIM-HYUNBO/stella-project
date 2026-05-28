@@ -93,14 +93,11 @@ export default function DiaryPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
-      <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-      <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
-      <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-pink-200/15 blur-[80px] animate-[floatC_9s_ease-in-out_infinite_alternate]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white/70 backdrop-blur-md border-b border-orange-100">
+        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg">←</button>
           <span className="font-black text-[#3d1f00] text-base">📔 미니 다이어리</span>
@@ -125,7 +122,7 @@ export default function DiaryPage() {
           {tab === "mine" && (
             <>
               {/* 오늘 일기 */}
-              <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] p-5 mb-4">
+              <div className="rounded-[24px] bg-white border border-gray-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] font-black text-[#d4904a] tracking-widest">TODAY</p>

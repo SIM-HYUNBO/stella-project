@@ -14,10 +14,10 @@ export default function FriendSettingsMenu() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">친구 설정 ⚙️</span>
@@ -27,7 +27,7 @@ export default function FriendSettingsMenu() {
           {menus.map(({ icon, label, sub, path, color }) => (
             <button key={path} onClick={() => router.push(path)}
               className="w-full rounded-[22px] overflow-hidden shadow-[0_6px_24px_rgba(255,150,80,0.15)] active:scale-[0.98] transition-transform">
-              <div className="bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 flex items-center gap-4">
+              <div className="bg-white border border-gray-100 px-5 py-4 flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-2xl shadow-md shrink-0`}>{icon}</div>
                 <div className="text-left flex-1">
                   <p className="font-black text-[#3d1f00] text-base">{label}</p>

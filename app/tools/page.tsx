@@ -14,9 +14,9 @@ export default function SettingsPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">⚙️ 설정</span>
         </div>
@@ -24,7 +24,7 @@ export default function SettingsPage() {
         <div className="px-5 pt-6 pb-16 space-y-3">
           {menus.map(({ icon, label, path }) => (
             <button key={path} onClick={() => router.push(path)}
-              className="w-full rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform">
+              className="w-full rounded-[20px] bg-white border border-gray-100 px-5 py-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-xl shrink-0 shadow-sm">{icon}</div>
                 <span className="font-black text-[#3d1f00] text-sm">{label}</span>
@@ -33,7 +33,7 @@ export default function SettingsPage() {
             </button>
           ))}
 
-          <div className="rounded-[20px] bg-orange-50 border border-orange-100 px-5 py-4 text-center mt-2">
+          <div className="rounded-[20px] bg-gray-50 border border-gray-100 px-5 py-4 text-center mt-2">
             <p className="text-[#c07030] text-sm font-semibold">✨ 더 많은 기능을 기대해 주세요</p>
           </div>
         </div>

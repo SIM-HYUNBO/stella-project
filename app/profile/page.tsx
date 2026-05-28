@@ -206,7 +206,7 @@ export default function ProfilePage() {
               className="w-full bg-red-50 border border-red-100 rounded-[16px] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-200" />
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(false)}
-                className="flex-1 h-12 rounded-[16px] bg-orange-50 border border-orange-100 text-[#c07030] font-black text-sm">취소</button>
+                className="flex-1 h-12 rounded-[16px] bg-gray-50 border border-gray-100 text-[#c07030] font-black text-sm">취소</button>
               <button onClick={handleDelete}
                 className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm shadow-md">탈퇴</button>
             </div>

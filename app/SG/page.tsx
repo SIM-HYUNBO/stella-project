@@ -42,10 +42,10 @@ export default function LiveSTTWithHeader() {
 
   return (
     <main className="relative min-h-screen overflow-hidden flex flex-col">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 shrink-0">
+      <div className="relative z-10 flex items-center h-14 px-4 bg-white border-b border-gray-100 shrink-0">
         <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-[#3d1f00] text-base">🗣 와글와글 토의방</span>
         {listening && (
@@ -59,14 +59,14 @@ export default function LiveSTTWithHeader() {
       <div className="relative z-10 flex-1 flex flex-col px-4 py-4 gap-4 overflow-y-auto">
         {/* 제목 입력 */}
         <input
-          className="rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-3.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none font-semibold shadow-sm"
+          className="rounded-[20px] bg-white border border-gray-100 px-5 py-3.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none font-semibold shadow-sm"
           placeholder="회의 제목을 입력하세요"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         {/* 음성 텍스트 */}
-        <div className="flex-1 min-h-[180px] rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 shadow-sm overflow-auto">
+        <div className="flex-1 min-h-[180px] rounded-[20px] bg-white border border-gray-100 px-5 py-4 shadow-sm overflow-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🎤</span>
             <p className="font-black text-[#3d1f00] text-sm">음성 인식 내용</p>

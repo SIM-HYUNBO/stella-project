@@ -7,13 +7,11 @@ export default function AppInfoPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
-      <div className="fixed top-[-140px] right-[-140px] w-[420px] h-[420px] rounded-full bg-orange-300/20 blur-[100px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-      <div className="fixed bottom-[-160px] left-[-120px] w-[380px] h-[380px] rounded-full bg-yellow-300/20 blur-[100px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">앱 정보</span>
@@ -33,7 +31,7 @@ export default function AppInfoPage() {
           </div>
 
           {/* 정보 카드 */}
-          <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 shadow-[0_4px_20px_rgba(255,150,80,0.1)] overflow-hidden">
+          <div className="rounded-[24px] bg-white border border-gray-100 shadow-[0_4px_20px_rgba(255,150,80,0.1)] overflow-hidden">
             <div className="px-5 py-4 flex items-center justify-between border-b border-orange-50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-xl">📦</div>
@@ -46,7 +44,7 @@ export default function AppInfoPage() {
               className="w-full px-5 py-4 flex items-center justify-between active:bg-orange-50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-xl">🎧</div>
-                <span className="font-semibold text-[#3d1f00] text-sm">고객센터</span>
+                <span className="font-semibold text-[#3d1f00] text-sm">Q&A방</span>
               </div>
               <span className="text-orange-300 text-xl">›</span>
             </button>

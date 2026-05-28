@@ -43,16 +43,16 @@ export default function LinedNotepad() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10 flex flex-col h-screen">
-        <div className="flex items-center h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0 z-20 shrink-0">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20 shrink-0">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">📝 메모장</span>
         </div>
 
         <div className="flex flex-1 overflow-hidden gap-3 p-4">
           {/* 작성 영역 */}
-          <div className="flex-1 flex flex-col rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] overflow-hidden">
+          <div className="flex-1 flex flex-col rounded-[24px] bg-white border border-gray-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] overflow-hidden">
             <div className="px-4 py-3 border-b border-orange-50 flex items-center gap-2">
               <span className="text-lg">✏️</span>
               <p className="font-black text-[#3d1f00] text-sm">{selectedId ? "메모 수정" : "새 메모"}</p>

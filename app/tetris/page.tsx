@@ -104,10 +104,10 @@ export default function DragBlockGame() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white/60 backdrop-blur-md border-b border-orange-100 sticky top-0">
+      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100 sticky top-0">
         <div className="flex items-center gap-2">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg">←</button>
           <span className="font-black text-[#3d1f00] text-base">🧩 블록 게임</span>
@@ -122,7 +122,7 @@ export default function DragBlockGame() {
 
       <div className="relative z-10 flex flex-col lg:flex-row gap-6 items-center justify-center px-4 py-6">
         {/* 게임판 */}
-        <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 p-3 shadow-[0_8px_30px_rgba(255,150,80,0.15)]">
+        <div className="rounded-[24px] bg-white border border-gray-100 p-3 shadow-[0_8px_30px_rgba(255,150,80,0.15)]">
           <div className="grid grid-cols-8 gap-1 bg-orange-50 p-2 rounded-[16px]">
             {board.map((row, r) =>
               row.map((cell, c) => (
@@ -138,7 +138,7 @@ export default function DragBlockGame() {
 
         {/* 블록 선택 */}
         <div className="flex flex-col gap-4 w-full max-w-xs">
-          <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 shadow-sm">
+          <div className="rounded-[24px] bg-white border border-gray-100 px-5 py-4 shadow-sm">
             <p className="font-black text-[#3d1f00] text-sm mb-4">블록 선택</p>
             <div className="flex flex-wrap gap-3">
               {blocks.map((block) => (
@@ -154,7 +154,7 @@ export default function DragBlockGame() {
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white/80 backdrop-blur-sm border border-orange-100 px-5 py-4 shadow-sm text-sm text-[#9d7060] leading-relaxed">
+          <div className="rounded-[24px] bg-white border border-gray-100 px-5 py-4 shadow-sm text-sm text-[#9d7060] leading-relaxed">
             <p className="font-black text-[#3d1f00] mb-1">사용법</p>
             블록을 드래그해서 게임판에 올려두세요. 가로 또는 세로로 한 줄을 채우면 지워져요!
           </div>

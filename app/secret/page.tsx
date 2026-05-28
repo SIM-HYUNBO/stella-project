@@ -84,11 +84,11 @@ export default function MeatChat() {
 
   return (
     <main className="relative h-screen overflow-hidden flex flex-col">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 고기 영역 */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4">
-        <div className="rounded-[28px] bg-white/80 backdrop-blur-sm border border-orange-100 px-10 py-8 shadow-[0_8px_30px_rgba(255,150,80,0.15)] flex flex-col items-center gap-4">
+        <div className="rounded-[28px] bg-white border border-gray-100 px-10 py-8 shadow-[0_8px_30px_rgba(255,150,80,0.15)] flex flex-col items-center gap-4">
           <p className="font-black text-[#3d1f00] text-lg">🥩 고기 굽기</p>
 
           <div
@@ -118,7 +118,7 @@ export default function MeatChat() {
       </div>
 
       {/* 채팅 로그 */}
-      <div className="relative z-10 h-44 overflow-y-auto bg-white/70 backdrop-blur-md border-t border-orange-100 px-4 py-3 space-y-1">
+      <div className="relative z-10 h-44 overflow-y-auto bg-white border-t border-gray-100 px-4 py-3 space-y-1">
         {messages.map((m) => (
           <div key={m.id} className="text-sm">
             <span className="font-black text-orange-500">{m.from}</span>
@@ -129,9 +129,9 @@ export default function MeatChat() {
       </div>
 
       {/* 입력 */}
-      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white/70 backdrop-blur-md border-t border-orange-100 shrink-0">
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100 shrink-0">
         <input
-          className="flex-1 bg-orange-50 border border-orange-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}

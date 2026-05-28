@@ -823,9 +823,9 @@ export default function Chat() {
   };
 
   const renderChat = () => (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
       {currentChatUser && (
-        <div className="px-4 py-3 border-b border-orange-100 bg-white/70 backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="px-4 py-3 border-b border-gray-100 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             {isMobile && (
               <button
@@ -1105,7 +1105,7 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="p-3 bg-white/70 backdrop-blur-md border-t border-orange-100 flex items-center gap-2 shrink-0">
+      <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
         <button
           onClick={() =>
             imageInputRef.current?.click()
@@ -1135,7 +1135,7 @@ export default function Chat() {
         />
 
         <input
-          className="flex-1 h-11 rounded-[16px] bg-orange-50 border border-orange-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+          className="flex-1 h-11 rounded-[16px] bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
@@ -1227,7 +1227,7 @@ export default function Chat() {
   );
 
   const renderUserList = () => (
-    <div className="flex flex-col h-full bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]">
+    <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4 border-b border-orange-100 flex items-center justify-between">
         <div>
           <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
@@ -1252,7 +1252,7 @@ export default function Chat() {
 
       <div className="px-3 py-3 border-b border-orange-100">
         <input
-          className="w-full h-11 rounded-[16px] bg-white/80 border border-orange-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+          className="w-full h-11 rounded-[16px] bg-white border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
           placeholder="사용자 검색..."
           onChange={(e) => {}}
         />
@@ -1346,7 +1346,7 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="h-screen flex overflow-hidden bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0] rounded-none md:rounded-3xl shadow-xl">
+      <div className="h-screen flex overflow-hidden bg-gray-50 rounded-none md:rounded-3xl shadow-xl">
         <div className="w-[320px] border-r border-orange-100">
           {renderUserList()}
         </div>
@@ -1355,7 +1355,7 @@ export default function Chat() {
           {currentChatUser ? (
             renderChat()
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]">
+            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
               <div className="text-7xl mb-5">
                 💬
               </div>
