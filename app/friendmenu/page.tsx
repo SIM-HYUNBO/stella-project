@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { auth, db } from "@/app/firebase";
-import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, addDoc, query, where, onSnapshot } from "firebase/firestore";
+import {
+  collection, doc, getDocs, getDoc, setDoc, deleteDoc, addDoc,
+  query, where, onSnapshot,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import TextAvatar from "@/components/TextAvatar";
@@ -16,6 +19,11 @@ export default function FriendsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+
+  // 숨기기 / 알림끄기
+  const [hiddenDocs, setHiddenDocs] = useState<Record<string, string>>({});
+  const [mutedDocs, setMutedDocs] = useState<Record<string, string>>({});
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -47,6 +55,34 @@ export default function FriendsPage() {
       const list: any[] = [];
       snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
       setRequests(list);
+    });
+  }, [currentUser]);
+
+  // 숨긴 친구 구독
+  useEffect(() => {
+    if (!currentUser) return;
+    const q = query(collection(db, "hidden"), where("user_id", "==", currentUser.uid));
+    return onSnapshot(q, (snap) => {
+      const docs: Record<string, string> = {};
+      snap.forEach((d) => {
+        const uid = d.data().target_uid;
+        if (uid) docs[uid] = d.id;
+      });
+      setHiddenDocs(docs);
+    });
+  }, [currentUser]);
+
+  // 알림 끈 친구 구독
+  useEffect(() => {
+    if (!currentUser) return;
+    const q = query(collection(db, "muted"), where("user_id", "==", currentUser.uid));
+    return onSnapshot(q, (snap) => {
+      const docs: Record<string, string> = {};
+      snap.forEach((d) => {
+        const uid = d.data().target_uid;
+        if (uid) docs[uid] = d.id;
+      });
+      setMutedDocs(docs);
     });
   }, [currentUser]);
 
@@ -98,19 +134,47 @@ export default function FriendsPage() {
     const snap = await getDocs(q);
     snap.forEach(async (d) => { if (d.data().users.includes(friendUid)) await deleteDoc(doc(db, "friends", d.id)); });
     setFriends((prev) => prev.filter((f) => f.uid !== friendUid));
+    setMenuOpen(null);
+  };
+
+  const toggleHide = async (friend: any) => {
+    if (!currentUser) return;
+    if (hiddenDocs[friend.uid]) {
+      await deleteDoc(doc(db, "hidden", hiddenDocs[friend.uid]));
+    } else {
+      await addDoc(collection(db, "hidden"), {
+        user_id: currentUser.uid,
+        target_uid: friend.uid,
+        target_name: friend.nickname,
+      });
+    }
+    setMenuOpen(null);
+  };
+
+  const toggleMute = async (friend: any) => {
+    if (!currentUser) return;
+    if (mutedDocs[friend.uid]) {
+      await deleteDoc(doc(db, "muted", mutedDocs[friend.uid]));
+    } else {
+      await addDoc(collection(db, "muted"), {
+        user_id: currentUser.uid,
+        target_uid: friend.uid,
+        target_name: friend.nickname,
+      });
+    }
+    setMenuOpen(null);
   };
 
   const isFriend = (uid: string) => friends.some((f) => f.uid === uid);
   const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
+  // 숨긴 친구는 목록에서 제외
+  const visibleFriends = friends.filter((f) => !hiddenDocs[f.uid]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-hidden" onClick={() => setMenuOpen(null)}>
       <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0]" />
-      <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-      <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
 
       <div className="relative z-10">
-        {/* 헤더 */}
         <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white/70 backdrop-blur-md border-b border-orange-100">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
@@ -159,12 +223,12 @@ export default function FriendsPage() {
           )}
 
           {/* 내 친구 */}
-          {friends.length > 0 && (
+          {visibleFriends.length > 0 && (
             <div>
-              <p className="font-black text-[#3d1f00] text-base mb-3 px-1">내 친구 👫 <span className="text-orange-400">{friends.length}</span></p>
+              <p className="font-black text-[#3d1f00] text-base mb-3 px-1">내 친구 👫 <span className="text-orange-400">{visibleFriends.length}</span></p>
               <div className="space-y-2">
-                {friends.map((f) => (
-                  <div key={f.uid} className="rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                {visibleFriends.map((f) => (
+                  <div key={f.uid} className="relative rounded-[20px] bg-white/80 backdrop-blur-sm border border-orange-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
@@ -172,10 +236,38 @@ export default function FriendsPage() {
                         </div>
                         <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-white" />
                       </div>
-                      <p className="font-black text-[#3d1f00] text-sm">{f.nickname}</p>
+                      <div>
+                        <p className="font-black text-[#3d1f00] text-sm">{f.nickname}</p>
+                        <div className="flex gap-1 mt-0.5">
+                          {mutedDocs[f.uid] && <span className="text-[10px] text-[#c09070] bg-orange-50 rounded-full px-2 py-0.5">🔕 알림 꺼짐</span>}
+                        </div>
+                      </div>
                     </div>
-                    <button onClick={() => removeFriend(f.uid)}
-                      className="px-4 py-2 bg-red-50 border border-red-100 text-red-400 rounded-[12px] text-xs font-black">삭제</button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === f.uid ? null : f.uid); }}
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-orange-50 text-[#c09070] font-black text-lg"
+                    >···</button>
+
+                    {/* 액션 메뉴 */}
+                    {menuOpen === f.uid && (
+                      <div onClick={(e) => e.stopPropagation()}
+                        className="absolute right-4 top-14 z-30 w-40 bg-white rounded-[16px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-orange-100 overflow-hidden">
+                        <button onClick={() => toggleMute(f)}
+                          className="w-full px-4 py-3 text-left text-sm font-semibold text-[#3d1f00] hover:bg-orange-50 flex items-center gap-2">
+                          {mutedDocs[f.uid] ? "🔔 알림 켜기" : "🔕 알림 끄기"}
+                        </button>
+                        <div className="h-px bg-orange-50" />
+                        <button onClick={() => toggleHide(f)}
+                          className="w-full px-4 py-3 text-left text-sm font-semibold text-[#3d1f00] hover:bg-orange-50 flex items-center gap-2">
+                          🙈 숨기기
+                        </button>
+                        <div className="h-px bg-orange-50" />
+                        <button onClick={() => removeFriend(f.uid)}
+                          className="w-full px-4 py-3 text-left text-sm font-semibold text-red-400 hover:bg-red-50 flex items-center gap-2">
+                          🗑 친구 삭제
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -213,11 +305,6 @@ export default function FriendsPage() {
 
         </div>
       </div>
-
-      <style>{`
-        @keyframes floatA { 0%{transform:translate(0,0)} 100%{transform:translate(-30px,40px)} }
-        @keyframes floatB { 0%{transform:translate(0,0)} 100%{transform:translate(40px,-30px)} }
-      `}</style>
     </main>
   );
 }

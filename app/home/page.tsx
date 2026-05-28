@@ -288,7 +288,7 @@ export default function HomePage() {
                 <div className="bg-white/90 backdrop-blur-sm border border-violet-100 px-6 py-4 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-2xl shadow">🎧</div>
                   <div className="text-left flex-1">
-                    <p className="text-[#3d1f00] font-black text-base">고객센터</p>
+                    <p className="text-[#3d1f00] font-black text-base">Q&amp;A방</p>
                     <p className="text-[#c09070] text-sm">도움이 필요하면 언제든지</p>
                   </div>
                   <span className="text-violet-300 text-2xl">›</span>
