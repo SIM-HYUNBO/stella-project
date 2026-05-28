@@ -32,6 +32,18 @@ export default function RootPage() {
   return (
     <main className="relative overflow-hidden bg-gray-50 min-h-screen">
 
+      {/* 떠다니는 이모티콘 파티클 */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <span className="absolute top-[8%]  left-[7%]  text-2xl opacity-20 animate-[floatA_7s_ease-in-out_infinite_alternate]">💬</span>
+        <span className="absolute top-[18%] right-[10%] text-xl  opacity-20 animate-[floatB_9s_ease-in-out_infinite_alternate]">✨</span>
+        <span className="absolute top-[40%] left-[4%]  text-lg  opacity-15 animate-[floatC_11s_ease-in-out_infinite_alternate]">🧡</span>
+        <span className="absolute top-[55%] right-[6%] text-2xl opacity-20 animate-[floatD_8s_ease-in-out_infinite_alternate]">🌸</span>
+        <span className="absolute top-[72%] left-[8%]  text-xl  opacity-15 animate-[floatE_10s_ease-in-out_infinite_alternate]">⭐</span>
+        <span className="absolute top-[85%] right-[12%] text-lg opacity-20 animate-[floatA_12s_ease-in-out_infinite_alternate]">🌙</span>
+        <span className="absolute top-[28%] right-[20%] text-sm opacity-20 animate-[floatB_6s_ease-in-out_infinite_alternate]">💫</span>
+        <span className="absolute top-[65%] left-[20%] text-sm opacity-15 animate-[floatC_14s_ease-in-out_infinite_alternate]">🔥</span>
+      </div>
+
       <div className="relative z-10 px-5 pt-14 pb-14 space-y-8">
 
         {/* 브랜드 히어로 */}
@@ -150,6 +162,14 @@ export default function RootPage() {
         <p className="text-center text-sm text-[#d4a57a] font-medium pb-2">✦ 친구들과, 마음을 나눠요 ✦</p>
 
       </div>
+
+      <style>{`
+        @keyframes floatA { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(-30px,40px) rotate(10deg)} }
+        @keyframes floatB { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(40px,-30px) rotate(-8deg)} }
+        @keyframes floatC { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(-20px,25px) rotate(5deg)} }
+        @keyframes floatD { 0%{transform:translate(0,0)} 100%{transform:translate(-25px,-35px)} }
+        @keyframes floatE { 0%{transform:translate(0,0)} 100%{transform:translate(20px,30px)} }
+      `}</style>
     </main>
   );
 }
