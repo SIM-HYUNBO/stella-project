@@ -156,7 +156,7 @@ export default function HomePage() {
 
   if (!nickname) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7ef]">
         <div className="w-8 h-8 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -166,7 +166,7 @@ export default function HomePage() {
 
   return (
     <PageContainer>
-      <div className="min-h-screen bg-gray-50 -m-4">
+      <div className="min-h-screen bg-[#fff7ef] -m-4">
 
         {/* 상단 인사 */}
         <div className="px-5 pt-5 pb-3">
