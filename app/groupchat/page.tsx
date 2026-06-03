@@ -43,6 +43,10 @@ type GroupRoom = {
   createdBy: string;
   createdAt?: any;
   profileImage?: string;
+  isSecret?: boolean;
+  password?: string;
+  maxMembers?: number;
+  inviteOnly?: boolean;
 };
 
 type GroupMessage = {
@@ -75,11 +79,22 @@ export default function GroupChat() {
   const [input, setInput] = useState("");
   const [isListening, setIsListening] = useState(false);
 
-  const [showCreate, setShowCreate] =
-    useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("");
+  const [newIsSecret, setNewIsSecret] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [newMaxMembers, setNewMaxMembers] = useState("");
+  const [newInviteOnly, setNewInviteOnly] = useState(false);
 
-  const [newRoomName, setNewRoomName] =
-    useState("");
+  const [showRoomSettings, setShowRoomSettings] = useState(false);
+  const [settingSecret, setSettingSecret] = useState(false);
+  const [settingPassword, setSettingPassword] = useState("");
+  const [settingMaxMembers, setSettingMaxMembers] = useState("");
+  const [settingInviteOnly, setSettingInviteOnly] = useState(false);
+
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [pendingInviteTarget, setPendingInviteTarget] = useState<string | null>(null);
+  const [enteredPassword, setEnteredPassword] = useState("");
 
   const [showInvite, setShowInvite] =
     useState(false);
@@ -305,21 +320,40 @@ export default function GroupChat() {
   }, [nickname]);
 
   const createRoom = async () => {
-    if (!newRoomName.trim() || !nickname)
-      return;
-
-    await addDoc(
-      collection(db, "group_rooms"),
-      {
-        name: newRoomName.trim(),
-        members: [nickname],
-        createdBy: nickname,
-        createdAt: serverTimestamp(),
-      }
-    );
-
-    setNewRoomName("");
+    if (!newRoomName.trim() || !nickname) return;
+    await addDoc(collection(db, "group_rooms"), {
+      name: newRoomName.trim(),
+      members: [nickname],
+      createdBy: nickname,
+      createdAt: serverTimestamp(),
+      isSecret: newIsSecret,
+      password: newIsSecret ? newPassword.trim() : "",
+      maxMembers: newMaxMembers ? parseInt(newMaxMembers) : 0,
+      inviteOnly: newInviteOnly,
+    });
+    setNewRoomName(""); setNewIsSecret(false); setNewPassword("");
+    setNewMaxMembers(""); setNewInviteOnly(false);
     setShowCreate(false);
+  };
+
+  const saveRoomSettings = async () => {
+    if (!currentRoom) return;
+    await updateDoc(doc(db, "group_rooms", currentRoom.id), {
+      isSecret: settingSecret,
+      password: settingSecret ? settingPassword.trim() : "",
+      maxMembers: settingMaxMembers ? parseInt(settingMaxMembers) : 0,
+      inviteOnly: settingInviteOnly,
+    });
+    setShowRoomSettings(false);
+  };
+
+  const openRoomSettings = () => {
+    if (!currentRoom) return;
+    setSettingSecret(currentRoom.isSecret || false);
+    setSettingPassword(currentRoom.password || "");
+    setSettingMaxMembers(currentRoom.maxMembers ? String(currentRoom.maxMembers) : "");
+    setSettingInviteOnly(currentRoom.inviteOnly || false);
+    setShowRoomSettings(true);
   };
 
   const startVoice = () => {
@@ -481,30 +515,46 @@ export default function GroupChat() {
     }
   };
 
-  const inviteUser = async (
-    targetNickname: string
-  ) => {
+  const inviteUser = async (targetNickname: string, pw?: string) => {
     if (!currentRoom || inviting) return;
 
+    if (currentRoom.inviteOnly && currentRoom.createdBy !== nickname) {
+      alert("이 방은 방장만 초대할 수 있어요.");
+      return;
+    }
+    if (currentRoom.maxMembers && currentRoom.members.length >= currentRoom.maxMembers) {
+      alert(`최대 인원(${currentRoom.maxMembers}명)에 도달했어요.`);
+      return;
+    }
+    if (currentRoom.isSecret && currentRoom.password) {
+      const check = pw ?? enteredPassword;
+      if (check !== currentRoom.password) {
+        alert("비밀번호가 틀렸어요.");
+        return;
+      }
+    }
+
     setInviting(true);
-
     try {
-      await updateDoc(
-        doc(
-          db,
-          "group_rooms",
-          currentRoom.id
-        ),
-        {
-          members: arrayUnion(
-            targetNickname
-          ),
-        }
-      );
-
+      await updateDoc(doc(db, "group_rooms", currentRoom.id), {
+        members: arrayUnion(targetNickname),
+      });
       setShowInvite(false);
+      setShowPasswordPrompt(false);
+      setEnteredPassword("");
+      setPendingInviteTarget(null);
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleInviteClick = (targetNickname: string) => {
+    if (currentRoom?.isSecret && currentRoom?.password) {
+      setPendingInviteTarget(targetNickname);
+      setEnteredPassword("");
+      setShowPasswordPrompt(true);
+    } else {
+      inviteUser(targetNickname);
     }
   };
 
@@ -601,7 +651,7 @@ export default function GroupChat() {
                 key={u.id}
                 disabled={inviting}
                 onClick={() =>
-                  inviteUser(u.nickname)
+                  handleInviteClick(u.nickname)
                 }
                 className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
               >
@@ -625,6 +675,83 @@ export default function GroupChat() {
             className="mt-4 w-full h-11 rounded-2xl bg-gray-100 hover:bg-gray-200 text-sm"
           >
             닫기
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 방 설정 시트
+  const renderRoomSettings = () => {
+    if (!showRoomSettings || !currentRoom) return null;
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setShowRoomSettings(false)}>
+        <div className="w-full bg-white rounded-t-[28px] p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="text-lg font-black text-gray-800">방 설정</div>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span className="font-bold text-sm text-gray-700">비밀방</span>
+              </div>
+              <button onClick={() => setSettingSecret(!settingSecret)} className={`relative w-12 h-6 rounded-full transition-colors ${settingSecret ? "bg-orange-400" : "bg-gray-200"}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${settingSecret ? "translate-x-[24px]" : "translate-x-0"}`}/>
+              </button>
+            </div>
+            {settingSecret && (
+              <input className="w-full h-11 rounded-xl bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+                placeholder="비밀번호 입력" value={settingPassword} onChange={(e) => setSettingPassword(e.target.value)}/>
+            )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                </svg>
+                <span className="font-bold text-sm text-gray-700">초대 전용 (방장만 초대)</span>
+              </div>
+              <button onClick={() => setSettingInviteOnly(!settingInviteOnly)} className={`relative w-12 h-6 rounded-full transition-colors ${settingInviteOnly ? "bg-purple-400" : "bg-gray-200"}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${settingInviteOnly ? "translate-x-[24px]" : "translate-x-0"}`}/>
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <input className="flex-1 h-11 rounded-xl bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+                placeholder="최대 인원 (빈칸=무제한)" type="number" min="2" value={settingMaxMembers} onChange={(e) => setSettingMaxMembers(e.target.value)}/>
+            </div>
+          </div>
+          <button onClick={saveRoomSettings}
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-md active:scale-95 transition-transform">
+            저장
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 비밀번호 입력 프롬프트
+  const renderPasswordPrompt = () => {
+    if (!showPasswordPrompt || !pendingInviteTarget) return null;
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowPasswordPrompt(false)}>
+        <div className="w-80 bg-white rounded-3xl shadow-2xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span className="font-black text-gray-800">비밀방 비밀번호</span>
+          </div>
+          <input className="w-full h-11 rounded-xl bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+            placeholder="비밀번호 입력" type="password" value={enteredPassword}
+            onChange={(e) => setEnteredPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && inviteUser(pendingInviteTarget, enteredPassword)}
+            autoFocus/>
+          <button onClick={() => inviteUser(pendingInviteTarget, enteredPassword)}
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-md active:scale-95 transition-transform">
+            초대
           </button>
         </div>
       </div>
@@ -708,15 +835,24 @@ export default function GroupChat() {
         </div>
 
         <div className="flex items-center gap-2">
+          {currentRoom?.createdBy === nickname && (
+            <button
+              onClick={openRoomSettings}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+              title="방 설정"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+          )}
           <button
-            onClick={() =>
-              setShowInvite(true)
-            }
+            onClick={() => setShowInvite(true)}
             className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
           >
             초대
           </button>
-
           <button
             onClick={leaveRoom}
             className="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm transition"
@@ -956,17 +1092,47 @@ export default function GroupChat() {
               className="w-full h-11 rounded-[16px] bg-white border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
               placeholder="방 이름 입력"
               value={newRoomName}
-              onChange={(e) =>
-                setNewRoomName(
-                  e.target.value
-                )
-              }
-              onKeyDown={(e) =>
-                e.key === "Enter" &&
-                createRoom()
-              }
+              onChange={(e) => setNewRoomName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && createRoom()}
               autoFocus
             />
+
+            {/* 조건 설정 */}
+            <div className="bg-white rounded-[14px] border border-gray-100 px-3 py-2 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <span className="text-xs font-bold text-gray-600">비밀방</span>
+                </div>
+                <button onClick={() => setNewIsSecret(!newIsSecret)} className={`relative w-10 h-5 rounded-full transition-colors ${newIsSecret ? "bg-orange-400" : "bg-gray-200"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${newIsSecret ? "translate-x-5" : "translate-x-0"}`}/>
+                </button>
+              </div>
+              {newIsSecret && (
+                <input className="w-full h-9 rounded-xl bg-gray-50 border border-gray-100 px-3 text-xs outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+                  placeholder="비밀번호 입력" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}/>
+              )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                  </svg>
+                  <span className="text-xs font-bold text-gray-600">초대 전용</span>
+                </div>
+                <button onClick={() => setNewInviteOnly(!newInviteOnly)} className={`relative w-10 h-5 rounded-full transition-colors ${newInviteOnly ? "bg-purple-400" : "bg-gray-200"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${newInviteOnly ? "translate-x-5" : "translate-x-0"}`}/>
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <input className="flex-1 h-8 rounded-xl bg-gray-50 border border-gray-100 px-3 text-xs outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+                  placeholder="최대 인원 (빈칸=무제한)" type="number" min="2" value={newMaxMembers} onChange={(e) => setNewMaxMembers(e.target.value)}/>
+              </div>
+            </div>
 
             <div className="flex gap-2">
               <button
@@ -1023,13 +1189,26 @@ export default function GroupChat() {
             )}
 
             <div className="flex-1 min-w-0">
-              <div className="font-black text-sm truncate text-[#3d1f00]">
-                {room.name}
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-sm truncate text-[#3d1f00]">{room.name}</span>
+                {room.isSecret && (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                )}
+                {room.inviteOnly && (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <line x1="19" y1="8" x2="19" y2="14"/>
+                    <line x1="22" y1="11" x2="16" y2="11"/>
+                  </svg>
+                )}
               </div>
-
               <div className="text-xs truncate text-[#c09070]">
                 멤버{" "}
-                {room.members.length}명
+                {room.members.length}{room.maxMembers ? `/${room.maxMembers}` : ""}명
               </div>
             </div>
           </button>
@@ -1063,6 +1242,8 @@ export default function GroupChat() {
             : renderRoom()}
 
           {renderInviteModal()}
+          {renderRoomSettings()}
+          {renderPasswordPrompt()}
         </div>
       </PageContainer>
     );
@@ -1098,6 +1279,8 @@ export default function GroupChat() {
       </div>
 
       {renderInviteModal()}
+      {renderRoomSettings()}
+      {renderPasswordPrompt()}
     </PageContainer>
   );
 }
