@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Header from "/components/Header";
+import AppLock from "/components/AppLock";
 
 const NAV_ITEMS = [
   {
@@ -65,8 +66,15 @@ const NAV_ITEMS = [
 
 const PageContainer = ({ children }) => {
   const [ripples, setRipples] = useState([]);
+  const [locked, setLocked] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const enabled = localStorage.getItem("appLockEnabled") === "true";
+    const unlocked = sessionStorage.getItem("appLockUnlocked") === "true";
+    if (enabled && !unlocked) setLocked(true);
+  }, []);
 
   const createRipple = (clientX, clientY) => {
     const id = Date.now() + Math.random();
@@ -86,6 +94,8 @@ const PageContainer = ({ children }) => {
       );
     }, 900);
   };
+
+  if (locked) return <AppLock onUnlock={() => setLocked(false)} />;
 
   return (
     <div
