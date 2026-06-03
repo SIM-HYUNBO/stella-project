@@ -26,6 +26,10 @@ export default function FriendsPage() {
   const [favoriteDocs, setFavoriteDocs] = useState<Record<string, string>>({});
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
+  // 프로필 카드
+  const [profileView, setProfileView] = useState<any | null>(null);
+  const [phonePopup, setPhonePopup] = useState<string | null>(null);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -194,6 +198,26 @@ export default function FriendsPage() {
     setMenuOpen(null);
   };
 
+  const openProfile = async (friend: any) => {
+    const snap = await getDoc(doc(db, "users", friend.uid));
+    const data = snap.exists() ? snap.data() : {};
+    setProfileView({
+      uid: friend.uid,
+      nickname: data.nickname || friend.nickname,
+      profileImage: data.profileImage || friend.profileImage || null,
+      coverImage: data.coverImage || null,
+      statusMessage: data.statusMessage || "",
+      phone: data.phone || "",
+    });
+  };
+
+  const formatPhone = (p: string) => {
+    const d = p.replace(/\D/g, "");
+    if (d.length === 11) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
+    if (d.length === 10) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
+    return p;
+  };
+
   const isFriend = (uid: string) => friends.some((f) => f.uid === uid);
   const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
   // 숨긴 친구는 목록에서 제외
@@ -262,7 +286,7 @@ export default function FriendsPage() {
               </p>
               <div className="space-y-2">
                 {friends.filter((f) => favoriteDocs[f.uid]).map((f) => (
-                  <div key={f.uid} className="rounded-[20px] bg-amber-50 border border-amber-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-amber-50 border border-amber-100 px-4 py-3.5 flex items-center justify-between shadow-sm cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-300 shrink-0">
@@ -299,7 +323,7 @@ export default function FriendsPage() {
               <p className="font-black text-[#3d1f00] text-base mb-3 px-1">내 친구 👫 <span className="text-orange-400">{visibleFriends.length}</span></p>
               <div className="space-y-2">
                 {visibleFriends.map((f) => (
-                  <div key={f.uid} className="relative rounded-[20px] bg-white border border-gray-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={f.uid} onClick={() => openProfile(f)} className="relative rounded-[20px] bg-white border border-gray-100 px-4 py-3.5 flex items-center justify-between shadow-sm cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
@@ -384,6 +408,110 @@ export default function FriendsPage() {
 
         </div>
       </div>
+
+      {/* 프로필 카드 모달 */}
+      {profileView && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={() => setProfileView(null)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div
+            className="relative z-10 bg-white rounded-t-[32px] overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 커버 이미지 */}
+            <div className="relative h-44">
+              {profileView.coverImage ? (
+                <img src={profileView.coverImage} alt="cover" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-orange-300 via-amber-300 to-yellow-200" />
+              )}
+              {/* 닫기 버튼 */}
+              <button
+                onClick={() => setProfileView(null)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 flex items-center justify-center text-white"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+              {/* 프로필 이미지 */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full ring-4 ring-white shadow-lg overflow-hidden">
+                <TextAvatar nickname={profileView.nickname} size={80} profileImage={profileView.profileImage} />
+              </div>
+            </div>
+
+            {/* 정보 영역 */}
+            <div className="pt-12 pb-6 px-6 text-center">
+              <div className="font-black text-[#3d1f00] text-xl">{profileView.nickname}</div>
+              {profileView.statusMessage ? (
+                <div className="text-sm text-gray-400 mt-1">{profileView.statusMessage}</div>
+              ) : (
+                <div className="text-sm text-gray-300 mt-1">상태 메시지 없음</div>
+              )}
+            </div>
+
+            {/* 버튼 */}
+            <div className="flex gap-3 px-6 pb-8">
+              <button
+                onClick={() => { setProfileView(null); router.push(`/avatar?open=${profileView.nickname}`); }}
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-[0_4px_14px_rgba(255,160,50,0.35)] active:scale-95 transition"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                1:1 채팅
+              </button>
+              <button
+                onClick={() => { if (profileView.phone) setPhonePopup(profileView.phone); }}
+                className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] font-black active:scale-95 transition ${profileView.phone ? "bg-green-500 text-white shadow-[0_4px_14px_rgba(34,197,94,0.35)]" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.83a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
+                </svg>
+                {profileView.phone ? "통화하기" : "번호 없음"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 통화 팝업 */}
+      {phonePopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" onClick={() => setPhonePopup(null)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative z-10 bg-white rounded-[28px] w-72 px-6 py-7 shadow-2xl flex flex-col items-center gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.83a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
+              </svg>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-gray-400 mb-1">전화번호</div>
+              <div className="text-xl font-black text-[#3d1f00]">{formatPhone(phonePopup)}</div>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setPhonePopup(null)}
+                className="flex-1 h-11 rounded-[14px] bg-gray-100 text-gray-500 font-bold text-sm active:scale-95 transition"
+              >
+                취소
+              </button>
+              <a
+                href={`tel:${phonePopup}`}
+                className="flex-1 h-11 rounded-[14px] bg-green-500 text-white font-black text-sm flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(34,197,94,0.4)] active:scale-95 transition"
+                onClick={() => setPhonePopup(null)}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.83a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
+                </svg>
+                통화
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
