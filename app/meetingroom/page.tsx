@@ -228,13 +228,28 @@ export default function MeetingRoomPage() {
 
   const sendUrgent = async () => {
     if (!currentRoom || !nickname) return;
+    const content = `🚨 [긴급회의] ${nickname}님이 긴급회의를 소집했습니다! 즉시 참여해주세요.`;
     await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
       from: nickname,
-      content: `🚨 [긴급회의] ${nickname}님이 긴급회의를 소집했습니다! 즉시 참여해주세요.`,
+      content,
       type: "urgent",
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
+    const targets = currentRoom.members.filter((m) => m !== nickname);
+    if (targets.length > 0) {
+      fetch("/api/fcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toNicknames: targets,
+          fromNickname: nickname,
+          message: content,
+          roomName: currentRoom.name,
+          url: `/meetingroom?room=${currentRoom.id}`,
+        }),
+      }).catch(() => {});
+    }
   };
 
   const saveTopic = async () => {
