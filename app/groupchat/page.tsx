@@ -677,23 +677,8 @@ export default function GroupChat() {
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-gray-800">
-                {currentRoom?.name}
-              </span>
-              <button
-                onClick={() => router.push(`/meetingroom?from=${currentRoom?.id}`)}
-                className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-100 hover:bg-orange-200 transition active:scale-90"
-                title="회의방"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="3" width="20" height="14" rx="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                  <line x1="7" y1="8" x2="17" y2="8" />
-                  <line x1="7" y1="12" x2="13" y2="12" />
-                </svg>
-              </button>
+            <div className="font-bold text-gray-800">
+              {currentRoom?.name}
             </div>
 
             <div className="text-xs text-gray-400">
@@ -900,39 +885,38 @@ export default function GroupChat() {
   // 방 목록
   const renderRoomList = () => (
     <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b border-orange-100 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-              WAGIE GROUP
-            </span>
-            <button
-              onClick={() => router.push("/groupchat")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 transition active:scale-90"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-              <span className="text-xs font-bold text-orange-500">일반</span>
-            </button>
-            <button
-              onClick={() => router.push("/meetingroom")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" />
-                <line x1="8" y1="21" x2="16" y2="21" />
-                <line x1="12" y1="17" x2="12" y2="21" />
-                <line x1="7" y1="8" x2="17" y2="8" />
-                <line x1="7" y1="12" x2="13" y2="12" />
-              </svg>
-              <span className="text-xs font-bold text-red-500">회의</span>
-            </button>
-          </div>
+      <div className="px-4 py-4 border-b border-orange-100">
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+            WAGIE GROUP
+          </span>
+          <button
+            onClick={() => router.push("/groupchat")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 transition active:scale-90"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span className="text-xs font-bold text-orange-500">일반</span>
+          </button>
+          <button
+            onClick={() => router.push("/meetingroom")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+              <line x1="7" y1="8" x2="17" y2="8" />
+              <line x1="7" y1="12" x2="13" y2="12" />
+            </svg>
+            <span className="text-xs font-bold text-red-500">회의</span>
+          </button>
         </div>
+        <div className="text-xs text-gray-400 mt-0.5">단체 채팅</div>
       </div>
 
       <div className="px-3 py-3 border-b border-orange-100">
