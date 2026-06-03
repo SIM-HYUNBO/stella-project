@@ -89,7 +89,7 @@ const PageContainer = ({ children }) => {
 
   return (
     <div
-      className="relative flex w-full min-h-screen overflow-hidden"
+      className="relative flex w-full min-h-screen"
       onClick={(e) =>
         createRipple(e.clientX, e.clientY)
       }
@@ -104,7 +104,7 @@ const PageContainer = ({ children }) => {
         );
       }}
     >
-      <div className="flex-1 w-full relative pb-16">
+      <div className="flex-1 w-full relative pb-12">
         <Header />
 
         <main className="w-full p-4 relative z-10">
@@ -113,17 +113,16 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex items-center justify-around px-2 h-16 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex items-center justify-around px-2 h-12 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
         {NAV_ITEMS.map(({ label, path, icon }) => {
           const active = pathname === path || pathname?.startsWith(path + "/");
           return (
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${active ? "text-orange-400" : "text-gray-400"}`}
+              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-orange-400" : "text-gray-400"}`}
             >
-              {icon(active)}
-              <span className={`text-[10px] font-bold ${active ? "text-orange-400" : "text-gray-400"}`}>{label}</span>
+              {icon(false)}
             </button>
           );
         })}
