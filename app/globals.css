@@ -16,12 +16,17 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  overflow-x: hidden;
 
   background: transparent;
   color: inherit;
 
   /* 🇰🇷 한국어 우선 + fallback 구조 */
   font-family: var(--app-font);
+}
+
+html {
+  overflow-x: hidden;
 }
 
 
