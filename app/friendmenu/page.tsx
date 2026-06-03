@@ -20,9 +20,10 @@ export default function FriendsPage() {
   const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
 
-  // 숨기기 / 알림끄기
+  // 숨기기 / 알림끄기 / 즐겨찾기
   const [hiddenDocs, setHiddenDocs] = useState<Record<string, string>>({});
   const [mutedDocs, setMutedDocs] = useState<Record<string, string>>({});
+  const [favoriteDocs, setFavoriteDocs] = useState<Record<string, string>>({});
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,6 +70,20 @@ export default function FriendsPage() {
         if (uid) docs[uid] = d.id;
       });
       setHiddenDocs(docs);
+    });
+  }, [currentUser]);
+
+  // 즐겨찾기 구독
+  useEffect(() => {
+    if (!currentUser) return;
+    const q = query(collection(db, "favorites"), where("user_id", "==", currentUser.uid));
+    return onSnapshot(q, (snap) => {
+      const docs: Record<string, string> = {};
+      snap.forEach((d) => {
+        const uid = d.data().target_uid;
+        if (uid) docs[uid] = d.id;
+      });
+      setFavoriteDocs(docs);
     });
   }, [currentUser]);
 
@@ -165,6 +180,20 @@ export default function FriendsPage() {
     setMenuOpen(null);
   };
 
+  const toggleFavorite = async (friend: any) => {
+    if (!currentUser) return;
+    if (favoriteDocs[friend.uid]) {
+      await deleteDoc(doc(db, "favorites", favoriteDocs[friend.uid]));
+    } else {
+      await addDoc(collection(db, "favorites"), {
+        user_id: currentUser.uid,
+        target_uid: friend.uid,
+        target_name: friend.nickname,
+      });
+    }
+    setMenuOpen(null);
+  };
+
   const isFriend = (uid: string) => friends.some((f) => f.uid === uid);
   const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
   // 숨긴 친구는 목록에서 제외
@@ -222,6 +251,48 @@ export default function FriendsPage() {
             </div>
           )}
 
+          {/* 즐겨찾는 친구 */}
+          {friends.filter((f) => favoriteDocs[f.uid]).length > 0 && (
+            <div>
+              <p className="font-black text-[#3d1f00] text-base mb-3 px-1">
+                <svg className="inline-block w-4 h-4 mr-1 mb-0.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                즐겨찾는 친구 <span className="text-amber-400">{friends.filter((f) => favoriteDocs[f.uid]).length}</span>
+              </p>
+              <div className="space-y-2">
+                {friends.filter((f) => favoriteDocs[f.uid]).map((f) => (
+                  <div key={f.uid} className="rounded-[20px] bg-amber-50 border border-amber-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-300 shrink-0">
+                          <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
+                        </div>
+                        <span className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-black text-[#3d1f00] text-sm">{f.nickname}</p>
+                        {mutedDocs[f.uid] && <span className="text-[10px] text-[#c09070] bg-orange-50 rounded-full px-2 py-0.5">🔕 알림 꺼짐</span>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleFavorite(f); }}
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-amber-100 text-amber-400"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 내 친구 */}
           {visibleFriends.length > 0 && (
             <div>
@@ -251,7 +322,15 @@ export default function FriendsPage() {
                     {/* 액션 메뉴 */}
                     {menuOpen === f.uid && (
                       <div onClick={(e) => e.stopPropagation()}
-                        className="absolute right-4 top-14 z-30 w-40 bg-white rounded-[16px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-orange-100 overflow-hidden">
+                        className="absolute right-4 top-14 z-30 w-44 bg-white rounded-[16px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-orange-100 overflow-hidden">
+                        <button onClick={() => toggleFavorite(f)}
+                          className="w-full px-4 py-3 text-left text-sm font-semibold text-[#3d1f00] hover:bg-amber-50 flex items-center gap-2">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill={favoriteDocs[f.uid] ? "#f59e0b" : "none"} stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                          {favoriteDocs[f.uid] ? "즐겨찾기 해제" : "즐겨찾기"}
+                        </button>
+                        <div className="h-px bg-orange-50" />
                         <button onClick={() => toggleMute(f)}
                           className="w-full px-4 py-3 text-left text-sm font-semibold text-[#3d1f00] hover:bg-orange-50 flex items-center gap-2">
                           {mutedDocs[f.uid] ? "🔔 알림 켜기" : "🔕 알림 끄기"}

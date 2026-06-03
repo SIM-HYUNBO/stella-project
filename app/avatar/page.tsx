@@ -69,22 +69,28 @@ function SwipeUserItem({
   u,
   isActive,
   isBlocked,
+  isHidden,
+  isMuted,
+  isFavorite,
   lastMessage,
   unreadCount,
   isOnline,
   onClick,
   onBlock,
+  onHide,
+  onMute,
+  onFavorite,
 }: any) {
-  const BUTTON_WIDTH = 84;
+  const BUTTON_WIDTH = 240;
 
   const [offset, setOffset] = useState(0);
   const [open, setOpen] = useState(false);
 
-  
-
   const startX = useRef(0);
   const isDragging = useRef(false);
   const currentOffset = useRef(0);
+
+  const closePanel = () => { setOffset(0); setOpen(false); currentOffset.current = 0; };
 
   const onMoveStart = (clientX: number) => {
     startX.current = clientX - offset;
@@ -93,73 +99,106 @@ function SwipeUserItem({
 
   const onMove = (clientX: number) => {
     if (!isDragging.current) return;
-
-    const newOffset = Math.min(
-      0,
-      Math.max(-BUTTON_WIDTH, clientX - startX.current)
-    );
-
+    const newOffset = Math.min(0, Math.max(-BUTTON_WIDTH, clientX - startX.current));
     setOffset(newOffset);
     currentOffset.current = newOffset;
   };
 
   const onMoveEnd = () => {
     if (!isDragging.current) return;
-
     isDragging.current = false;
-
     if (!open) {
-      if (currentOffset.current < -40) {
-        setOffset(-BUTTON_WIDTH);
-        setOpen(true);
-      } else {
-        setOffset(0);
-      }
+      if (currentOffset.current < -40) { setOffset(-BUTTON_WIDTH); setOpen(true); }
+      else { setOffset(0); }
     } else {
-      if (currentOffset.current > -40) {
-        setOffset(0);
-        setOpen(false);
-      } else {
-        setOffset(-BUTTON_WIDTH);
-      }
+      if (currentOffset.current > -40) { setOffset(0); setOpen(false); }
+      else { setOffset(-BUTTON_WIDTH); }
     }
   };
-  
 
   return (
     <div className="relative overflow-hidden rounded-2xl mb-2">
-      <div
-        className="absolute right-0 top-0 h-full flex"
-        style={{ width: BUTTON_WIDTH }}
-      >
+      <div className="absolute right-0 top-0 h-full flex" style={{ width: BUTTON_WIDTH }}>
+        {/* 즐겨찾기 */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onBlock();
-            setOffset(0);
-            setOpen(false);
-          }}
-          className={`w-full text-white text-xs font-semibold ${
-            isBlocked
-              ? "bg-emerald-500"
-              : "bg-gradient-to-br from-red-500 to-pink-500"
-          }`}
+          onClick={(e) => { e.stopPropagation(); onFavorite(); closePanel(); }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-amber-500" : "bg-amber-400"}`}
         >
-          {isBlocked ? "해제" : "차단"}
+          <svg width="17" height="17" viewBox="0 0 24 24" fill={isFavorite ? "white" : "none"} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+          <span>{isFavorite ? "해제" : "즐겨찾기"}</span>
+        </button>
+        {/* 알림 끄기 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onMute(); closePanel(); }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isMuted ? "bg-sky-400" : "bg-gray-400"}`}
+        >
+          {isMuted ? (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          ) : (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+              <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+              <path d="M18 8a6 6 0 0 0-9.33-4.99" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          )}
+          <span>{isMuted ? "알림 켜기" : "알림 끄기"}</span>
+        </button>
+        {/* 숨기기 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onHide(); closePanel(); }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isHidden ? "bg-purple-400" : "bg-slate-400"}`}
+        >
+          {isHidden ? (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          ) : (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          )}
+          <span>{isHidden ? "보이기" : "숨기기"}</span>
+        </button>
+        {/* 차단 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onBlock(); closePanel(); }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-gradient-to-b from-red-500 to-pink-500"}`}
+        >
+          {isBlocked ? (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <polyline points="17 11 19 13 23 9" />
+            </svg>
+          ) : (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="18" y1="8" x2="23" y2="13" />
+              <line x1="23" y1="8" x2="18" y2="13" />
+            </svg>
+          )}
+          <span>{isBlocked ? "차단해제" : "차단"}</span>
         </button>
       </div>
 
       <div
         className={`relative z-10 px-3 py-3 bg-white border border-gray-100 shadow-sm cursor-pointer transition ${
-          isActive
-            ? "bg-gradient-to-r from-yellow-50 to-orange-50"
-            : "hover:bg-gray-50"
+          isActive ? "bg-gradient-to-r from-yellow-50 to-orange-50" : "hover:bg-gray-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
-          transition: isDragging.current
-            ? "none"
-            : "transform .25s ease",
+          transition: isDragging.current ? "none" : "transform .25s ease",
         }}
         onMouseDown={(e) => onMoveStart(e.clientX)}
         onMouseMove={(e) => onMove(e.clientX)}
@@ -169,13 +208,8 @@ function SwipeUserItem({
         onTouchMove={(e) => onMove(e.touches[0].clientX)}
         onTouchEnd={onMoveEnd}
         onClick={() => {
-          if (open) {
-            setOffset(0);
-            setOpen(false);
-            currentOffset.current = 0;
-          } else if (offset === 0) {
-            onClick();
-          }
+          if (open) { closePanel(); }
+          else if (offset === 0) { onClick(); }
         }}
       >
         <div className="flex items-center gap-3">
@@ -238,6 +272,9 @@ export default function Chat() {
   const [isListening, setIsListening] = useState(false);
 
   const [blocked, setBlocked] = useState<any[]>([]);
+  const [hiddenDocs, setHiddenDocs] = useState<Record<string, string>>({});
+  const [mutedDocs, setMutedDocs] = useState<Record<string, string>>({});
+  const [favoriteDocs, setFavoriteDocs] = useState<Record<string, string>>({});
 
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(
     new Set()
@@ -377,6 +414,36 @@ export default function Chat() {
       setBlocked(list);
     });
   }, [nickname]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const q = query(collection(db, "hidden"), where("user_id", "==", uid));
+    return onSnapshot(q, (snap) => {
+      const docs: Record<string, string> = {};
+      snap.forEach((d) => { const tuid = d.data().target_uid; if (tuid) docs[tuid] = d.id; });
+      setHiddenDocs(docs);
+    });
+  }, [uid]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const q = query(collection(db, "muted"), where("user_id", "==", uid));
+    return onSnapshot(q, (snap) => {
+      const docs: Record<string, string> = {};
+      snap.forEach((d) => { const tuid = d.data().target_uid; if (tuid) docs[tuid] = d.id; });
+      setMutedDocs(docs);
+    });
+  }, [uid]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const q = query(collection(db, "favorites"), where("user_id", "==", uid));
+    return onSnapshot(q, (snap) => {
+      const docs: Record<string, string> = {};
+      snap.forEach((d) => { const tuid = d.data().target_uid; if (tuid) docs[tuid] = d.id; });
+      setFavoriteDocs(docs);
+    });
+  }, [uid]);
 
   useEffect(() => {
     if (!nickname) return;
@@ -776,6 +843,33 @@ export default function Chat() {
 
   const isBlocked = (id: string) =>
     blocked.some((b) => b.target_id === id);
+
+  const toggleHide = async (targetUid: string, targetNickname: string) => {
+    if (!uid) return;
+    if (hiddenDocs[targetUid]) {
+      await deleteDoc(doc(db, "hidden", hiddenDocs[targetUid]));
+    } else {
+      await addDoc(collection(db, "hidden"), { user_id: uid, target_uid: targetUid, target_name: targetNickname });
+    }
+  };
+
+  const toggleMute = async (targetUid: string, targetNickname: string) => {
+    if (!uid) return;
+    if (mutedDocs[targetUid]) {
+      await deleteDoc(doc(db, "muted", mutedDocs[targetUid]));
+    } else {
+      await addDoc(collection(db, "muted"), { user_id: uid, target_uid: targetUid, target_name: targetNickname });
+    }
+  };
+
+  const toggleFavorite = async (targetUid: string, targetNickname: string) => {
+    if (!uid) return;
+    if (favoriteDocs[targetUid]) {
+      await deleteDoc(doc(db, "favorites", favoriteDocs[targetUid]));
+    } else {
+      await addDoc(collection(db, "favorites"), { user_id: uid, target_uid: targetUid, target_name: targetNickname });
+    }
+  };
 
   const openCtxMenu = (
     e: React.MouseEvent | React.TouchEvent,
@@ -1325,18 +1419,15 @@ export default function Chat() {
             unreadCount={
               unreadCounts[u.nickname] || 0
             }
-            isOnline={onlineUsers.has(
-              u.nickname
-            )}
-            onClick={() =>
-              setCurrentChatUser(u)
-            }
-            onBlock={() =>
-              blockUser(
-                u.nickname,
-                u.id
-              )
-            }
+            isOnline={onlineUsers.has(u.nickname)}
+            isHidden={!!hiddenDocs[u.id]}
+            isMuted={!!mutedDocs[u.id]}
+            isFavorite={!!favoriteDocs[u.id]}
+            onClick={() => setCurrentChatUser(u)}
+            onBlock={() => blockUser(u.nickname, u.id)}
+            onHide={() => toggleHide(u.id, u.nickname)}
+            onMute={() => toggleMute(u.id, u.nickname)}
+            onFavorite={() => toggleFavorite(u.id, u.nickname)}
           />
         ))}
       </div>
