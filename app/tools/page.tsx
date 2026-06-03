@@ -132,8 +132,11 @@ export default function SettingsPage() {
 
   const navItems = [
     { icon: "ℹ️", label: "앱 정보", path: "/tools/appinfo" },
-    { icon: "🎧", label: "Q&A방", path: "/tools/contact" },
-    { icon: "🎫", label: "칭호", path: "/titles" },
+    { icon: "🔔", label: "알림",    path: "/no" },
+    { icon: "👥", label: "친구",    path: "/fri" },
+    { icon: "✍️", label: "글씨체", path: "/font" },
+    { icon: "🎧", label: "Q&A방",  path: "/tools/contact" },
+    { icon: "🎫", label: "칭호",    path: "/titles" },
   ];
 
   const pinCurrent = pinStep === "enter" ? newPin : confirmPin;
