@@ -677,8 +677,23 @@ export default function GroupChat() {
           </div>
 
           <div>
-            <div className="font-bold text-gray-800">
-              {currentRoom?.name}
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-gray-800">
+                {currentRoom?.name}
+              </span>
+              <button
+                onClick={() => router.push(`/meetingroom?from=${currentRoom?.id}`)}
+                className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-50 hover:bg-orange-100 transition"
+                title="회의방"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                  <line x1="7" y1="8" x2="17" y2="8" />
+                  <line x1="7" y1="12" x2="13" y2="12" />
+                </svg>
+              </button>
             </div>
 
             <div className="text-xs text-gray-400">
