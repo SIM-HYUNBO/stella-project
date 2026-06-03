@@ -900,13 +900,29 @@ export default function GroupChat() {
   // 방 목록
   const renderRoomList = () => (
     <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b border-orange-100">
-        <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-          WAGIE GROUP
-        </div>
-
-        <div className="text-xs text-gray-400 mt-0.5">
-          단체 채팅
+      <div className="px-4 py-4 border-b border-orange-100 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+              WAGIE GROUP
+            </span>
+            <button
+              onClick={() => router.push("/meetingroom")}
+              className="flex items-center justify-center w-7 h-7 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
+              title="회의방"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+                <line x1="7" y1="8" x2="17" y2="8" />
+                <line x1="7" y1="12" x2="13" y2="12" />
+              </svg>
+            </button>
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5">
+            단체 채팅
+          </div>
         </div>
       </div>
 
