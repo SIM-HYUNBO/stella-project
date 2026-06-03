@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Header from "/components/Header";
-import AppLock from "/components/AppLock";
+import AppLock from "@/components/AppLock";
 
 const NAV_ITEMS = [
   {

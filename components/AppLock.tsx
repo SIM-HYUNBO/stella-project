@@ -8,10 +8,13 @@ interface Props {
 
 export default function AppLock({ onUnlock }: Props) {
   const [pin, setPin] = useState("");
+  const [stored, setStored] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
 
-  const stored = typeof window !== "undefined" ? localStorage.getItem("appLockPin") || "" : "";
+  useEffect(() => {
+    setStored(localStorage.getItem("appLockPin") || "");
+  }, []);
 
   const press = (digit: string) => {
     if (pin.length >= 4) return;
