@@ -971,67 +971,38 @@ export default function GroupChat() {
 
       <div className="flex-1 overflow-y-auto p-3">
         {rooms.map((room) => (
-          <div
+          <button
             key={room.id}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border shadow-sm transition ${
+            onClick={() => setCurrentRoom(room)}
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border shadow-sm transition text-left ${
               currentRoom?.id === room.id
                 ? "bg-gradient-to-r from-orange-200 to-amber-100 border-orange-200 shadow-sm"
-                : "bg-white/80 border-orange-100"
+                : "bg-white/80 hover:bg-orange-50 border-orange-100"
             }`}
           >
-            <button
-              onClick={() => setCurrentRoom(room)}
-              className="flex items-center gap-3 flex-1 min-w-0 text-left"
-            >
-              {room.profileImage ? (
-                <img
-                  src={room.profileImage}
-                  alt="프로필"
-                  className="w-11 h-11 rounded-full object-cover shadow shrink-0"
-                />
-              ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow shrink-0">
-                  {room.name[0]}
-                </div>
-              )}
-
-              <div className="flex-1 min-w-0">
-                <div className="font-black text-sm truncate text-[#3d1f00]">
-                  {room.name}
-                </div>
-
-                <div className="text-xs truncate text-[#c09070]">
-                  멤버{" "}
-                  {room.members.length}명
-                </div>
+            {room.profileImage ? (
+              <img
+                src={room.profileImage}
+                alt="프로필"
+                className="w-11 h-11 rounded-full object-cover shadow"
+              />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
+                {room.name[0]}
               </div>
-            </button>
+            )}
 
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                onClick={() => setCurrentRoom(room)}
-                className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-50 hover:bg-orange-100 transition active:scale-90"
-                title="일반채팅"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => router.push(`/meetingroom?from=${room.id}`)}
-                className="flex items-center justify-center w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
-                title="회의방"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="3" width="20" height="14" rx="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                  <line x1="7" y1="8" x2="17" y2="8" />
-                  <line x1="7" y1="12" x2="13" y2="12" />
-                </svg>
-              </button>
+            <div className="flex-1 min-w-0">
+              <div className="font-black text-sm truncate text-[#3d1f00]">
+                {room.name}
+              </div>
+
+              <div className="text-xs truncate text-[#c09070]">
+                멤버{" "}
+                {room.members.length}명
+              </div>
             </div>
-          </div>
+          </button>
         ))}
 
         {rooms.length === 0 && (

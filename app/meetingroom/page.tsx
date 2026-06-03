@@ -605,7 +605,7 @@ export default function MeetingRoomPage() {
   // 방 목록
   const renderRoomList = () => (
     <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b border-orange-100 flex items-center justify-between">
+      <div className="px-4 py-4 border-b border-orange-100">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
@@ -637,6 +637,7 @@ export default function MeetingRoomPage() {
               <span className="text-xs font-bold text-red-500">회의</span>
             </button>
           </div>
+          <div className="text-xs text-gray-400 mt-0.5">회의방</div>
         </div>
       </div>
 
