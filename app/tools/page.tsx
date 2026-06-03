@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth, db, storage } from "@/app/firebase";
+import { auth, db } from "@/app/firebase";
 import TextAvatar from "@/components/TextAvatar";
 
 type UserInfo = {
@@ -33,8 +32,6 @@ export default function SettingsPage() {
   const [editMode, setEditMode] = useState(false);
   const [editNickname, setEditNickname] = useState("");
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [notifications, setNotifications] = useState(false);
   const [appLock, setAppLock] = useState(false);
@@ -124,22 +121,6 @@ export default function SettingsPage() {
     setPinError("");
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !uid) return;
-    setUploadingImage(true);
-    try {
-      const storageRef = ref(storage, `profile_images/${uid}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      await updateDoc(doc(db, "users", uid), { profileImage: url });
-      setUser((prev) => prev ? { ...prev, profileImage: url } : prev);
-    } finally {
-      setUploadingImage(false);
-      e.target.value = "";
-    }
-  };
-
   const saveNickname = async () => {
     if (!uid || !editNickname.trim()) return;
     setSaving(true);
@@ -183,25 +164,8 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="shrink-0 relative cursor-pointer" onClick={() => imageInputRef.current?.click()}>
+            <div className="shrink-0">
               <TextAvatar nickname={user?.nickname || "유"} size={52} profileImage={user?.profileImage} />
-              <div className="absolute inset-0 rounded-full flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
-                {uploadingImage ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                )}
-              </div>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
             </div>
             <div className="flex-1 min-w-0">
               {editMode ? (
