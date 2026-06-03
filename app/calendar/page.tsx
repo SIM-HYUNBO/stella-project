@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "@/components/PageContainer";
 import { db } from "@/app/firebase";
@@ -28,16 +28,27 @@ const HOLIDAYS: Record<string, string> = {
 
 const EVENT_COLORS = ["#f97316","#3b82f6","#10b981","#8b5cf6","#ef4444","#f59e0b","#06b6d4","#ec4899"];
 const DAY_LABELS = ["일","월","화","수","목","금","토"];
+const HOURS = Array.from({ length: 24 }, (_, i) => i); // 0~23
+const HOUR_HEIGHT = 64; // px per hour
 
-type CalEvent = { id: string; date: string; title: string; color: string; userId: string; };
+type CalEvent = {
+  id: string; date: string; title: string; color: string; userId: string;
+  startTime?: string; endTime?: string; allDay?: boolean;
+};
 
 function toKey(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
-
 function todayKey() {
   const t = new Date();
   return toKey(t.getFullYear(), t.getMonth(), t.getDate());
+}
+function timeToMin(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+function minToPercent(min: number) {
+  return (min / (24 * 60)) * 100;
 }
 
 export default function CalendarPage() {
@@ -46,12 +57,20 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalEvent[]>([]);
   const today = useMemo(() => new Date(), []);
   const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth()); // 0-indexed
+  const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string>(todayKey());
+  const [viewMode, setViewMode] = useState<"month" | "day">("month");
+
   const [showAdd, setShowAdd] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newColor, setNewColor] = useState(EVENT_COLORS[0]);
+  const [newAllDay, setNewAllDay] = useState(false);
+  const [newStart, setNewStart] = useState("09:00");
+  const [newEnd, setNewEnd] = useState("10:00");
   const [adding, setAdding] = useState(false);
+
+  const [nowMin, setNowMin] = useState(0);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return watchAuthState((user) => {
@@ -68,8 +87,27 @@ export default function CalendarPage() {
     });
   }, [uid]);
 
-  // ────────────── 달력 계산 ──────────────
-  const firstDay = new Date(year, month, 1).getDay(); // 0=일
+  // 현재 시각 선
+  useEffect(() => {
+    const tick = () => {
+      const n = new Date();
+      setNowMin(n.getHours() * 60 + n.getMinutes());
+    };
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  // 시간표 뷰 열릴 때 현재 시각으로 스크롤
+  useEffect(() => {
+    if (viewMode === "day" && timelineRef.current) {
+      const scrollTo = Math.max(0, (nowMin / 60 - 2) * HOUR_HEIGHT);
+      setTimeout(() => timelineRef.current?.scrollTo({ top: scrollTo, behavior: "smooth" }), 100);
+    }
+  }, [viewMode, selectedDate]);
+
+  // 달력 계산
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
   const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
@@ -97,20 +135,36 @@ export default function CalendarPage() {
     return map;
   }, [events]);
 
-  const selectedEvents = eventsByDate[selectedDate] || [];
+  const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) => {
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    return (a.startTime || "00:00").localeCompare(b.startTime || "00:00");
+  });
   const selectedHoliday = HOLIDAYS[selectedDate];
-
   const tk = todayKey();
 
   const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); };
   const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); };
   const goToday = () => { setYear(today.getFullYear()); setMonth(today.getMonth()); setSelectedDate(todayKey()); };
 
+  const prevDay = () => {
+    const d = new Date(selDateObj); d.setDate(d.getDate() - 1);
+    setSelectedDate(toKey(d.getFullYear(), d.getMonth(), d.getDate()));
+    setYear(d.getFullYear()); setMonth(d.getMonth());
+  };
+  const nextDay = () => {
+    const d = new Date(selDateObj); d.setDate(d.getDate() + 1);
+    setSelectedDate(toKey(d.getFullYear(), d.getMonth(), d.getDate()));
+    setYear(d.getFullYear()); setMonth(d.getMonth());
+  };
+
   const addEvent = async () => {
     if (!newTitle.trim() || !uid) return;
     setAdding(true);
     await addDoc(collection(db, "calendar_events"), {
-      userId: uid, date: selectedDate, title: newTitle.trim(), color: newColor, createdAt: serverTimestamp(),
+      userId: uid, date: selectedDate, title: newTitle.trim(), color: newColor,
+      allDay: newAllDay, startTime: newAllDay ? null : newStart, endTime: newAllDay ? null : newEnd,
+      createdAt: serverTimestamp(),
     });
     setNewTitle(""); setShowAdd(false); setAdding(false);
   };
@@ -119,132 +173,255 @@ export default function CalendarPage() {
     await deleteDoc(doc(db, "calendar_events", id));
   };
 
-  // selected date parse
   const [selY, selM, selD] = selectedDate.split("-").map(Number);
   const selDateObj = new Date(selY, selM - 1, selD);
   const selDayLabel = DAY_LABELS[selDateObj.getDay()];
+  const isSelToday = selectedDate === tk;
+  const isSelSun = selDateObj.getDay() === 0;
+  const isSelSat = selDateObj.getDay() === 6;
+
+  // 시간별 이벤트 (allDay 제외)
+  const timedEvents = selectedEvents.filter((e) => !e.allDay && e.startTime);
+  const allDayEvents = selectedEvents.filter((e) => e.allDay || !e.startTime);
 
   return (
     <PageContainer>
-      <div className="flex flex-col min-h-[calc(100vh-48px)] bg-white -m-4">
+      <div className="flex flex-col h-[calc(100vh-48px)] bg-white -m-4 overflow-hidden">
 
-        {/* ── 헤더 ── */}
-        <div className="px-5 pt-4 pb-2 bg-white border-b border-gray-100">
-          <div className="flex items-center justify-between mb-1">
-            <div>
-              <div className="text-2xl font-black text-[#1c1c1e]">{month + 1}월</div>
-              <div className="text-sm text-gray-400 font-semibold">{year}년</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={goToday} className="px-3 py-1.5 rounded-xl bg-orange-50 text-orange-500 text-xs font-black">오늘</button>
-              <button onClick={prevMonth} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
-              <button onClick={nextMonth} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-              </button>
-            </div>
-          </div>
-
-          {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 mt-2">
-            {DAY_LABELS.map((d, i) => (
-              <div key={d} className={`text-center text-xs font-black pb-1 ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"}`}>{d}</div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── 달력 그리드 ── */}
-        <div className="grid grid-cols-7 bg-white px-1 pt-1">
-          {cells.map((cell, i) => {
-            const col = i % 7;
-            const isToday = cell.key === tk;
-            const isSelected = cell.key === selectedDate;
-            const isHoliday = !!HOLIDAYS[cell.key];
-            const dayEvents = eventsByDate[cell.key] || [];
-            const isSun = col === 0;
-            const isSat = col === 6;
-
-            return (
-              <button
-                key={cell.key + i}
-                onClick={() => setSelectedDate(cell.key)}
-                className="flex flex-col items-center pb-2 pt-1 relative active:scale-95 transition"
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition
-                  ${isToday ? "bg-orange-500 text-white font-black shadow-md" :
-                    isSelected ? "bg-orange-100 text-orange-600" :
-                    isHoliday ? (isSun ? "text-red-500" : "text-red-400") :
-                    isSun ? "text-red-400" : isSat ? "text-blue-400" :
-                    cell.cur ? "text-[#1c1c1e]" : "text-gray-300"}`}
-                >
-                  {cell.day}
-                </div>
-                {/* 이벤트 도트 */}
-                <div className="flex gap-0.5 mt-0.5 h-2 items-center">
-                  {dayEvents.slice(0, 3).map((e) => (
-                    <span key={e.id} className="w-1.5 h-1.5 rounded-full" style={{ background: e.color }} />
-                  ))}
-                  {dayEvents.length > 3 && <span className="text-[8px] text-gray-400">+</span>}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ── 선택된 날 디테일 ── */}
-        <div className="flex-1 border-t border-gray-100 bg-gray-50">
-
-          {/* 날짜 타이틀 */}
-          <div className="flex items-center justify-between px-5 py-3">
+        {/* ── 상단 헤더 ── */}
+        <div className="shrink-0 px-4 pt-3 pb-0 bg-white border-b border-gray-100">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-baseline gap-2">
-              <span className="text-lg font-black text-[#1c1c1e]">{selY}년 {selM}월 {selD}일</span>
-              <span className={`text-sm font-bold ${selDateObj.getDay() === 0 ? "text-red-400" : selDateObj.getDay() === 6 ? "text-blue-400" : "text-gray-400"}`}>{selDayLabel}요일</span>
-              {selectedDate === tk && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-black">오늘</span>}
+              <span className="text-2xl font-black text-[#1c1c1e]">{month + 1}월</span>
+              <span className="text-sm text-gray-400 font-semibold">{year}</span>
             </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={goToday} className="px-3 py-1.5 rounded-xl bg-orange-50 text-orange-500 text-xs font-black">오늘</button>
+              {/* 월/일 뷰 토글 */}
+              <div className="flex rounded-xl overflow-hidden border border-gray-100">
+                <button onClick={() => setViewMode("month")}
+                  className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "month" ? "bg-orange-500 text-white" : "bg-white text-gray-400"}`}>월</button>
+                <button onClick={() => setViewMode("day")}
+                  className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "day" ? "bg-orange-500 text-white" : "bg-white text-gray-400"}`}>일</button>
+              </div>
+              {viewMode === "month" && <>
+                <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button onClick={nextMonth} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </>}
+            </div>
+          </div>
+
+          {/* 요일 헤더 (월 뷰 전용) */}
+          {viewMode === "month" && (
+            <div className="grid grid-cols-7">
+              {DAY_LABELS.map((d, i) => (
+                <div key={d} className={`text-center text-[11px] font-black pb-1 ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"}`}>{d}</div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── 월 뷰 ── */}
+        {viewMode === "month" && (
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="grid grid-cols-7 bg-white px-1 pt-1 shrink-0">
+              {cells.map((cell, i) => {
+                const col = i % 7;
+                const isToday = cell.key === tk;
+                const isSelected = cell.key === selectedDate;
+                const isHoliday = !!HOLIDAYS[cell.key];
+                const dayEvts = eventsByDate[cell.key] || [];
+                const isSun = col === 0; const isSat = col === 6;
+                return (
+                  <button key={cell.key + i} onClick={() => setSelectedDate(cell.key)}
+                    className="flex flex-col items-center pb-1.5 pt-1 active:scale-95 transition">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition
+                      ${isToday ? "bg-orange-500 text-white font-black shadow-md" :
+                        isSelected ? "bg-orange-100 text-orange-600" :
+                        isHoliday ? "text-red-400" :
+                        isSun ? "text-red-400" : isSat ? "text-blue-400" :
+                        cell.cur ? "text-[#1c1c1e]" : "text-gray-300"}`}>
+                      {cell.day}
+                    </div>
+                    <div className="flex gap-0.5 mt-0.5 h-2 items-center">
+                      {dayEvts.slice(0, 3).map((e) => (
+                        <span key={e.id} className="w-1.5 h-1.5 rounded-full" style={{ background: e.color }} />
+                      ))}
+                      {dayEvts.length > 3 && <span className="text-[8px] text-gray-400">+</span>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 선택된 날 목록 */}
+            <div className="flex-1 border-t border-gray-100 bg-gray-50 overflow-y-auto">
+              <div className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-black text-[#1c1c1e]">{selM}월 {selD}일</span>
+                  <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>{selDayLabel}</span>
+                  {isSelToday && <span className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => setViewMode("day")}
+                    className="px-2.5 py-1 rounded-xl bg-gray-100 text-gray-500 text-xs font-black">시간표</button>
+                  <button onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); }}
+                    className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md active:scale-90 transition">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              {selectedHoliday && (
+                <div className="mx-5 mb-2 flex items-center gap-2 px-4 py-2.5 bg-red-50 rounded-2xl border border-red-100">
+                  <span className="text-red-500 font-black text-sm">🎌 {selectedHoliday}</span>
+                </div>
+              )}
+              <div className="px-5 space-y-2 pb-6">
+                {selectedEvents.length === 0 && !selectedHoliday && (
+                  <div className="flex flex-col items-center py-8 text-gray-300">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <p className="text-sm font-semibold">일정 없음</p>
+                  </div>
+                )}
+                {selectedEvents.map((e) => (
+                  <div key={e.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm">
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ background: e.color }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-[#1c1c1e] truncate">{e.title}</div>
+                      <div className="text-xs text-gray-400">
+                        {e.allDay || !e.startTime ? "종일" : `${e.startTime}${e.endTime ? ` ~ ${e.endTime}` : ""}`}
+                      </div>
+                    </div>
+                    <button onClick={() => deleteEvent(e.id)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition shrink-0">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 일/시간표 뷰 ── */}
+        {viewMode === "day" && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* 날짜 네비 */}
+            <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-white border-b border-gray-100">
+              <button onClick={prevDay} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-lg font-black ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-[#1c1c1e]"}`}>{selM}월 {selD}일</span>
+                <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>{selDayLabel}요일</span>
+                {isSelToday && <span className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
+              </div>
+              <button onClick={nextDay} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+
+            {/* 공휴일 + 종일 이벤트 */}
+            {(selectedHoliday || allDayEvents.length > 0) && (
+              <div className="shrink-0 px-4 py-2 bg-white border-b border-gray-100 space-y-1.5">
+                {selectedHoliday && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-xl">
+                    <span className="text-xs font-black text-red-500">🎌 {selectedHoliday}</span>
+                  </div>
+                )}
+                {allDayEvents.map((e) => (
+                  <div key={e.id} className="flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: e.color + "22" }}>
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: e.color }} />
+                    <span className="text-xs font-bold flex-1" style={{ color: e.color }}>{e.title}</span>
+                    <button onClick={() => deleteEvent(e.id)} className="w-4 h-4 rounded-full bg-white/60 flex items-center justify-center">
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 시간 타임라인 */}
+            <div ref={timelineRef} className="flex-1 overflow-y-auto relative">
+              <div className="relative" style={{ height: 24 * HOUR_HEIGHT }}>
+                {/* 시간 눈금 */}
+                {HOURS.map((h) => (
+                  <div key={h} className="absolute left-0 right-0 flex items-start" style={{ top: h * HOUR_HEIGHT }}>
+                    <span className="w-14 text-right pr-3 text-[10px] text-gray-400 font-semibold shrink-0 -mt-2">
+                      {h === 0 ? "" : `${String(h).padStart(2, "0")}:00`}
+                    </span>
+                    <div className="flex-1 border-t border-gray-100" />
+                  </div>
+                ))}
+                {/* 30분 보조선 */}
+                {HOURS.map((h) => (
+                  <div key={`half-${h}`} className="absolute left-14 right-0 border-t border-gray-50" style={{ top: h * HOUR_HEIGHT + HOUR_HEIGHT / 2 }} />
+                ))}
+
+                {/* 현재 시각 선 (오늘만) */}
+                {isSelToday && (
+                  <div className="absolute left-0 right-0 z-10 flex items-center" style={{ top: (nowMin / 60) * HOUR_HEIGHT }}>
+                    <span className="w-14 text-right pr-2 text-[9px] text-orange-500 font-black shrink-0">
+                      {String(Math.floor(nowMin / 60)).padStart(2,"0")}:{String(nowMin % 60).padStart(2,"0")}
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-orange-500 shrink-0 -ml-1" />
+                    <div className="flex-1 border-t-2 border-orange-500" />
+                  </div>
+                )}
+
+                {/* 이벤트 블록 */}
+                {timedEvents.map((e) => {
+                  const startMin = timeToMin(e.startTime!);
+                  const endMin = e.endTime ? timeToMin(e.endTime) : startMin + 60;
+                  const top = (startMin / 60) * HOUR_HEIGHT;
+                  const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 28);
+                  return (
+                    <div key={e.id}
+                      className="absolute left-16 right-3 rounded-xl px-2.5 py-1.5 shadow-sm z-20 overflow-hidden"
+                      style={{ top, height, background: e.color + "dd" }}
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <div className="min-w-0">
+                          <div className="text-white font-black text-xs truncate">{e.title}</div>
+                          <div className="text-white/80 text-[10px]">
+                            {e.startTime}{e.endTime ? ` ~ ${e.endTime}` : ""}
+                          </div>
+                        </div>
+                        <button onClick={() => deleteEvent(e.id)}
+                          className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center shrink-0 mt-0.5 active:scale-90">
+                          <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 추가 버튼 */}
             <button
-              onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); }}
-              className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md active:scale-90 transition"
+              onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); }}
+              className="absolute bottom-20 right-5 w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-xl active:scale-90 transition z-30"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
             </button>
           </div>
-
-          {/* 공휴일 */}
-          {selectedHoliday && (
-            <div className="mx-5 mb-2 flex items-center gap-2 px-4 py-2.5 bg-red-50 rounded-2xl border border-red-100">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              <span className="text-red-500 font-black text-sm">{selectedHoliday}</span>
-            </div>
-          )}
-
-          {/* 일정 목록 */}
-          <div className="px-5 space-y-2 pb-4">
-            {selectedEvents.length === 0 && !selectedHoliday && (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-300">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <p className="text-sm font-semibold">일정이 없어요</p>
-              </div>
-            )}
-            {selectedEvents.map((e) => (
-              <div key={e.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-50">
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ background: e.color }} />
-                <span className="flex-1 text-sm font-bold text-[#1c1c1e]">{e.title}</span>
-                <button onClick={() => deleteEvent(e.id)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* ── 일정 추가 모달 ── */}
         {showAdd && (
@@ -252,27 +429,54 @@ export default function CalendarPage() {
             <div className="w-full bg-white rounded-t-[28px] p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-black text-[#1c1c1e]">일정 추가</span>
-                <span className="text-sm text-gray-400">{selY}/{selM}/{selD} ({selDayLabel})</span>
+                <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>
+                  {selY}.{selM}.{selD} ({selDayLabel})
+                  {selectedHoliday && <span className="ml-1 text-red-400">· {selectedHoliday}</span>}
+                </span>
               </div>
-              <input
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
+
+              <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addEvent()}
-                placeholder="일정 제목 입력"
-                autoFocus
-                className="w-full h-12 rounded-2xl bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"
-              />
+                placeholder="일정 제목" autoFocus
+                className="w-full h-12 rounded-2xl bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"/>
+
+              {/* 종일 토글 */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-gray-600">종일</span>
+                <button onClick={() => setNewAllDay(!newAllDay)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${newAllDay ? "bg-orange-400" : "bg-gray-200"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${newAllDay ? "translate-x-[24px]" : "translate-x-0"}`}/>
+                </button>
+              </div>
+
+              {/* 시간 설정 */}
+              {!newAllDay && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-400 font-bold mb-1">시작</p>
+                    <input type="time" value={newStart} onChange={(e) => setNewStart(e.target.value)}
+                      className="w-full h-10 rounded-xl bg-gray-50 border border-gray-100 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-400 font-bold mb-1">종료</p>
+                    <input type="time" value={newEnd} onChange={(e) => setNewEnd(e.target.value)}
+                      className="w-full h-10 rounded-xl bg-gray-50 border border-gray-100 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
+                  </div>
+                </div>
+              )}
+
+              {/* 색상 */}
               <div>
                 <p className="text-xs font-black text-gray-400 mb-2">색상</p>
                 <div className="flex gap-2 flex-wrap">
                   {EVENT_COLORS.map((c) => (
                     <button key={c} onClick={() => setNewColor(c)}
                       className={`w-8 h-8 rounded-full transition active:scale-90 ${newColor === c ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : ""}`}
-                      style={{ background: c }}
-                    />
+                      style={{ background: c }}/>
                   ))}
                 </div>
               </div>
+
               <button onClick={addEvent} disabled={adding || !newTitle.trim()}
                 className="w-full h-12 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-md active:scale-95 transition disabled:opacity-50">
                 추가
