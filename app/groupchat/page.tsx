@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { db } from "@/app/firebase";
+import { db, storage } from "@/app/firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { watchAuthState } from "../authService";
 
 import {
@@ -53,7 +54,7 @@ type GroupMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image";
+  type?: "text" | "image" | "audio" | "video";
   createdAt?: any;
   readBy?: string[];
 };
@@ -115,6 +116,9 @@ export default function GroupChat() {
   const [profileUploading, setProfileUploading] =
     useState(false);
 
+  const [showMediaMenu, setShowMediaMenu] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const messagesEndRef =
@@ -122,6 +126,10 @@ export default function GroupChat() {
 
   const imageInputRef =
     useRef<HTMLInputElement>(null);
+
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const profileInputRef =
     useRef<HTMLInputElement>(null);
@@ -336,6 +344,59 @@ export default function GroupChat() {
       }
     );
   }, [nickname]);
+
+  const sendAudio = async (blob: Blob) => {
+    if (!nickname || !currentRoom) return;
+    try {
+      const path = `audio_messages/${nickname}/${Date.now()}.webm`;
+      const fRef = storageRef(storage, path);
+      await uploadBytes(fRef, blob);
+      const url = await getDownloadURL(fRef);
+      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+        from: nickname, content: url, type: "audio",
+        createdAt: serverTimestamp(), readBy: [nickname],
+      });
+    } catch { alert("오디오 업로드 실패"); }
+  };
+
+  const sendVideo = async (file: File) => {
+    if (!nickname || !currentRoom) return;
+    setImgUploading(true);
+    try {
+      const path = `video_messages/${nickname}/${Date.now()}_${file.name}`;
+      const fRef = storageRef(storage, path);
+      await uploadBytes(fRef, file);
+      const url = await getDownloadURL(fRef);
+      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+        from: nickname, content: url, type: "video",
+        createdAt: serverTimestamp(), readBy: [nickname],
+      });
+    } catch { alert("비디오 업로드 실패"); }
+    finally { setImgUploading(false); }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        await sendAudio(blob);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setIsRecording(true);
+      setShowMediaMenu(false);
+    } catch { alert("마이크 권한이 필요해요"); }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  };
 
   const createRoom = async () => {
     if (!newRoomName.trim() || !nickname) return;
@@ -956,19 +1017,17 @@ export default function GroupChat() {
                         : "bg-white border border-gray-100 rounded-bl-md"
                     }`}
                   >
-                    {m.type ===
-                    "image" ? (
+                    {m.type === "image" ? (
                       <img
                         src={m.content}
                         alt="이미지"
                         className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
-                        onClick={() =>
-                          window.open(
-                            m.content,
-                            "_blank"
-                          )
-                        }
+                        onClick={() => window.open(m.content, "_blank")}
                       />
+                    ) : m.type === "audio" ? (
+                      <audio controls src={m.content} className="max-w-[240px]" />
+                    ) : m.type === "video" ? (
+                      <video controls src={m.content} className="max-w-[240px] max-h-[180px] rounded-2xl" />
                     ) : (
                       <span className="break-words whitespace-pre-wrap">
                         {m.content}
@@ -999,20 +1058,56 @@ export default function GroupChat() {
       </div>
 
       {/* 입력창 */}
+      {isRecording && (
+        <div className="px-4 py-2 bg-red-50 border-t border-red-100 flex items-center gap-2 shrink-0 animate-pulse">
+          <div className="w-2 h-2 rounded-full bg-red-500" />
+          <span className="text-xs text-red-500 font-bold">녹음 중...</span>
+          <button onClick={stopRecording} className="ml-auto text-xs text-red-500 font-bold px-3 py-1 bg-red-100 rounded-xl">중지</button>
+        </div>
+      )}
       <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
-        <button
-          onClick={() =>
-            imageInputRef.current?.click()
-          }
-          disabled={imgUploading}
-          className={`w-10 h-10 rounded-[12px] bg-orange-50 flex items-center justify-center text-lg ${
-            imgUploading
-              ? "animate-pulse"
-              : "hover:bg-orange-100"
-          }`}
-        >
-          📷
-        </button>
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setShowMediaMenu((p) => !p)}
+            disabled={imgUploading}
+            className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xl font-bold transition shrink-0 ${
+              imgUploading ? "animate-pulse bg-orange-50 text-orange-300" : "bg-orange-50 hover:bg-orange-100 text-orange-400"
+            }`}
+          >
+            +
+          </button>
+          {showMediaMenu && (
+            <div className="absolute bottom-full left-0 mb-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 min-w-[130px]">
+              <button
+                onClick={() => { imageInputRef.current?.click(); setShowMediaMenu(false); }}
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
+              >
+                📷 사진
+              </button>
+              {!isRecording ? (
+                <button
+                  onClick={startRecording}
+                  className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
+                >
+                  🎙 녹음
+                </button>
+              ) : (
+                <button
+                  onClick={() => { stopRecording(); setShowMediaMenu(false); }}
+                  className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 text-red-500 font-medium animate-pulse"
+                >
+                  ⏹ 녹음 중지
+                </button>
+              )}
+              <button
+                onClick={() => { videoInputRef.current?.click(); setShowMediaMenu(false); }}
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
+              >
+                🎥 비디오
+              </button>
+            </div>
+          )}
+        </div>
 
         <input
           type="file"
@@ -1020,11 +1115,19 @@ export default function GroupChat() {
           accept="image/*"
           className="hidden"
           onChange={(e) => {
-            const f =
-              e.target.files?.[0];
-
+            const f = e.target.files?.[0];
             if (f) sendImage(f);
-
+            e.target.value = "";
+          }}
+        />
+        <input
+          type="file"
+          ref={videoInputRef}
+          accept="video/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) sendVideo(f);
             e.target.value = "";
           }}
         />
