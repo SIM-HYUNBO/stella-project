@@ -11,8 +11,15 @@ const FONT_OPTIONS = [
   { label: "브러시 감성",       value: "var(--font-brush)", preview: "안녕하세요 WAGIE" },
 ];
 
+const SIZE_OPTIONS = [
+  { label: "작게",     value: 13 },
+  { label: "보통",     value: 16 },
+  { label: "크게",     value: 19 },
+  { label: "아주 크게", value: 22 },
+];
+
 export default function FontSettings() {
-  const { font, changeFont } = useFont();
+  const { font, changeFont, fontSize, changeFontSize } = useFont();
   const router = useRouter();
 
   return (
@@ -26,27 +33,57 @@ export default function FontSettings() {
           <span className="font-black text-[#3d1f00] text-base">⚙️ 폰트 설정</span>
         </div>
 
-        <div className="px-5 pt-6 pb-16 space-y-3">
-          <p className="font-black text-[#3d1f00] text-base px-1 mb-4">폰트 선택</p>
+        <div className="px-5 pt-6 pb-16 space-y-6">
 
-          {FONT_OPTIONS.map((f) => {
-            const isActive = font === f.value;
-            return (
-              <button key={f.value} onClick={() => changeFont(f.value)}
-                className={`w-full rounded-[20px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] border shadow-sm
-                  ${isActive
-                    ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_6px_20px_rgba(255,160,50,0.35)]"
-                    : "bg-white/80 backdrop-blur-sm border-orange-100"
-                  }`}>
-                <div className="text-left">
-                  <p className={`font-black text-sm ${isActive ? "text-white" : "text-[#3d1f00]"}`}>{f.label}</p>
-                  <p className={`text-xs mt-0.5 ${isActive ? "text-white/75" : "text-[#c09070]"}`}
-                    style={{ fontFamily: f.value }}>{f.preview}</p>
-                </div>
-                {isActive && <span className="text-white text-lg">✓</span>}
-              </button>
-            );
-          })}
+          {/* 글씨 크기 */}
+          <div>
+            <p className="font-black text-[#3d1f00] text-base px-1 mb-3">글씨 크기</p>
+            <div className="grid grid-cols-4 gap-2">
+              {SIZE_OPTIONS.map((s) => {
+                const isActive = fontSize === s.value;
+                return (
+                  <button key={s.value} onClick={() => changeFontSize(s.value)}
+                    className={`rounded-[16px] py-3 flex flex-col items-center gap-1 border transition-all active:scale-[0.97]
+                      ${isActive
+                        ? "bg-gradient-to-b from-orange-400 to-amber-300 border-transparent shadow-[0_4px_14px_rgba(255,160,50,0.35)]"
+                        : "bg-white border-orange-100"
+                      }`}>
+                    <span style={{ fontSize: s.value }} className={`font-bold leading-none ${isActive ? "text-white" : "text-[#3d1f00]"}`}>가</span>
+                    <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-[#c09070]"}`}>{s.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 rounded-[14px] bg-white border border-orange-100 px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
+              미리보기 — 안녕하세요 WAGIE 🧡
+            </div>
+          </div>
+
+          {/* 폰트 종류 */}
+          <div>
+            <p className="font-black text-[#3d1f00] text-base px-1 mb-3">폰트 선택</p>
+            <div className="space-y-3">
+              {FONT_OPTIONS.map((f) => {
+                const isActive = font === f.value;
+                return (
+                  <button key={f.value} onClick={() => changeFont(f.value)}
+                    className={`w-full rounded-[20px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] border shadow-sm
+                      ${isActive
+                        ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_6px_20px_rgba(255,160,50,0.35)]"
+                        : "bg-white/80 backdrop-blur-sm border-orange-100"
+                      }`}>
+                    <div className="text-left">
+                      <p className={`font-black text-sm ${isActive ? "text-white" : "text-[#3d1f00]"}`}>{f.label}</p>
+                      <p className={`text-xs mt-0.5 ${isActive ? "text-white/75" : "text-[#c09070]"}`}
+                        style={{ fontFamily: f.value }}>{f.preview}</p>
+                    </div>
+                    {isActive && <span className="text-white text-lg">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
     </main>
