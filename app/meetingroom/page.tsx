@@ -79,6 +79,7 @@ export default function MeetingRoomPage() {
   const [profileUploading, setProfileUploading] = useState(false);
   const [showTopicEdit, setShowTopicEdit] = useState(false);
   const [topicInput, setTopicInput] = useState("");
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -131,6 +132,22 @@ export default function MeetingRoomPage() {
       }
     });
   }, [nickname]);
+
+  // 읽지 않은 메시지 수
+  useEffect(() => {
+    if (!nickname || rooms.length === 0) return;
+    const unsubs = rooms.map((room) => {
+      const q = query(collection(db, "meeting_rooms", room.id, "messages"), orderBy("createdAt", "asc"));
+      return onSnapshot(q, (snap) => {
+        const count = snap.docs.filter((d) => {
+          const data = d.data();
+          return data.from !== nickname && !(data.readBy || []).includes(nickname);
+        }).length;
+        setUnreadCounts((prev) => ({ ...prev, [room.id]: count }));
+      });
+    });
+    return () => unsubs.forEach((u) => u());
+  }, [rooms.map((r) => r.id).join(","), nickname]);
 
   // currentRoom 동기화
   useEffect(() => {
@@ -748,6 +765,11 @@ export default function MeetingRoomPage() {
                 <div className="text-xs truncate text-[#c09070]">멤버 {room.members.length}명</div>
               )}
             </div>
+            {(unreadCounts[room.id] ?? 0) > 0 && (
+              <div className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black flex items-center justify-center shadow shrink-0">
+                {unreadCounts[room.id] > 99 ? "99+" : unreadCounts[room.id]}
+              </div>
+            )}
           </button>
         ))}
 
