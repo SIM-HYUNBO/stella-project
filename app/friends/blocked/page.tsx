@@ -21,6 +21,7 @@ export default function BlockedPage() {
     return onSnapshot(q, (snap) => {
       const arr: any[] = [];
       snap.forEach((d) => arr.push({ id: d.id, ...d.data() }));
+      arr.sort((a, b) => (a.target_name ?? "").localeCompare(b.target_name ?? "", "ko"));
       setList(arr);
     });
   }, [myUserId]);

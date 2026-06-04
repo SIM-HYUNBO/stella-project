@@ -383,6 +383,7 @@ export default function Chat() {
       });
 
       const filtered = list.filter((u) => u.nickname !== nickname);
+      filtered.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
       setUsers(filtered);
 
       const openNickname = searchParams.get("open");

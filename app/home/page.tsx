@@ -79,6 +79,7 @@ export default function HomePage() {
         const uSnap = await getDoc(doc(db, "users", otherUid));
         if (uSnap.exists()) list.push({ uid: otherUid, nickname: uSnap.data().nickname, profileImage: uSnap.data().profileImage || null });
       }
+      list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
       setFriends(list);
     })();
   }, [uid]);

@@ -109,6 +109,7 @@ export default function FriendsPage() {
     const snap = await getDocs(collection(db, "users"));
     const list: any[] = [];
     snap.forEach((d) => { if (d.id !== uid) list.push({ uid: d.id, ...d.data() }); });
+    list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
     setUsers(list);
   };
 
@@ -121,6 +122,7 @@ export default function FriendsPage() {
       const userSnap = await getDoc(doc(db, "users", friendId));
       if (userSnap.exists()) list.push({ uid: friendId, ...userSnap.data() });
     }
+    list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
     setFriends(list);
   };
 
