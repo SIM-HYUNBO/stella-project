@@ -1451,13 +1451,16 @@ export default function Chat() {
   );
 
   if (isMobile) {
+    if (currentChatUser) {
+      return (
+        <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
+          {renderChat()}
+        </div>
+      );
+    }
     return (
       <PageContainer>
-        <div className="h-screen flex flex-col overflow-hidden">
-          {!currentChatUser
-            ? renderUserList()
-            : renderChat()}
-        </div>
+        <div className="flex flex-col">{renderUserList()}</div>
       </PageContainer>
     );
   }

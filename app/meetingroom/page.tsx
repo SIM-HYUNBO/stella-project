@@ -785,10 +785,18 @@ export default function MeetingRoomPage() {
   );
 
   if (isMobile) {
+    if (currentRoom) {
+      return (
+        <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
+          {renderRoom()}
+          {renderInviteModal()}
+        </div>
+      );
+    }
     return (
       <PageContainer>
-        <div className="h-screen flex flex-col overflow-hidden">
-          {!currentRoom ? renderRoomList() : renderRoom()}
+        <div className="flex flex-col">
+          {renderRoomList()}
           {renderInviteModal()}
         </div>
       </PageContainer>
