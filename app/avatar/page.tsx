@@ -1207,19 +1207,19 @@ export default function Chat() {
                   )}
 
                 <div
-                  className={`mt-1 text-[10px] text-gray-400 flex gap-1 ${
-                    isMine
-                      ? "justify-end"
-                      : "justify-start"
+                  className={`mt-1 text-[10px] text-gray-400 flex items-center gap-1 ${
+                    isMine ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {m.edited && (
-                    <span>수정됨</span>
-                  )}
-
-                  <span>
-                    {formatTime(m.createdAt)}
-                  </span>
+                  {(() => {
+                    const readByArr = m.readBy || [];
+                    const unread = 2 - readByArr.length;
+                    return unread > 0 ? (
+                      <span className="text-orange-400 font-bold">{unread}</span>
+                    ) : null;
+                  })()}
+                  {m.edited && <span>수정됨</span>}
+                  <span>{formatTime(m.createdAt)}</span>
                 </div>
               </div>
             </div>

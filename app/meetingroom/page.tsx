@@ -580,7 +580,13 @@ export default function MeetingRoomPage() {
                       <span className="break-words whitespace-pre-wrap">{m.content}</span>
                     )}
                   </div>
-                  <div className={`mt-1 text-[10px] text-gray-400 flex ${isMine ? "justify-end" : "justify-start"}`}>
+                  <div className={`mt-1 text-[10px] text-gray-400 flex items-center gap-1 ${isMine ? "justify-end" : "justify-start"}`}>
+                    {(() => {
+                      const unread = (currentRoom?.members.length || 0) - (m.readBy?.length || 0);
+                      return unread > 0 ? (
+                        <span className="text-orange-400 font-bold">{unread}</span>
+                      ) : null;
+                    })()}
                     {formatTime(m.createdAt)}
                   </div>
                 </div>
