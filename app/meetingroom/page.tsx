@@ -3,8 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { db, storage } from "@/app/firebase";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 
 import {
@@ -233,26 +232,28 @@ export default function MeetingRoomPage() {
     });
   }, [nickname]);
 
+  const blobToBase64 = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
   const sendAudio = async (blob: Blob) => {
     if (!nickname || !currentRoom) return;
-    const path = `audio_messages/${nickname}/${Date.now()}.webm`;
-    const fRef = storageRef(storage, path);
-    await uploadBytes(fRef, blob);
-    const url = await getDownloadURL(fRef);
+    const base64 = await blobToBase64(blob);
     await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
-      from: nickname, content: url, type: "audio",
+      from: nickname, content: base64, type: "audio",
       createdAt: serverTimestamp(), readBy: [nickname],
     });
   };
 
   const sendVideo = async (file: File) => {
     if (!nickname || !currentRoom) return;
-    const path = `video_messages/${nickname}/${Date.now()}_${file.name}`;
-    const fRef = storageRef(storage, path);
-    await uploadBytes(fRef, file);
-    const url = await getDownloadURL(fRef);
+    const base64 = await blobToBase64(file);
     await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
-      from: nickname, content: url, type: "video",
+      from: nickname, content: base64, type: "video",
       createdAt: serverTimestamp(), readBy: [nickname],
     });
   };

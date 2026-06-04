@@ -3,8 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { db, storage } from "@/app/firebase";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection,
@@ -777,16 +776,21 @@ export default function Chat() {
     }).catch(() => {});
   };
 
+  const blobToBase64 = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
   const sendAudio = async (blob: Blob) => {
-    if (!nickname || !currentChatUser || !uid) return;
-    const path = `audio_messages/${uid}/${Date.now()}.webm`;
-    const fRef = storageRef(storage, path);
-    await uploadBytes(fRef, blob);
-    const url = await getDownloadURL(fRef);
+    if (!nickname || !currentChatUser) return;
+    const base64 = await blobToBase64(blob);
     await addDoc(collection(db, "messages"), {
       from: nickname,
       to: currentChatUser.nickname,
-      content: url,
+      content: base64,
       type: "audio",
       createdAt: serverTimestamp(),
       readBy: [nickname],
@@ -794,15 +798,12 @@ export default function Chat() {
   };
 
   const sendVideo = async (file: File) => {
-    if (!nickname || !currentChatUser || !uid) return;
-    const path = `video_messages/${uid}/${Date.now()}_${file.name}`;
-    const fRef = storageRef(storage, path);
-    await uploadBytes(fRef, file);
-    const url = await getDownloadURL(fRef);
+    if (!nickname || !currentChatUser) return;
+    const base64 = await blobToBase64(file);
     await addDoc(collection(db, "messages"), {
       from: nickname,
       to: currentChatUser.nickname,
-      content: url,
+      content: base64,
       type: "video",
       createdAt: serverTimestamp(),
       readBy: [nickname],
