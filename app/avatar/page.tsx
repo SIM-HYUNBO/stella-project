@@ -1140,11 +1140,6 @@ export default function Chat() {
                 {!isMine && (
                   <div className="flex items-center gap-1.5 mb-1 ml-1">
                     <span className="text-xs text-gray-400">{m.from}</span>
-                    {currentChatUser?.title && TITLE_MAP[currentChatUser.title] && (
-                      <span className="text-[10px] bg-orange-50 text-orange-400 font-black px-1.5 py-0.5 rounded-full">
-                        {TITLE_MAP[currentChatUser.title].icon} {TITLE_MAP[currentChatUser.title].name}
-                      </span>
-                    )}
                   </div>
                 )}
 

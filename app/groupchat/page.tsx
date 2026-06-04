@@ -963,11 +963,6 @@ export default function GroupChat() {
                     showUser && (
                       <div className="flex items-center gap-1.5 mb-1 ml-1">
                         <span className="text-xs text-gray-400">{m.from}</span>
-                        {memberTitles[m.from] && TITLE_MAP[memberTitles[m.from]] && (
-                          <span className="text-[10px] bg-orange-50 text-orange-400 font-black px-1.5 py-0.5 rounded-full">
-                            {TITLE_MAP[memberTitles[m.from]].icon} {TITLE_MAP[memberTitles[m.from]].name}
-                          </span>
-                        )}
                       </div>
                     )}
 
