@@ -118,6 +118,7 @@ export default function GroupChat() {
 
   const [showMediaMenu, setShowMediaMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [sendingMedia, setSendingMedia] = useState(false);
   const [pendingMedia, setPendingMedia] = useState<{
     type: "image" | "audio" | "video";
     file?: File;
@@ -353,32 +354,26 @@ export default function GroupChat() {
 
   const sendAudio = async (blob: Blob) => {
     if (!nickname || !currentRoom) return;
-    try {
-      const path = `audio_messages/${nickname}/${Date.now()}.webm`;
-      const fRef = storageRef(storage, path);
-      await uploadBytes(fRef, blob);
-      const url = await getDownloadURL(fRef);
-      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
-        from: nickname, content: url, type: "audio",
-        createdAt: serverTimestamp(), readBy: [nickname],
-      });
-    } catch { alert("오디오 업로드 실패"); }
+    const path = `audio_messages/${nickname}/${Date.now()}.webm`;
+    const fRef = storageRef(storage, path);
+    await uploadBytes(fRef, blob);
+    const url = await getDownloadURL(fRef);
+    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+      from: nickname, content: url, type: "audio",
+      createdAt: serverTimestamp(), readBy: [nickname],
+    });
   };
 
   const sendVideo = async (file: File) => {
     if (!nickname || !currentRoom) return;
-    setImgUploading(true);
-    try {
-      const path = `video_messages/${nickname}/${Date.now()}_${file.name}`;
-      const fRef = storageRef(storage, path);
-      await uploadBytes(fRef, file);
-      const url = await getDownloadURL(fRef);
-      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
-        from: nickname, content: url, type: "video",
-        createdAt: serverTimestamp(), readBy: [nickname],
-      });
-    } catch { alert("비디오 업로드 실패"); }
-    finally { setImgUploading(false); }
+    const path = `video_messages/${nickname}/${Date.now()}_${file.name}`;
+    const fRef = storageRef(storage, path);
+    await uploadBytes(fRef, file);
+    const url = await getDownloadURL(fRef);
+    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+      from: nickname, content: url, type: "video",
+      createdAt: serverTimestamp(), readBy: [nickname],
+    });
   };
 
   const startRecording = async () => {
@@ -411,13 +406,20 @@ export default function GroupChat() {
   };
 
   const sendPendingMedia = async () => {
-    if (!pendingMedia) return;
-    const { type, file, blob, previewUrl } = pendingMedia;
-    setPendingMedia(null);
-    URL.revokeObjectURL(previewUrl);
-    if (type === "image" && file) await sendImage(file);
-    else if (type === "audio" && blob) await sendAudio(blob);
-    else if (type === "video" && file) await sendVideo(file);
+    if (!pendingMedia || sendingMedia) return;
+    setSendingMedia(true);
+    try {
+      const { type, file, blob, previewUrl } = pendingMedia;
+      if (type === "image" && file) await sendImage(file);
+      else if (type === "audio" && blob) await sendAudio(blob);
+      else if (type === "video" && file) await sendVideo(file);
+      URL.revokeObjectURL(previewUrl);
+      setPendingMedia(null);
+    } catch {
+      alert("전송 실패. 다시 시도해주세요.");
+    } finally {
+      setSendingMedia(false);
+    }
   };
 
   const createRoom = async () => {
@@ -574,45 +576,27 @@ export default function GroupChat() {
 
   const sendImage = async (file: File) => {
     if (!nickname || !currentRoom) return;
-
-    setImgUploading(true);
-
-    try {
-      const base64 =
-        await compressToBase64(file);
-
-      await addDoc(
-        collection(
-          db,
-          "group_rooms",
-          currentRoom.id,
-          "messages"
-        ),
-        {
-          from: nickname,
-          content: base64,
-          type: "image",
-          createdAt: serverTimestamp(),
-          readBy: [nickname],
-        }
-      );
-
-      const targets = currentRoom.members.filter((m) => m !== nickname);
-      if (targets.length > 0) {
-        fetch("/api/fcm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            toNicknames: targets,
-            fromNickname: nickname,
-            message: "📷 사진을 보냈어요",
-            roomName: currentRoom.name,
-            url: `/groupchat?room=${currentRoom.id}`,
-          }),
-        }).catch(() => {});
-      }
-    } finally {
-      setImgUploading(false);
+    const base64 = await compressToBase64(file);
+    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+      from: nickname,
+      content: base64,
+      type: "image",
+      createdAt: serverTimestamp(),
+      readBy: [nickname],
+    });
+    const targets = currentRoom.members.filter((m) => m !== nickname);
+    if (targets.length > 0) {
+      fetch("/api/fcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toNicknames: targets,
+          fromNickname: nickname,
+          message: "📷 사진을 보냈어요",
+          roomName: currentRoom.name,
+          url: `/groupchat?room=${currentRoom.id}`,
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -1100,13 +1084,15 @@ export default function GroupChat() {
             <video controls src={pendingMedia.previewUrl} className="h-16 max-w-[140px] rounded-xl object-cover shrink-0" />
           )}
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPending} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50">✕</button>
+            <button onClick={cancelPending} disabled={sendingMedia} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
               onClick={sendPendingMedia}
-              disabled={imgUploading}
+              disabled={sendingMedia}
               className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white flex items-center justify-center shadow-md disabled:opacity-50"
             >
-              {imgUploading ? <span className="text-xs">...</span> : "➤"}
+              {sendingMedia
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : "➤"}
             </button>
           </div>
         </div>
@@ -1115,10 +1101,10 @@ export default function GroupChat() {
       <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
         <div className="relative shrink-0">
           <button
-            onClick={() => setShowMediaMenu((p) => !p)}
-            disabled={imgUploading}
+            onClick={() => !sendingMedia && setShowMediaMenu((p) => !p)}
+            disabled={sendingMedia}
             className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xl font-bold transition shrink-0 ${
-              imgUploading ? "animate-pulse bg-orange-50 text-orange-300" : "bg-orange-50 hover:bg-orange-100 text-orange-400"
+              sendingMedia ? "animate-pulse bg-orange-50 text-orange-300" : "bg-orange-50 hover:bg-orange-100 text-orange-400"
             }`}
           >
             +
