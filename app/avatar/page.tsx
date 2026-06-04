@@ -1261,7 +1261,7 @@ export default function Chat() {
             imageInputRef.current?.click()
           }
           disabled={imgUploading}
-          className={`w-10 h-10 rounded-[12px] bg-orange-50 flex items-center justify-center text-lg ${
+          className={`w-10 h-10 rounded-[12px] bg-orange-50 flex items-center justify-center text-lg shrink-0 ${
             imgUploading
               ? "animate-pulse"
               : "hover:bg-orange-100"
@@ -1308,7 +1308,7 @@ export default function Chat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-[0_4px_14px_rgba(255,160,50,0.35)] hover:scale-105 active:scale-95 transition"
+          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-[0_4px_14px_rgba(255,160,50,0.35)] hover:scale-105 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
