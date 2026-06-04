@@ -339,6 +339,7 @@ export default function GroupChat() {
             (u) => u.nickname !== nickname
           );
 
+        list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
         setAllUsers(list);
       }
     );

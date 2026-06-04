@@ -219,6 +219,7 @@ export default function MeetingRoomPage() {
       const list: User[] = snap.docs
         .map((d) => ({ id: d.id, nickname: d.data().nickname as string }))
         .filter((u) => u.nickname !== nickname);
+      list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
       setAllUsers(list);
     });
   }, [nickname]);
