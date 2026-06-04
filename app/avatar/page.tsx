@@ -33,7 +33,7 @@ type Message = {
   from: string;
   to: string;
   content: string;
-  type?: "text" | "image" | "audio" | "video";
+  type?: "text" | "image" | "audio";
   createdAt?: any;
   readBy?: string[];
   replyTo?: ReplyTo;
@@ -300,7 +300,7 @@ export default function Chat() {
   const [showMediaMenu, setShowMediaMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [pendingMedia, setPendingMedia] = useState<{
-    type: "image" | "audio" | "video";
+    type: "image" | "audio";
     file?: File;
     blob?: Blob;
     previewUrl: string;
@@ -314,7 +314,6 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -596,7 +595,7 @@ export default function Chat() {
         lastMsg =
           m.type === "image" ? "📷 사진" :
           m.type === "audio" ? "🎙 음성메시지" :
-          m.type === "video" ? "🎥 비디오" : m.content;
+          m.content;
 
         if (
           m.from !== nickname &&
@@ -797,19 +796,6 @@ export default function Chat() {
     });
   };
 
-  const sendVideo = async (file: File) => {
-    if (!nickname || !currentChatUser) return;
-    const base64 = await blobToBase64(file);
-    await addDoc(collection(db, "messages"), {
-      from: nickname,
-      to: currentChatUser.nickname,
-      content: base64,
-      type: "video",
-      createdAt: serverTimestamp(),
-      readBy: [nickname],
-    });
-  };
-
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -846,7 +832,6 @@ export default function Chat() {
       const { type, file, blob, previewUrl } = pendingMedia;
       if (type === "image" && file) await sendImage(file);
       else if (type === "audio" && blob) await sendAudio(blob);
-      else if (type === "video" && file) await sendVideo(file);
       URL.revokeObjectURL(previewUrl);
       setPendingMedia(null);
     } catch {
@@ -1045,10 +1030,8 @@ export default function Chat() {
     if (m.type === "audio") {
       return <audio controls src={m.content} className="max-w-[240px]" />;
     }
-    if (m.type === "video") {
-      return (
-        <video controls src={m.content} className="max-w-[240px] max-h-[180px] rounded-2xl" />
-      );
+    if (m.type === ("video" as any)) {
+      return <span className="text-xs text-gray-400">[비디오]</span>;
     }
     return (
       <span className="break-words whitespace-pre-wrap">
@@ -1357,9 +1340,6 @@ export default function Chat() {
           {pendingMedia.type === "audio" && (
             <audio controls src={pendingMedia.previewUrl} className="flex-1 h-10 min-w-0" />
           )}
-          {pendingMedia.type === "video" && (
-            <video controls src={pendingMedia.previewUrl} className="h-16 max-w-[140px] rounded-xl object-cover shrink-0" />
-          )}
           <div className="ml-auto flex items-center gap-2 shrink-0">
             <button onClick={cancelPending} disabled={sendingMedia} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
@@ -1409,12 +1389,6 @@ export default function Chat() {
                   ⏹ 녹음 중지
                 </button>
               )}
-              <button
-                onClick={() => { videoInputRef.current?.click(); setShowMediaMenu(false); }}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
-              >
-                🎥 비디오
-              </button>
             </div>
           )}
         </div>
@@ -1433,21 +1407,6 @@ export default function Chat() {
             e.target.value = "";
           }}
         />
-        <input
-          type="file"
-          ref={videoInputRef}
-          accept="video/*"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) {
-              const url = URL.createObjectURL(f);
-              setPendingMedia({ type: "video", file: f, previewUrl: url });
-            }
-            e.target.value = "";
-          }}
-        />
-
         <input
           className="flex-1 h-11 rounded-[16px] bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
           placeholder="메시지 입력"

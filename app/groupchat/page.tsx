@@ -53,7 +53,7 @@ type GroupMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image" | "audio" | "video";
+  type?: "text" | "image" | "audio";
   createdAt?: any;
   readBy?: string[];
 };
@@ -121,7 +121,7 @@ export default function GroupChat() {
   const [isRecording, setIsRecording] = useState(false);
   const [sendingMedia, setSendingMedia] = useState(false);
   const [pendingMedia, setPendingMedia] = useState<{
-    type: "image" | "audio" | "video";
+    type: "image" | "audio";
     file?: File;
     blob?: Blob;
     previewUrl: string;
@@ -135,7 +135,6 @@ export default function GroupChat() {
   const imageInputRef =
     useRef<HTMLInputElement>(null);
 
-  const videoInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -370,15 +369,6 @@ export default function GroupChat() {
     });
   };
 
-  const sendVideo = async (file: File) => {
-    if (!nickname || !currentRoom) return;
-    const base64 = await blobToBase64(file);
-    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
-      from: nickname, content: base64, type: "video",
-      createdAt: serverTimestamp(), readBy: [nickname],
-    });
-  };
-
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -415,7 +405,6 @@ export default function GroupChat() {
       const { type, file, blob, previewUrl } = pendingMedia;
       if (type === "image" && file) await sendImage(file);
       else if (type === "audio" && blob) await sendAudio(blob);
-      else if (type === "video" && file) await sendVideo(file);
       URL.revokeObjectURL(previewUrl);
       setPendingMedia(null);
     } catch {
@@ -1048,8 +1037,6 @@ export default function GroupChat() {
                       />
                     ) : m.type === "audio" ? (
                       <audio controls src={m.content} className="max-w-[240px]" />
-                    ) : m.type === "video" ? (
-                      <video controls src={m.content} className="max-w-[240px] max-h-[180px] rounded-2xl" />
                     ) : (
                       <span className="break-words whitespace-pre-wrap">
                         {m.content}
@@ -1095,9 +1082,6 @@ export default function GroupChat() {
           )}
           {pendingMedia.type === "audio" && (
             <audio controls src={pendingMedia.previewUrl} className="flex-1 h-10 min-w-0" />
-          )}
-          {pendingMedia.type === "video" && (
-            <video controls src={pendingMedia.previewUrl} className="h-16 max-w-[140px] rounded-xl object-cover shrink-0" />
           )}
           <div className="ml-auto flex items-center gap-2 shrink-0">
             <button onClick={cancelPending} disabled={sendingMedia} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
@@ -1148,12 +1132,6 @@ export default function GroupChat() {
                   ⏹ 녹음 중지
                 </button>
               )}
-              <button
-                onClick={() => { videoInputRef.current?.click(); setShowMediaMenu(false); }}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
-              >
-                🎥 비디오
-              </button>
             </div>
           )}
         </div>
@@ -1168,20 +1146,6 @@ export default function GroupChat() {
             if (f) {
               const url = URL.createObjectURL(f);
               setPendingMedia({ type: "image", file: f, previewUrl: url });
-            }
-            e.target.value = "";
-          }}
-        />
-        <input
-          type="file"
-          ref={videoInputRef}
-          accept="video/*"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) {
-              const url = URL.createObjectURL(f);
-              setPendingMedia({ type: "video", file: f, previewUrl: url });
             }
             e.target.value = "";
           }}
