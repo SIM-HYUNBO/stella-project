@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,10 +23,13 @@ export default function SignupPage() {
     if (password !== confirmPassword) { setError("비밀번호가 일치하지 않아요."); return; }
     setLoading(true);
     try {
+      const nicknameSnap = await getDocs(query(collection(db, "users"), where("nickname", "==", nickname.trim())));
+      if (!nicknameSnap.empty) { setError("이미 사용 중인 닉네임이에요."); setLoading(false); return; }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       await setDoc(doc(db, "users", user.uid), {
-        email, nickname, birth,
+        email, nickname: nickname.trim(), birth,
         phone: phone.replace(/[^0-9]/g, ""),
         createdAt: serverTimestamp(),
       });
