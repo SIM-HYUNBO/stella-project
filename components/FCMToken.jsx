@@ -7,7 +7,7 @@ import { getFirebaseMessaging } from "@/app/firebase";
 export default function FCMToken() {
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (Notification.permission !== "granted") return;
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
 
     let unsubscribe = null;
 

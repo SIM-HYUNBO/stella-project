@@ -9,7 +9,7 @@ export default function BirthdayNotification() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
-      if (Notification.permission !== "granted") return;
+      if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
 
       const today = new Date();
       const todayKey = `${today.getMonth() + 1}-${today.getDate()}`;
