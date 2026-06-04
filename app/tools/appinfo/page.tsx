@@ -1,9 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { db } from "@/app/firebase";
+import { watchAuthState } from "@/app/authService";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+
+type Notice = { id: string; title: string; content: string; createdAt?: any };
 
 export default function AppInfoPage() {
   const router = useRouter();
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [nickname, setNickname] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = watchAuthState((user: any) => {
+      setNickname(user?.displayName ?? null);
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      setNotices(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Notice)));
+    });
+    return () => unsub();
+  }, []);
+
+  const toggle = (id: string) => {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const formatDate = (ts: any) => {
+    if (!ts) return "";
+    const d = ts?.toDate ? ts.toDate() : new Date(ts);
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+  };
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -15,6 +49,14 @@ export default function AppInfoPage() {
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[#3d1f00] text-base">앱 정보</span>
+          {nickname === "관리자" && (
+            <button
+              onClick={() => router.push("/admin/notice")}
+              className="ml-auto text-xs font-black text-orange-400 bg-orange-50 px-3 py-1.5 rounded-xl"
+            >
+              관리
+            </button>
+          )}
         </div>
 
         <div className="px-5 pt-8 pb-16 space-y-5">
@@ -37,7 +79,7 @@ export default function AppInfoPage() {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-xl">📦</div>
                 <span className="font-semibold text-[#3d1f00] text-sm">버전</span>
               </div>
-              <span className="text-[#c09070] text-sm font-bold bg-orange-50 px-3 py-1 rounded-full">v0.1.0</span>
+              <span className="text-[#c09070] text-sm font-bold bg-orange-50 px-3 py-1 rounded-full">v0.2.2</span>
             </div>
 
             <button onClick={() => router.push("/tools/contact")}
@@ -50,6 +92,43 @@ export default function AppInfoPage() {
             </button>
           </div>
 
+          {/* 공지사항 */}
+          <div className="rounded-[24px] bg-white border border-gray-100 shadow-[0_4px_20px_rgba(255,150,80,0.1)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-orange-50 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-xl">📢</div>
+              <span className="font-black text-[#3d1f00] text-sm">공지사항</span>
+            </div>
+
+            {notices.length === 0 ? (
+              <div className="px-5 py-6 text-center text-sm text-gray-400">등록된 공지가 없어요.</div>
+            ) : (
+              <div className="divide-y divide-orange-50">
+                {notices.map((n) => (
+                  <div key={n.id}>
+                    <button
+                      onClick={() => toggle(n.id)}
+                      className="w-full px-5 py-4 flex items-center justify-between active:bg-orange-50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="font-semibold text-[#3d1f00] text-sm truncate">{n.title}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{formatDate(n.createdAt)}</p>
+                      </div>
+                      <span className="text-orange-300 text-lg ml-3 shrink-0 transition-transform duration-200"
+                        style={{ display: "inline-block", transform: expanded[n.id] ? "rotate(180deg)" : "rotate(0deg)" }}>
+                        ▼
+                      </span>
+                    </button>
+                    {expanded[n.id] && (
+                      <div className="px-5 pb-4 text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+                        {n.content}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* 태그라인 */}
           <p className="text-center text-sm text-[#d4a57a] font-medium pt-4">✦ Made with 🧡 by WAGIE Team ✦</p>
 
@@ -57,8 +136,6 @@ export default function AppInfoPage() {
       </div>
 
       <style>{`
-        @keyframes floatA { 0%{transform:translate(0,0)} 100%{transform:translate(-30px,40px)} }
-        @keyframes floatB { 0%{transform:translate(0,0)} 100%{transform:translate(40px,-30px)} }
         @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
       `}</style>
     </main>
