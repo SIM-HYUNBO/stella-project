@@ -87,6 +87,8 @@ export default function MeetingRoomPage() {
     blob?: Blob;
     previewUrl: string;
   } | null>(null);
+  const [editingRoomName, setEditingRoomName] = useState(false);
+  const [newRoomNameEdit, setNewRoomNameEdit] = useState("");
   const [showTopicEdit, setShowTopicEdit] = useState(false);
   const [topicInput, setTopicInput] = useState("");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
@@ -301,6 +303,12 @@ export default function MeetingRoomPage() {
     }
   };
 
+  const saveRoomName = async () => {
+    if (!currentRoom || !newRoomNameEdit.trim()) return;
+    await updateDoc(doc(db, "meeting_rooms", currentRoom.id), { name: newRoomNameEdit.trim() });
+    setEditingRoomName(false);
+  };
+
   const createRoom = async () => {
     if (!newRoomName.trim() || !nickname) return;
     await addDoc(collection(db, "meeting_rooms"), {
@@ -500,9 +508,7 @@ export default function MeetingRoomPage() {
       {/* 헤더 */}
       <div className="px-4 py-3 border-b border-gray-100 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          {isMobile && (
-            <button onClick={() => setCurrentRoom(null)} className="text-gray-500">←</button>
-          )}
+          <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
 
           <div className="relative shrink-0 group">
             {currentRoom?.profileImage ? (
@@ -533,7 +539,30 @@ export default function MeetingRoomPage() {
           </div>
 
           <div>
-            <div className="font-bold text-gray-800">{currentRoom?.name}</div>
+            {editingRoomName ? (
+              <div className="flex items-center gap-1">
+                <input
+                  autoFocus
+                  value={newRoomNameEdit}
+                  onChange={(e) => setNewRoomNameEdit(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") saveRoomName(); if (e.key === "Escape") setEditingRoomName(false); }}
+                  className="h-7 px-2 rounded-lg border border-orange-300 text-sm outline-none text-gray-800 w-32"
+                />
+                <button onClick={saveRoomName} className="text-xs text-orange-500 font-bold px-2 py-1 bg-orange-50 rounded-lg">저장</button>
+                <button onClick={() => setEditingRoomName(false)} className="text-xs text-gray-400 px-1">✕</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setNewRoomNameEdit(currentRoom?.name || ""); setEditingRoomName(true); }}
+                className="font-bold text-gray-800 hover:text-orange-500 transition text-left flex items-center gap-1"
+              >
+                {currentRoom?.name}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            )}
             <div className="text-xs text-gray-400">멤버 {currentRoom?.members.length}명</div>
           </div>
         </div>
@@ -959,44 +988,21 @@ export default function MeetingRoomPage() {
     </div>
   );
 
-  if (isMobile) {
-    if (currentRoom) {
-      return (
-        <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
-          {renderRoom()}
-          {renderInviteModal()}
-        </div>
-      );
-    }
+  if (currentRoom) {
     return (
-      <PageContainer>
-        <div className="flex flex-col">
-          {renderRoomList()}
-          {renderInviteModal()}
-        </div>
-      </PageContainer>
+      <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
+        {renderRoom()}
+        {renderInviteModal()}
+      </div>
     );
   }
 
   return (
     <PageContainer>
-      <div className="h-screen flex overflow-hidden bg-gray-50 rounded-none md:rounded-3xl shadow-xl">
-        <div className="w-[320px] border-r border-orange-100">
-          {renderRoomList()}
-        </div>
-        <div className="flex-1 flex flex-col">
-          {currentRoom ? (
-            renderRoom()
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
-              <div className="text-7xl mb-5">📋</div>
-              <div className="text-2xl font-bold text-gray-700">회의를 시작해봐요</div>
-              <div className="text-gray-400 mt-2">왼쪽에서 회의방을 선택해주세요</div>
-            </div>
-          )}
-        </div>
+      <div className="flex flex-col">
+        {renderRoomList()}
+        {renderInviteModal()}
       </div>
-      {renderInviteModal()}
     </PageContainer>
   );
 }

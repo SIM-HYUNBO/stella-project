@@ -1061,16 +1061,12 @@ export default function Chat() {
       {currentChatUser && (
         <div className="px-4 py-3 border-b border-gray-100 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            {isMobile && (
-              <button
-                onClick={() =>
-                  setCurrentChatUser(null)
-                }
-                className="text-gray-500"
-              >
-                ←
-              </button>
-            )}
+            <button
+              onClick={() => setCurrentChatUser(null)}
+              className="text-gray-500 text-lg px-1"
+            >
+              ←
+            </button>
 
             <div className="relative">
               {currentChatUser.profileImage ? (
@@ -1617,21 +1613,6 @@ export default function Chat() {
     </div>
   );
 
-  if (isMobile) {
-    if (currentChatUser) {
-      return (
-        <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
-          {renderChat()}
-        </div>
-      );
-    }
-    return (
-      <PageContainer>
-        <div className="flex flex-col">{renderUserList()}</div>
-      </PageContainer>
-    );
-  }
-
   if (!authReady) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
@@ -1640,9 +1621,33 @@ export default function Chat() {
 
   const pendingRequest = friendRequests[0] ?? null;
 
+  // 채팅 중: 모바일·데스크탑 모두 fixed inset-0 (PageContainer p-4 오버플로우 문제 방지)
+  if (currentChatUser) {
+    return (
+      <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
+        {pendingRequest && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
+              <div className="text-center">
+                <div className="text-2xl mb-2">👋</div>
+                <div className="font-bold text-gray-800 text-base">
+                  {pendingRequest.fromNickname || pendingRequest.from}님이 친구를 요청했어요
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
+                <button onClick={() => rejectFriendRequest(pendingRequest)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold">거절</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {renderChat()}
+      </div>
+    );
+  }
+
   return (
     <PageContainer>
-      {/* 친구 요청 팝업 */}
       {pendingRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
@@ -1653,53 +1658,16 @@ export default function Chat() {
               </div>
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={() => acceptFriendRequest(pendingRequest)}
-                className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold"
-              >
-                수락
-              </button>
-              <button
-                onClick={() => rejectFriendRequest(pendingRequest)}
-                className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold"
-              >
-                거절
-              </button>
+              <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
+              <button onClick={() => rejectFriendRequest(pendingRequest)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold">거절</button>
             </div>
             {friendRequests.length > 1 && (
-              <div className="text-center text-xs text-gray-400">
-                외 {friendRequests.length - 1}건 더 있어요
-              </div>
+              <div className="text-center text-xs text-gray-400">외 {friendRequests.length - 1}건 더 있어요</div>
             )}
           </div>
         </div>
       )}
-
-      <div className="h-screen flex overflow-hidden bg-gray-50 rounded-none md:rounded-3xl shadow-xl">
-        <div className="w-[320px] border-r border-orange-100">
-          {renderUserList()}
-        </div>
-
-        <div className="flex-1 flex flex-col">
-          {currentChatUser ? (
-            renderChat()
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
-              <div className="text-7xl mb-5">
-                💬
-              </div>
-
-              <div className="text-2xl font-bold text-gray-700">
-                대화를 시작해봐요
-              </div>
-
-              <div className="text-gray-400 mt-2">
-                왼쪽에서 채팅 상대를 선택해주세요
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <div className="flex flex-col">{renderUserList()}</div>
     </PageContainer>
   );
 }
