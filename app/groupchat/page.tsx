@@ -118,6 +118,12 @@ export default function GroupChat() {
 
   const [showMediaMenu, setShowMediaMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [pendingMedia, setPendingMedia] = useState<{
+    type: "image" | "audio" | "video";
+    file?: File;
+    blob?: Blob;
+    previewUrl: string;
+  } | null>(null);
 
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
@@ -381,10 +387,11 @@ export default function GroupChat() {
       const mr = new MediaRecorder(stream);
       audioChunksRef.current = [];
       mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
-      mr.onstop = async () => {
+      mr.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        await sendAudio(blob);
+        const url = URL.createObjectURL(blob);
+        setPendingMedia({ type: "audio", blob, previewUrl: url });
       };
       mr.start();
       mediaRecorderRef.current = mr;
@@ -396,6 +403,21 @@ export default function GroupChat() {
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
+  };
+
+  const cancelPending = () => {
+    if (pendingMedia) URL.revokeObjectURL(pendingMedia.previewUrl);
+    setPendingMedia(null);
+  };
+
+  const sendPendingMedia = async () => {
+    if (!pendingMedia) return;
+    const { type, file, blob, previewUrl } = pendingMedia;
+    setPendingMedia(null);
+    URL.revokeObjectURL(previewUrl);
+    if (type === "image" && file) await sendImage(file);
+    else if (type === "audio" && blob) await sendAudio(blob);
+    else if (type === "video" && file) await sendVideo(file);
   };
 
   const createRoom = async () => {
@@ -1062,9 +1084,34 @@ export default function GroupChat() {
         <div className="px-4 py-2 bg-red-50 border-t border-red-100 flex items-center gap-2 shrink-0 animate-pulse">
           <div className="w-2 h-2 rounded-full bg-red-500" />
           <span className="text-xs text-red-500 font-bold">녹음 중...</span>
-          <button onClick={stopRecording} className="ml-auto text-xs text-red-500 font-bold px-3 py-1 bg-red-100 rounded-xl">중지</button>
+          <button onClick={stopRecording} className="ml-auto text-xs text-red-500 font-bold px-3 py-1 bg-red-100 rounded-xl">■ 중지</button>
         </div>
       )}
+
+      {pendingMedia && (
+        <div className="px-3 py-2 bg-orange-50 border-t border-orange-100 flex items-center gap-3 shrink-0">
+          {pendingMedia.type === "image" && (
+            <img src={pendingMedia.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
+          )}
+          {pendingMedia.type === "audio" && (
+            <audio controls src={pendingMedia.previewUrl} className="flex-1 h-10 min-w-0" />
+          )}
+          {pendingMedia.type === "video" && (
+            <video controls src={pendingMedia.previewUrl} className="h-16 max-w-[140px] rounded-xl object-cover shrink-0" />
+          )}
+          <div className="ml-auto flex items-center gap-2 shrink-0">
+            <button onClick={cancelPending} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50">✕</button>
+            <button
+              onClick={sendPendingMedia}
+              disabled={imgUploading}
+              className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white flex items-center justify-center shadow-md disabled:opacity-50"
+            >
+              {imgUploading ? <span className="text-xs">...</span> : "➤"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
         <div className="relative shrink-0">
           <button
@@ -1116,7 +1163,10 @@ export default function GroupChat() {
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            if (f) sendImage(f);
+            if (f) {
+              const url = URL.createObjectURL(f);
+              setPendingMedia({ type: "image", file: f, previewUrl: url });
+            }
             e.target.value = "";
           }}
         />
@@ -1127,7 +1177,10 @@ export default function GroupChat() {
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            if (f) sendVideo(f);
+            if (f) {
+              const url = URL.createObjectURL(f);
+              setPendingMedia({ type: "video", file: f, previewUrl: url });
+            }
             e.target.value = "";
           }}
         />
