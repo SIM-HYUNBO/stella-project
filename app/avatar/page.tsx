@@ -503,6 +503,22 @@ export default function Chat() {
     return () => unsub();
   }, [uid, users]);
 
+  // 1:1 채팅 읽지 않은 메시지 수
+  useEffect(() => {
+    if (!nickname) return;
+    const q = query(collection(db, "messages"), where("to", "==", nickname));
+    return onSnapshot(q, (snap) => {
+      const counts: Record<string, number> = {};
+      snap.docs.forEach((d) => {
+        const data = d.data();
+        if (!(data.readBy || []).includes(nickname)) {
+          counts[data.from] = (counts[data.from] || 0) + 1;
+        }
+      });
+      setUnreadCounts(counts);
+    });
+  }, [nickname]);
+
   useEffect(() => {
     if (!currentChatUser || !nickname) {
       setPeerTyping(false);

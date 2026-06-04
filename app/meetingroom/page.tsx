@@ -137,7 +137,7 @@ export default function MeetingRoomPage() {
   useEffect(() => {
     if (!nickname || rooms.length === 0) return;
     const unsubs = rooms.map((room) => {
-      const q = query(collection(db, "meeting_rooms", room.id, "messages"), orderBy("createdAt", "asc"));
+      const q = query(collection(db, "meeting_rooms", room.id, "messages"));
       return onSnapshot(q, (snap) => {
         const count = snap.docs.filter((d) => {
           const data = d.data();
