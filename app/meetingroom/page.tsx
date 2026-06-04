@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
-import { db } from "@/app/firebase";
+import { db, storage } from "@/app/firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { watchAuthState } from "../authService";
 
 import {
@@ -51,7 +52,7 @@ type MeetingMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image" | "audio" | "urgent";
+  type?: "text" | "image" | "urgent";
   createdAt?: any;
   readBy?: string[];
 };
@@ -77,15 +78,8 @@ export default function MeetingRoomPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
-  const [showMediaMenu, setShowMediaMenu] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [sendingMedia, setSendingMedia] = useState(false);
-  const [pendingMedia, setPendingMedia] = useState<{
-    type: "image" | "audio";
-    file?: File;
-    blob?: Blob;
-    previewUrl: string;
-  } | null>(null);
+  const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [sendingImage, setSendingImage] = useState(false);
   const [editingRoomName, setEditingRoomName] = useState(false);
   const [newRoomNameEdit, setNewRoomNameEdit] = useState("");
   const [showTopicEdit, setShowTopicEdit] = useState(false);
@@ -94,8 +88,6 @@ export default function MeetingRoomPage() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
@@ -231,65 +223,22 @@ export default function MeetingRoomPage() {
     });
   }, [nickname]);
 
-  const blobToBase64 = (blob: Blob): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
-  const sendAudio = async (blob: Blob) => {
-    if (!nickname || !currentRoom) return;
-    const base64 = await blobToBase64(blob);
-    await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
-      from: nickname, content: base64, type: "audio",
-      createdAt: serverTimestamp(), readBy: [nickname],
-    });
+  const cancelPendingImage = () => {
+    if (pendingImage) URL.revokeObjectURL(pendingImage.previewUrl);
+    setPendingImage(null);
   };
 
-  const startRecording = async () => {
+  const sendPendingImage = async () => {
+    if (!pendingImage || sendingImage) return;
+    setSendingImage(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-      mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
-      mr.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const url = URL.createObjectURL(blob);
-        setPendingMedia({ type: "audio", blob, previewUrl: url });
-      };
-      mr.start();
-      mediaRecorderRef.current = mr;
-      setIsRecording(true);
-      setShowMediaMenu(false);
-    } catch { alert("마이크 권한이 필요해요"); }
-  };
-
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-  };
-
-  const cancelPending = () => {
-    if (pendingMedia) URL.revokeObjectURL(pendingMedia.previewUrl);
-    setPendingMedia(null);
-  };
-
-  const sendPendingMedia = async () => {
-    if (!pendingMedia || sendingMedia) return;
-    setSendingMedia(true);
-    try {
-      const { type, file, blob, previewUrl } = pendingMedia;
-      if (type === "image" && file) await sendImage(file);
-      else if (type === "audio" && blob) await sendAudio(blob);
-      URL.revokeObjectURL(previewUrl);
-      setPendingMedia(null);
+      await sendImage(pendingImage.file);
+      URL.revokeObjectURL(pendingImage.previewUrl);
+      setPendingImage(null);
     } catch {
       alert("전송 실패. 다시 시도해주세요.");
     } finally {
-      setSendingMedia(false);
+      setSendingImage(false);
     }
   };
 
@@ -673,8 +622,6 @@ export default function MeetingRoomPage() {
                         className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
                         onClick={() => window.open(m.content, "_blank")}
                       />
-                    ) : m.type === "audio" ? (
-                      <audio controls src={m.content} className="max-w-[240px]" />
                     ) : (
                       <span className="break-words whitespace-pre-wrap">{m.content}</span>
                     )}
@@ -697,30 +644,17 @@ export default function MeetingRoomPage() {
       </div>
 
       {/* 입력창 */}
-      {isRecording && (
-        <div className="px-4 py-2 bg-red-50 border-t border-red-100 flex items-center gap-2 shrink-0 animate-pulse">
-          <div className="w-2 h-2 rounded-full bg-red-500" />
-          <span className="text-xs text-red-500 font-bold">녹음 중...</span>
-          <button onClick={stopRecording} className="ml-auto text-xs text-red-500 font-bold px-3 py-1 bg-red-100 rounded-xl">■ 중지</button>
-        </div>
-      )}
-
-      {pendingMedia && (
+      {pendingImage && (
         <div className="px-3 py-2 bg-orange-50 border-t border-orange-100 flex items-center gap-3 shrink-0">
-          {pendingMedia.type === "image" && (
-            <img src={pendingMedia.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
-          )}
-          {pendingMedia.type === "audio" && (
-            <audio controls src={pendingMedia.previewUrl} className="flex-1 h-10 min-w-0" />
-          )}
+          <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPending} disabled={sendingMedia} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
-              onClick={sendPendingMedia}
-              disabled={sendingMedia}
+              onClick={sendPendingImage}
+              disabled={sendingImage}
               className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white flex items-center justify-center shadow-md disabled:opacity-50"
             >
-              {sendingMedia
+              {sendingImage
                 ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 : "➤"}
             </button>
@@ -729,43 +663,14 @@ export default function MeetingRoomPage() {
       )}
 
       <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
-        <div className="relative shrink-0">
-          <button
-            onClick={() => !sendingMedia && setShowMediaMenu((p) => !p)}
-            disabled={sendingMedia}
-            className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-xl font-bold transition shrink-0 ${
-              sendingMedia ? "animate-pulse bg-orange-50 text-orange-300" : "bg-orange-50 hover:bg-orange-100 text-orange-400"
-            }`}
-          >
-            +
-          </button>
-          {showMediaMenu && (
-            <div className="absolute bottom-full left-0 mb-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 min-w-[130px]">
-              <button
-                onClick={() => { imageInputRef.current?.click(); setShowMediaMenu(false); }}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
-              >
-                📷 사진
-              </button>
-              {!isRecording ? (
-                <button
-                  onClick={startRecording}
-                  className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 text-gray-700 font-medium"
-                >
-                  🎙 녹음
-                </button>
-              ) : (
-                <button
-                  onClick={() => { stopRecording(); setShowMediaMenu(false); }}
-                  className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 text-red-500 font-medium animate-pulse"
-                >
-                  ⏹ 녹음 중지
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
+        <button
+          onClick={() => imageInputRef.current?.click()}
+          className="w-10 h-10 rounded-[12px] bg-orange-50 hover:bg-orange-100 text-orange-400 flex items-center justify-center transition shrink-0"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
         <input
           type="file"
           ref={imageInputRef}
@@ -775,7 +680,7 @@ export default function MeetingRoomPage() {
             const f = e.target.files?.[0];
             if (f) {
               const url = URL.createObjectURL(f);
-              setPendingMedia({ type: "image", file: f, previewUrl: url });
+              setPendingImage({ file: f, previewUrl: url });
             }
             e.target.value = "";
           }}
