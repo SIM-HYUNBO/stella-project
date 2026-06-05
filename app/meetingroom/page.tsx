@@ -52,7 +52,7 @@ type MeetingMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image" | "urgent";
+  type?: "text" | "image" | "urgent" | "audio";
   createdAt?: any;
   readBy?: string[];
 };
@@ -69,7 +69,9 @@ export default function MeetingRoomPage() {
   const [currentRoom, setCurrentRoom] = useState<MeetingRoom | null>(null);
   const [messages, setMessages] = useState<MeetingMessage[]>([]);
   const [input, setInput] = useState("");
-  const [isListening, setIsListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
+  const [sendingAudio, setSendingAudio] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
   const [showInvite, setShowInvite] = useState(false);
@@ -88,6 +90,9 @@ export default function MeetingRoomPage() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<any>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
@@ -262,21 +267,66 @@ export default function MeetingRoomPage() {
     setShowCreate(false);
   };
 
-  const startVoice = () => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return alert("이 브라우저는 음성 인식을 지원하지 않아요.");
-    const recognition = new SR();
-    recognition.lang = "ko-KR";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-    recognition.onresult = (e: any) => {
-      const text = e.results[0][0].transcript;
-      setInput((prev) => prev + text);
-    };
-    recognition.start();
+  const toggleRecording = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      if (recordTimerRef.current) clearTimeout(recordTimerRef.current);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "audio/webm";
+      const mr = new MediaRecorder(stream, { mimeType });
+      audioChunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        setPendingAudio({ blob, url: URL.createObjectURL(blob) });
+        setIsRecording(false);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setIsRecording(true);
+      recordTimerRef.current = setTimeout(() => mr.stop(), 30000);
+    } catch {
+      alert("마이크 권한이 필요해요.");
+    }
+  };
+
+  const cancelAudio = () => {
+    if (pendingAudio) URL.revokeObjectURL(pendingAudio.url);
+    setPendingAudio(null);
+  };
+
+  const sendAudio = async () => {
+    if (!pendingAudio || sendingAudio || !nickname || !currentRoom) return;
+    setSendingAudio(true);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(pendingAudio.blob);
+        reader.onloadend = async () => {
+          try {
+            await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
+              from: nickname,
+              content: reader.result as string,
+              type: "audio",
+              createdAt: serverTimestamp(),
+              readBy: [nickname],
+            });
+            URL.revokeObjectURL(pendingAudio.url);
+            setPendingAudio(null);
+            resolve();
+          } catch (e) { reject(e); }
+        };
+        reader.onerror = reject;
+      });
+    } catch {
+      alert("전송 실패. 다시 시도해주세요.");
+    } finally {
+      setSendingAudio(false);
+    }
   };
 
   const sendMessage = async () => {
@@ -618,6 +668,8 @@ export default function MeetingRoomPage() {
                         className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
                         onClick={() => window.open(m.content, "_blank")}
                       />
+                    ) : m.type === "audio" ? (
+                      <audio src={m.content} controls className="max-w-[220px] rounded-xl" />
                     ) : (
                       <span className="break-words whitespace-pre-wrap">{m.content}</span>
                     )}
@@ -638,6 +690,18 @@ export default function MeetingRoomPage() {
         })}
         <div ref={messagesEndRef} />
       </div>
+
+      {pendingAudio && (
+        <div className="px-3 py-2 bg-orange-50 border-t border-orange-100 flex items-center gap-2 shrink-0">
+          <span className="text-lg shrink-0">🎵</span>
+          <span className="text-xs font-black text-orange-500 shrink-0">대기중</span>
+          <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
+          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
+          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white flex items-center justify-center shadow-md shrink-0 disabled:opacity-50">
+            {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
+          </button>
+        </div>
+      )}
 
       {/* 입력창 */}
       {pendingImage && (
@@ -691,8 +755,8 @@ export default function MeetingRoomPage() {
           }}
         />
         <button
-          onClick={startVoice}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isListening ? "bg-red-100 text-red-500 animate-pulse" : "bg-orange-50 hover:bg-orange-100 text-orange-400"}`}
+          onClick={toggleRecording}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-orange-50 hover:bg-orange-100 text-orange-400"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
