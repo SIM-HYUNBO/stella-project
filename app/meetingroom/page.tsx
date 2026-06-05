@@ -661,9 +661,9 @@ export default function MeetingRoomPage() {
       <div className="px-3 py-2 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
-          className="w-9 h-9 rounded-[12px] bg-orange-50 hover:bg-orange-100 text-orange-400 flex items-center justify-center transition shrink-0"
+          className="w-10 h-10 rounded-[12px] bg-orange-50 hover:bg-orange-100 text-orange-400 flex items-center justify-center transition shrink-0"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
           </svg>
         </button>
@@ -682,7 +682,7 @@ export default function MeetingRoomPage() {
           }}
         />
         <input
-          className="flex-1 h-9 rounded-[14px] bg-gray-50 border border-gray-100 px-3 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
           placeholder="메시지 입력"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -692,7 +692,7 @@ export default function MeetingRoomPage() {
         />
         <button
           onClick={startVoice}
-          className={`w-9 h-9 rounded-[12px] flex items-center justify-center transition shrink-0 ${isListening ? "bg-red-100 text-red-500 animate-pulse" : "bg-orange-50 hover:bg-orange-100 text-orange-400"}`}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isListening ? "bg-red-100 text-red-500 animate-pulse" : "bg-orange-50 hover:bg-orange-100 text-orange-400"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -704,7 +704,7 @@ export default function MeetingRoomPage() {
 
         <button
           onClick={sendMessage}
-          className="w-9 h-9 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-[0_4px_14px_rgba(255,160,50,0.35)] hover:scale-105 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-[0_4px_14px_rgba(255,160,50,0.35)] hover:scale-105 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
