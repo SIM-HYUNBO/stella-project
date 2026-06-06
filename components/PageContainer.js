@@ -92,9 +92,20 @@ const PageContainer = ({ children }) => {
 
   const createRipple = (clientX, clientY) => {
     const id = Date.now() + Math.random();
-    setRipples((prev) => [...prev, { id, x: clientX, y: clientY }]);
+
+    setRipples((prev) => [
+      ...prev,
+      {
+        id,
+        x: clientX,
+        y: clientY,
+      },
+    ]);
+
     setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== id));
+      setRipples((prev) =>
+        prev.filter((r) => r.id !== id)
+      );
     }, 900);
   };
 
@@ -103,38 +114,39 @@ const PageContainer = ({ children }) => {
   return (
     <div
       className="relative flex w-full min-h-screen overflow-x-hidden"
-      onClick={(e) => createRipple(e.clientX, e.clientY)}
+      onClick={(e) =>
+        createRipple(e.clientX, e.clientY)
+      }
       onTouchStart={(e) => {
         const touch = e.touches[0];
+
         if (!touch) return;
-        createRipple(touch.clientX, touch.clientY);
+
+        createRipple(
+          touch.clientX,
+          touch.clientY
+        );
       }}
     >
-      <div className="flex-1 w-full relative pb-16">
+      <div className="flex-1 w-full relative pb-12">
         <Header />
+
         <main className="w-full p-4 relative z-10">
           {children}
         </main>
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#FFFBF0]/98 backdrop-blur-sm border-t border-amber-100 flex items-center justify-around px-1 h-16 shadow-[0_-4px_20px_rgba(120,53,15,0.08)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 flex items-center justify-around px-2 h-12 shadow-[0_-2px_16px_rgba(14,165,233,0.08)] ">
         {NAV_ITEMS.map(({ label, path, icon }) => {
           const active = pathname === path || pathname?.startsWith(path + "/");
           return (
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all ${
-                active ? "text-amber-700" : "text-stone-300"
-              }`}
+              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-sky-500" : "text-gray-400"}`}
             >
-              <div className={`${active ? "bg-amber-50 rounded-xl px-3 py-1" : "px-3 py-1"} transition-all`}>
-                {icon(active)}
-              </div>
-              <span className={`text-[9px] font-bold ${active ? "text-amber-700" : "text-stone-400"}`}>
-                {label}
-              </span>
+              {icon(false)}
             </button>
           );
         })}
@@ -146,7 +158,10 @@ const PageContainer = ({ children }) => {
           <span
             key={r.id}
             className="screen-ripple"
-            style={{ left: r.x, top: r.y }}
+            style={{
+              left: r.x,
+              top: r.y,
+            }}
           />
         ))}
       </div>
@@ -154,18 +169,51 @@ const PageContainer = ({ children }) => {
       <style jsx>{`
         .screen-ripple {
           position: fixed;
+
           width: 20px;
           height: 20px;
+
           border-radius: 9999px;
-          border: 2px solid rgba(180, 100, 20, 0.35);
+
+          border: 2px solid
+            rgba(255, 255, 255, 0.75);
+
           transform: translate(-50%, -50%);
-          animation: ripple 0.9s ease-out forwards;
-          box-shadow: 0 0 16px rgba(180, 100, 20, 0.15);
+
+          animation: ripple 0.9s ease-out
+            forwards;
+
+          box-shadow:
+            0 0 18px
+              rgba(
+                255,
+                255,
+                255,
+                0.45
+              ),
+            0 0 40px
+              rgba(
+                255,
+                255,
+                255,
+                0.2
+              );
         }
 
         @keyframes ripple {
-          0% { width: 10px; height: 10px; opacity: 0.8; }
-          100% { width: 200px; height: 200px; opacity: 0; }
+          0% {
+            width: 10px;
+            height: 10px;
+
+            opacity: 0.95;
+          }
+
+          100% {
+            width: 180px;
+            height: 180px;
+
+            opacity: 0;
+          }
         }
       `}</style>
     </div>

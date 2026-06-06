@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -122,7 +122,7 @@ function SwipeUserItem({
         {/* 즐겨찾기 */}
         <button
           onClick={(e) => { e.stopPropagation(); onFavorite(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-amber-500" : "bg-amber-400"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-sky-500" : "bg-amber-400"}`}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill={isFavorite ? "white" : "none"} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -153,7 +153,7 @@ function SwipeUserItem({
         {/* 숨기기 */}
         <button
           onClick={(e) => { e.stopPropagation(); onHide(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isHidden ? "bg-amber-100" : "bg-slate-400"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isHidden ? "bg-sky-200" : "bg-slate-400"}`}
         >
           {isHidden ? (
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -194,7 +194,7 @@ function SwipeUserItem({
 
       <div
         className={`relative z-10 px-3 py-3 bg-white cursor-pointer transition ${
-          isActive ? "bg-yellow-100" : "hover:bg-[#FFFBF0]"
+          isActive ? "bg-yellow-100" : "hover:bg-gray-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
@@ -1033,7 +1033,7 @@ export default function Chat() {
   };
 
   const renderChat = () => (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#FFFBF0]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
       {currentChatUser && (
         <div className="px-4 py-3 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -1198,8 +1198,8 @@ export default function Chat() {
                 )}
 
                 {m.replyTo && (
-                  <div className="mb-1 px-3 py-2 rounded-xl bg-amber-50 text-xs">
-                    <div className="font-semibold text-amber-700">
+                  <div className="mb-1 px-3 py-2 rounded-xl bg-sky-50 text-xs">
+                    <div className="font-semibold text-sky-600">
                       {m.replyTo.from}
                     </div>
 
@@ -1214,7 +1214,7 @@ export default function Chat() {
                 <div
                   className={`px-4 py-3 rounded-3xl text-sm ${
                     isMine
-                      ? "bg-amber-100 text-white rounded-br-md"
+                      ? "bg-sky-100 text-white rounded-br-md"
                       : "bg-white rounded-bl-md"
                   }`}
                   onContextMenu={(e) =>
@@ -1252,7 +1252,7 @@ export default function Chat() {
                             users.includes(
                               nickname
                             )
-                              ? "bg-amber-100 border-blue-300 text-blue-700"
+                              ? "bg-sky-100 border-blue-300 text-blue-700"
                               : "bg-white border-gray-200"
                           }`}
                         >
@@ -1271,7 +1271,7 @@ export default function Chat() {
                     const readByArr = m.readBy || [];
                     const unread = 2 - readByArr.length;
                     return unread > 0 ? (
-                      <span className="text-amber-700 font-bold">{unread}</span>
+                      <span className="text-sky-500 font-bold">{unread}</span>
                     ) : null;
                   })()}
                   {m.edited && <span>수정됨</span>}
@@ -1287,11 +1287,11 @@ export default function Chat() {
       </div>
 
       {replyTo && (
-        <div className="px-4 py-2 bg-amber-50 border-t flex items-center gap-3">
+        <div className="px-4 py-2 bg-sky-50 border-t flex items-center gap-3">
           <div className="w-1 h-10 rounded-full bg-blue-400" />
 
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-amber-700">
+            <div className="text-xs font-semibold text-sky-600">
               {replyTo.from}
             </div>
 
@@ -1315,11 +1315,11 @@ export default function Chat() {
         <div className="px-3 py-2 bg-white flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-[#FFFBF0] disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-amber-100 text-white flex items-center justify-center disabled:opacity-50"
+              className="w-10 h-10 rounded-[12px] bg-sky-100 text-white flex items-center justify-center disabled:opacity-50"
             >
               {sendingImage
                 ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1332,10 +1332,10 @@ export default function Chat() {
       {pendingAudio && (
         <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
           <span className="text-lg shrink-0">🎵</span>
-          <span className="text-xs font-black text-amber-700 shrink-0">대기중</span>
+          <span className="text-xs font-black text-sky-500 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
           <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-amber-100 text-white flex items-center justify-center shrink-0 disabled:opacity-50">
+          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-100 text-white flex items-center justify-center shrink-0 disabled:opacity-50">
             {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
@@ -1344,7 +1344,7 @@ export default function Chat() {
       <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-amber-50 hover:bg-amber-100 text-amber-700 flex items-center justify-center transition shrink-0"
+          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-100 text-sky-500 flex items-center justify-center transition shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1365,7 +1365,7 @@ export default function Chat() {
           }}
         />
         <input
-          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-amber-100 px-4 text-sm outline-none text-stone-800 placeholder:text-stone-400"
+          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-100 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
@@ -1376,7 +1376,7 @@ export default function Chat() {
 
         <button
           onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-amber-50 hover:bg-amber-100 text-amber-700"}`}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-100 text-sky-500"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -1388,7 +1388,7 @@ export default function Chat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-amber-100 text-white hover:scale-105 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-sky-100 text-white hover:scale-105 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
@@ -1421,7 +1421,7 @@ export default function Chat() {
             </div>
 
             <button
-              className="w-full px-4 py-3 text-left hover:bg-[#FFFBF0] text-sm"
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
               onClick={() => {
                 setReplyTo({
                   id: ctxMenu.msg.id,
@@ -1440,7 +1440,7 @@ export default function Chat() {
             {ctxMenu.isMine && (
               <>
                 <button
-                  className="w-full px-4 py-3 text-left hover:bg-[#FFFBF0] text-sm"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
                   onClick={() =>
                     editMessage(
                       ctxMenu.msgId
@@ -1469,7 +1469,7 @@ export default function Chat() {
   );
 
   const renderUserList = () => (
-    <div className="flex flex-col h-full bg-[#FFFBF0]">
+    <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4 flex items-center justify-between">
         <div>
           <div className="text-xl font-black bg-yellow-100">
@@ -1494,7 +1494,7 @@ export default function Chat() {
 
       <div className="px-3 py-3">
         <input
-          className="w-full h-11 rounded-[16px] bg-white border border-amber-100 px-4 text-sm outline-none text-stone-800 placeholder:text-stone-400"
+          className="w-full h-11 rounded-[16px] bg-white border border-sky-100 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="사용자 검색..."
           onChange={(e) => {}}
         />
@@ -1541,7 +1541,7 @@ export default function Chat() {
   // 채팅 중: 모바일·데스크탑 모두 fixed inset-0 (PageContainer p-4 오버플로우 문제 방지)
   if (currentChatUser) {
     return (
-      <div className="fixed inset-0 z-40 flex flex-col bg-[#FFFBF0]">
+      <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
         {pendingRequest && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-2xl p-6 w-72 flex flex-col gap-4">
@@ -1552,7 +1552,7 @@ export default function Chat() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-amber-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
+                <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-sky-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
                 <button onClick={() => rejectFriendRequest(pendingRequest)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold">거절</button>
               </div>
             </div>
@@ -1575,7 +1575,7 @@ export default function Chat() {
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-amber-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
+              <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-sky-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
               <button onClick={() => rejectFriendRequest(pendingRequest)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold">거절</button>
             </div>
             {friendRequests.length > 1 && (

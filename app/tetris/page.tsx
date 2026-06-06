@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const COLORS = [
   "bg-red-400", "bg-blue-400", "bg-green-400",
-  "bg-yellow-400", "bg-yellow-200", "bg-amber-100",
+  "bg-yellow-400", "bg-yellow-200", "bg-sky-200",
 ];
 
 const SHAPES = [
@@ -104,26 +104,26 @@ export default function DragBlockGame() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-[#FFFBF0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white sticky top-0">
         <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold text-lg">←</button>
-          <span className="font-black text-stone-800 text-base">🧩 블록 게임</span>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
+          <span className="font-black text-slate-800 text-base">🧩 블록 게임</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="rounded-[12px] bg-amber-100 px-4 py-1.5">
+          <div className="rounded-[12px] bg-sky-100 px-4 py-1.5">
             <p className="text-white font-black text-sm">{score}점</p>
           </div>
-          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold text-base">↺</button>
+          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-base">↺</button>
         </div>
       </div>
 
       <div className="relative z-10 flex flex-col lg:flex-row gap-6 items-center justify-center px-4 py-6">
         {/* 게임판 */}
         <div className="rounded-[24px] bg-white p-3">
-          <div className="grid grid-cols-8 gap-1 bg-amber-50 p-2 rounded-[16px]">
+          <div className="grid grid-cols-8 gap-1 bg-sky-50 p-2 rounded-[16px]">
             {board.map((row, r) =>
               row.map((cell, c) => (
                 <div key={`${r}-${c}`}
@@ -139,14 +139,14 @@ export default function DragBlockGame() {
         {/* 블록 선택 */}
         <div className="flex flex-col gap-4 w-full max-w-xs">
           <div className="rounded-[24px] bg-white px-5 py-4">
-            <p className="font-black text-stone-800 text-sm mb-4">블록 선택</p>
+            <p className="font-black text-slate-800 text-sm mb-4">블록 선택</p>
             <div className="flex flex-wrap gap-3">
               {blocks.map((block) => (
                 <div key={block.id} draggable onDragStart={() => setSelected(block)}
                   className={`p-3 rounded-[16px] border-2 cursor-grab active:cursor-grabbing transition-all ${
                     selected?.id === block.id
-                      ? "scale-105 bg-amber-50"
-                      : "border-amber-100 bg-white/60 hover:bg-amber-50"
+                      ? "scale-105 bg-sky-50"
+                      : "border-sky-100 bg-white/60 hover:bg-sky-50"
                   }`}>
                   <MiniShape shape={block.shape} color={block.color} />
                 </div>
@@ -155,16 +155,16 @@ export default function DragBlockGame() {
           </div>
 
           <div className="rounded-[24px] bg-white px-5 py-4 text-sm text-[#9d7060] leading-relaxed">
-            <p className="font-black text-stone-800 mb-1">사용법</p>
+            <p className="font-black text-slate-800 mb-1">사용법</p>
             블록을 드래그해서 게임판에 올려두세요. 가로 또는 세로로 한 줄을 채우면 지워져요!
           </div>
 
           {gameOver && (
             <div className="rounded-[24px] bg-white shadow-sm px-5 py-5 text-center">
               <p className="text-2xl font-black text-red-500 mb-1">GAME OVER</p>
-              <p className="text-sm text-amber-700 mb-4">최종 점수: {score}점</p>
+              <p className="text-sm text-sky-500 mb-4">최종 점수: {score}점</p>
               <button onClick={resetGame}
-                className="px-6 py-3 rounded-[16px] bg-amber-100 text-white font-black active:scale-95 transition-transform">
+                className="px-6 py-3 rounded-[16px] bg-sky-100 text-white font-black active:scale-95 transition-transform">
                 다시 시작
               </button>
             </div>

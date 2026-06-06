@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { db, auth } from "@/app/firebase";
@@ -79,17 +79,17 @@ export default function MeatChat() {
   };
 
   const stateColors: Record<string, string> = {
-    raw: "text-amber-700", grilling: "text-amber-700", perfect: "text-green-500", burn: "text-red-500",
+    raw: "text-sky-500", grilling: "text-sky-500", perfect: "text-green-500", burn: "text-red-500",
   };
 
   return (
     <main className="relative h-screen overflow-hidden flex flex-col">
-      <div className="fixed inset-0 bg-[#FFFBF0]" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 고기 영역 */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4">
         <div className="rounded-[28px] bg-white px-10 py-8 flex flex-col items-center gap-4">
-          <p className="font-black text-stone-800 text-lg">🥩 고기 굽기</p>
+          <p className="font-black text-slate-800 text-lg">🥩 고기 굽기</p>
 
           <div
             onClick={handleMeatClick}
@@ -113,7 +113,7 @@ export default function MeatChat() {
             </button>
           )}
 
-          <p className="text-[10px] text-amber-700 font-semibold">{nickname}</p>
+          <p className="text-[10px] text-sky-500 font-semibold">{nickname}</p>
         </div>
       </div>
 
@@ -121,8 +121,8 @@ export default function MeatChat() {
       <div className="relative z-10 h-44 overflow-y-auto bg-white px-4 py-3 space-y-1">
         {messages.map((m) => (
           <div key={m.id} className="text-sm">
-            <span className="font-black text-amber-700">{m.from}</span>
-            <span className="text-stone-800"> : {m.content}</span>
+            <span className="font-black text-sky-500">{m.from}</span>
+            <span className="text-slate-800"> : {m.content}</span>
           </div>
         ))}
         <div ref={chatEndRef} />
@@ -131,7 +131,7 @@ export default function MeatChat() {
       {/* 입력 */}
       <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white shrink-0">
         <input
-          className="flex-1 bg-[#FFFBF0] rounded-[16px] px-4 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 outline-none"
+          className="flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -139,7 +139,7 @@ export default function MeatChat() {
         />
         <button onClick={sendMessage}
           className={`w-11 h-11 rounded-[14px] text-white font-black active:scale-95 transition-transform flex items-center justify-center ${
-            state === "perfect" ? "bg-amber-100" : "bg-gray-300"
+            state === "perfect" ? "bg-sky-100" : "bg-gray-300"
           }`}>
           ▶
         </button>
