@@ -36,8 +36,13 @@ export default function SignupPage() {
       await updateProfile(user, { displayName: nickname });
       alert(`${nickname}님 회원가입 완료`);
       router.push("/home");
-    } catch {
-      setError("회원가입 중 오류가 발생했어요.");
+    } catch (err: any) {
+      const code = err?.code ?? "";
+      if (code === "auth/email-already-in-use") setError("이미 사용 중인 이메일이에요.");
+      else if (code === "auth/weak-password") setError("비밀번호는 6자 이상이어야 해요.");
+      else if (code === "auth/invalid-email") setError("이메일 형식이 올바르지 않아요.");
+      else if (code === "auth/network-request-failed") setError("네트워크 오류가 발생했어요. 다시 시도해주세요.");
+      else setError(`오류: ${code || err?.message || "알 수 없는 오류"}`);
     } finally {
       setLoading(false);
     }
@@ -60,7 +65,7 @@ export default function SignupPage() {
 
         {/* 브랜드 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg- mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100 mb-4">
             <span className="text-4xl">✨</span>
           </div>
           <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
