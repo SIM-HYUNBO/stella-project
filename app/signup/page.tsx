@@ -60,23 +60,23 @@ export default function SignupPage() {
 
         {/* 브랜드 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-gradient-to-br from-orange-400 to-amber-300 shadow-[0_16px_40px_rgba(255,160,50,0.45)] mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-500 shadow-[0_16px_40px_rgba(14,165,233,0.45)] mb-4">
             <span className="text-4xl">✨</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-amber-400">WAGIE</h1>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-transparent bg-clip-text bg-sky-500">WAGIE</h1>
           <p className="text-[#b07848] text-sm font-medium mt-2">함께라서 더 따뜻해요 🧡</p>
         </div>
 
         {/* 폼 카드 */}
-        <div className="rounded-[28px] bg-white/80 backdrop-blur-md border border-orange-100 shadow-[0_12px_40px_rgba(255,150,80,0.15)] px-6 py-7">
-          <p className="font-black text-[#3d1f00] text-xl mb-4">회원가입</p>
+        <div className="rounded-[28px] bg-white/80 backdrop-blur-md border-2 border-gray-700 shadow-[0_12px_40px_rgba(14,165,233,0.15)] px-6 py-7">
+          <p className="font-black text-[gray-800] text-xl mb-4">회원가입</p>
 
           <form onSubmit={handleSignup} className="space-y-3">
             {fields.map(({ type, placeholder, value, setter }) => (
               <input key={placeholder}
                 type={type} placeholder={placeholder} value={value}
                 onChange={(e) => setter(e.target.value)} required
-                className="w-full bg-orange-50/80 border border-orange-100 rounded-[16px] px-4 py-3.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none focus:ring-2 focus:ring-orange-300 transition"
+                className="w-full bg-sky-50/80 border-2 border-gray-700 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-400 transition"
               />
             ))}
 
@@ -87,8 +87,8 @@ export default function SignupPage() {
             )}
 
             <button type="submit" disabled={loading}
-              className="group relative w-full h-14 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(255,160,50,0.4)] active:scale-[0.98] transition-transform disabled:opacity-70 mt-2">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400" />
+              className="group relative w-full h-14 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(14,165,233,0.4)] active:scale-[0.98] transition-transform disabled:opacity-70 mt-2">
+              <div className="absolute inset-0 bg-sky-500" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
                 {loading ? "가입 중..." : "시작하기 🚀"}
@@ -99,7 +99,7 @@ export default function SignupPage() {
 
         <p className="text-center text-sm text-[#b08060] mt-6">
           이미 계정이 있으신가요?{" "}
-          <a href="/login" className="text-orange-500 font-black">로그인 →</a>
+          <a href="/login" className="text-sky-500 font-black">로그인 →</a>
         </p>
       </div>
 

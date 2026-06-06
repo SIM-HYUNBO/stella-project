@@ -23,7 +23,7 @@ export default function ForestBackgroundWithMusic() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gradient-to-b from-emerald-900 via-green-900 to-black">
+    <div className="relative w-screen h-screen overflow-hidden bg-sky-500">
       {/* 🎵 배경 음악 */}
       <audio ref={audioRef} loop>
   <source src="/forest.mp3" type="audio/mpeg" />

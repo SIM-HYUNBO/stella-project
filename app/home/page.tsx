@@ -111,8 +111,8 @@ export default function HomePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fff7ef]">
         <div className="relative">
-          <div className="w-14 h-14 rounded-full border-[6px] border-orange-200" />
-          <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-orange-400 animate-spin" />
+          <div className="w-14 h-14 rounded-full border-[6px] border-sky-200" />
+          <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-sky-500 animate-spin" />
         </div>
       </div>
     );
@@ -124,8 +124,8 @@ export default function HomePage() {
 
         {/* ── 배경 오브 ── */}
         <div className="fixed inset-0 bg-gradient-to-br from-[#fff6ee] via-[#fff0e0] to-[#fff8f0] -z-10" />
-        <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
+        <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-sky-400/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
+        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-cyan-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
         <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-pink-200/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
         <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-violet-200/20 blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" />
 
@@ -143,8 +143,8 @@ export default function HomePage() {
         <div className="px-5 pt-4 pb-24 space-y-6">
 
           {/* ── 히어로 ── */}
-          <div className="relative rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(255,160,50,0.45)]">
-            <div className="bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 p-6 relative">
+          <div className="relative rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(14,165,233,0.45)]">
+            <div className="bg-sky-500 p-6 relative">
               {/* 데코 원 */}
               <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
@@ -194,7 +194,7 @@ export default function HomePage() {
             </div>
 
             {/* 오늘의 한마디 */}
-            <div className="bg-white/80 backdrop-blur-sm px-5 py-3 flex items-center gap-2 border-t border-orange-100">
+            <div className="bg-white/80 backdrop-blur-sm px-5 py-3 flex items-center gap-2 border-t-2 border-gray-700">
               <span className="text-base">💡</span>
               <p className="text-[#c07030] text-xs font-semibold">{getTodayQuote()}</p>
             </div>
@@ -204,16 +204,16 @@ export default function HomePage() {
           {friends.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
-                <p className="font-black text-[#3d1f00] text-base">친구들 👫</p>
-                <button onClick={() => router.push("/friendmenu")} className="text-xs text-orange-400 font-bold">전체보기 →</button>
+                <p className="font-black text-[gray-800] text-base">친구들 👫</p>
+                <button onClick={() => router.push("/friendmenu")} className="text-xs text-sky-500 font-bold">전체보기 →</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                 {friends.map((f) => (
                   <button key={f.uid} onClick={() => router.push("/avatar")}
                     className="flex-shrink-0 text-center bg-transparent border-none p-0 cursor-pointer">
                     <div className="relative mx-auto w-14 h-14">
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-300 to-amber-300 blur-[6px] opacity-50" />
-                      <div className="relative w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-orange-200 shadow-lg">
+                      <div className="absolute inset-0 rounded-full bg-sky-500 blur-[6px] opacity-50" />
+                      <div className="relative w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-sky-200 shadow-lg">
                         <TextAvatar nickname={f.nickname} size={56} profileImage={f.profileImage} />
                       </div>
                       <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white shadow-sm" />
@@ -228,8 +228,8 @@ export default function HomePage() {
           {/* ── 빠른 액션 ── */}
           <div className="grid grid-cols-3 gap-2.5">
             {[
-              { icon: "💬", label: "DM 보내기",  color: "from-orange-400 to-red-400",    path: "/avatar" },
-              { icon: "👥", label: "단체방",      color: "from-yellow-400 to-orange-400", path: "/groupchat" },
+              { icon: "💬", label: "DM 보내기",  color: "from-sky-500 to-red-400",    path: "/avatar" },
+              { icon: "👥", label: "단체방",      color: "from-cyan-400 to-sky-500", path: "/groupchat" },
               { icon: "📔", label: "일기 쓰기",   color: "from-pink-400 to-rose-500",     path: "/diary" },
             ].map(({ icon, label, color, path }) => (
               <button key={label} onClick={() => router.push(path)}
@@ -242,13 +242,13 @@ export default function HomePage() {
 
           {/* ── 메뉴 ── */}
           <div>
-            <p className="font-black text-[#3d1f00] text-base mb-3 px-1">메뉴 ✨</p>
+            <p className="font-black text-[gray-800] text-base mb-3 px-1">메뉴 ✨</p>
             <div className="space-y-3">
 
               {/* 1:1 채팅 */}
               <button onClick={() => router.push("/avatar")}
                 className="group relative w-full rounded-[26px] overflow-hidden shadow-[0_12px_40px_rgba(255,100,60,0.3)] active:scale-[0.98] transition-transform">
-                <div className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 px-6 py-5 flex items-center gap-4 relative">
+                <div className="bg-red-500 px-6 py-5 flex items-center gap-4 relative">
                   <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
                   <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
                   <div className="relative w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0 shadow-inner">💬</div>
@@ -257,7 +257,7 @@ export default function HomePage() {
                     <p className="text-white/70 text-sm">친구와 나만의 대화</p>
                   </div>
                   {dmUnread > 0 && (
-                    <span className="relative bg-white text-orange-500 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 shadow-lg animate-[pulse_2s_infinite]">
+                    <span className="relative bg-white text-sky-500 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 shadow-lg animate-[pulse_2s_infinite]">
                       {dmUnread > 99 ? "99+" : dmUnread}
                     </span>
                   )}
@@ -267,8 +267,8 @@ export default function HomePage() {
               {/* 단체채팅 + 다이어리 */}
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
-                  className="relative rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(255,180,30,0.3)] active:scale-[0.97] transition-transform">
-                  <div className="bg-gradient-to-br from-yellow-400 to-orange-400 px-5 py-5 relative">
+                  className="relative rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(14,165,233,0.3)] active:scale-[0.97] transition-transform">
+                  <div className="bg-sky-400 px-5 py-5 relative">
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
                     <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">👥</div>
                     <p className="text-white font-black text-base">단체채팅</p>
@@ -282,8 +282,8 @@ export default function HomePage() {
                 </button>
 
                 <button onClick={() => router.push("/diary")}
-                  className="rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(255,100,160,0.28)] active:scale-[0.97] transition-transform relative">
-                  <div className="bg-gradient-to-br from-pink-400 to-rose-500 px-5 py-5 relative">
+                  className="rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgba(14,165,233,0.28)] active:scale-[0.97] transition-transform relative">
+                  <div className="bg-pink-500 px-5 py-5 relative">
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
                     <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">📔</div>
                     <p className="text-white font-black text-base">다이어리</p>
@@ -294,14 +294,14 @@ export default function HomePage() {
 
               {/* 친구목록 */}
               <button onClick={() => router.push("/friendmenu")}
-                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(255,150,80,0.15)] active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm border border-orange-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-2xl shadow">🤝</div>
+                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(14,165,233,0.15)] active:scale-[0.98] transition-transform">
+                <div className="bg-white/90 backdrop-blur-sm border-2 border-gray-700 px-6 py-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center text-2xl shadow">🤝</div>
                   <div className="text-left flex-1">
-                    <p className="text-[#3d1f00] font-black text-base">친구 목록</p>
-                    <p className="text-[#c09070] text-sm">친구 {friends.length}명과 함께해요</p>
+                    <p className="text-[gray-800] font-black text-base">친구 목록</p>
+                    <p className="text-[sky-500] text-sm">친구 {friends.length}명과 함께해요</p>
                   </div>
-                  <span className="text-orange-300 text-2xl">›</span>
+                  <span className="text-sky-400 text-2xl">›</span>
                 </div>
               </button>
 
@@ -309,10 +309,10 @@ export default function HomePage() {
               <button onClick={() => router.push("/meetingroom")}
                 className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(239,68,68,0.12)] active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border border-red-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-300 to-orange-300 flex items-center justify-center text-2xl shadow">📋</div>
+                  <div className="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center text-2xl shadow">📋</div>
                   <div className="text-left flex-1">
-                    <p className="text-[#3d1f00] font-black text-base">회의방</p>
-                    <p className="text-[#c09070] text-sm">주제 고정 · 긴급회의 알림</p>
+                    <p className="text-[gray-800] font-black text-base">회의방</p>
+                    <p className="text-[sky-500] text-sm">주제 고정 · 긴급회의 알림</p>
                   </div>
                   <span className="text-red-300 text-2xl">›</span>
                 </div>
@@ -320,25 +320,25 @@ export default function HomePage() {
 
               {/* 칭호 */}
               <button onClick={() => router.push("/titles")}
-                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(255,180,30,0.2)] active:scale-[0.98] transition-transform">
+                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(14,165,233,0.2)] active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border border-amber-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-300 to-amber-400 flex items-center justify-center text-2xl shadow">🎫</div>
+                  <div className="w-12 h-12 rounded-xl bg-sky-400 flex items-center justify-center text-2xl shadow">🎫</div>
                   <div className="text-left flex-1">
-                    <p className="text-[#3d1f00] font-black text-base">칭호</p>
-                    <p className="text-[#c09070] text-sm">활동하면 칭호를 획득해요</p>
+                    <p className="text-[gray-800] font-black text-base">칭호</p>
+                    <p className="text-[sky-500] text-sm">활동하면 칭호를 획득해요</p>
                   </div>
-                  <span className="text-amber-300 text-2xl">›</span>
+                  <span className="text-blue-400 text-2xl">›</span>
                 </div>
               </button>
 
               {/* Q&A방 */}
               <button onClick={() => router.push("/tools/contact")}
-                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(150,80,255,0.1)] active:scale-[0.98] transition-transform">
+                className="w-full rounded-[24px] overflow-hidden shadow-[0_6px_24px_rgba(14,165,233,0.1)] active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border border-violet-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-2xl shadow">🎧</div>
+                  <div className="w-12 h-12 rounded-xl bg-violet-500 flex items-center justify-center text-2xl shadow">🎧</div>
                   <div className="text-left flex-1">
-                    <p className="text-[#3d1f00] font-black text-base">Q&A방</p>
-                    <p className="text-[#c09070] text-sm">궁금한 점을 남겨보세요</p>
+                    <p className="text-[gray-800] font-black text-base">Q&A방</p>
+                    <p className="text-[sky-500] text-sm">궁금한 점을 남겨보세요</p>
                   </div>
                   <span className="text-violet-300 text-2xl">›</span>
                 </div>
@@ -349,7 +349,7 @@ export default function HomePage() {
 
           {/* ── 하단 태그라인 ── */}
           <div className="text-center py-4">
-            <p className="text-[#d4a57a] text-sm font-medium">✦ 따뜻한 대화가 시작되는 곳 ✦</p>
+            <p className="text-[sky-400] text-sm font-medium">✦ 따뜻한 대화가 시작되는 곳 ✦</p>
           </div>
 
         </div>

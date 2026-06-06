@@ -83,12 +83,12 @@ export default function AIChatPage() {
       <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100 shrink-0">
+      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white border-b-2 border-gray-700 shrink-0">
         <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg">←</button>
-          <span className="font-black text-[#3d1f00] text-sm">🧠 AI Chat</span>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
+          <span className="font-black text-[gray-800] text-sm">🧠 AI Chat</span>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-black shadow-sm ${isVip ? "bg-gradient-to-r from-yellow-400 to-amber-300 text-white" : "bg-orange-50 text-[#c09070]"}`}>
+        <div className={`px-3 py-1 rounded-full text-xs font-black shadow-sm ${isVip ? "bg-sky-400 text-white" : "bg-sky-50 text-[sky-500]"}`}>
           {isVip ? "💎 VIP" : "FREE"}
         </div>
       </div>
@@ -96,19 +96,19 @@ export default function AIChatPage() {
       {/* 메시지 */}
       <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {memory && isVip && (
-          <div className="rounded-[16px] bg-gradient-to-r from-yellow-50 to-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-700 font-semibold">
+          <div className="rounded-[16px] bg-sky-500 border border-amber-100 px-4 py-3 text-xs text-amber-700 font-semibold">
             💎 {memory.summary} · {memory.personality}
           </div>
         )}
         {messages.map((m: any, i: number) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} items-end gap-2`}>
             {m.role === "assistant" && (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-300 to-purple-400 flex items-center justify-center text-sm shrink-0 shadow-sm">🤖</div>
+              <div className="w-8 h-8 rounded-full bg-violet-500 flex items-center justify-center text-sm shrink-0 shadow-sm">🤖</div>
             )}
             <div className={`px-4 py-2.5 rounded-[18px] max-w-[72%] text-sm leading-relaxed shadow-sm ${
               m.role === "user"
-                ? "bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-br-[6px]"
-                : "bg-white border border-gray-100 text-[#3d1f00] rounded-bl-[6px]"
+                ? "bg-sky-500 text-white rounded-br-[6px]"
+                : "bg-white border-2 border-gray-700 text-[gray-800] rounded-bl-[6px]"
             }`}>
               {m.content}
             </div>
@@ -117,16 +117,16 @@ export default function AIChatPage() {
       </div>
 
       {/* 입력 */}
-      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100 shrink-0">
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t-2 border-gray-700 shrink-0">
         <input
-          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          className="flex-1 bg-gray-50 border-2 border-gray-700 rounded-[16px] px-4 py-2.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지 입력"
         />
         <button onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black shadow-[0_4px_14px_rgba(255,160,50,0.35)] active:scale-95 transition-transform flex items-center justify-center">
+          className="w-11 h-11 rounded-[14px] bg-sky-500 text-white font-black shadow-[0_4px_14px_rgba(14,165,233,0.35)] active:scale-95 transition-transform flex items-center justify-center">
           ▶
         </button>
       </div>

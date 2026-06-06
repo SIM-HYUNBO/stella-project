@@ -58,16 +58,16 @@ export default function AlarmSoundPage() {
     <main className="relative min-h-screen overflow-hidden">
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
-          <span className="font-black text-[#3d1f00] text-base">🔔 알림 소리 설정</span>
+        <div className="flex items-center h-14 px-4 bg-white border-b-2 border-gray-700 sticky top-0 z-20">
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[gray-800] text-base">🔔 알림 소리 설정</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-3">
 
           {/* VIP 상태 */}
-          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border shadow-sm ${isVip ? "bg-gradient-to-r from-yellow-400 to-amber-300 border-transparent" : "bg-white/80 border-orange-100"}`}>
+          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border shadow-sm ${isVip ? "bg-sky-400 border-transparent" : "bg-white/80 border-sky-100"}`}>
             <span className="text-2xl">{isVip ? "💎" : "👤"}</span>
-            <p className={`font-black text-sm ${isVip ? "text-white" : "text-[#3d1f00]"}`}>{isVip ? "VIP 활성 상태" : "일반 사용자"}</p>
+            <p className={`font-black text-sm ${isVip ? "text-white" : "text-[gray-800]"}`}>{isVip ? "VIP 활성 상태" : "일반 사용자"}</p>
           </div>
 
           {sounds.map((s) => {
@@ -77,17 +77,17 @@ export default function AlarmSoundPage() {
             return (
               <div key={s.id} onClick={() => { if (locked) { alert("VIP 전용입니다"); return; } selectSound(s.id); }}
                 className={`rounded-[20px] px-5 py-4 flex items-center justify-between cursor-pointer border transition-all active:scale-[0.98] shadow-sm
-                  ${isSelected ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_6px_20px_rgba(255,160,50,0.35)]" : "bg-white/80 border-orange-100"}
+                  ${isSelected ? "bg-sky-500 border-transparent shadow-[0_6px_20px_rgba(14,165,233,0.35)]" : "bg-white/80 border-sky-100"}
                   ${locked ? "opacity-50" : ""}`}>
                 <div className="flex items-center gap-3">
-                  {isSelected ? <span className="text-white text-lg">✓</span> : <span className="text-[#d4a07a] text-lg">🔈</span>}
+                  {isSelected ? <span className="text-white text-lg">✓</span> : <span className="text-[sky-400] text-lg">🔈</span>}
                   <div>
-                    <p className={`font-black text-sm ${isSelected ? "text-white" : "text-[#3d1f00]"}`}>{s.name}</p>
+                    <p className={`font-black text-sm ${isSelected ? "text-white" : "text-[gray-800]"}`}>{s.name}</p>
                     {isVipOnly && <p className={`text-[10px] font-bold ${isSelected ? "text-white/70" : "text-amber-500"}`}>💎 VIP 전용</p>}
                   </div>
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); if (locked) return alert("VIP 전용"); playSound(s.id, s.file); }}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-base shadow ${isSelected ? "bg-white/25 text-white" : "bg-orange-50 text-orange-400"}`}>
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-base shadow ${isSelected ? "bg-white/25 text-white" : "bg-sky-50 text-sky-500"}`}>
                   ▶
                 </button>
               </div>
