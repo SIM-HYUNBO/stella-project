@@ -42,7 +42,7 @@ export default function AppLock({ onUnlock }: Props) {
   const keys = ["1","2","3","4","5","6","7","8","9","","0","←"];
 
   return (
-    <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
+    <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center bg-yellow-50">
       <div className="text-5xl mb-6">🔒</div>
       <div className="text-xl font-black text-slate-800 mb-2">앱 비밀번호</div>
       <div className="text-sm text-gray-400 mb-8">4자리 PIN을 입력하세요</div>
@@ -53,7 +53,7 @@ export default function AppLock({ onUnlock }: Props) {
             key={i}
             className={`w-4 h-4 rounded-full border-2 transition-colors ${
               i < pin.length
-                ? error ? "bg-red-400 border-red-400" : "bg-orange-400 border-orange-400"
+                ? error ? "bg-red-400" : "bg-sky-400"
                 : "border-gray-300 bg-transparent"
             }`}
           />
@@ -69,7 +69,7 @@ export default function AppLock({ onUnlock }: Props) {
             <button
               key={i}
               onClick={del}
-              className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition"
+              className="h-16 rounded-2xl bg-white text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition"
             >
               ←
             </button>
@@ -77,7 +77,7 @@ export default function AppLock({ onUnlock }: Props) {
             <button
               key={i}
               onClick={() => press(k)}
-              className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 transition active:bg-yellow-50"
+              className="h-16 rounded-2xl bg-white text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 transition active:bg-yellow-50"
             >
               {k}
             </button>

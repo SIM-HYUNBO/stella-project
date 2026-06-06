@@ -10,7 +10,7 @@ export default function PageLayout({ children }: PageLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen">
       {/* 헤더 - 항상 고정 */}
-      <header className="sticky top-0 z-50 bg-green-700 text-white flex items-center px-6 py-4 shadow-md">
+      <header className="sticky top-0 z-50 bg-green-700 text-white flex items-center px-6 py-4">
         <h1 className="text-3xl font-extrabold">DMD Homepage</h1>
       </header>
 

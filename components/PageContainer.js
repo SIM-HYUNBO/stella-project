@@ -137,7 +137,7 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-sky-100 flex items-center justify-around px-2 h-12 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white flex items-center justify-around px-2 h-12 ">
         {NAV_ITEMS.map(({ label, path, icon }) => {
           const active = pathname === path || pathname?.startsWith(path + "/");
           return (

@@ -84,11 +84,11 @@ export default function DiaryPage() {
   const formatDate = (date: string) => new Date(date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 
   const moodBg: Record<string, string> = {
-    "😊": "from-amber-200 to-yellow-100", "🥰": "from-pink-200 to-rose-100",
-    "😢": "from-blue-200 to-sky-100",     "😡": "from-red-200 to-orange-100",
-    "😴": "from-indigo-200 to-violet-100","🤔": "from-slate-200 to-gray-100",
-    "🥳": "from-fuchsia-200 to-pink-100", "😌": "from-green-200 to-emerald-100",
-    "🫠": "from-orange-200 to-amber-100", "💪": "from-yellow-200 to-lime-100",
+    "😊": "bg-yellow-100", "🥰": "bg-sky-100",
+    "😢": "from-blue-200",     "😡": "from-red-200",
+    "😴": "from-indigo-200","🤔": "from-slate-200",
+    "🥳": "from-fuchsia-200", "😌": "from-green-200",
+    "🫠": "bg-yellow-100", "💪": "bg-yellow-100",
   };
 
   return (
@@ -97,7 +97,7 @@ export default function DiaryPage() {
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100">
+        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-base">📔 미니 다이어리</span>
@@ -105,12 +105,12 @@ export default function DiaryPage() {
         </div>
 
         {/* 탭 */}
-        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm border border-sky-100 rounded-[18px] p-1 gap-1 shadow-sm">
+        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm rounded-[18px] p-1 gap-1">
           {(["mine", "friends"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
                 tab === t
-                  ? "bg-gradient-to-r from-sky-400 to-cyan-300 text-white shadow-md"
+                  ? "bg-sky-100 text-white"
                   : "text-sky-400"
               }`}>
               {t === "mine" ? "내 일기" : "친구 일기"}
@@ -122,7 +122,7 @@ export default function DiaryPage() {
           {tab === "mine" && (
             <>
               {/* 오늘 일기 */}
-              <div className="rounded-[24px] bg-white border border-gray-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] p-5 mb-4">
+              <div className="rounded-[24px] bg-white p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] font-black text-[#d4904a] tracking-widest">TODAY</p>
@@ -130,12 +130,12 @@ export default function DiaryPage() {
                   </div>
                   {todayEntry && !editing && (
                     <button onClick={() => setEditing(true)}
-                      className="px-3 py-1.5 rounded-full bg-yellow-50 text-sky-400 text-xs font-black border border-sky-100">수정 ✏️</button>
+                      className="px-3 py-1.5 rounded-full bg-yellow-50 text-sky-400 text-xs font-black">수정 ✏️</button>
                   )}
                 </div>
 
                 {todayEntry && !editing ? (
-                  <div className={`bg-gradient-to-br ${moodBg[todayEntry.mood] || "from-orange-100 to-amber-50"} rounded-[20px] p-4`}>
+                  <div className={`bg-yellow-50 rounded-[20px] p-4`}>
                     <div className="text-3xl mb-2">{todayEntry.mood}</div>
                     <p className="text-slate-800 text-sm leading-relaxed">{todayEntry.content}</p>
                     <p className="mt-3 text-xs text-sky-400 font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
@@ -148,7 +148,7 @@ export default function DiaryPage() {
                         <button key={m} onClick={() => setSelectedMood(m)}
                           className={`text-2xl w-11 h-11 rounded-[14px] transition-all ${
                             selectedMood === m
-                              ? "bg-gradient-to-br from-orange-100 to-amber-100 scale-110 shadow-md ring-2 ring-orange-300"
+                              ? "bg-sky-100 scale-110"
                               : "bg-yellow-50/50 hover:bg-yellow-50"
                           }`}>
                           {m}
@@ -158,7 +158,7 @@ export default function DiaryPage() {
 
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      className="w-full text-sm text-slate-800 bg-yellow-50/60 border border-sky-100 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
+                      className="w-full text-sm text-slate-800 bg-yellow-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
                     />
                     <div className="text-right text-xs text-slate-400 mb-3">{content.length}/200</div>
 
@@ -170,7 +170,7 @@ export default function DiaryPage() {
                         {isPublic ? "🌍 공개" : "🔒 비공개"}
                       </button>
                       <button onClick={handleSave} disabled={saving || !content.trim()}
-                        className="px-6 py-2.5 bg-gradient-to-r from-sky-400 to-cyan-300 text-white text-sm font-black rounded-full shadow-md disabled:opacity-40 active:scale-[0.97] transition-transform">
+                        className="px-6 py-2.5 bg-sky-100 text-white text-sm font-black rounded-full disabled:opacity-40 active:scale-[0.97] transition-transform">
                         {saving ? "저장 중..." : "저장 💾"}
                       </button>
                     </div>
@@ -183,7 +183,7 @@ export default function DiaryPage() {
               <div className="space-y-3">
                 {myEntries.filter((e) => e.date !== today).map((entry) => (
                   <div key={entry.id}
-                    className={`bg-gradient-to-br ${moodBg[entry.mood] || "from-orange-100 to-amber-50"} rounded-[22px] p-4 shadow-sm`}>
+                    className={`bg-yellow-50 rounded-[22px] p-4`}>
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-xs text-[#9d7060] font-semibold">{formatDate(entry.date)}</p>
                       <div className="flex items-center gap-1">
@@ -205,12 +205,12 @@ export default function DiaryPage() {
             <div className="space-y-3">
               {friendEntries.map((entry) => (
                 <div key={entry.id}
-                  className={`bg-gradient-to-br ${moodBg[entry.mood] || "from-orange-100 to-amber-50"} rounded-[22px] p-4 shadow-sm`}>
+                  className={`bg-yellow-50 rounded-[22px] p-4`}>
                   <div className="flex items-center gap-2 mb-3">
                     {entry.profileImage ? (
                       <img src={entry.profileImage} className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-sm font-black text-sky-500 shadow">
+                      <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-black text-sky-500 shadow">
                         {entry.nickname[0]}
                       </div>
                     )}

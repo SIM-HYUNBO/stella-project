@@ -88,7 +88,7 @@ export default function MeatChat() {
 
       {/* 고기 영역 */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4">
-        <div className="rounded-[28px] bg-white border border-gray-100 px-10 py-8 shadow-[0_8px_30px_rgba(56,189,248,0.12)] flex flex-col items-center gap-4">
+        <div className="rounded-[28px] bg-white px-10 py-8 flex flex-col items-center gap-4">
           <p className="font-black text-slate-800 text-lg">🥩 고기 굽기</p>
 
           <div
@@ -108,7 +108,7 @@ export default function MeatChat() {
 
           {state === "burn" && (
             <button onClick={resetGame}
-              className="px-6 py-3 rounded-[16px] bg-gradient-to-r from-red-400 to-orange-400 text-white font-black text-sm shadow-md active:scale-95 transition-transform">
+              className="px-6 py-3 rounded-[16px] bg-yellow-100 text-white font-black text-sm active:scale-95 transition-transform">
               🔄 다시 굽기
             </button>
           )}
@@ -118,7 +118,7 @@ export default function MeatChat() {
       </div>
 
       {/* 채팅 로그 */}
-      <div className="relative z-10 h-44 overflow-y-auto bg-white border-t border-gray-100 px-4 py-3 space-y-1">
+      <div className="relative z-10 h-44 overflow-y-auto bg-white px-4 py-3 space-y-1">
         {messages.map((m) => (
           <div key={m.id} className="text-sm">
             <span className="font-black text-sky-500">{m.from}</span>
@@ -129,17 +129,17 @@ export default function MeatChat() {
       </div>
 
       {/* 입력 */}
-      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100 shrink-0">
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white shrink-0">
         <input
-          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+          className="flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder={state === "perfect" ? "완벽! 지금 전송하세요 🍖" : "고기가 완벽해질 때까지 기다려..."}
         />
         <button onClick={sendMessage}
-          className={`w-11 h-11 rounded-[14px] text-white font-black shadow-md active:scale-95 transition-transform flex items-center justify-center ${
-            state === "perfect" ? "bg-gradient-to-r from-sky-400 to-cyan-300 shadow-[0_4px_14px_rgba(56,189,248,0.3)]" : "bg-gray-300"
+          className={`w-11 h-11 rounded-[14px] text-white font-black active:scale-95 transition-transform flex items-center justify-center ${
+            state === "perfect" ? "bg-sky-100" : "bg-gray-300"
           }`}>
           ▶
         </button>

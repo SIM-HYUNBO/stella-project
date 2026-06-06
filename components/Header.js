@@ -6,22 +6,22 @@ const jua = Jua({ weight: "400", subsets: ["latin"] });
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full">
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-300 via-amber-200 to-yellow-200" />
+      <div className="absolute inset-0 bg-yellow-50" />
       <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-white/20" />
 
       <div className="relative flex justify-between items-center px-5 py-3">
         <Link href="/home" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-inner text-xl">
+          <div className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center text-xl">
             💬
           </div>
-          <span className={`${jua.className} text-[28px] text-white drop-shadow-sm tracking-wide`}>
+          <span className={`${jua.className} text-[28px] text-white drop-tracking-wide`}>
             WAGIE
           </span>
         </Link>
 
         <Link href="/tools"
-          className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-inner active:scale-90 transition-transform">
+          className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />

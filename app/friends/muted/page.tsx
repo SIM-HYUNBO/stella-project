@@ -33,7 +33,7 @@ export default function MutedPage() {
     <main className="relative min-h-screen overflow-hidden">
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
+        <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🔕 알림 끈 친구</span>
         </div>
@@ -44,12 +44,12 @@ export default function MutedPage() {
               <p className="text-sky-400 font-semibold">알림을 끈 친구가 없어요</p>
             </div>
           ) : list.map((v) => (
-            <div key={v.id} className="rounded-[20px] bg-white border border-gray-100 px-5 py-4 flex items-center justify-between shadow-sm">
+            <div key={v.id} className="rounded-[20px] bg-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-200 to-purple-200 flex items-center justify-center text-xl">🔕</div>
+                <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-xl">🔕</div>
                 <p className="font-black text-slate-800 text-sm">{v.target_name}</p>
               </div>
-              <button onClick={() => remove(v.id)} className="px-4 py-2 bg-gray-50 border border-gray-100 text-sky-500 rounded-[12px] text-xs font-black">알림 켜기</button>
+              <button onClick={() => remove(v.id)} className="px-4 py-2 bg-gray-50 text-sky-500 rounded-[12px] text-xs font-black">알림 켜기</button>
             </div>
           ))}
         </div>

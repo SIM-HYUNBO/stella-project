@@ -60,15 +60,15 @@ export default function SignupPage() {
 
         {/* 브랜드 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-gradient-to-br from-sky-400 to-cyan-300 shadow-[0_16px_40px_rgba(56,189,248,0.35)] mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg- mb-4">
             <span className="text-4xl">✨</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-amber-400">WAGIE</h1>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-400">WAGIE</h1>
           <p className="text-sky-600 text-sm font-medium mt-2">함께라서 더 따뜻해요 🧡</p>
         </div>
 
         {/* 폼 카드 */}
-        <div className="rounded-[28px] bg-white/80 backdrop-blur-md border border-sky-100 shadow-[0_12px_40px_rgba(56,189,248,0.12)] px-6 py-7">
+        <div className="rounded-[28px] bg-white/80 backdrop-blur-md px-6 py-7">
           <p className="font-black text-slate-800 text-xl mb-4">회원가입</p>
 
           <form onSubmit={handleSignup} className="space-y-3">
@@ -76,7 +76,7 @@ export default function SignupPage() {
               <input key={placeholder}
                 type={type} placeholder={placeholder} value={value}
                 onChange={(e) => setter(e.target.value)} required
-                className="w-full bg-yellow-50/80 border border-sky-100 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-orange-300 transition"
+                className="w-full bg-yellow-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-orange-300 transition"
               />
             ))}
 
@@ -87,8 +87,8 @@ export default function SignupPage() {
             )}
 
             <button type="submit" disabled={loading}
-              className="group relative w-full h-14 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(56,189,248,0.35)] active:scale-[0.98] transition-transform disabled:opacity-70 mt-2">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400" />
+              className="group relative w-full h-14 rounded-[18px] overflow-hidden active:scale-[0.98] transition-transform disabled:opacity-70 mt-2">
+              <div className="absolute inset-0 bg-sky-100" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
                 {loading ? "가입 중..." : "시작하기 🚀"}

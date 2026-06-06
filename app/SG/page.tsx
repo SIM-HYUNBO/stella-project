@@ -45,11 +45,11 @@ export default function LiveSTTWithHeader() {
       <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center h-14 px-4 bg-white border-b border-gray-100 shrink-0">
+      <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
         <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">🗣 와글와글 토의방</span>
         {listening && (
-          <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200">
+          <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <span className="text-xs font-bold text-red-500">녹음중</span>
           </span>
@@ -59,14 +59,14 @@ export default function LiveSTTWithHeader() {
       <div className="relative z-10 flex-1 flex flex-col px-4 py-4 gap-4 overflow-y-auto">
         {/* 제목 입력 */}
         <input
-          className="rounded-[20px] bg-white border border-gray-100 px-5 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none font-semibold shadow-sm"
+          className="rounded-[20px] bg-white px-5 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none font-semibold"
           placeholder="회의 제목을 입력하세요"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         {/* 음성 텍스트 */}
-        <div className="flex-1 min-h-[180px] rounded-[20px] bg-white border border-gray-100 px-5 py-4 shadow-sm overflow-auto">
+        <div className="flex-1 min-h-[180px] rounded-[20px] bg-white px-5 py-4 overflow-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🎤</span>
             <p className="font-black text-slate-800 text-sm">음성 인식 내용</p>
@@ -77,7 +77,7 @@ export default function LiveSTTWithHeader() {
         </div>
 
         {/* AI 요약 */}
-        <div className={`rounded-[20px] border px-5 py-4 shadow-sm transition-all ${summary ? "bg-gradient-to-r from-violet-50 to-purple-50 border-purple-100" : "bg-white/80 border-sky-100"}`}>
+        <div className={`rounded-[20px] border px-5 py-4 transition-all ${summary ? "bg-sky-100 border-purple-100" : "bg-white/80 border-sky-100"}`}>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-base">📌</span>
             <p className="font-black text-slate-800 text-sm">AI 요약</p>
@@ -90,15 +90,15 @@ export default function LiveSTTWithHeader() {
         {/* 버튼들 */}
         <div className="flex gap-3 pb-4">
           <button onClick={startListening} disabled={listening}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm shadow-sm active:scale-[0.98] transition-transform ${listening ? "bg-gray-200 text-gray-400" : "bg-gradient-to-r from-green-400 to-emerald-400 text-white shadow-[0_4px_14px_rgba(50,200,100,0.3)]"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${listening ? "bg-gray-200 text-gray-400" : "bg-yellow-100 text-white"}`}>
             🎤 시작
           </button>
           <button onClick={stopListening} disabled={!listening}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm shadow-sm active:scale-[0.98] transition-transform ${!listening ? "bg-gray-200 text-gray-400" : "bg-gradient-to-r from-red-400 to-rose-400 text-white shadow-[0_4px_14px_rgba(255,80,80,0.3)]"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!listening ? "bg-gray-200 text-gray-400" : "bg-yellow-100 text-white"}`}>
             ⏹ 중지
           </button>
           <button onClick={summarizeMeeting} disabled={loading || !text}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm shadow-sm active:scale-[0.98] transition-transform ${!text || loading ? "bg-gray-200 text-gray-400" : "bg-gradient-to-r from-sky-400 to-cyan-300 text-white shadow-[0_4px_14px_rgba(56,189,248,0.3)]"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!text || loading ? "bg-gray-200 text-gray-400" : "bg-sky-100 text-white"}`}>
             ✨ 요약
           </button>
         </div>

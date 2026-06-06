@@ -153,7 +153,7 @@ function SwipeUserItem({
         {/* 숨기기 */}
         <button
           onClick={(e) => { e.stopPropagation(); onHide(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isHidden ? "bg-purple-400" : "bg-slate-400"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isHidden ? "bg-sky-200" : "bg-slate-400"}`}
         >
           {isHidden ? (
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -172,7 +172,7 @@ function SwipeUserItem({
         {/* 차단 */}
         <button
           onClick={(e) => { e.stopPropagation(); onBlock(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-gradient-to-b from-red-500 to-pink-500"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-yellow-100"}`}
         >
           {isBlocked ? (
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -193,8 +193,8 @@ function SwipeUserItem({
       </div>
 
       <div
-        className={`relative z-10 px-3 py-3 bg-white border border-gray-100 shadow-sm cursor-pointer transition ${
-          isActive ? "bg-gradient-to-r from-yellow-50 to-orange-50" : "hover:bg-gray-50"
+        className={`relative z-10 px-3 py-3 bg-white cursor-pointer transition ${
+          isActive ? "bg-yellow-100" : "hover:bg-gray-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
@@ -221,7 +221,7 @@ function SwipeUserItem({
                 className="w-11 h-11 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-sm font-bold text-white shadow">
+              <div className="w-11 h-11 rounded-full bg-yellow-100 flex items-center justify-center text-sm font-bold text-white shadow">
                 {u.nickname[0]}
               </div>
             )}
@@ -1035,7 +1035,7 @@ export default function Chat() {
   const renderChat = () => (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
       {currentChatUser && (
-        <div className="px-4 py-3 border-b border-gray-100 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="px-4 py-3 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCurrentChatUser(null)}
@@ -1052,7 +1052,7 @@ export default function Chat() {
                   className="w-11 h-11 rounded-full object-cover shadow"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-cyan-300 text-white font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
                   {currentChatUser.nickname[0]}
                 </div>
               )}
@@ -1124,7 +1124,7 @@ export default function Chat() {
       )}
 
       {pushBlocked && (
-        <div className="m-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-red-600">
+        <div className="m-3 px-4 py-3 rounded-2xl bg-red-50 text-sm text-red-600">
           브라우저 알림이 차단되어 있어요
         </div>
       )}
@@ -1184,7 +1184,7 @@ export default function Chat() {
                       className="w-8 h-8 rounded-full object-cover shadow"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 flex items-center justify-center text-xs font-bold text-white shadow">
+                    <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-xs font-bold text-white shadow">
                       {m.from[0]}
                     </div>
                   )}
@@ -1198,8 +1198,8 @@ export default function Chat() {
                 )}
 
                 {m.replyTo && (
-                  <div className="mb-1 px-3 py-2 rounded-xl bg-blue-50 border-l-4 border-blue-400 text-xs">
-                    <div className="font-semibold text-blue-600">
+                  <div className="mb-1 px-3 py-2 rounded-xl bg-sky-50 text-xs">
+                    <div className="font-semibold text-sky-600">
                       {m.replyTo.from}
                     </div>
 
@@ -1212,10 +1212,10 @@ export default function Chat() {
                 )}
 
                 <div
-                  className={`px-4 py-3 rounded-3xl text-sm shadow-sm ${
+                  className={`px-4 py-3 rounded-3xl text-sm ${
                     isMine
-                      ? "bg-gradient-to-r from-sky-400 to-cyan-300 text-white rounded-br-md"
-                      : "bg-white border border-gray-100 rounded-bl-md"
+                      ? "bg-sky-100 text-white rounded-br-md"
+                      : "bg-white rounded-bl-md"
                   }`}
                   onContextMenu={(e) =>
                     openCtxMenu(e, m, isMine)
@@ -1252,7 +1252,7 @@ export default function Chat() {
                             users.includes(
                               nickname
                             )
-                              ? "bg-blue-100 border-blue-300 text-blue-700"
+                              ? "bg-sky-100 border-blue-300 text-blue-700"
                               : "bg-white border-gray-200"
                           }`}
                         >
@@ -1287,11 +1287,11 @@ export default function Chat() {
       </div>
 
       {replyTo && (
-        <div className="px-4 py-2 bg-blue-50 border-t flex items-center gap-3">
+        <div className="px-4 py-2 bg-sky-50 border-t flex items-center gap-3">
           <div className="w-1 h-10 rounded-full bg-blue-400" />
 
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-blue-600">
+            <div className="text-xs font-semibold text-sky-600">
               {replyTo.from}
             </div>
 
@@ -1312,14 +1312,14 @@ export default function Chat() {
       )}
 
       {pendingImage && (
-        <div className="px-3 py-2 bg-white border-t border-sky-100 flex items-center gap-3 shrink-0">
+        <div className="px-3 py-2 bg-white flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white flex items-center justify-center shadow-md disabled:opacity-50"
+              className="w-10 h-10 rounded-[12px] bg-sky-100 text-white flex items-center justify-center disabled:opacity-50"
             >
               {sendingImage
                 ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1330,18 +1330,18 @@ export default function Chat() {
       )}
 
       {pendingAudio && (
-        <div className="px-3 py-2 bg-white border-t border-sky-100 flex items-center gap-2 shrink-0">
+        <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
           <span className="text-lg shrink-0">🎵</span>
           <span className="text-xs font-black text-sky-500 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
-          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white flex items-center justify-center shadow-md shrink-0 disabled:opacity-50">
+          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
+          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-100 text-white flex items-center justify-center shrink-0 disabled:opacity-50">
             {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
       )}
 
-      <div className="px-3 py-2 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
+      <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
           className="w-10 h-10 rounded-[12px] bg-yellow-50 hover:bg-sky-100 text-sky-400 flex items-center justify-center transition shrink-0"
@@ -1365,7 +1365,7 @@ export default function Chat() {
           }}
         />
         <input
-          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
+          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
@@ -1388,7 +1388,7 @@ export default function Chat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white shadow-[0_4px_14px_rgba(56,189,248,0.3)] hover:scale-105 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-sky-100 text-white hover:scale-105 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
@@ -1402,7 +1402,7 @@ export default function Chat() {
             left: ctxMenu.x,
           }}
         >
-          <div className="w-44 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+          <div className="w-44 bg-white rounded-3xl overflow-hidden">
             <div className="flex justify-around py-3 border-b">
               {REACTION_EMOJIS.map((emoji) => (
                 <button
@@ -1470,9 +1470,9 @@ export default function Chat() {
 
   const renderUserList = () => (
     <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b border-sky-100 flex items-center justify-between">
+      <div className="px-4 py-4 flex items-center justify-between">
         <div>
-          <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+          <div className="text-xl font-black bg-yellow-100">
             WAGIE
           </div>
 
@@ -1492,9 +1492,9 @@ export default function Chat() {
 </button>
       </div>
 
-      <div className="px-3 py-3 border-b border-sky-100">
+      <div className="px-3 py-3">
         <input
-          className="w-full h-11 rounded-[16px] bg-white border border-gray-100 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
+          className="w-full h-11 rounded-[16px] bg-white px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="사용자 검색..."
           onChange={(e) => {}}
         />
@@ -1544,7 +1544,7 @@ export default function Chat() {
       <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
         {pendingRequest && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
+            <div className="bg-white rounded-2xl p-6 w-72 flex flex-col gap-4">
               <div className="text-center">
                 <div className="text-2xl mb-2">👋</div>
                 <div className="font-bold text-gray-800 text-base">
@@ -1552,7 +1552,7 @@ export default function Chat() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
+                <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-sky-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
                 <button onClick={() => rejectFriendRequest(pendingRequest)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold">거절</button>
               </div>
             </div>
@@ -1567,7 +1567,7 @@ export default function Chat() {
     <PageContainer>
       {pendingRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
+          <div className="bg-white rounded-2xl p-6 w-72 flex flex-col gap-4">
             <div className="text-center">
               <div className="text-2xl mb-2">👋</div>
               <div className="font-bold text-gray-800 text-base">
@@ -1575,7 +1575,7 @@ export default function Chat() {
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-blue-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
+              <button onClick={() => acceptFriendRequest(pendingRequest)} className="flex-1 bg-sky-500 text-white py-2.5 rounded-xl font-semibold">수락</button>
               <button onClick={() => rejectFriendRequest(pendingRequest)} className="flex-1 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-semibold">거절</button>
             </div>
             {friendRequests.length > 1 && (

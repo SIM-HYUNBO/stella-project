@@ -17,7 +17,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <button
       onClick={() => onChange(!value)}
-      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-orange-400" : "bg-gray-200"}`}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-400" : "bg-gray-200"}`}
     >
       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
     </button>
@@ -143,7 +143,7 @@ export default function SettingsPage() {
   return (
     <main className="relative min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
+      <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
         <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
       </div>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
       <div className="px-5 pt-5 pb-20 space-y-4">
 
         {/* 내 정보 */}
-        <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm px-5 py-4">
+        <div className="bg-white rounded-[20px] px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">내 정보</span>
             <button
@@ -185,7 +185,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 앱 설정 토글 */}
-        <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[20px] overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">앱 설정</span>
           </div>
@@ -200,7 +200,7 @@ export default function SettingsPage() {
               className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center text-lg">
                   {icon}
                 </div>
                 <span className="font-bold text-slate-800 text-sm">{label}</span>
@@ -211,7 +211,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 기능 버튼들 */}
-        <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[20px] overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">기능</span>
           </div>
@@ -222,7 +222,7 @@ export default function SettingsPage() {
               className={`w-full flex items-center justify-between px-5 py-4 active:bg-yellow-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm">{icon}</div>
+                <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center text-lg">{icon}</div>
                 <span className="font-bold text-slate-800 text-sm">{label}</span>
               </div>
               <span className="text-orange-300 text-lg font-bold">›</span>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
 
       {/* PIN 설정 모달 */}
       {showPinSetup && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-yellow-50">
           <button onClick={() => setShowPinSetup(false)} className="absolute top-5 right-5 text-gray-400 text-2xl">✕</button>
 
           <div className="text-5xl mb-5">🔒</div>
@@ -248,7 +248,7 @@ export default function SettingsPage() {
           <div className="flex gap-4 mb-3">
             {[0,1,2,3].map((i) => (
               <div key={i} className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                i < pinCurrent.length ? "bg-orange-400 border-orange-400" : "border-gray-300"
+                i < pinCurrent.length ? "bg-sky-400" : "border-gray-300"
               }`} />
             ))}
           </div>
@@ -260,12 +260,12 @@ export default function SettingsPage() {
               k === "" ? <div key={i} /> :
               k === "←" ? (
                 <button key={i} onClick={delPinKey}
-                  className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
+                  className="h-16 rounded-2xl bg-white text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
                   ←
                 </button>
               ) : (
                 <button key={i} onClick={() => pressPinKey(k)}
-                  className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 active:bg-yellow-50 transition">
+                  className="h-16 rounded-2xl bg-white text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 active:bg-yellow-50 transition">
                   {k}
                 </button>
               )
