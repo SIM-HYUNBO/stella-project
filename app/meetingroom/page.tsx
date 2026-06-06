@@ -69,6 +69,7 @@ export default function MeetingRoomPage() {
   const [currentRoom, setCurrentRoom] = useState<MeetingRoom | null>(null);
   const [messages, setMessages] = useState<MeetingMessage[]>([]);
   const [input, setInput] = useState("");
+  const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [isRecording, setIsRecording] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
   const [sendingAudio, setSendingAudio] = useState(false);
@@ -90,6 +91,7 @@ export default function MeetingRoomPage() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const msgInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordTimerRef = useRef<any>(null);
@@ -453,6 +455,35 @@ export default function MeetingRoomPage() {
     return <div className="h-screen flex items-center justify-center">로딩중...</div>;
   }
 
+  const HL_CLS: Record<string, string> = {
+    y: "bg-yellow-300/80", g: "bg-green-300/80",
+    p: "bg-pink-300/80",   b: "bg-sky-300/80",
+  };
+
+  const renderHighlighted = (text: string) => {
+    const parts = text.split(/(==[ygpb]:.*?==|==.*?==)/);
+    return parts.map((part, i) => {
+      if (!part.startsWith("==") || !part.endsWith("==") || part.length <= 4)
+        return <span key={i}>{part}</span>;
+      const inner = part.slice(2, -2);
+      const m = inner.match(/^([ygpb]):(.+)$/);
+      const cls = m ? (HL_CLS[m[1]] ?? HL_CLS.y) : HL_CLS.y;
+      const content = m ? m[2] : inner;
+      return <mark key={i} className={`${cls} text-slate-800 rounded px-0.5 not-italic`}>{content}</mark>;
+    });
+  };
+
+  const applyHighlight = (colorKey: string) => {
+    const { start, end } = hlSel;
+    if (start === end) return;
+    const before = input.slice(0, start);
+    const selected = input.slice(start, end);
+    const after = input.slice(end);
+    setInput(`${before}==${colorKey}:${selected}==${after}`);
+    setHlSel({ start: 0, end: 0 });
+    msgInputRef.current?.focus();
+  };
+
   // 초대 모달
   const renderInviteModal = () => {
     if (!showInvite || !currentRoom) return null;
@@ -671,7 +702,7 @@ export default function MeetingRoomPage() {
                     ) : m.type === "audio" ? (
                       <audio src={m.content} controls className="max-w-[220px] rounded-xl" />
                     ) : (
-                      <span className="break-words whitespace-pre-wrap">{m.content}</span>
+                      <span className="break-words whitespace-pre-wrap">{renderHighlighted(m.content)}</span>
                     )}
                   </div>
                   <div className={`mt-1 text-[10px] text-gray-400 flex items-center gap-1 ${isMine ? "justify-end" : "justify-start"}`}>
@@ -745,11 +776,33 @@ export default function MeetingRoomPage() {
             e.target.value = "";
           }}
         />
+        {[
+          { key: "y", bg: "bg-yellow-300" },
+          { key: "g", bg: "bg-green-300" },
+          { key: "p", bg: "bg-pink-300" },
+          { key: "b", bg: "bg-sky-300" },
+        ].map(({ key, bg }) => (
+          <button
+            key={key}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => applyHighlight(key)}
+            title="형광 표시"
+            className={`w-6 h-6 rounded-full ${bg} active:scale-90 transition shrink-0 shadow-sm`}
+          />
+        ))}
         <input
+          ref={msgInputRef}
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onSelect={(e) => {
+            const el = e.currentTarget;
+            setHlSel({ start: el.selectionStart ?? 0, end: el.selectionEnd ?? 0 });
+          }}
+          onBlur={(e) => {
+            setHlSel({ start: e.currentTarget.selectionStart ?? 0, end: e.currentTarget.selectionEnd ?? 0 });
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) sendMessage();
           }}
