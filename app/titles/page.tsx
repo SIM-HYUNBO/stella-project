@@ -22,7 +22,7 @@ const ALL_TITLES = [
   { id: "newcomer",    icon: "🌱", name: "새싹",       desc: "WAGIE에 처음 왔어요",           condition: "가입만 해도",         color: "from-green-400 to-emerald-400" },
   { id: "talker",      icon: "💬", name: "수다쟁이",    desc: "메시지 50개 이상 보냄",          condition: "메시지 50개",         color: "from-blue-400 to-cyan-400" },
   { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 200개 이상 보냄",         condition: "메시지 200개",        color: "from-sky-500 to-sky-400" },
-  { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 500개 이상 보냄",         condition: "메시지 500개",        color: "from-cyan-400 to-sky-500" },
+  { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 500개 이상 보냄",         condition: "메시지 500개",        color: "bg-sky-100" },
   { id: "talkgod",     icon: "⚡", name: "말신",        desc: "메시지 1000개 이상 보냄",        condition: "메시지 1000개",       color: "from-violet-500 to-purple-500" },
   { id: "friendly",    icon: "🤝", name: "친화력 갑",   desc: "친구 10명 이상",                 condition: "친구 10명",           color: "from-pink-400 to-rose-400" },
   { id: "richfriend",  icon: "💎", name: "친구부자",    desc: "친구 50명 이상",                 condition: "친구 50명",           color: "from-cyan-400 to-teal-400" },
@@ -113,16 +113,16 @@ export default function TitlesPage() {
   return (
     <div className="min-h-screen bg-[#fff7ef]">
       {/* 헤더 */}
-      <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white border-b-2 border-gray-700">
+      <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white border-b border-gray-300">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-gray-800 text-base">🎫 칭호</span>
       </div>
 
       <div className="px-4 pt-5 pb-24 space-y-6">
 
         {/* 현재 장착 칭호 */}
-        <div className={`rounded-[28px] overflow-hidden shadow-[0_8px_30px_rgba(14,165,233,0.3)]`}>
+        <div className={`rounded-[28px] overflow-hidden shadow-sm`}>
           <div className={`bg-gradient-to-r ${equippedTitle?.color || "from-gray-300 to-gray-400"} p-6 relative`}>
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
             <p className="text-white/80 text-xs font-black tracking-widest mb-2">현재 칭호</p>
@@ -141,7 +141,7 @@ export default function TitlesPage() {
             )}
           </div>
           <div className="bg-white px-5 py-3 flex items-center justify-between">
-            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-sky-500 font-black">{earnedTitles.length}</span> / {titles.length}</p>
+            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-sky-400 font-black">{earnedTitles.length}</span> / {titles.length}</p>
             <div className="flex gap-1">
               {earnedTitles.slice(0, 5).map((t) => (
                 <span key={t.id} className="text-lg">{t.icon}</span>
@@ -158,7 +158,7 @@ export default function TitlesPage() {
             <div className="grid grid-cols-2 gap-3">
               {earnedTitles.map((t) => (
                 <button key={t.id} onClick={() => equipTitle(t.id)}
-                  className={`rounded-[20px] overflow-hidden shadow-sm active:scale-95 transition-transform ${equipped === t.id ? "ring-2 ring-sky-500 ring-offset-2" : ""}`}>
+                  className={`rounded-[20px] overflow-hidden shadow-sm active:scale-95 transition-transform ${equipped === t.id ? "ring-2 ring-sky-200 ring-offset-2" : ""}`}>
                   <div className={`bg-gradient-to-br ${t.color} px-4 py-4 relative`}>
                     <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
                     {equipped === t.id && (
@@ -180,7 +180,7 @@ export default function TitlesPage() {
             <p className="font-black text-gray-800 text-base px-1 mb-3">🔒 잠긴 칭호</p>
             <div className="grid grid-cols-2 gap-3">
               {lockedTitles.map((t) => (
-                <div key={t.id} className="rounded-[20px] bg-white border-2 border-gray-700 px-4 py-4 opacity-60 shadow-sm">
+                <div key={t.id} className="rounded-[20px] bg-white border border-gray-300 px-4 py-4 opacity-60 shadow-sm">
                   <p className="text-3xl mb-2 grayscale">{t.icon}</p>
                   <p className="text-gray-500 font-black text-sm">{t.name}</p>
                   <p className="text-gray-400 text-[10px] mt-1">🔒 {t.condition}</p>

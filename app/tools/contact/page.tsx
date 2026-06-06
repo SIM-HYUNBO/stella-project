@@ -86,14 +86,14 @@ export default function QnaPage() {
       <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center h-14 px-4 bg-white border-b-2 border-gray-700 shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+      <div className="relative z-10 flex items-center h-14 px-4 bg-white border-b border-gray-300 shrink-0">
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <div>
           <p className="font-black text-[gray-800] text-base">Q&amp;A방</p>
           <p className="text-[10px] text-[sky-500] font-semibold -mt-0.5">궁금한 게 있으면 질문하세요</p>
         </div>
         {isAdmin && (
-          <span className="ml-auto px-3 py-1 rounded-full bg-sky-500 text-white text-xs font-black shadow-sm">관리자</span>
+          <span className="ml-auto px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-black shadow-sm">관리자</span>
         )}
       </div>
 
@@ -112,10 +112,10 @@ export default function QnaPage() {
 
             {/* Q */}
             <div className="flex gap-3 items-start">
-              <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm">Q</div>
-              <div className="flex-1 rounded-[18px] rounded-tl-[6px] bg-white border-2 border-gray-700 px-4 py-3 shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm">Q</div>
+              <div className="flex-1 rounded-[18px] rounded-tl-[6px] bg-white border border-gray-300 px-4 py-3 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-black text-sky-500">{item.askerName}</p>
+                  <p className="text-xs font-black text-sky-400">{item.askerName}</p>
                   <p className="text-[10px] text-[sky-500]">{formatDate(item.createdAt)}</p>
                 </div>
                 <p className="text-sm text-[gray-800] leading-relaxed">{item.question}</p>
@@ -166,8 +166,8 @@ export default function QnaPage() {
                     </button>
                   )
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-[sky-500] bg-gray-50 border-2 border-gray-700 rounded-full px-3 py-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 text-xs text-[sky-500] bg-gray-50 border border-gray-300 rounded-full px-3 py-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-100 animate-pulse" />
                     답변 대기 중
                   </span>
                 )}
@@ -181,16 +181,16 @@ export default function QnaPage() {
 
       {/* 질문 입력 (관리자 제외) */}
       {!isAdmin && (
-        <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t-2 border-gray-700 shrink-0">
+        <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-300 shrink-0">
           <input
-            className="flex-1 bg-gray-50 border-2 border-gray-700 rounded-[16px] px-4 py-2.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none"
+            className="flex-1 bg-gray-50 border border-gray-300 rounded-[16px] px-4 py-2.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && postQuestion()}
             placeholder="궁금한 점을 질문해 보세요"
           />
           <button onClick={postQuestion}
-            className="w-11 h-11 rounded-[14px] bg-sky-500 text-white font-black shadow-[0_4px_14px_rgba(14,165,233,0.35)] active:scale-95 transition-transform flex items-center justify-center">
+            className="w-11 h-11 rounded-[14px] bg-sky-100 text-sky-800 font-black shadow-sm active:scale-95 transition-transform flex items-center justify-center">
             ▶
           </button>
         </div>

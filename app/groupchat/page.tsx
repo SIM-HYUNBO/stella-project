@@ -737,7 +737,7 @@ export default function GroupChat() {
                 }
                 className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
               >
-                <div className="w-11 h-11 rounded-full bg-sky-400 text-white font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-full bg-sky-100 text-sky-900 font-bold flex items-center justify-center shadow">
                   {u.nickname[0]}
                 </div>
 
@@ -778,12 +778,12 @@ export default function GroupChat() {
                 </svg>
                 <span className="font-bold text-sm text-gray-700">비밀방</span>
               </div>
-              <button onClick={() => setSettingSecret(!settingSecret)} className={`relative w-12 h-6 rounded-full transition-colors ${settingSecret ? "bg-sky-500" : "bg-gray-200"}`}>
+              <button onClick={() => setSettingSecret(!settingSecret)} className={`relative w-12 h-6 rounded-full transition-colors ${settingSecret ? "bg-sky-100" : "bg-gray-200"}`}>
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${settingSecret ? "translate-x-[24px]" : "translate-x-0"}`}/>
               </button>
             </div>
             {settingSecret && (
-              <input className="w-full h-11 rounded-xl bg-gray-50 border-2 border-gray-700 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+              <input className="w-full h-11 rounded-xl bg-gray-50 border border-gray-300 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
                 placeholder="비밀번호 입력" value={settingPassword} onChange={(e) => setSettingPassword(e.target.value)}/>
             )}
             <div className="flex items-center justify-between">
@@ -801,12 +801,12 @@ export default function GroupChat() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
-              <input className="flex-1 h-11 rounded-xl bg-gray-50 border-2 border-gray-700 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+              <input className="flex-1 h-11 rounded-xl bg-gray-50 border border-gray-300 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
                 placeholder="최대 인원 (빈칸=무제한)" type="number" min="2" value={settingMaxMembers} onChange={(e) => setSettingMaxMembers(e.target.value)}/>
             </div>
           </div>
           <button onClick={saveRoomSettings}
-            className="w-full h-12 rounded-2xl bg-sky-500 text-white font-black shadow-md active:scale-95 transition-transform">
+            className="w-full h-12 rounded-2xl bg-sky-100 text-sky-800 font-black shadow-md active:scale-95 transition-transform">
             저장
           </button>
         </div>
@@ -826,13 +826,13 @@ export default function GroupChat() {
             </svg>
             <span className="font-black text-gray-800">비밀방 비밀번호</span>
           </div>
-          <input className="w-full h-11 rounded-xl bg-gray-50 border-2 border-gray-700 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+          <input className="w-full h-11 rounded-xl bg-gray-50 border border-gray-300 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
             placeholder="비밀번호 입력" type="password" value={enteredPassword}
             onChange={(e) => setEnteredPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && inviteUser(pendingInviteTarget, enteredPassword)}
             autoFocus/>
           <button onClick={() => inviteUser(pendingInviteTarget, enteredPassword)}
-            className="w-full h-12 rounded-2xl bg-sky-500 text-white font-black shadow-md active:scale-95 transition-transform">
+            className="w-full h-12 rounded-2xl bg-sky-100 text-sky-800 font-black shadow-md active:scale-95 transition-transform">
             초대
           </button>
         </div>
@@ -844,7 +844,7 @@ export default function GroupChat() {
   const renderRoom = () => (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
       {/* 헤더 */}
-      <div className="px-4 py-3 border-b-2 border-gray-700 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
+      <div className="px-4 py-3 border-b border-gray-300 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
 
@@ -858,7 +858,7 @@ export default function GroupChat() {
                 className="w-11 h-11 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-sky-400 text-white font-bold flex items-center justify-center shadow">
+              <div className="w-11 h-11 rounded-full bg-sky-100 text-sky-900 font-bold flex items-center justify-center shadow">
                 {currentRoom?.name[0]}
               </div>
             )}
@@ -902,15 +902,15 @@ export default function GroupChat() {
                   value={newRoomNameEdit}
                   onChange={(e) => setNewRoomNameEdit(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") saveRoomName(); if (e.key === "Escape") setEditingRoomName(false); }}
-                  className="h-7 px-2 rounded-lg border border-sky-400 text-sm outline-none text-gray-800 w-32"
+                  className="h-7 px-2 rounded-lg border border-sky-200 text-sm outline-none text-gray-800 w-32"
                 />
-                <button onClick={saveRoomName} className="text-xs text-sky-500 font-bold px-2 py-1 bg-sky-50 rounded-lg">저장</button>
+                <button onClick={saveRoomName} className="text-xs text-sky-400 font-bold px-2 py-1 bg-sky-50 rounded-lg">저장</button>
                 <button onClick={() => setEditingRoomName(false)} className="text-xs text-gray-400 px-1">✕</button>
               </div>
             ) : (
               <button
                 onClick={() => { setNewRoomNameEdit(currentRoom?.name || ""); setEditingRoomName(true); }}
-                className="font-bold text-gray-800 hover:text-sky-500 transition text-left flex items-center gap-1"
+                className="font-bold text-gray-800 hover:text-sky-400 transition text-left flex items-center gap-1"
               >
                 {currentRoom?.name}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -952,7 +952,7 @@ export default function GroupChat() {
       </div>
 
       {/* 멤버 */}
-      <div className="px-4 py-2 border-b-2 border-gray-700 bg-white/60 backdrop-blur-md">
+      <div className="px-4 py-2 border-b border-gray-300 bg-white/60 backdrop-blur-md">
         <div className="text-xs text-[sky-500] truncate font-semibold">
           👥{" "}
           {currentRoom?.members.join(", ")}
@@ -1018,8 +1018,8 @@ export default function GroupChat() {
                   <div
                     className={`px-4 py-3 rounded-3xl text-sm shadow-sm ${
                       isMine
-                        ? "bg-sky-400 text-white rounded-br-md"
-                        : "bg-white border-2 border-gray-700 rounded-bl-md"
+                        ? "bg-sky-100 text-sky-900 border border-sky-200 rounded-br-md"
+                        : "bg-white text-gray-800 border border-gray-300 rounded-bl-md"
                     }`}
                   >
                     {m.type === "image" ? (
@@ -1046,7 +1046,7 @@ export default function GroupChat() {
                     {(() => {
                       const unread = (currentRoom?.members.length || 0) - (m.readBy?.length || 0);
                       return unread > 0 ? (
-                        <span className="text-sky-500 font-bold">{unread}</span>
+                        <span className="text-sky-400 font-bold">{unread}</span>
                       ) : null;
                     })()}
                     {formatTime(m.createdAt)}
@@ -1062,17 +1062,17 @@ export default function GroupChat() {
 
       {/* 입력창 */}
       {pendingImage && (
-        <div className="px-3 py-2 bg-sky-50 border-t-2 border-gray-700 flex items-center gap-3 shrink-0">
+        <div className="px-3 py-2 bg-sky-50 border-t border-gray-300 flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white border-2 border-gray-700 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-sky-500 text-white flex items-center justify-center shadow-md disabled:opacity-50"
+              className="w-10 h-10 rounded-[12px] bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center disabled:opacity-50"
             >
               {sendingImage
-                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ? <div className="w-4 h-4 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
                 : "➤"}
             </button>
           </div>
@@ -1080,21 +1080,21 @@ export default function GroupChat() {
       )}
 
       {pendingAudio && (
-        <div className="px-3 py-2 bg-sky-50 border-t-2 border-gray-700 flex items-center gap-2 shrink-0">
+        <div className="px-3 py-2 bg-sky-50 border-t border-gray-300 flex items-center gap-2 shrink-0">
           <span className="text-lg shrink-0">🎵</span>
-          <span className="text-xs font-black text-sky-500 shrink-0">대기중</span>
+          <span className="text-xs font-black text-sky-400 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
-          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white border-2 border-gray-700 flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-500 text-white flex items-center justify-center shadow-md shrink-0 disabled:opacity-50">
-            {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
+          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
+          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center shrink-0 disabled:opacity-50">
+            {sendingAudio ? <div className="w-4 h-4 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
       )}
 
-      <div className="px-3 py-2 bg-white border-t-2 border-gray-700 flex items-center gap-2 shrink-0">
+      <div className="px-3 py-2 bg-white border-t border-gray-300 flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-100 text-sky-500 flex items-center justify-center transition shrink-0"
+          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-50 text-sky-400 flex items-center justify-center transition shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1116,7 +1116,7 @@ export default function GroupChat() {
         />
 
         <input
-          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 border-2 border-gray-700 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
           placeholder="메시지 입력"
           value={input}
           onChange={(e) =>
@@ -1134,7 +1134,7 @@ export default function GroupChat() {
 
         <button
           onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-100 text-sky-500"}`}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-50 text-sky-400"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -1146,7 +1146,7 @@ export default function GroupChat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-sky-500 text-white shadow-[0_4px_14px_rgba(14,165,233,0.35)] hover:scale-105 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-50 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
@@ -1157,14 +1157,14 @@ export default function GroupChat() {
   // 방 목록
   const renderRoomList = () => (
     <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b-2 border-gray-700">
+      <div className="px-4 py-4 border-b border-gray-300">
         <div className="flex items-center gap-2">
-          <span className="text-xl font-black bg-sky-500 bg-clip-text text-transparent">
+          <span className="text-xl font-black text-sky-400">
             WAGIE GROUP
           </span>
           <button
             onClick={() => router.push("/groupchat")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 transition active:scale-90"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-50 transition active:scale-90"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -1172,7 +1172,7 @@ export default function GroupChat() {
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
-            <span className="text-xs font-bold text-sky-500">일반</span>
+            <span className="text-xs font-bold text-sky-400">일반</span>
           </button>
           <button
             onClick={() => router.push("/meetingroom")}
@@ -1191,11 +1191,11 @@ export default function GroupChat() {
         <div className="text-xs text-gray-400 mt-0.5">단체 채팅</div>
       </div>
 
-      <div className="px-3 py-3 border-b-2 border-gray-700">
+      <div className="px-3 py-3 border-b border-gray-300">
         {showCreate ? (
           <div className="flex flex-col gap-2">
             <input
-              className="w-full h-11 rounded-[16px] bg-white border-2 border-gray-700 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+              className="w-full h-11 rounded-[16px] bg-gray-50 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
               placeholder="방 이름 입력"
               value={newRoomName}
               onChange={(e) => setNewRoomName(e.target.value)}
@@ -1204,7 +1204,7 @@ export default function GroupChat() {
             />
 
             {/* 조건 설정 */}
-            <div className="bg-white rounded-[14px] border-2 border-gray-700 px-3 py-2 flex flex-col gap-2">
+            <div className="bg-white rounded-[14px] border border-gray-300 px-3 py-2 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1212,12 +1212,12 @@ export default function GroupChat() {
                   </svg>
                   <span className="text-xs font-bold text-gray-600">비밀방</span>
                 </div>
-                <button onClick={() => setNewIsSecret(!newIsSecret)} className={`relative w-10 h-5 rounded-full transition-colors ${newIsSecret ? "bg-sky-500" : "bg-gray-200"}`}>
+                <button onClick={() => setNewIsSecret(!newIsSecret)} className={`relative w-10 h-5 rounded-full transition-colors ${newIsSecret ? "bg-sky-100" : "bg-gray-200"}`}>
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${newIsSecret ? "translate-x-5" : "translate-x-0"}`}/>
                 </button>
               </div>
               {newIsSecret && (
-                <input className="w-full h-9 rounded-xl bg-gray-50 border-2 border-gray-700 px-3 text-xs outline-none text-[gray-800] placeholder:text-[sky-400]"
+                <input className="w-full h-9 rounded-xl bg-gray-50 border border-gray-300 px-3 text-xs outline-none text-[gray-800] placeholder:text-[sky-400]"
                   placeholder="비밀번호 입력" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}/>
               )}
               <div className="flex items-center justify-between">
@@ -1235,7 +1235,7 @@ export default function GroupChat() {
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                <input className="flex-1 h-8 rounded-xl bg-gray-50 border-2 border-gray-700 px-3 text-xs outline-none text-[gray-800] placeholder:text-[sky-400]"
+                <input className="flex-1 h-8 rounded-xl bg-gray-50 border border-gray-300 px-3 text-xs outline-none text-[gray-800] placeholder:text-[sky-400]"
                   placeholder="최대 인원 (빈칸=무제한)" type="number" min="2" value={newMaxMembers} onChange={(e) => setNewMaxMembers(e.target.value)}/>
               </div>
             </div>
@@ -1243,7 +1243,7 @@ export default function GroupChat() {
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 h-11 rounded-[16px] bg-sky-500 text-white font-black shadow-[0_4px_14px_rgba(14,165,233,0.3)]"
+                className="flex-1 h-11 rounded-[16px] bg-sky-100 text-sky-800 font-black shadow-[0_4px_14px_rgba(14,165,233,0.3)]"
               >
                 만들기
               </button>
@@ -1253,7 +1253,7 @@ export default function GroupChat() {
                   setShowCreate(false);
                   setNewRoomName("");
                 }}
-                className="flex-1 h-11 rounded-[16px] bg-white border-2 border-gray-700 text-[sky-500] font-semibold"
+                className="flex-1 h-11 rounded-[16px] bg-white border border-gray-300 text-[sky-500] font-semibold"
               >
                 취소
               </button>
@@ -1264,7 +1264,7 @@ export default function GroupChat() {
             onClick={() =>
               setShowCreate(true)
             }
-            className="w-full h-11 rounded-[16px] bg-sky-500 text-white font-black shadow-[0_4px_14px_rgba(14,165,233,0.3)]"
+            className="w-full h-11 rounded-[16px] bg-sky-100 text-sky-800 font-black shadow-[0_4px_14px_rgba(14,165,233,0.3)]"
           >
             + 방 만들기
           </button>
@@ -1278,7 +1278,7 @@ export default function GroupChat() {
             onClick={() => setCurrentRoom(room)}
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border shadow-sm transition text-left ${
               currentRoom?.id === room.id
-                ? "bg-sky-500 border-sky-200 shadow-sm"
+                ? "bg-sky-100 border-sky-200 shadow-sm"
                 : "bg-white/80 hover:bg-sky-50 border-sky-100"
             }`}
           >
@@ -1289,7 +1289,7 @@ export default function GroupChat() {
                 className="w-11 h-11 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-sky-400 text-white font-bold flex items-center justify-center shadow">
+              <div className="w-11 h-11 rounded-full bg-sky-100 text-sky-900 font-bold flex items-center justify-center shadow">
                 {room.name[0]}
               </div>
             )}

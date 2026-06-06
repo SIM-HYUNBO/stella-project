@@ -45,14 +45,14 @@ export default function AppInfoPage() {
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="flex items-center h-14 px-4 bg-white border-b-2 border-gray-700">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-300">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[gray-800] text-base">앱 정보</span>
           {nickname === "관리자" && (
             <button
               onClick={() => router.push("/admin/notice")}
-              className="ml-auto text-xs font-black text-sky-500 bg-sky-50 px-3 py-1.5 rounded-xl"
+              className="ml-auto text-xs font-black text-sky-400 bg-sky-50 px-3 py-1.5 rounded-xl"
             >
               관리
             </button>
@@ -62,7 +62,7 @@ export default function AppInfoPage() {
         <div className="px-5 pt-8 pb-16 space-y-5">
 
           {/* 히어로 */}
-          <div className="rounded-[28px] bg-sky-500 px-6 py-7 shadow-[0_16px_50px_rgba(14,165,233,0.4)] relative overflow-hidden text-center">
+          <div className="rounded-[28px] bg-sky-100 px-6 py-7 shadow-[0_16px_50px_rgba(14,165,233,0.4)] relative overflow-hidden text-center">
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
             <div className="relative">
@@ -73,10 +73,10 @@ export default function AppInfoPage() {
           </div>
 
           {/* 정보 카드 */}
-          <div className="rounded-[24px] bg-white border-2 border-gray-700 shadow-[0_4px_20px_rgba(14,165,233,0.1)] overflow-hidden">
-            <div className="px-5 py-4 flex items-center justify-between border-b-2 border-gray-700">
+          <div className="rounded-[24px] bg-white border border-gray-300 shadow-[0_4px_20px_rgba(14,165,233,0.1)] overflow-hidden">
+            <div className="px-5 py-4 flex items-center justify-between border-b border-gray-300">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-xl">📦</div>
+                <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-xl">📦</div>
                 <span className="font-semibold text-[gray-800] text-sm">버전</span>
               </div>
               <span className="text-[sky-500] text-sm font-bold bg-sky-50 px-3 py-1 rounded-full">v0.2.2</span>
@@ -93,16 +93,16 @@ export default function AppInfoPage() {
           </div>
 
           {/* 공지사항 */}
-          <div className="rounded-[24px] bg-white border-2 border-gray-700 shadow-[0_4px_20px_rgba(14,165,233,0.1)] overflow-hidden">
-            <div className="px-5 py-4 border-b-2 border-gray-700 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-xl">📢</div>
+          <div className="rounded-[24px] bg-white border border-gray-300 shadow-[0_4px_20px_rgba(14,165,233,0.1)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-300 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-xl">📢</div>
               <span className="font-black text-[gray-800] text-sm">공지사항</span>
             </div>
 
             {notices.length === 0 ? (
               <div className="px-5 py-6 text-center text-sm text-gray-400">등록된 공지가 없어요.</div>
             ) : (
-              <div className="divide-y divide-gray-700">
+              <div className="divide-y divide-gray-100">
                 {notices.map((n) => (
                   <div key={n.id}>
                     <button

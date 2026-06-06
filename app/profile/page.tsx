@@ -113,31 +113,31 @@ export default function ProfilePage() {
         {coverImage ? (
           <img src={coverImage} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-sky-500 flex flex-col items-center justify-center gap-2">
+          <div className="w-full h-full bg-sky-100 flex flex-col items-center justify-center gap-2">
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
             <span className="text-4xl">🖼️</span>
             <p className="text-white/80 text-sm font-semibold">커버 이미지 설정하기</p>
           </div>
         )}
-        <div className="absolute inset-0 bg-sky-500/50 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-sky-100/50 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-3 right-3 bg-black/30 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">사진 변경</div>
       </div>
       <input type="file" ref={coverRef} onChange={changeCoverImage} className="hidden" />
 
       {/* 프로필 카드 */}
       <div className="relative z-10 -mt-16 px-5">
-        <div className="rounded-[28px] bg-white/90 backdrop-blur-md border-2 border-gray-700 shadow-[0_12px_40px_rgba(14,165,233,0.2)] px-6 pt-6 pb-7">
+        <div className="rounded-[28px] bg-white/90 backdrop-blur-md border border-gray-300 shadow-[0_12px_40px_rgba(14,165,233,0.2)] px-6 pt-6 pb-7">
 
           {/* 프로필 이미지 */}
           <div className="flex items-end gap-4 -mt-16 mb-5">
             <div onClick={() => profileRef.current?.click()}
-              className="relative w-24 h-24 rounded-[22px] bg-sky-500 overflow-hidden ring-4 ring-white shadow-xl cursor-pointer shrink-0">
+              className="relative w-24 h-24 rounded-[22px] bg-sky-100 overflow-hidden ring-4 ring-white shadow-xl cursor-pointer shrink-0">
               {profileImage ? (
                 <img src={profileImage} className="w-full h-full object-cover" />
               ) : (
                 <div className="flex items-center justify-center h-full text-3xl">+</div>
               )}
-              <div className="absolute bottom-0 right-0 w-7 h-7 bg-sky-500 rounded-tl-xl flex items-center justify-center text-white text-xs">✏️</div>
+              <div className="absolute bottom-0 right-0 w-7 h-7 bg-sky-100 rounded-tl-xl flex items-center justify-center text-white text-xs">✏️</div>
             </div>
             <input type="file" ref={profileRef} onChange={changeProfileImage} className="hidden" />
           </div>
@@ -148,9 +148,9 @@ export default function ProfilePage() {
             {editNickname ? (
               <div className="flex gap-2">
                 <input value={nickname} onChange={(e) => setNickname(e.target.value)}
-                  className="flex-1 bg-sky-50 border border-sky-200 rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-400" />
+                  className="flex-1 bg-sky-50 border border-sky-200 rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-200" />
                 <button onClick={saveNickname}
-                  className="px-4 py-2 bg-sky-500 text-white rounded-[14px] text-sm font-black shadow-md">저장</button>
+                  className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[14px] text-sm font-black shadow-md">저장</button>
               </div>
             ) : (
               <button onClick={() => setEditNickname(true)} className="flex items-center gap-2 group">
@@ -166,9 +166,9 @@ export default function ProfilePage() {
             {editStatus ? (
               <div className="flex gap-2">
                 <input value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="flex-1 bg-sky-50 border border-sky-200 rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-400" />
+                  className="flex-1 bg-sky-50 border border-sky-200 rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-200" />
                 <button onClick={saveStatus}
-                  className="px-4 py-2 bg-sky-500 text-white rounded-[14px] text-sm font-black shadow-md">저장</button>
+                  className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[14px] text-sm font-black shadow-md">저장</button>
               </div>
             ) : (
               <button onClick={() => setEditStatus(true)} className="flex items-center gap-2 group">
@@ -206,7 +206,7 @@ export default function ProfilePage() {
               className="w-full bg-red-50 border border-red-100 rounded-[16px] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-200" />
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(false)}
-                className="flex-1 h-12 rounded-[16px] bg-gray-50 border-2 border-gray-700 text-[#c07030] font-black text-sm">취소</button>
+                className="flex-1 h-12 rounded-[16px] bg-gray-50 border border-gray-300 text-[#c07030] font-black text-sm">취소</button>
               <button onClick={handleDelete}
                 className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm shadow-md">탈퇴</button>
             </div>

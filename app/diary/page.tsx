@@ -97,20 +97,20 @@ export default function DiaryPage() {
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white border-b-2 border-gray-700">
+        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-300">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg">←</button>
           <span className="font-black text-[gray-800] text-base">📔 미니 다이어리</span>
           <div className="w-9" />
         </div>
 
         {/* 탭 */}
-        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm border-2 border-gray-700 rounded-[18px] p-1 gap-1 shadow-sm">
+        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm border border-gray-300 rounded-[18px] p-1 gap-1 shadow-sm">
           {(["mine", "friends"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
                 tab === t
-                  ? "bg-sky-500 text-white shadow-md"
+                  ? "bg-sky-100 text-sky-800 shadow-md"
                   : "text-[sky-500]"
               }`}>
               {t === "mine" ? "내 일기" : "친구 일기"}
@@ -122,7 +122,7 @@ export default function DiaryPage() {
           {tab === "mine" && (
             <>
               {/* 오늘 일기 */}
-              <div className="rounded-[24px] bg-white border-2 border-gray-700 shadow-[0_8px_30px_rgba(14,165,233,0.12)] p-5 mb-4">
+              <div className="rounded-[24px] bg-white border border-gray-300 shadow-[0_8px_30px_rgba(14,165,233,0.12)] p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] font-black text-[#d4904a] tracking-widest">TODAY</p>
@@ -130,7 +130,7 @@ export default function DiaryPage() {
                   </div>
                   {todayEntry && !editing && (
                     <button onClick={() => setEditing(true)}
-                      className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-500 text-xs font-black border-2 border-gray-700">수정 ✏️</button>
+                      className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-400 text-xs font-black border border-gray-300">수정 ✏️</button>
                   )}
                 </div>
 
@@ -148,7 +148,7 @@ export default function DiaryPage() {
                         <button key={m} onClick={() => setSelectedMood(m)}
                           className={`text-2xl w-11 h-11 rounded-[14px] transition-all ${
                             selectedMood === m
-                              ? "bg-sky-500 scale-110 shadow-md ring-2 ring-sky-400"
+                              ? "bg-sky-100 scale-110 shadow-md ring-2 ring-sky-200"
                               : "bg-sky-50/50 hover:bg-sky-50"
                           }`}>
                           {m}
@@ -158,19 +158,19 @@ export default function DiaryPage() {
 
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      className="w-full text-sm text-[gray-800] bg-sky-50/60 border-2 border-gray-700 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-[sky-400]"
+                      className="w-full text-sm text-[gray-800] bg-sky-50/60 border border-gray-300 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-[sky-400]"
                     />
                     <div className="text-right text-xs text-[sky-400] mb-3">{content.length}/200</div>
 
                     <div className="flex items-center justify-between">
                       <button onClick={() => setIsPublic(!isPublic)}
                         className={`text-xs px-4 py-2 rounded-full font-black transition-all border ${
-                          isPublic ? "bg-sky-50 border-sky-200 text-sky-500" : "bg-gray-50 border-gray-200 text-gray-500"
+                          isPublic ? "bg-sky-50 border-sky-200 text-sky-400" : "bg-gray-50 border-gray-200 text-gray-500"
                         }`}>
                         {isPublic ? "🌍 공개" : "🔒 비공개"}
                       </button>
                       <button onClick={handleSave} disabled={saving || !content.trim()}
-                        className="px-6 py-2.5 bg-sky-500 text-white text-sm font-black rounded-full shadow-md disabled:opacity-40 active:scale-[0.97] transition-transform">
+                        className="px-6 py-2.5 bg-sky-100 text-sky-800 text-sm font-black rounded-full shadow-md disabled:opacity-40 active:scale-[0.97] transition-transform">
                         {saving ? "저장 중..." : "저장 💾"}
                       </button>
                     </div>
@@ -210,7 +210,7 @@ export default function DiaryPage() {
                     {entry.profileImage ? (
                       <img src={entry.profileImage} className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-sm font-black text-sky-500 shadow">
+                      <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-black text-sky-400 shadow">
                         {entry.nickname[0]}
                       </div>
                     )}

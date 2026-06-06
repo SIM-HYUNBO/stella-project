@@ -107,29 +107,29 @@ export default function DragBlockGame() {
       <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
-      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white border-b-2 border-gray-700 sticky top-0">
+      <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-300 sticky top-0">
         <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg">←</button>
           <span className="font-black text-[gray-800] text-base">🧩 블록 게임</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="rounded-[12px] bg-sky-500 px-4 py-1.5 shadow-sm">
+          <div className="rounded-[12px] bg-sky-100 px-4 py-1.5 shadow-sm">
             <p className="text-white font-black text-sm">{score}점</p>
           </div>
-          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-base">↺</button>
+          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-base">↺</button>
         </div>
       </div>
 
       <div className="relative z-10 flex flex-col lg:flex-row gap-6 items-center justify-center px-4 py-6">
         {/* 게임판 */}
-        <div className="rounded-[24px] bg-white border-2 border-gray-700 p-3 shadow-[0_8px_30px_rgba(14,165,233,0.15)]">
+        <div className="rounded-[24px] bg-white border border-gray-300 p-3 shadow-[0_8px_30px_rgba(14,165,233,0.15)]">
           <div className="grid grid-cols-8 gap-1 bg-sky-50 p-2 rounded-[16px]">
             {board.map((row, r) =>
               row.map((cell, c) => (
                 <div key={`${r}-${c}`}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => placeBlock(r, c)}
-                  className={`w-9 h-9 rounded-[8px] border-2 border-gray-700/50 ${cell || "bg-white"}`}
+                  className={`w-9 h-9 rounded-[8px] border border-gray-300/50 ${cell || "bg-white"}`}
                 />
               ))
             )}
@@ -138,14 +138,14 @@ export default function DragBlockGame() {
 
         {/* 블록 선택 */}
         <div className="flex flex-col gap-4 w-full max-w-xs">
-          <div className="rounded-[24px] bg-white border-2 border-gray-700 px-5 py-4 shadow-sm">
+          <div className="rounded-[24px] bg-white border border-gray-300 px-5 py-4 shadow-sm">
             <p className="font-black text-[gray-800] text-sm mb-4">블록 선택</p>
             <div className="flex flex-wrap gap-3">
               {blocks.map((block) => (
                 <div key={block.id} draggable onDragStart={() => setSelected(block)}
                   className={`p-3 rounded-[16px] border-2 cursor-grab active:cursor-grabbing transition-all ${
                     selected?.id === block.id
-                      ? "border-sky-500 shadow-[0_4px_14px_rgba(14,165,233,0.35)] scale-105 bg-sky-50"
+                      ? "border-sky-200 shadow-sm scale-105 bg-sky-50"
                       : "border-sky-100 bg-white/60 hover:bg-sky-50"
                   }`}>
                   <MiniShape shape={block.shape} color={block.color} />
@@ -154,7 +154,7 @@ export default function DragBlockGame() {
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white border-2 border-gray-700 px-5 py-4 shadow-sm text-sm text-[#9d7060] leading-relaxed">
+          <div className="rounded-[24px] bg-white border border-gray-300 px-5 py-4 shadow-sm text-sm text-[#9d7060] leading-relaxed">
             <p className="font-black text-[gray-800] mb-1">사용법</p>
             블록을 드래그해서 게임판에 올려두세요. 가로 또는 세로로 한 줄을 채우면 지워져요!
           </div>
@@ -164,7 +164,7 @@ export default function DragBlockGame() {
               <p className="text-2xl font-black text-red-500 mb-1">GAME OVER</p>
               <p className="text-sm text-[sky-500] mb-4">최종 점수: {score}점</p>
               <button onClick={resetGame}
-                className="px-6 py-3 rounded-[16px] bg-sky-500 text-white font-black shadow-md active:scale-95 transition-transform">
+                className="px-6 py-3 rounded-[16px] bg-sky-100 text-sky-800 font-black shadow-md active:scale-95 transition-transform">
                 다시 시작
               </button>
             </div>

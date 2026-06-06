@@ -79,7 +79,7 @@ export default function MeatChat() {
   };
 
   const stateColors: Record<string, string> = {
-    raw: "text-[sky-500]", grilling: "text-sky-500", perfect: "text-green-500", burn: "text-red-500",
+    raw: "text-[sky-500]", grilling: "text-sky-400", perfect: "text-green-500", burn: "text-red-500",
   };
 
   return (
@@ -88,7 +88,7 @@ export default function MeatChat() {
 
       {/* 고기 영역 */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4">
-        <div className="rounded-[28px] bg-white border-2 border-gray-700 px-10 py-8 shadow-[0_8px_30px_rgba(14,165,233,0.15)] flex flex-col items-center gap-4">
+        <div className="rounded-[28px] bg-white border border-gray-300 px-10 py-8 shadow-[0_8px_30px_rgba(14,165,233,0.15)] flex flex-col items-center gap-4">
           <p className="font-black text-[gray-800] text-lg">🥩 고기 굽기</p>
 
           <div
@@ -118,10 +118,10 @@ export default function MeatChat() {
       </div>
 
       {/* 채팅 로그 */}
-      <div className="relative z-10 h-44 overflow-y-auto bg-white border-t-2 border-gray-700 px-4 py-3 space-y-1">
+      <div className="relative z-10 h-44 overflow-y-auto bg-white border-t border-gray-300 px-4 py-3 space-y-1">
         {messages.map((m) => (
           <div key={m.id} className="text-sm">
-            <span className="font-black text-sky-500">{m.from}</span>
+            <span className="font-black text-sky-400">{m.from}</span>
             <span className="text-[gray-800]"> : {m.content}</span>
           </div>
         ))}
@@ -129,9 +129,9 @@ export default function MeatChat() {
       </div>
 
       {/* 입력 */}
-      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t-2 border-gray-700 shrink-0">
+      <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-300 shrink-0">
         <input
-          className="flex-1 bg-gray-50 border-2 border-gray-700 rounded-[16px] px-4 py-2.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none"
+          className="flex-1 bg-gray-50 border border-gray-300 rounded-[16px] px-4 py-2.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -139,7 +139,7 @@ export default function MeatChat() {
         />
         <button onClick={sendMessage}
           className={`w-11 h-11 rounded-[14px] text-white font-black shadow-md active:scale-95 transition-transform flex items-center justify-center ${
-            state === "perfect" ? "bg-sky-500 shadow-[0_4px_14px_rgba(14,165,233,0.35)]" : "bg-gray-300"
+            state === "perfect" ? "bg-sky-100 shadow-sm" : "bg-gray-300"
           }`}>
           ▶
         </button>

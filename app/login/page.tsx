@@ -40,33 +40,33 @@ export default function LoginPage() {
 
         {/* 브랜드 */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-500 shadow-[0_16px_40px_rgba(14,165,233,0.45)] mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100 shadow-[0_16px_40px_rgba(14,165,233,0.45)] mb-4">
             <span className="text-4xl">💬</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-transparent bg-clip-text bg-sky-500">WAGIE</h1>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-400">WAGIE</h1>
           <p className="text-[#b07848] text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
         </div>
 
         {/* 폼 카드 */}
-        <div className="rounded-[28px] bg-white/80 backdrop-blur-md border-2 border-gray-700 shadow-[0_12px_40px_rgba(14,165,233,0.15)] px-6 py-7 space-y-4">
+        <div className="rounded-[28px] bg-white/80 backdrop-blur-md border border-gray-300 shadow-sm px-6 py-7 space-y-4">
           <p className="font-black text-[gray-800] text-xl mb-1">로그인</p>
 
           <form onSubmit={handleLogin} className="space-y-3">
             <input
               type="email" placeholder="이메일" value={email}
               onChange={(e) => setEmail(e.target.value)} required
-              className="w-full bg-sky-50/80 border-2 border-gray-700 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-400 transition"
+              className="w-full bg-sky-50/80 border border-gray-300 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-200 transition"
             />
             <input
               type="password" placeholder="비밀번호" value={password}
               onChange={(e) => setPassword(e.target.value)} required
-              className="w-full bg-sky-50/80 border-2 border-gray-700 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-400 transition"
+              className="w-full bg-sky-50/80 border border-gray-300 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-200 transition"
             />
 
             <label className="flex items-center gap-2.5 cursor-pointer select-none px-1">
               <div
                 onClick={() => setKeepLogin(!keepLogin)}
-                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-500" : "bg-gray-200"}`}
+                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-100" : "bg-gray-200"}`}
               >
                 <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${keepLogin ? "translate-x-4" : "translate-x-0"}`} />
               </div>
@@ -81,8 +81,8 @@ export default function LoginPage() {
 
             <button type="submit" disabled={loading}
               className="group relative w-full h-14 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(14,165,233,0.4)] active:scale-[0.98] transition-transform disabled:opacity-70">
-              <div className="absolute inset-0 bg-sky-500" />
-              <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
+              <div className="absolute inset-0 bg-sky-100" />
+              <div className="absolute inset-0  animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
                 {loading ? "로그인 중..." : "로그인 💭"}
               </span>
@@ -92,7 +92,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-[#b08060] mt-6">
           계정이 없으신가요?{" "}
-          <a href="/signup" className="text-sky-500 font-black">회원가입 →</a>
+          <a href="/signup" className="text-sky-400 font-black">회원가입 →</a>
         </p>
       </div>
 

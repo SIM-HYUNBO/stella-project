@@ -27,9 +27,9 @@ export default function FontSettings() {
       <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white border-b-2 border-gray-700 sticky top-0 z-20">
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-300 sticky top-0 z-20">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-gray-800 text-base flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8.82 5.76L8.58 2.6L15.42 2.6L15.18 5.76L15.82 6.13L18.43 4.34L21.85 10.26L18.99 11.64V12.36L21.85 13.74L18.43 19.66L15.82 17.87L15.18 18.24L15.42 21.4L8.58 21.4L8.82 18.24L8.18 17.87L5.57 19.66L2.15 13.74L5.01 12.36V11.64L2.15 10.26L5.57 4.34L8.18 6.13Z"/>
@@ -51,7 +51,7 @@ export default function FontSettings() {
                   <button key={s.value} onClick={() => changeFontSize(s.value)}
                     className={`rounded-[16px] py-3 flex flex-col items-center gap-1 border transition-all active:scale-[0.97]
                       ${isActive
-                        ? "bg-sky-500 border-transparent shadow-[0_4px_14px_rgba(14,165,233,0.35)]"
+                        ? "bg-sky-100 border-transparent shadow-sm"
                         : "bg-white border-sky-100"
                       }`}>
                     <span style={{ fontSize: s.value }} className={`font-bold leading-none ${isActive ? "text-white" : "text-[gray-800]"}`}>가</span>
@@ -60,7 +60,7 @@ export default function FontSettings() {
                 );
               })}
             </div>
-            <div className="mt-3 rounded-[14px] bg-white border-2 border-gray-700 px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
+            <div className="mt-3 rounded-[14px] bg-white border border-gray-300 px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
               미리보기 — 안녕하세요 WAGIE 🧡
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function FontSettings() {
                   <button key={f.value} onClick={() => changeFont(f.value)}
                     className={`w-full rounded-[20px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] border shadow-sm
                       ${isActive
-                        ? "bg-sky-500 border-transparent shadow-[0_6px_20px_rgba(14,165,233,0.35)]"
+                        ? "bg-sky-100 border-transparent shadow-sm"
                         : "bg-white/80 backdrop-blur-sm border-sky-100"
                       }`}>
                     <div className="text-left">
