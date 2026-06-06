@@ -79,6 +79,8 @@ export default function GroupChat() {
 
   const [input, setInput] = useState("");
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
+  const [hlColor, setHlColor] = useState("y");
+  const [showHlPicker, setShowHlPicker] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
   const [sendingAudio, setSendingAudio] = useState(false);
@@ -1146,20 +1148,33 @@ export default function GroupChat() {
           }}
         />
 
-        {[
-          { key: "y", bg: "bg-yellow-300" },
-          { key: "g", bg: "bg-green-300" },
-          { key: "p", bg: "bg-pink-300" },
-          { key: "b", bg: "bg-sky-300" },
-        ].map(({ key, bg }) => (
+        <div className="relative shrink-0">
           <button
-            key={key}
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => applyHighlight(key)}
-            title="형광 표시"
-            className={`w-6 h-6 rounded-full ${bg} active:scale-90 transition shrink-0 shadow-sm`}
-          />
-        ))}
+            onClick={() => {
+              if (hlSel.start !== hlSel.end) {
+                applyHighlight(hlColor);
+              } else {
+                setShowHlPicker((p) => !p);
+              }
+            }}
+            className="w-9 h-9 rounded-[12px] bg-sky-50 hover:bg-sky-100 active:scale-90 transition flex items-center justify-center"
+          >
+            <span className="text-[13px] font-black text-sky-500 leading-none">Aa</span>
+          </button>
+          {showHlPicker && (
+            <div className="absolute bottom-10 left-0 bg-white rounded-2xl shadow-xl p-2 flex gap-2 z-50">
+              {(["y","g","p","b"] as const).map((key) => (
+                <button
+                  key={key}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { setHlColor(key); setShowHlPicker(false); }}
+                  className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
         <input
           ref={msgInputRef}
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
