@@ -722,12 +722,18 @@ export default function GroupChat() {
     if (!el) return;
     const start = el.selectionStart ?? 0;
     const end = el.selectionEnd ?? 0;
-    if (start === end) return;
     const before = input.slice(0, start);
-    const selected = input.slice(start, end);
     const after = input.slice(end);
-    setInput(`${before}==${colorKey}:${selected}==${after}`);
-    setTimeout(() => { el.focus(); }, 0);
+    if (start !== end) {
+      const selected = input.slice(start, end);
+      setInput(`${before}==${colorKey}:${selected}==${after}`);
+      setTimeout(() => { el.focus(); }, 0);
+    } else {
+      const inserted = `==${colorKey}:==`;
+      setInput(`${before}${inserted}${after}`);
+      const cursor = start + 2 + colorKey.length + 1;
+      setTimeout(() => { el.focus(); el.setSelectionRange(cursor, cursor); }, 0);
+    }
   };
 
   // 초대 모달
