@@ -379,35 +379,7 @@ export default function FriendsPage() {
             </div>
           )}
 
-          {/* 전체 사용자 */}
-          <div>
-            <p className="font-black text-slate-800 text-base mb-3 px-1">전체 사용자 🌍</p>
-            <div className="space-y-2">
-              {filteredUsers.map((user) => {
-                const alreadyFriend = isFriend(user.uid);
-                const alreadySent = sentRequests.has(user.uid);
-                return (
-                  <div key={user.uid} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-100 shrink-0">
-                        <TextAvatar nickname={user.nickname} size={44} profileImage={user.profileImage ?? null} />
-                      </div>
-                      <p className="font-black text-slate-800 text-sm">{user.nickname}</p>
-                    </div>
-                    {alreadyFriend ? (
-                      <span className="px-3 py-1.5 rounded-full bg-green-50 text-green-500 text-xs font-black">친구 ✓</span>
-                    ) : alreadySent ? (
-                      <span className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 text-xs font-black">요청됨</span>
-                    ) : (
-                      <button onClick={() => sendFriendRequest(user)}
-                        className="px-4 py-2 bg-sky-200 text-white rounded-[12px] text-xs font-black">요청</button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
+         
         </div>
       </div>
 

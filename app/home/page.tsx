@@ -226,18 +226,20 @@ export default function HomePage() {
           )}
 
           {/* ── 빠른 액션 ── */}
-          <div className="grid grid-cols-3 gap-2.5">
-            {[
-              { icon: "💬", label: "DM 보내기",  color: "bg-sky-200",    path: "/avatar" },
-              { icon: "👥", label: "단체방",      color: "from-yellow-400", path: "/groupchat" },
-              { icon: "📔", label: "일기 쓰기",   color: "from-sky-400",     path: "/diary" },
-            ].map(({ icon, label, color, path }) => (
-              <button key={label} onClick={() => router.push(path)}
-                className={`rounded-[20px] bg-${color} px-3 py-4 text-center active:scale-[0.97] transition-transform`}>
-                <p className="text-2xl mb-1">{icon}</p>
-                <p className="text-white font-black text-xs">{label}</p>
-              </button>
-            ))}
+          <div className="rounded-[24px] bg-white shadow-[0_4px_16px_rgba(14,165,233,0.10)] border border-sky-100 p-3">
+            <div className="grid grid-cols-3 gap-2.5">
+              {[
+                { icon: "💬", label: "DM 보내기", bg: "bg-gradient-to-br from-sky-500 to-cyan-500",    path: "/avatar" },
+                { icon: "👥", label: "단체방",     bg: "bg-gradient-to-br from-yellow-500 to-amber-400", path: "/groupchat" },
+                { icon: "📔", label: "일기 쓰기",  bg: "bg-gradient-to-br from-sky-600 to-sky-500",     path: "/diary" },
+              ].map(({ icon, label, bg, path }) => (
+                <button key={label} onClick={() => router.push(path)}
+                  className={`rounded-[16px] ${bg} px-3 py-4 text-center active:scale-[0.97] transition-transform shadow-sm`}>
+                  <p className="text-2xl mb-1">{icon}</p>
+                  <p className="text-white font-black text-xs drop-shadow">{label}</p>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── 메뉴 ── */}
@@ -248,13 +250,13 @@ export default function HomePage() {
               {/* 1:1 채팅 */}
               <button onClick={() => router.push("/avatar")}
                 className="group relative w-full rounded-[26px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-yellow-100 px-6 py-5 flex items-center gap-4 relative">
+                <div className="bg-gradient-to-r from-sky-500 to-sky-400 px-6 py-5 flex items-center gap-4 relative shadow-lg shadow-sky-200">
                   <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
                   <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">💬</div>
+                  <div className="relative w-14 h-14 rounded-2xl bg-white/25 flex items-center justify-center text-3xl shrink-0">💬</div>
                   <div className="relative text-left flex-1">
-                    <p className="text-white font-black text-xl">1:1 채팅</p>
-                    <p className="text-white/70 text-sm">친구와 나만의 대화</p>
+                    <p className="text-white font-black text-xl drop-shadow">1:1 채팅</p>
+                    <p className="text-white/80 text-sm">친구와 나만의 대화</p>
                   </div>
                   {dmUnread > 0 && (
                     <span className="relative bg-white text-sky-600 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 animate-[pulse_2s_infinite]">
@@ -268,11 +270,11 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                  <div className="bg-yellow-100 px-5 py-5 relative">
-                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
-                    <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">👥</div>
-                    <p className="text-white font-black text-base">단체채팅</p>
-                    <p className="text-white/70 text-xs mt-0.5">같이 얘기해요</p>
+                  <div className="bg-gradient-to-br from-yellow-500 to-amber-400 px-5 py-5 relative shadow-md shadow-yellow-200">
+                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
+                    <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">👥</div>
+                    <p className="text-white font-black text-base drop-shadow">단체채팅</p>
+                    <p className="text-white/80 text-xs mt-0.5">같이 얘기해요</p>
                     {groupUnread > 0 && (
                       <span className="absolute top-3 right-3 bg-white text-yellow-600 font-black text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow animate-[pulse_2s_infinite]">
                         {groupUnread > 99 ? "99+" : groupUnread}
@@ -283,11 +285,11 @@ export default function HomePage() {
 
                 <button onClick={() => router.push("/diary")}
                   className="rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform relative">
-                  <div className="bg-sky-200 px-5 py-5 relative">
-                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
-                    <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">📔</div>
-                    <p className="text-white font-black text-base">다이어리</p>
-                    <p className="text-white/70 text-xs mt-0.5">오늘을 기록해요</p>
+                  <div className="bg-gradient-to-br from-sky-600 to-sky-500 px-5 py-5 relative shadow-md shadow-sky-200">
+                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
+                    <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">📔</div>
+                    <p className="text-white font-black text-base drop-shadow">다이어리</p>
+                    <p className="text-white/80 text-xs mt-0.5">오늘을 기록해요</p>
                   </div>
                 </button>
               </div>
