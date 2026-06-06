@@ -1012,16 +1012,25 @@ export default function Chat() {
     );
   }
 
-  const renderHighlighted = (text: string) => {
-    const parts = text.split(/(==.+?==)/);
-    return parts.map((part, i) =>
-      part.startsWith("==") && part.endsWith("==") && part.length > 4
-        ? <mark key={i} className="bg-yellow-300/80 text-slate-800 rounded px-0.5 not-italic">{part.slice(2, -2)}</mark>
-        : <span key={i}>{part}</span>
-    );
+  const HL_CLS: Record<string, string> = {
+    y: "bg-yellow-300/80", g: "bg-green-300/80",
+    p: "bg-pink-300/80",   b: "bg-sky-300/80",
   };
 
-  const applyHighlight = () => {
+  const renderHighlighted = (text: string) => {
+    const parts = text.split(/(==[ygpb]:.*?==|==.*?==)/);
+    return parts.map((part, i) => {
+      if (!part.startsWith("==") || !part.endsWith("==") || part.length <= 4)
+        return <span key={i}>{part}</span>;
+      const inner = part.slice(2, -2);
+      const m = inner.match(/^([ygpb]):(.+)$/);
+      const cls = m ? (HL_CLS[m[1]] ?? HL_CLS.y) : HL_CLS.y;
+      const content = m ? m[2] : inner;
+      return <mark key={i} className={`${cls} text-slate-800 rounded px-0.5 not-italic`}>{content}</mark>;
+    });
+  };
+
+  const applyHighlight = (colorKey: string) => {
     const el = msgInputRef.current;
     if (!el) return;
     const start = el.selectionStart ?? 0;
@@ -1030,8 +1039,8 @@ export default function Chat() {
     const before = input.slice(0, start);
     const selected = input.slice(start, end);
     const after = input.slice(end);
-    setInput(`${before}==${selected}==${after}`);
-    setTimeout(() => { el.focus(); el.setSelectionRange(start + 2, end + 2); }, 0);
+    setInput(`${before}==${colorKey}:${selected}==${after}`);
+    setTimeout(() => { el.focus(); }, 0);
   };
 
   const renderMsgContent = (m: Message) => {
@@ -1387,14 +1396,20 @@ export default function Chat() {
             e.target.value = "";
           }}
         />
-        <button
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={applyHighlight}
-          title="형광 표시 (텍스트 선택 후 클릭)"
-          className="w-10 h-10 rounded-[12px] bg-yellow-200 hover:bg-yellow-300 active:scale-95 flex items-center justify-center transition shrink-0 text-[11px] font-black text-yellow-800"
-        >
-          형광
-        </button>
+        {[
+          { key: "y", bg: "bg-yellow-300" },
+          { key: "g", bg: "bg-green-300" },
+          { key: "p", bg: "bg-pink-300" },
+          { key: "b", bg: "bg-sky-300" },
+        ].map(({ key, bg }) => (
+          <button
+            key={key}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => applyHighlight(key)}
+            title="형광 표시"
+            className={`w-6 h-6 rounded-full ${bg} active:scale-90 transition shrink-0 shadow-sm`}
+          />
+        ))}
         <input
           ref={msgInputRef}
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
