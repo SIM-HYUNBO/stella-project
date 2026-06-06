@@ -700,7 +700,7 @@ export default function GroupChat() {
   }
 
   const renderHighlighted = (text: string) => {
-    const parts = text.split(/(==.+?==)/s);
+    const parts = text.split(/(==.+?==)/);
     return parts.map((part, i) =>
       part.startsWith("==") && part.endsWith("==") && part.length > 4
         ? <mark key={i} className="bg-yellow-300/80 text-slate-800 rounded px-0.5 not-italic">{part.slice(2, -2)}</mark>
