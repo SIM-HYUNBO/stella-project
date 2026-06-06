@@ -504,7 +504,7 @@ export default function MeetingRoomPage() {
             {currentRoom?.profileImage ? (
               <img src={currentRoom.profileImage} alt="프로필" className="w-11 h-11 rounded-full object-cover shadow" />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-yellow-100 text-white font-bold flex items-center justify-center shadow">
+              <div className="w-11 h-11 rounded-full bg-yellow-200 text-white font-bold flex items-center justify-center shadow">
                 {currentRoom?.name[0]}
               </div>
             )}
@@ -804,7 +804,7 @@ export default function MeetingRoomPage() {
       <div className="px-4 py-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-black bg-yellow-100">
+            <span className="text-xl font-black bg-yellow-200">
               WAGIE MEETING
             </span>
             <button
@@ -887,7 +887,7 @@ export default function MeetingRoomPage() {
             {room.profileImage ? (
               <img src={room.profileImage} alt="프로필" className="w-11 h-11 rounded-full object-cover shadow shrink-0" />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-yellow-100 text-white font-bold flex items-center justify-center shadow shrink-0">
+              <div className="w-11 h-11 rounded-full bg-yellow-200 text-white font-bold flex items-center justify-center shadow shrink-0">
                 {room.name[0]}
               </div>
             )}

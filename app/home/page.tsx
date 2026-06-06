@@ -125,8 +125,8 @@ export default function HomePage() {
         {/* ── 배경 오브 ── */}
         <div className="fixed inset-0 bg-sky-50 -z-10" />
         <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
-        <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-yellow-100/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
+        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-400/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
+        <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-yellow-200/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
         <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-200/20 blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" />
 
         {/* ── 떠다니는 파티클 ── */}
@@ -230,7 +230,7 @@ export default function HomePage() {
             <div className="grid grid-cols-3 gap-2.5">
               {[
                 { icon: "💬", label: "DM 보내기", bg: "bg-gradient-to-br from-sky-300 to-cyan-300",    path: "/avatar" },
-                { icon: "👥", label: "단체방",     bg: "bg-gradient-to-br from-yellow-200 to-amber-200", path: "/groupchat" },
+                { icon: "👥", label: "단체방",     bg: "bg-gradient-to-br from-yellow-300 to-amber-300", path: "/groupchat" },
                 { icon: "📔", label: "일기 쓰기",  bg: "bg-gradient-to-br from-sky-400 to-sky-300",     path: "/diary" },
               ].map(({ icon, label, bg, path }) => (
                 <button key={label} onClick={() => router.push(path)}
@@ -270,13 +270,13 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                  <div className="bg-gradient-to-br from-yellow-300 to-amber-200 px-5 py-5 relative shadow-md shadow-yellow-200">
+                  <div className="bg-gradient-to-br from-yellow-400 to-amber-300 px-5 py-5 relative shadow-md shadow-yellow-300">
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
                     <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">👥</div>
                     <p className="text-white font-black text-base drop-shadow">단체채팅</p>
                     <p className="text-white/80 text-xs mt-0.5">같이 얘기해요</p>
                     {groupUnread > 0 && (
-                      <span className="absolute top-3 right-3 bg-white text-yellow-600 font-black text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow animate-[pulse_2s_infinite]">
+                      <span className="absolute top-3 right-3 bg-white text-yellow-700 font-black text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow animate-[pulse_2s_infinite]">
                         {groupUnread > 99 ? "99+" : groupUnread}
                       </span>
                     )}
@@ -311,7 +311,7 @@ export default function HomePage() {
               <button onClick={() => router.push("/meetingroom")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border border-red-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shadow">📋</div>
+                  <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📋</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">회의방</p>
                     <p className="text-sky-600 text-sm">주제 고정 · 긴급회의 알림</p>

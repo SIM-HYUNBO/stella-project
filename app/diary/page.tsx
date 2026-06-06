@@ -84,11 +84,11 @@ export default function DiaryPage() {
   const formatDate = (date: string) => new Date(date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 
   const moodBg: Record<string, string> = {
-    "😊": "bg-yellow-100", "🥰": "bg-sky-200",
+    "😊": "bg-yellow-200", "🥰": "bg-sky-200",
     "😢": "from-blue-200",     "😡": "from-red-200",
     "😴": "from-indigo-200","🤔": "from-slate-200",
     "🥳": "from-fuchsia-200", "😌": "from-green-200",
-    "🫠": "bg-yellow-100", "💪": "bg-yellow-100",
+    "🫠": "bg-yellow-200", "💪": "bg-yellow-200",
   };
 
   return (

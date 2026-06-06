@@ -9,7 +9,7 @@ export default function FriendSettingsMenu() {
     { icon: "🚫", label: "차단 친구",   sub: "차단한 사용자 관리",   path: "/friends/blocked",  color: "from-red-400" },
     { icon: "🙈", label: "숨긴 친구",   sub: "숨김 처리한 친구 목록", path: "/friends/hidden",   color: "from-slate-400" },
     { icon: "🔕", label: "알림 끈 친구", sub: "알림을 끈 친구 목록",  path: "/friends/muted",    color: "from-sky-500" },
-    { icon: "🧹", label: "친구 정리",   sub: "비활성 친구 정리하기",  path: "/friends/cleanup",  color: "bg-yellow-100" },
+    { icon: "🧹", label: "친구 정리",   sub: "비활성 친구 정리하기",  path: "/friends/cleanup",  color: "bg-yellow-200" },
   ];
 
   return (

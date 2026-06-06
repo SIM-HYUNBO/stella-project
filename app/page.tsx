@@ -35,10 +35,10 @@ export default function RootPage() {
       {/* ── 배경 오브 ── */}
       <div className="fixed inset-0 bg-sky-50" />
       <div className="fixed top-[-180px] right-[-180px] w-[560px] h-[560px] rounded-full bg-sky-400/20 blur-[120px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
-      <div className="fixed bottom-[-220px] left-[-180px] w-[520px] h-[520px] rounded-full bg-yellow-300/25 blur-[120px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
-      <div className="fixed top-[30%] left-[10%] w-[320px] h-[320px] rounded-full bg-yellow-100/20 blur-[90px] animate-[floatC_8s_ease-in-out_infinite_alternate]" />
+      <div className="fixed bottom-[-220px] left-[-180px] w-[520px] h-[520px] rounded-full bg-yellow-400/25 blur-[120px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
+      <div className="fixed top-[30%] left-[10%] w-[320px] h-[320px] rounded-full bg-yellow-200/20 blur-[90px] animate-[floatC_8s_ease-in-out_infinite_alternate]" />
       <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-200/20 blur-[80px] animate-[floatD_11s_ease-in-out_infinite_alternate]" />
-      <div className="fixed top-[15%] left-[40%] w-[200px] h-[200px] rounded-full bg-yellow-300/20 blur-[60px] animate-[floatE_9s_ease-in-out_infinite_alternate]" />
+      <div className="fixed top-[15%] left-[40%] w-[200px] h-[200px] rounded-full bg-yellow-400/20 blur-[60px] animate-[floatE_9s_ease-in-out_infinite_alternate]" />
 
       {/* ── 떠다니는 이모티콘 파티클 ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -104,9 +104,9 @@ export default function RootPage() {
           </div>
 
           {[
-            { side: "left",  avatarBg: "bg-yellow-100", avatar: "🐣", msg: "오늘 진짜 힘들었다 😭",          bubbleCls: "bg-sky-50 text-slate-700" },
+            { side: "left",  avatarBg: "bg-yellow-200", avatar: "🐣", msg: "오늘 진짜 힘들었다 😭",          bubbleCls: "bg-sky-50 text-slate-700" },
             { side: "right", avatarBg: "bg-sky-100",    avatar: "🌸", msg: "고생했어... 내가 안아줄게 ☁️", bubbleCls: "bg-sky-500 text-white" },
-            { side: "left",  avatarBg: "bg-yellow-100", avatar: "🐣", msg: "여기 오니까 마음 편하다 🧡",    bubbleCls: "bg-sky-50 text-slate-700" },
+            { side: "left",  avatarBg: "bg-yellow-200", avatar: "🐣", msg: "여기 오니까 마음 편하다 🧡",    bubbleCls: "bg-sky-50 text-slate-700" },
             { side: "right", avatarBg: "bg-sky-100",    avatar: "🌸", msg: "나도! 매일 여기서 얘기하자 ✨", bubbleCls: "bg-sky-500 text-white" },
           ].map(({ side, avatarBg, avatar, msg, bubbleCls }, i) => (
             <div key={i} className={`flex items-end gap-2 ${side === "right" ? "justify-end" : ""}`}>
@@ -123,7 +123,7 @@ export default function RootPage() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { cls: "bg-gradient-to-br from-sky-500 to-sky-400",     icon: "💬", title: "1:1 채팅",   sub: "친구와 나만의\n소중한 대화" },
-              { cls: "bg-gradient-to-br from-yellow-500 to-amber-400", icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
+              { cls: "bg-gradient-to-br from-yellow-600 to-amber-1000", icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
               { cls: "bg-gradient-to-br from-sky-600 to-sky-500",      icon: "📔", title: "다이어리",  sub: "오늘 하루를\n글로 남겨봐요" },
               { cls: "bg-gradient-to-br from-cyan-500 to-sky-400",     icon: "🤝", title: "친구 맺기", sub: "새로운 인연을\n만들어봐요" },
             ].map(({ cls, icon, title, sub }) => (

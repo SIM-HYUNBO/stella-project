@@ -200,7 +200,7 @@ export default function SettingsPage() {
               className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center text-lg">
+                <div className="w-9 h-9 rounded-xl bg-yellow-200 flex items-center justify-center text-lg">
                   {icon}
                 </div>
                 <span className="font-bold text-slate-800 text-sm">{label}</span>
@@ -222,7 +222,7 @@ export default function SettingsPage() {
               className={`w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center text-lg">{icon}</div>
+                <div className="w-9 h-9 rounded-xl bg-yellow-200 flex items-center justify-center text-lg">{icon}</div>
                 <span className="font-bold text-slate-800 text-sm">{label}</span>
               </div>
               <span className="text-orange-300 text-lg font-bold">›</span>

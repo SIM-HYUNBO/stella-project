@@ -45,7 +45,7 @@ export default function BlockedPage() {
           ) : list.map((v) => (
             <div key={v.id} className="rounded-[20px] bg-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-xl">🚫</div>
+                <div className="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center text-xl">🚫</div>
                 <p className="font-black text-slate-800 text-sm">{v.target_name}</p>
               </div>
               <button onClick={() => remove(v.id)} className="px-4 py-2 bg-gray-50 text-sky-600 rounded-[12px] text-xs font-black">차단 해제</button>

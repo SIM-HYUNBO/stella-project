@@ -90,11 +90,11 @@ export default function LiveSTTWithHeader() {
         {/* 버튼들 */}
         <div className="flex gap-3 pb-4">
           <button onClick={startListening} disabled={listening}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${listening ? "bg-gray-200 text-gray-400" : "bg-yellow-100 text-white"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${listening ? "bg-gray-200 text-gray-400" : "bg-yellow-200 text-white"}`}>
             🎤 시작
           </button>
           <button onClick={stopListening} disabled={!listening}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!listening ? "bg-gray-200 text-gray-400" : "bg-yellow-100 text-white"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!listening ? "bg-gray-200 text-gray-400" : "bg-yellow-200 text-white"}`}>
             ⏹ 중지
           </button>
           <button onClick={summarizeMeeting} disabled={loading || !text}

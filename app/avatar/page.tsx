@@ -122,7 +122,7 @@ function SwipeUserItem({
         {/* 즐겨찾기 */}
         <button
           onClick={(e) => { e.stopPropagation(); onFavorite(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-sky-600" : "bg-amber-400"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-sky-600" : "bg-amber-1000"}`}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill={isFavorite ? "white" : "none"} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -172,7 +172,7 @@ function SwipeUserItem({
         {/* 차단 */}
         <button
           onClick={(e) => { e.stopPropagation(); onBlock(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-yellow-100"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-yellow-200"}`}
         >
           {isBlocked ? (
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -194,7 +194,7 @@ function SwipeUserItem({
 
       <div
         className={`relative z-10 px-3 py-3 bg-white cursor-pointer transition ${
-          isActive ? "bg-yellow-100" : "hover:bg-gray-50"
+          isActive ? "bg-yellow-200" : "hover:bg-gray-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
@@ -221,7 +221,7 @@ function SwipeUserItem({
                 className="w-11 h-11 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-yellow-100 flex items-center justify-center text-sm font-bold text-white shadow">
+              <div className="w-11 h-11 rounded-full bg-yellow-200 flex items-center justify-center text-sm font-bold text-white shadow">
                 {u.nickname[0]}
               </div>
             )}
@@ -1184,7 +1184,7 @@ export default function Chat() {
                       className="w-8 h-8 rounded-full object-cover shadow"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-xs font-bold text-white shadow">
+                    <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center text-xs font-bold text-white shadow">
                       {m.from[0]}
                     </div>
                   )}
@@ -1472,7 +1472,7 @@ export default function Chat() {
     <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4 flex items-center justify-between">
         <div>
-          <div className="text-xl font-black bg-yellow-100">
+          <div className="text-xl font-black bg-yellow-200">
             WAGIE
           </div>
 

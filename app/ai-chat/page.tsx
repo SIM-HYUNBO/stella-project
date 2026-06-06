@@ -88,7 +88,7 @@ export default function AIChatPage() {
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-sm">🧠 AI Chat</span>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-black ${isVip ? "bg-yellow-100 text-white" : "bg-sky-50 text-sky-600"}`}>
+        <div className={`px-3 py-1 rounded-full text-xs font-black ${isVip ? "bg-yellow-200 text-white" : "bg-sky-50 text-sky-600"}`}>
           {isVip ? "💎 VIP" : "FREE"}
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function AIChatPage() {
       {/* 메시지 */}
       <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {memory && isVip && (
-          <div className="rounded-[16px] bg-yellow-100 px-4 py-3 text-xs text-sky-800 font-semibold">
+          <div className="rounded-[16px] bg-yellow-200 px-4 py-3 text-xs text-sky-800 font-semibold">
             💎 {memory.summary} · {memory.personality}
           </div>
         )}

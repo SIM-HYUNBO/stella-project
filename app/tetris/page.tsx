@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const COLORS = [
   "bg-red-400", "bg-blue-400", "bg-green-400",
-  "bg-yellow-400", "bg-yellow-200", "bg-sky-300",
+  "bg-yellow-1000", "bg-yellow-300", "bg-sky-300",
 ];
 
 const SHAPES = [

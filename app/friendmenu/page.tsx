@@ -291,7 +291,7 @@ export default function FriendsPage() {
                   <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-sky-50 px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-300 shrink-0">
+                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-400 shrink-0">
                           <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
                         </div>
                         <span className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center">
@@ -307,7 +307,7 @@ export default function FriendsPage() {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleFavorite(f); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-yellow-100 text-sky-600"
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-yellow-200 text-sky-600"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -396,7 +396,7 @@ export default function FriendsPage() {
               {profileView.coverImage ? (
                 <img src={profileView.coverImage} alt="cover" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-yellow-100" />
+                <div className="w-full h-full bg-yellow-200" />
               )}
               {/* 닫기 버튼 */}
               <button

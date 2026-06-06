@@ -108,7 +108,7 @@ export default function MeatChat() {
 
           {state === "burn" && (
             <button onClick={resetGame}
-              className="px-6 py-3 rounded-[16px] bg-yellow-100 text-white font-black text-sm active:scale-95 transition-transform">
+              className="px-6 py-3 rounded-[16px] bg-yellow-200 text-white font-black text-sm active:scale-95 transition-transform">
               🔄 다시 굽기
             </button>
           )}

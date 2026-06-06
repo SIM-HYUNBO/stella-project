@@ -11,11 +11,11 @@ const Header = () => {
       <div className="absolute bottom-0 left-0 right-0 h-px bg-white/20" />
 
       <div className="relative flex justify-between items-center px-5 py-3">
-        <Link href="/home" className="flex items-center bg-gradient-to-br from-yellow-100 to-sky-200 gap-2">
-          <div className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center text-xl">
+        <Link href="/home" className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-[12px] bg-sky-100 flex items-center justify-center text-xl">
             💬
           </div>
-          <span className={`${jua.className} text-[28px] text-white drop-tracking-wide`}>
+          <span className={`${jua.className} text-[28px] text-sky-400 drop-tracking-wide`}>
             WAGIE
           </span>
         </Link>

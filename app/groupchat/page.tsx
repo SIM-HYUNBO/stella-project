@@ -1159,7 +1159,7 @@ export default function GroupChat() {
     <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4">
         <div className="flex items-center gap-2">
-          <span className="text-xl font-black bg-yellow-100">
+          <span className="text-xl font-black bg-yellow-200">
             WAGIE GROUP
           </span>
           <button

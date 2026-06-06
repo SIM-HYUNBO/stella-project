@@ -22,7 +22,7 @@ export default function CleanupPage() {
         <div className="px-5 pt-6 pb-16 space-y-3">
           {items.map(({ icon, label, sub }) => (
             <div key={label} className="rounded-[20px] bg-white px-5 py-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shrink-0 shadow">{icon}</div>
+              <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shrink-0 shadow">{icon}</div>
               <div>
                 <p className="font-black text-slate-800 text-sm">{label}</p>
                 <p className="text-sky-600 text-xs mt-0.5">{sub}</p>

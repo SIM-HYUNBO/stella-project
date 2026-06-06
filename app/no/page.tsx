@@ -65,7 +65,7 @@ export default function AlarmSoundPage() {
         <div className="px-5 pt-6 pb-16 space-y-3">
 
           {/* VIP 상태 */}
-          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border ${isVip ? "bg-yellow-100 border-transparent" : "bg-white/80 border-sky-200"}`}>
+          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border ${isVip ? "bg-yellow-200 border-transparent" : "bg-white/80 border-sky-200"}`}>
             <span className="text-2xl">{isVip ? "💎" : "👤"}</span>
             <p className={`font-black text-sm ${isVip ? "text-white" : "text-slate-800"}`}>{isVip ? "VIP 활성 상태" : "일반 사용자"}</p>
           </div>
