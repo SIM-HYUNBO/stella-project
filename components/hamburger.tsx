@@ -111,7 +111,7 @@ export default function HamburgerMenuWithDelete() {
       {/* 햄버거 버튼 */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl z-50 bg-white"
+        className="fixed top-4 right-4 w-8 h-9 flex flex-col justify-between p-2 border rounded-xl shadow-md z-50 bg-white"
       >
         <div className="flex flex-col justify-center items-center gap-1">
           <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
@@ -124,7 +124,7 @@ export default function HamburgerMenuWithDelete() {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="fixed top-20 right-4 w-60 bg-white rounded-2xl px-6 py-5 z-40 flex flex-col gap-4"
+          className="fixed top-20 right-4 w-60 bg-white rounded-2xl px-6 py-5 shadow-xl z-40 flex flex-col gap-4"
         >
           {/* 로그인 / 유저 */}
           {user ? (

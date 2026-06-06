@@ -84,34 +84,34 @@ export default function DiaryPage() {
   const formatDate = (date: string) => new Date(date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 
   const moodBg: Record<string, string> = {
-    "😊": "from-sky-200 to-yellow-100", "🥰": "from-pink-200 to-rose-100",
-    "😢": "from-blue-200 to-sky-100",     "😡": "from-red-200 to-sky-100",
+    "😊": "from-amber-200 to-yellow-100", "🥰": "from-pink-200 to-rose-100",
+    "😢": "from-blue-200 to-sky-100",     "😡": "from-red-200 to-orange-100",
     "😴": "from-indigo-200 to-violet-100","🤔": "from-slate-200 to-gray-100",
     "🥳": "from-fuchsia-200 to-pink-100", "😌": "from-green-200 to-emerald-100",
-    "🫠": "from-sky-200 to-amber-100", "💪": "from-yellow-200 to-lime-100",
+    "🫠": "from-orange-200 to-amber-100", "💪": "from-yellow-200 to-lime-100",
   };
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-yellow-50" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white ">
+        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg">←</button>
-          <span className="font-black text-[gray-800] text-base">📔 미니 다이어리</span>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg">←</button>
+          <span className="font-black text-[#3d1f00] text-base">📔 미니 다이어리</span>
           <div className="w-9" />
         </div>
 
         {/* 탭 */}
-        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm  rounded-[18px] p-1 gap-1">
+        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm border border-orange-100 rounded-[18px] p-1 gap-1 shadow-sm">
           {(["mine", "friends"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
                 tab === t
-                  ? "bg-sky-100 text-sky-800"
-                  : "text-[sky-500]"
+                  ? "bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-md"
+                  : "text-[#c09070]"
               }`}>
               {t === "mine" ? "내 일기" : "친구 일기"}
             </button>
@@ -122,23 +122,23 @@ export default function DiaryPage() {
           {tab === "mine" && (
             <>
               {/* 오늘 일기 */}
-              <div className="rounded-[24px] bg-white -[0_8px_30px_rgba(14,165,233,0.12)] p-5 mb-4">
+              <div className="rounded-[24px] bg-white border border-gray-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] font-black text-[#d4904a] tracking-widest">TODAY</p>
-                    <p className="font-black text-[gray-800] text-sm mt-0.5">{formatDate(today)}</p>
+                    <p className="font-black text-[#3d1f00] text-sm mt-0.5">{formatDate(today)}</p>
                   </div>
                   {todayEntry && !editing && (
                     <button onClick={() => setEditing(true)}
-                      className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-400 text-xs font-black ">수정 ✏️</button>
+                      className="px-3 py-1.5 rounded-full bg-orange-50 text-orange-400 text-xs font-black border border-orange-100">수정 ✏️</button>
                   )}
                 </div>
 
                 {todayEntry && !editing ? (
-                  <div className={`bg-gradient-to-br ${moodBg[todayEntry.mood] || "from-sky-100 to-amber-50"} rounded-[20px] p-4`}>
+                  <div className={`bg-gradient-to-br ${moodBg[todayEntry.mood] || "from-orange-100 to-amber-50"} rounded-[20px] p-4`}>
                     <div className="text-3xl mb-2">{todayEntry.mood}</div>
-                    <p className="text-[gray-800] text-sm leading-relaxed">{todayEntry.content}</p>
-                    <p className="mt-3 text-xs text-[sky-500] font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
+                    <p className="text-[#3d1f00] text-sm leading-relaxed">{todayEntry.content}</p>
+                    <p className="mt-3 text-xs text-[#c09070] font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
                   </div>
                 ) : (
                   <>
@@ -148,8 +148,8 @@ export default function DiaryPage() {
                         <button key={m} onClick={() => setSelectedMood(m)}
                           className={`text-2xl w-11 h-11 rounded-[14px] transition-all ${
                             selectedMood === m
-                              ? "bg-sky-100 scale-110 ring-2 ring-sky-200"
-                              : "bg-sky-50/50 hover:bg-sky-50"
+                              ? "bg-gradient-to-br from-orange-100 to-amber-100 scale-110 shadow-md ring-2 ring-orange-300"
+                              : "bg-orange-50/50 hover:bg-orange-50"
                           }`}>
                           {m}
                         </button>
@@ -158,19 +158,19 @@ export default function DiaryPage() {
 
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      className="w-full text-sm text-[gray-800] bg-sky-50/60  rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-[sky-400]"
+                      className="w-full text-sm text-[#3d1f00] bg-orange-50/60 border border-orange-100 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-[#d4a07a]"
                     />
-                    <div className="text-right text-xs text-[sky-400] mb-3">{content.length}/200</div>
+                    <div className="text-right text-xs text-[#d4a07a] mb-3">{content.length}/200</div>
 
                     <div className="flex items-center justify-between">
                       <button onClick={() => setIsPublic(!isPublic)}
                         className={`text-xs px-4 py-2 rounded-full font-black transition-all border ${
-                          isPublic ? "bg-sky-50 border-sky-200 text-sky-400" : "bg-yellow-50 border-gray-200 text-gray-500"
+                          isPublic ? "bg-orange-50 border-orange-200 text-orange-500" : "bg-gray-50 border-gray-200 text-gray-500"
                         }`}>
                         {isPublic ? "🌍 공개" : "🔒 비공개"}
                       </button>
                       <button onClick={handleSave} disabled={saving || !content.trim()}
-                        className="px-6 py-2.5 bg-sky-100 text-sky-800 text-sm font-black rounded-full disabled:opacity-40 active:scale-[0.97] transition-transform">
+                        className="px-6 py-2.5 bg-gradient-to-r from-orange-400 to-amber-300 text-white text-sm font-black rounded-full shadow-md disabled:opacity-40 active:scale-[0.97] transition-transform">
                         {saving ? "저장 중..." : "저장 💾"}
                       </button>
                     </div>
@@ -179,23 +179,23 @@ export default function DiaryPage() {
               </div>
 
               {/* 과거 일기 */}
-              <p className="font-black text-[gray-800] text-sm mb-3 px-1">지난 일기 📖</p>
+              <p className="font-black text-[#3d1f00] text-sm mb-3 px-1">지난 일기 📖</p>
               <div className="space-y-3">
                 {myEntries.filter((e) => e.date !== today).map((entry) => (
                   <div key={entry.id}
-                    className={`bg-gradient-to-br ${moodBg[entry.mood] || "from-sky-100 to-amber-50"} rounded-[22px] p-4`}>
+                    className={`bg-gradient-to-br ${moodBg[entry.mood] || "from-orange-100 to-amber-50"} rounded-[22px] p-4 shadow-sm`}>
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-xs text-[#9d7060] font-semibold">{formatDate(entry.date)}</p>
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-[sky-500]">{entry.isPublic ? "🌍" : "🔒"}</span>
+                        <span className="text-[10px] text-[#c09070]">{entry.isPublic ? "🌍" : "🔒"}</span>
                         <span className="text-2xl">{entry.mood}</span>
                       </div>
                     </div>
-                    <p className="text-[gray-800] text-sm leading-relaxed">{entry.content}</p>
+                    <p className="text-[#3d1f00] text-sm leading-relaxed">{entry.content}</p>
                   </div>
                 ))}
                 {myEntries.filter((e) => e.date !== today).length === 0 && (
-                  <div className="text-center text-[sky-400] text-sm py-10">아직 지난 일기가 없어요 🌙</div>
+                  <div className="text-center text-[#d4a07a] text-sm py-10">아직 지난 일기가 없어요 🌙</div>
                 )}
               </div>
             </>
@@ -205,24 +205,24 @@ export default function DiaryPage() {
             <div className="space-y-3">
               {friendEntries.map((entry) => (
                 <div key={entry.id}
-                  className={`bg-gradient-to-br ${moodBg[entry.mood] || "from-sky-100 to-amber-50"} rounded-[22px] p-4`}>
+                  className={`bg-gradient-to-br ${moodBg[entry.mood] || "from-orange-100 to-amber-50"} rounded-[22px] p-4 shadow-sm`}>
                   <div className="flex items-center gap-2 mb-3">
                     {entry.profileImage ? (
-                      <img src={entry.profileImage} className="w-8 h-8 rounded-full object-cover ring-2 ring-white" />
+                      <img src={entry.profileImage} className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-black text-sky-400">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center text-sm font-black text-orange-500 shadow">
                         {entry.nickname[0]}
                       </div>
                     )}
-                    <span className="font-black text-[gray-800] text-sm">{entry.nickname}</span>
-                    <span className="text-xs text-[sky-500] ml-auto">{formatDate(entry.date)}</span>
+                    <span className="font-black text-[#3d1f00] text-sm">{entry.nickname}</span>
+                    <span className="text-xs text-[#c09070] ml-auto">{formatDate(entry.date)}</span>
                     <span className="text-2xl">{entry.mood}</span>
                   </div>
-                  <p className="text-[gray-800] text-sm leading-relaxed">{entry.content}</p>
+                  <p className="text-[#3d1f00] text-sm leading-relaxed">{entry.content}</p>
                 </div>
               ))}
               {friendEntries.length === 0 && (
-                <div className="text-center text-[sky-400] text-sm py-10">친구들의 공개 일기가 없어요 🌸</div>
+                <div className="text-center text-[#d4a07a] text-sm py-10">친구들의 공개 일기가 없어요 🌸</div>
               )}
             </div>
           )}

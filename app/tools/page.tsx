@@ -17,9 +17,9 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <button
       onClick={() => onChange(!value)}
-      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-100" : "bg-yellow-100"}`}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-orange-400" : "bg-gray-200"}`}
     >
-      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
     </button>
   );
 }
@@ -141,29 +141,23 @@ export default function SettingsPage() {
   const pinKeys = ["1","2","3","4","5","6","7","8","9","","0","←"];
 
   return (
-    <main className="relative min-h-screen bg-yellow-50">
+    <main className="relative min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <div className="flex items-center h-14 px-4 bg-white  sticky top-0 z-20">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
-        <span className="font-black text-gray-800 text-base flex items-center gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8.82 5.76L8.58 2.6L15.42 2.6L15.18 5.76L15.82 6.13L18.43 4.34L21.85 10.26L18.99 11.64V12.36L21.85 13.74L18.43 19.66L15.82 17.87L15.18 18.24L15.42 21.4L8.58 21.4L8.82 18.24L8.18 17.87L5.57 19.66L2.15 13.74L5.01 12.36V11.64L2.15 10.26L5.57 4.34L8.18 6.13Z"/>
-            <circle cx="12" cy="12" r="3.5"/>
-          </svg>
-          설정
-        </span>
+      <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+        <span className="font-black text-[#3d1f00] text-base">⚙️ 설정</span>
       </div>
 
       <div className="px-5 pt-5 pb-20 space-y-4">
 
         {/* 내 정보 */}
-        <div className="bg-white rounded-[20px]  px-5 py-4">
+        <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">내 정보</span>
             <button
               onClick={() => editMode ? saveNickname() : setEditMode(true)}
               disabled={saving}
-              className="px-3 py-1 rounded-xl bg-sky-50 hover:bg-sky-50 text-sky-400 text-xs font-black transition"
+              className="px-3 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-500 text-xs font-black transition"
             >
               {saving ? "저장 중..." : editMode ? "저장" : "수정"}
             </button>
@@ -178,12 +172,12 @@ export default function SettingsPage() {
                 <input
                   value={editNickname}
                   onChange={(e) => setEditNickname(e.target.value)}
-                  className="w-full font-black text-[gray-800] text-base bg-yellow-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-sky-200"
+                  className="w-full font-black text-[#3d1f00] text-base bg-orange-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-orange-200"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && saveNickname()}
                 />
               ) : (
-                <div className="font-black text-[gray-800] text-base">{user?.nickname || "..."}</div>
+                <div className="font-black text-[#3d1f00] text-base">{user?.nickname || "..."}</div>
               )}
               <div className="text-xs text-gray-400 mt-0.5 truncate">{user?.email || ""}</div>
             </div>
@@ -191,8 +185,8 @@ export default function SettingsPage() {
         </div>
 
         {/* 앱 설정 토글 */}
-        <div className="bg-white rounded-[20px]  overflow-hidden">
-          <div className="px-5 py-3 ">
+        <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">앱 설정</span>
           </div>
 
@@ -203,13 +197,13 @@ export default function SettingsPage() {
           ].map(({ label, icon, value, onChange }, i, arr) => (
             <div
               key={label}
-              className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "" : ""}`}
+              className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm">
                   {icon}
                 </div>
-                <span className="font-bold text-[gray-800] text-sm">{label}</span>
+                <span className="font-bold text-[#3d1f00] text-sm">{label}</span>
               </div>
               <Toggle value={value} onChange={onChange} />
             </div>
@@ -217,21 +211,21 @@ export default function SettingsPage() {
         </div>
 
         {/* 기능 버튼들 */}
-        <div className="bg-white rounded-[20px]  overflow-hidden">
-          <div className="px-5 py-3 ">
+        <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">기능</span>
           </div>
           {navItems.map(({ icon, label, path }, i) => (
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "" : ""}`}
+              className={`w-full flex items-center justify-between px-5 py-4 active:bg-orange-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">{icon}</div>
-                <span className="font-bold text-[gray-800] text-sm">{label}</span>
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm">{icon}</div>
+                <span className="font-bold text-[#3d1f00] text-sm">{label}</span>
               </div>
-              <span className="text-sky-400 text-lg font-bold">›</span>
+              <span className="text-orange-300 text-lg font-bold">›</span>
             </button>
           ))}
         </div>
@@ -240,11 +234,11 @@ export default function SettingsPage() {
 
       {/* PIN 설정 모달 */}
       {showPinSetup && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-sky-100">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
           <button onClick={() => setShowPinSetup(false)} className="absolute top-5 right-5 text-gray-400 text-2xl">✕</button>
 
           <div className="text-5xl mb-5">🔒</div>
-          <div className="text-xl font-black text-[gray-800] mb-1">
+          <div className="text-xl font-black text-[#3d1f00] mb-1">
             {pinStep === "enter" ? "새 PIN 설정" : "PIN 확인"}
           </div>
           <div className="text-sm text-gray-400 mb-8">
@@ -254,7 +248,7 @@ export default function SettingsPage() {
           <div className="flex gap-4 mb-3">
             {[0,1,2,3].map((i) => (
               <div key={i} className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                i < pinCurrent.length ? "bg-sky-100 border-sky-200" : "border-gray-300"
+                i < pinCurrent.length ? "bg-orange-400 border-orange-400" : "border-gray-300"
               }`} />
             ))}
           </div>
@@ -266,12 +260,12 @@ export default function SettingsPage() {
               k === "" ? <div key={i} /> :
               k === "←" ? (
                 <button key={i} onClick={delPinKey}
-                  className="h-16 rounded-2xl bg-white  text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
+                  className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
                   ←
                 </button>
               ) : (
                 <button key={i} onClick={() => pressPinKey(k)}
-                  className="h-16 rounded-2xl bg-white  text-2xl font-black text-[gray-800] flex items-center justify-center active:scale-95 active:bg-sky-50 transition">
+                  className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-[#3d1f00] flex items-center justify-center active:scale-95 active:bg-orange-50 transition">
                   {k}
                 </button>
               )

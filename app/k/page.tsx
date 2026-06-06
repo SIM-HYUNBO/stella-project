@@ -43,43 +43,43 @@ export default function LinedNotepad() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-yellow-50" />
+      <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10 flex flex-col h-screen">
-        <div className="flex items-center h-14 px-4 bg-white  sticky top-0 z-20 shrink-0">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
-          <span className="font-black text-[gray-800] text-base">📝 메모장</span>
+        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20 shrink-0">
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-[#3d1f00] text-base">📝 메모장</span>
         </div>
 
         <div className="flex flex-1 overflow-hidden gap-3 p-4">
           {/* 작성 영역 */}
-          <div className="flex-1 flex flex-col rounded-[24px] bg-white -[0_8px_30px_rgba(14,165,233,0.12)] overflow-hidden">
-            <div className="px-4 py-3  flex items-center gap-2">
+          <div className="flex-1 flex flex-col rounded-[24px] bg-white border border-gray-100 shadow-[0_8px_30px_rgba(255,150,80,0.12)] overflow-hidden">
+            <div className="px-4 py-3 border-b border-orange-50 flex items-center gap-2">
               <span className="text-lg">✏️</span>
-              <p className="font-black text-[gray-800] text-sm">{selectedId ? "메모 수정" : "새 메모"}</p>
+              <p className="font-black text-[#3d1f00] text-sm">{selectedId ? "메모 수정" : "새 메모"}</p>
               {selectedId && (
                 <button onClick={() => { setText(""); setSelectedId(null); }}
-                  className="ml-auto text-xs text-[sky-500] font-semibold">취소</button>
+                  className="ml-auto text-xs text-[#c09070] font-semibold">취소</button>
               )}
             </div>
             <textarea value={text} onChange={(e) => setText(e.target.value)}
-              className="flex-1 resize-none bg-transparent px-4 py-3 text-sm text-[gray-800] outline-none placeholder:text-[sky-400] leading-7"
-              style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 27px, rgba(14,165,233,0.1) 28px)" }}
+              className="flex-1 resize-none bg-transparent px-4 py-3 text-sm text-[#3d1f00] outline-none placeholder:text-[#d4a07a] leading-7"
+              style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 27px, rgba(255,150,80,0.1) 28px)" }}
               placeholder="여기에 내용을 입력하세요..." />
             <button onClick={handleSave}
-              className="mx-4 mb-4 h-12 rounded-[16px] bg-sky-100 text-sky-800 font-black text-sm active:scale-[0.98] transition-transform">
+              className="mx-4 mb-4 h-12 rounded-[16px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black text-sm shadow-[0_6px_20px_rgba(255,160,50,0.35)] active:scale-[0.98] transition-transform">
               {selectedId ? "수정하기 ✓" : "저장하기 💾"}
             </button>
           </div>
 
           {/* 목록 */}
           <div className="w-40 flex flex-col gap-2 overflow-y-auto">
-            <p className="font-black text-[gray-800] text-xs px-1 mb-1">메모 목록</p>
-            {notes.length === 0 && <p className="text-[sky-400] text-xs text-center py-4">아직 없어요</p>}
+            <p className="font-black text-[#3d1f00] text-xs px-1 mb-1">메모 목록</p>
+            {notes.length === 0 && <p className="text-[#d4a07a] text-xs text-center py-4">아직 없어요</p>}
             {notes.map((note) => (
               <div key={note.id}
-                className={`rounded-[16px] border px-3 py-3 cursor-pointer transition-all ${note.id === selectedId ? "bg-sky-100 border-transparent" : "bg-white/80 border-sky-100"}`}
+                className={`rounded-[16px] border px-3 py-3 cursor-pointer transition-all shadow-sm ${note.id === selectedId ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent" : "bg-white/80 border-orange-100"}`}
                 onClick={() => handleSelect(note.id)}>
-                <p className={`text-xs font-semibold truncate ${note.id === selectedId ? "text-white" : "text-[gray-800]"}`}>
+                <p className={`text-xs font-semibold truncate ${note.id === selectedId ? "text-white" : "text-[#3d1f00]"}`}>
                   {note.content.slice(0, 20) || "빈 메모"}
                 </p>
                 <button onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}

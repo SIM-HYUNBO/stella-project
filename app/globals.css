@@ -18,9 +18,10 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 
-  background: #fefce8;
-  color: #1e293b;
+  background: transparent;
+  color: inherit;
 
+  /* 🇰🇷 한국어 우선 + fallback 구조 */
   font-family: var(--app-font);
 }
 
