@@ -229,9 +229,9 @@ export default function HomePage() {
           <div className="rounded-[24px] bg-white shadow-[0_4px_16px_rgba(14,165,233,0.10)] border border-sky-100 p-3">
             <div className="grid grid-cols-3 gap-2.5">
               {[
-                { icon: "💬", label: "DM 보내기", bg: "bg-gradient-to-br from-sky-500 to-cyan-500",    path: "/avatar" },
-                { icon: "👥", label: "단체방",     bg: "bg-gradient-to-br from-yellow-500 to-amber-400", path: "/groupchat" },
-                { icon: "📔", label: "일기 쓰기",  bg: "bg-gradient-to-br from-sky-600 to-sky-500",     path: "/diary" },
+                { icon: "💬", label: "DM 보내기", bg: "bg-gradient-to-br from-sky-300 to-cyan-300",    path: "/avatar" },
+                { icon: "👥", label: "단체방",     bg: "bg-gradient-to-br from-yellow-200 to-amber-200", path: "/groupchat" },
+                { icon: "📔", label: "일기 쓰기",  bg: "bg-gradient-to-br from-sky-400 to-sky-300",     path: "/diary" },
               ].map(({ icon, label, bg, path }) => (
                 <button key={label} onClick={() => router.push(path)}
                   className={`rounded-[16px] ${bg} px-3 py-4 text-center active:scale-[0.97] transition-transform shadow-sm`}>
@@ -250,7 +250,7 @@ export default function HomePage() {
               {/* 1:1 채팅 */}
               <button onClick={() => router.push("/avatar")}
                 className="group relative w-full rounded-[26px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-gradient-to-r from-sky-500 to-sky-400 px-6 py-5 flex items-center gap-4 relative shadow-lg shadow-sky-200">
+                <div className="bg-gradient-to-r from-sky-300 to-sky-200 px-6 py-5 flex items-center gap-4 relative shadow-lg shadow-sky-200">
                   <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
                   <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
                   <div className="relative w-14 h-14 rounded-2xl bg-white/25 flex items-center justify-center text-3xl shrink-0">💬</div>
@@ -270,7 +270,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                  <div className="bg-gradient-to-br from-yellow-500 to-amber-400 px-5 py-5 relative shadow-md shadow-yellow-200">
+                  <div className="bg-gradient-to-br from-yellow-300 to-amber-200 px-5 py-5 relative shadow-md shadow-yellow-200">
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
                     <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">👥</div>
                     <p className="text-white font-black text-base drop-shadow">단체채팅</p>
@@ -285,7 +285,7 @@ export default function HomePage() {
 
                 <button onClick={() => router.push("/diary")}
                   className="rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform relative">
-                  <div className="bg-gradient-to-br from-sky-600 to-sky-500 px-5 py-5 relative shadow-md shadow-sky-200">
+                  <div className="bg-gradient-to-br from-sky-400 to-sky-300 px-5 py-5 relative shadow-md shadow-sky-200">
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
                     <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">📔</div>
                     <p className="text-white font-black text-base drop-shadow">다이어리</p>
