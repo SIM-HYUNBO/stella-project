@@ -15,7 +15,7 @@ const Header = () => {
           <div className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center text-xl">
             💬
           </div>
-          <span className={`${jua.className} text-[28px] text-gradient-to-br from-yellow-300 to-sky-300 drop-tracking-wide`}>
+          <span className={`${jua.className} text-[28px] bg-gradient-to-br from-yellow-300 to-sky-300 drop-tracking-wide`}>
             WAGIE
           </span>
         </Link>
