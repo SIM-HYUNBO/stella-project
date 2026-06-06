@@ -269,6 +269,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [input, setInput] = useState("");
+  const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [isRecording, setIsRecording] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
   const [sendingAudio, setSendingAudio] = useState(false);
@@ -1031,22 +1032,14 @@ export default function Chat() {
   };
 
   const applyHighlight = (colorKey: string) => {
-    const el = msgInputRef.current;
-    if (!el) return;
-    const start = el.selectionStart ?? 0;
-    const end = el.selectionEnd ?? 0;
+    const { start, end } = hlSel;
+    if (start === end) return;
     const before = input.slice(0, start);
+    const selected = input.slice(start, end);
     const after = input.slice(end);
-    if (start !== end) {
-      const selected = input.slice(start, end);
-      setInput(`${before}==${colorKey}:${selected}==${after}`);
-      setTimeout(() => { el.focus(); }, 0);
-    } else {
-      const inserted = `==${colorKey}:==`;
-      setInput(`${before}${inserted}${after}`);
-      const cursor = start + 2 + colorKey.length + 1;
-      setTimeout(() => { el.focus(); el.setSelectionRange(cursor, cursor); }, 0);
-    }
+    setInput(`${before}==${colorKey}:${selected}==${after}`);
+    setHlSel({ start: 0, end: 0 });
+    msgInputRef.current?.focus();
   };
 
   const renderMsgContent = (m: Message) => {
@@ -1422,6 +1415,13 @@ export default function Chat() {
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
+          onSelect={(e) => {
+            const el = e.currentTarget;
+            setHlSel({ start: el.selectionStart ?? 0, end: el.selectionEnd ?? 0 });
+          }}
+          onBlur={(e) => {
+            setHlSel({ start: e.currentTarget.selectionStart ?? 0, end: e.currentTarget.selectionEnd ?? 0 });
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) sendMessage();
           }}
