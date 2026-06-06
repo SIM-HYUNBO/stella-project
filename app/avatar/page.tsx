@@ -122,7 +122,7 @@ function SwipeUserItem({
         {/* 즐겨찾기 */}
         <button
           onClick={(e) => { e.stopPropagation(); onFavorite(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-amber-500" : "bg-amber-400"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-yellow-500" : "bg-amber-400"}`}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill={isFavorite ? "white" : "none"} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -1052,7 +1052,7 @@ export default function Chat() {
                   className="w-11 h-11 rounded-full object-cover shadow"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-300 to-orange-300 text-white font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-cyan-300 text-white font-bold flex items-center justify-center shadow">
                   {currentChatUser.nickname[0]}
                 </div>
               )}
@@ -1214,7 +1214,7 @@ export default function Chat() {
                 <div
                   className={`px-4 py-3 rounded-3xl text-sm shadow-sm ${
                     isMine
-                      ? "bg-gradient-to-r from-yellow-300 to-orange-300 text-white rounded-br-md"
+                      ? "bg-gradient-to-r from-sky-400 to-cyan-300 text-white rounded-br-md"
                       : "bg-white border border-gray-100 rounded-bl-md"
                   }`}
                   onContextMenu={(e) =>
@@ -1271,7 +1271,7 @@ export default function Chat() {
                     const readByArr = m.readBy || [];
                     const unread = 2 - readByArr.length;
                     return unread > 0 ? (
-                      <span className="text-orange-400 font-bold">{unread}</span>
+                      <span className="text-sky-400 font-bold">{unread}</span>
                     ) : null;
                   })()}
                   {m.edited && <span>수정됨</span>}
@@ -1312,14 +1312,14 @@ export default function Chat() {
       )}
 
       {pendingImage && (
-        <div className="px-3 py-2 bg-orange-50 border-t border-orange-100 flex items-center gap-3 shrink-0">
+        <div className="px-3 py-2 bg-white border-t border-sky-100 flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
             <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white flex items-center justify-center shadow-md disabled:opacity-50"
+              className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white flex items-center justify-center shadow-md disabled:opacity-50"
             >
               {sendingImage
                 ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1330,12 +1330,12 @@ export default function Chat() {
       )}
 
       {pendingAudio && (
-        <div className="px-3 py-2 bg-orange-50 border-t border-orange-100 flex items-center gap-2 shrink-0">
+        <div className="px-3 py-2 bg-white border-t border-sky-100 flex items-center gap-2 shrink-0">
           <span className="text-lg shrink-0">🎵</span>
-          <span className="text-xs font-black text-orange-500 shrink-0">대기중</span>
+          <span className="text-xs font-black text-sky-500 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
           <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-orange-400 to-amber-300 text-white flex items-center justify-center shadow-md shrink-0 disabled:opacity-50">
+          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white flex items-center justify-center shadow-md shrink-0 disabled:opacity-50">
             {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
@@ -1344,7 +1344,7 @@ export default function Chat() {
       <div className="px-3 py-2 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-orange-50 hover:bg-orange-100 text-orange-400 flex items-center justify-center transition shrink-0"
+          className="w-10 h-10 rounded-[12px] bg-yellow-50 hover:bg-sky-100 text-sky-400 flex items-center justify-center transition shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1365,7 +1365,7 @@ export default function Chat() {
           }}
         />
         <input
-          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 border border-gray-100 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
@@ -1376,7 +1376,7 @@ export default function Chat() {
 
         <button
           onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-orange-50 hover:bg-orange-100 text-orange-400"}`}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-yellow-50 hover:bg-sky-100 text-sky-400"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -1388,7 +1388,7 @@ export default function Chat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white shadow-[0_4px_14px_rgba(255,160,50,0.35)] hover:scale-105 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white shadow-[0_4px_14px_rgba(56,189,248,0.3)] hover:scale-105 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
@@ -1470,7 +1470,7 @@ export default function Chat() {
 
   const renderUserList = () => (
     <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b border-orange-100 flex items-center justify-between">
+      <div className="px-4 py-4 border-b border-sky-100 flex items-center justify-between">
         <div>
           <div className="text-xl font-black bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
             WAGIE
@@ -1492,9 +1492,9 @@ export default function Chat() {
 </button>
       </div>
 
-      <div className="px-3 py-3 border-b border-orange-100">
+      <div className="px-3 py-3 border-b border-sky-100">
         <input
-          className="w-full h-11 rounded-[16px] bg-white border border-gray-100 px-4 text-sm outline-none text-[#3d1f00] placeholder:text-[#d4a07a]"
+          className="w-full h-11 rounded-[16px] bg-white border border-gray-100 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="사용자 검색..."
           onChange={(e) => {}}
         />

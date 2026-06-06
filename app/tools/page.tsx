@@ -144,8 +144,8 @@ export default function SettingsPage() {
     <main className="relative min-h-screen bg-gray-50">
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
-        <span className="font-black text-[#3d1f00] text-base">⚙️ 설정</span>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
+        <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
       </div>
 
       <div className="px-5 pt-5 pb-20 space-y-4">
@@ -157,7 +157,7 @@ export default function SettingsPage() {
             <button
               onClick={() => editMode ? saveNickname() : setEditMode(true)}
               disabled={saving}
-              className="px-3 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-500 text-xs font-black transition"
+              className="px-3 py-1 rounded-xl bg-yellow-50 hover:bg-sky-100 text-sky-500 text-xs font-black transition"
             >
               {saving ? "저장 중..." : editMode ? "저장" : "수정"}
             </button>
@@ -172,12 +172,12 @@ export default function SettingsPage() {
                 <input
                   value={editNickname}
                   onChange={(e) => setEditNickname(e.target.value)}
-                  className="w-full font-black text-[#3d1f00] text-base bg-orange-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-orange-200"
+                  className="w-full font-black text-slate-800 text-base bg-yellow-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-orange-200"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && saveNickname()}
                 />
               ) : (
-                <div className="font-black text-[#3d1f00] text-base">{user?.nickname || "..."}</div>
+                <div className="font-black text-slate-800 text-base">{user?.nickname || "..."}</div>
               )}
               <div className="text-xs text-gray-400 mt-0.5 truncate">{user?.email || ""}</div>
             </div>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm">
                   {icon}
                 </div>
-                <span className="font-bold text-[#3d1f00] text-sm">{label}</span>
+                <span className="font-bold text-slate-800 text-sm">{label}</span>
               </div>
               <Toggle value={value} onChange={onChange} />
             </div>
@@ -219,11 +219,11 @@ export default function SettingsPage() {
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`w-full flex items-center justify-between px-5 py-4 active:bg-orange-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
+              className={`w-full flex items-center justify-between px-5 py-4 active:bg-yellow-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm">{icon}</div>
-                <span className="font-bold text-[#3d1f00] text-sm">{label}</span>
+                <span className="font-bold text-slate-800 text-sm">{label}</span>
               </div>
               <span className="text-orange-300 text-lg font-bold">›</span>
             </button>
@@ -238,7 +238,7 @@ export default function SettingsPage() {
           <button onClick={() => setShowPinSetup(false)} className="absolute top-5 right-5 text-gray-400 text-2xl">✕</button>
 
           <div className="text-5xl mb-5">🔒</div>
-          <div className="text-xl font-black text-[#3d1f00] mb-1">
+          <div className="text-xl font-black text-slate-800 mb-1">
             {pinStep === "enter" ? "새 PIN 설정" : "PIN 확인"}
           </div>
           <div className="text-sm text-gray-400 mb-8">
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                 </button>
               ) : (
                 <button key={i} onClick={() => pressPinKey(k)}
-                  className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-[#3d1f00] flex items-center justify-center active:scale-95 active:bg-orange-50 transition">
+                  className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 active:bg-yellow-50 transition">
                   {k}
                 </button>
               )

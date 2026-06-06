@@ -64,10 +64,10 @@ export default function Page() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white border-b border-gray-100 shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-300 to-purple-400 flex items-center justify-center text-lg mr-2 shadow-sm">🧠</div>
         <div>
-          <p className="font-black text-[#3d1f00] text-sm leading-tight">이효린</p>
+          <p className="font-black text-slate-800 text-sm leading-tight">이효린</p>
           <p className="text-[10px] text-green-500 font-semibold">온라인</p>
         </div>
       </div>
@@ -81,8 +81,8 @@ export default function Page() {
             )}
             <div className={`px-4 py-2.5 rounded-[18px] max-w-[72%] text-sm leading-relaxed shadow-sm ${
               m.role === "user"
-                ? "bg-gradient-to-r from-orange-400 to-amber-300 text-white rounded-br-[6px]"
-                : "bg-white border border-gray-100 text-[#3d1f00] rounded-bl-[6px]"
+                ? "bg-gradient-to-r from-sky-400 to-cyan-300 text-white rounded-br-[6px]"
+                : "bg-white border border-gray-100 text-slate-800 rounded-bl-[6px]"
             }`}>
               {m.content}
             </div>
@@ -106,7 +106,7 @@ export default function Page() {
       {/* 입력 */}
       <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100 shrink-0">
         <input
-          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-[#3d1f00] placeholder:text-[#d4a07a] outline-none"
+          className="flex-1 bg-gray-50 border border-gray-100 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -114,7 +114,7 @@ export default function Page() {
           disabled={loading}
         />
         <button onClick={sendMessage} disabled={loading}
-          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-orange-400 to-amber-300 text-white font-black text-sm shadow-[0_4px_14px_rgba(255,160,50,0.35)] active:scale-95 transition-transform flex items-center justify-center">
+          className="w-11 h-11 rounded-[14px] bg-gradient-to-r from-sky-400 to-cyan-300 text-white font-black text-sm shadow-[0_4px_14px_rgba(56,189,248,0.3)] active:scale-95 transition-transform flex items-center justify-center">
           {loading ? "·" : "▶"}
         </button>
       </div>

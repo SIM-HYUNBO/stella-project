@@ -21,7 +21,7 @@ type Title = {
 const ALL_TITLES = [
   { id: "newcomer",    icon: "🌱", name: "새싹",       desc: "WAGIE에 처음 왔어요",           condition: "가입만 해도",         color: "from-green-400 to-emerald-400" },
   { id: "talker",      icon: "💬", name: "수다쟁이",    desc: "메시지 50개 이상 보냄",          condition: "메시지 50개",         color: "from-blue-400 to-cyan-400" },
-  { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 200개 이상 보냄",         condition: "메시지 200개",        color: "from-orange-400 to-amber-400" },
+  { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 200개 이상 보냄",         condition: "메시지 200개",        color: "from-sky-400 to-cyan-300" },
   { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 500개 이상 보냄",         condition: "메시지 500개",        color: "from-yellow-400 to-orange-400" },
   { id: "talkgod",     icon: "⚡", name: "말신",        desc: "메시지 1000개 이상 보냄",        condition: "메시지 1000개",       color: "from-violet-500 to-purple-500" },
   { id: "friendly",    icon: "🤝", name: "친화력 갑",   desc: "친구 10명 이상",                 condition: "친구 10명",           color: "from-pink-400 to-rose-400" },
@@ -111,11 +111,11 @@ export default function TitlesPage() {
   const equippedTitle = ALL_TITLES.find((t) => t.id === equipped);
 
   return (
-    <div className="min-h-screen bg-[#fff7ef]">
+    <div className="min-h-screen bg-[#fefce8]">
       {/* 헤더 */}
       <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white border-b border-gray-100">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-gray-800 text-base">🎫 칭호</span>
       </div>
 
@@ -141,7 +141,7 @@ export default function TitlesPage() {
             )}
           </div>
           <div className="bg-white px-5 py-3 flex items-center justify-between">
-            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-orange-400 font-black">{earnedTitles.length}</span> / {titles.length}</p>
+            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-sky-400 font-black">{earnedTitles.length}</span> / {titles.length}</p>
             <div className="flex gap-1">
               {earnedTitles.slice(0, 5).map((t) => (
                 <span key={t.id} className="text-lg">{t.icon}</span>
@@ -192,7 +192,7 @@ export default function TitlesPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <div className="w-10 h-10 rounded-full border-4 border-orange-200 border-t-orange-400 animate-spin" />
+            <div className="w-10 h-10 rounded-full border-4 border-sky-200 border-t-orange-400 animate-spin" />
           </div>
         )}
 

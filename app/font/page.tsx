@@ -29,15 +29,15 @@ export default function FontSettings() {
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white border-b border-gray-100 sticky top-0 z-20">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-50 text-orange-400 font-bold text-lg mr-3">←</button>
-          <span className="font-black text-[#3d1f00] text-base">⚙️ 폰트 설정</span>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
+          <span className="font-black text-slate-800 text-base">⚙️ 폰트 설정</span>
         </div>
 
         <div className="px-5 pt-6 pb-16 space-y-6">
 
           {/* 글씨 크기 */}
           <div>
-            <p className="font-black text-[#3d1f00] text-base px-1 mb-3">글씨 크기</p>
+            <p className="font-black text-slate-800 text-base px-1 mb-3">글씨 크기</p>
             <div className="grid grid-cols-4 gap-2">
               {SIZE_OPTIONS.map((s) => {
                 const isActive = fontSize === s.value;
@@ -45,23 +45,23 @@ export default function FontSettings() {
                   <button key={s.value} onClick={() => changeFontSize(s.value)}
                     className={`rounded-[16px] py-3 flex flex-col items-center gap-1 border transition-all active:scale-[0.97]
                       ${isActive
-                        ? "bg-gradient-to-b from-orange-400 to-amber-300 border-transparent shadow-[0_4px_14px_rgba(255,160,50,0.35)]"
-                        : "bg-white border-orange-100"
+                        ? "bg-gradient-to-b from-sky-400 to-cyan-300 border-transparent shadow-[0_4px_14px_rgba(56,189,248,0.3)]"
+                        : "bg-white border-sky-100"
                       }`}>
-                    <span style={{ fontSize: s.value }} className={`font-bold leading-none ${isActive ? "text-white" : "text-[#3d1f00]"}`}>가</span>
-                    <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-[#c09070]"}`}>{s.label}</span>
+                    <span style={{ fontSize: s.value }} className={`font-bold leading-none ${isActive ? "text-white" : "text-slate-800"}`}>가</span>
+                    <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-sky-400"}`}>{s.label}</span>
                   </button>
                 );
               })}
             </div>
-            <div className="mt-3 rounded-[14px] bg-white border border-orange-100 px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
+            <div className="mt-3 rounded-[14px] bg-white border border-sky-100 px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
               미리보기 — 안녕하세요 WAGIE 🧡
             </div>
           </div>
 
           {/* 폰트 종류 */}
           <div>
-            <p className="font-black text-[#3d1f00] text-base px-1 mb-3">폰트 선택</p>
+            <p className="font-black text-slate-800 text-base px-1 mb-3">폰트 선택</p>
             <div className="space-y-3">
               {FONT_OPTIONS.map((f) => {
                 const isActive = font === f.value;
@@ -69,12 +69,12 @@ export default function FontSettings() {
                   <button key={f.value} onClick={() => changeFont(f.value)}
                     className={`w-full rounded-[20px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] border shadow-sm
                       ${isActive
-                        ? "bg-gradient-to-r from-orange-400 to-amber-300 border-transparent shadow-[0_6px_20px_rgba(255,160,50,0.35)]"
-                        : "bg-white/80 backdrop-blur-sm border-orange-100"
+                        ? "bg-gradient-to-r from-sky-400 to-cyan-300 border-transparent shadow-[0_6px_20px_rgba(56,189,248,0.3)]"
+                        : "bg-white/80 backdrop-blur-sm border-sky-100"
                       }`}>
                     <div className="text-left">
-                      <p className={`font-black text-sm ${isActive ? "text-white" : "text-[#3d1f00]"}`}>{f.label}</p>
-                      <p className={`text-xs mt-0.5 ${isActive ? "text-white/75" : "text-[#c09070]"}`}
+                      <p className={`font-black text-sm ${isActive ? "text-white" : "text-slate-800"}`}>{f.label}</p>
+                      <p className={`text-xs mt-0.5 ${isActive ? "text-white/75" : "text-sky-400"}`}
                         style={{ fontFamily: f.value }}>{f.preview}</p>
                     </div>
                     {isActive && <span className="text-white text-lg">✓</span>}

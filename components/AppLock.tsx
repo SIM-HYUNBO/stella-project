@@ -44,7 +44,7 @@ export default function AppLock({ onUnlock }: Props) {
   return (
     <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-amber-50">
       <div className="text-5xl mb-6">🔒</div>
-      <div className="text-xl font-black text-[#3d1f00] mb-2">앱 비밀번호</div>
+      <div className="text-xl font-black text-slate-800 mb-2">앱 비밀번호</div>
       <div className="text-sm text-gray-400 mb-8">4자리 PIN을 입력하세요</div>
 
       <div className={`flex gap-4 mb-10 ${shake ? "animate-[shake_0.5s_ease-in-out]" : ""}`}>
@@ -77,7 +77,7 @@ export default function AppLock({ onUnlock }: Props) {
             <button
               key={i}
               onClick={() => press(k)}
-              className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-[#3d1f00] flex items-center justify-center active:scale-95 transition active:bg-orange-50"
+              className="h-16 rounded-2xl bg-white border border-gray-100 shadow-sm text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 transition active:bg-yellow-50"
             >
               {k}
             </button>
