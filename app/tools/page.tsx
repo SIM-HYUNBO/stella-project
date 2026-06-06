@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <button
       onClick={() => onChange(!value)}
-      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-400" : "bg-gray-200"}`}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-500" : "bg-gray-200"}`}
     >
       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
     </button>
@@ -144,7 +144,7 @@ export default function SettingsPage() {
     <main className="relative min-h-screen bg-gray-50">
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
       </div>
 
@@ -157,7 +157,7 @@ export default function SettingsPage() {
             <button
               onClick={() => editMode ? saveNickname() : setEditMode(true)}
               disabled={saving}
-              className="px-3 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-500 text-xs font-black transition"
+              className="px-3 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 text-sky-600 text-xs font-black transition"
             >
               {saving ? "저장 중..." : editMode ? "저장" : "수정"}
             </button>
@@ -248,7 +248,7 @@ export default function SettingsPage() {
           <div className="flex gap-4 mb-3">
             {[0,1,2,3].map((i) => (
               <div key={i} className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                i < pinCurrent.length ? "bg-sky-400" : "border-gray-300"
+                i < pinCurrent.length ? "bg-sky-500" : "border-gray-300"
               }`} />
             ))}
           </div>

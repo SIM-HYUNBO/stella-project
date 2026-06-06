@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,7 @@ export default function LiveSTTWithHeader() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">🗣 와글와글 토의방</span>
         {listening && (
           <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50">
@@ -77,7 +77,7 @@ export default function LiveSTTWithHeader() {
         </div>
 
         {/* AI 요약 */}
-        <div className={`rounded-[20px] border px-5 py-4 transition-all ${summary ? "bg-sky-100 border-purple-100" : "bg-white/80 border-sky-100"}`}>
+        <div className={`rounded-[20px] border px-5 py-4 transition-all ${summary ? "bg-sky-200 border-purple-100" : "bg-white/80 border-sky-200"}`}>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-base">📌</span>
             <p className="font-black text-slate-800 text-sm">AI 요약</p>
@@ -98,7 +98,7 @@ export default function LiveSTTWithHeader() {
             ⏹ 중지
           </button>
           <button onClick={summarizeMeeting} disabled={loading || !text}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!text || loading ? "bg-gray-200 text-gray-400" : "bg-sky-100 text-white"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!text || loading ? "bg-gray-200 text-gray-400" : "bg-sky-200 text-white"}`}>
             ✨ 요약
           </button>
         </div>

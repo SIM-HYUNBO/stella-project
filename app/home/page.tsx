@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -111,7 +111,7 @@ export default function HomePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fefce8]">
         <div className="relative">
-          <div className="w-14 h-14 rounded-full border-[6px] border-sky-200" />
+          <div className="w-14 h-14 rounded-full border-[6px] border-sky-300" />
           <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-orange-400 animate-spin" />
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function HomePage() {
         <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
         <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
         <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-yellow-100/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
-        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-100/20 blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" />
+        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-200/20 blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" />
 
         {/* ── 떠다니는 파티클 ── */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -144,7 +144,7 @@ export default function HomePage() {
 
           {/* ── 히어로 ── */}
           <div className="relative rounded-[32px] overflow-hidden">
-            <div className="bg-sky-100 p-6 relative">
+            <div className="bg-sky-200 p-6 relative">
               {/* 데코 원 */}
               <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
@@ -196,7 +196,7 @@ export default function HomePage() {
             {/* 오늘의 한마디 */}
             <div className="bg-white/80 backdrop-blur-sm px-5 py-3 flex items-center gap-2">
               <span className="text-base">💡</span>
-              <p className="text-sky-700 text-xs font-semibold">{getTodayQuote()}</p>
+              <p className="text-sky-800 text-xs font-semibold">{getTodayQuote()}</p>
             </div>
           </div>
 
@@ -205,7 +205,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <p className="font-black text-slate-800 text-base">친구들 👫</p>
-                <button onClick={() => router.push("/friendmenu")} className="text-xs text-sky-500 font-bold">전체보기 →</button>
+                <button onClick={() => router.push("/friendmenu")} className="text-xs text-sky-600 font-bold">전체보기 →</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                 {friends.map((f) => (
@@ -228,9 +228,9 @@ export default function HomePage() {
           {/* ── 빠른 액션 ── */}
           <div className="grid grid-cols-3 gap-2.5">
             {[
-              { icon: "💬", label: "DM 보내기",  color: "bg-sky-100",    path: "/avatar" },
+              { icon: "💬", label: "DM 보내기",  color: "bg-sky-200",    path: "/avatar" },
               { icon: "👥", label: "단체방",      color: "from-yellow-400", path: "/groupchat" },
-              { icon: "📔", label: "일기 쓰기",   color: "from-sky-300",     path: "/diary" },
+              { icon: "📔", label: "일기 쓰기",   color: "from-sky-400",     path: "/diary" },
             ].map(({ icon, label, color, path }) => (
               <button key={label} onClick={() => router.push(path)}
                 className={`rounded-[20px] bg-${color} px-3 py-4 text-center active:scale-[0.97] transition-transform`}>
@@ -257,7 +257,7 @@ export default function HomePage() {
                     <p className="text-white/70 text-sm">친구와 나만의 대화</p>
                   </div>
                   {dmUnread > 0 && (
-                    <span className="relative bg-white text-sky-500 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 animate-[pulse_2s_infinite]">
+                    <span className="relative bg-white text-sky-600 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 animate-[pulse_2s_infinite]">
                       {dmUnread > 99 ? "99+" : dmUnread}
                     </span>
                   )}
@@ -283,7 +283,7 @@ export default function HomePage() {
 
                 <button onClick={() => router.push("/diary")}
                   className="rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform relative">
-                  <div className="bg-sky-100 px-5 py-5 relative">
+                  <div className="bg-sky-200 px-5 py-5 relative">
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/10" />
                     <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-2xl mb-3">📔</div>
                     <p className="text-white font-black text-base">다이어리</p>
@@ -296,10 +296,10 @@ export default function HomePage() {
               <button onClick={() => router.push("/friendmenu")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-2xl shadow">🤝</div>
+                  <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🤝</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">친구 목록</p>
-                    <p className="text-sky-500 text-sm">친구 {friends.length}명과 함께해요</p>
+                    <p className="text-sky-600 text-sm">친구 {friends.length}명과 함께해요</p>
                   </div>
                   <span className="text-orange-300 text-2xl">›</span>
                 </div>
@@ -312,7 +312,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shadow">📋</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">회의방</p>
-                    <p className="text-sky-500 text-sm">주제 고정 · 긴급회의 알림</p>
+                    <p className="text-sky-600 text-sm">주제 고정 · 긴급회의 알림</p>
                   </div>
                   <span className="text-red-300 text-2xl">›</span>
                 </div>
@@ -325,7 +325,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shadow">🎫</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">칭호</p>
-                    <p className="text-sky-500 text-sm">활동하면 칭호를 획득해요</p>
+                    <p className="text-sky-600 text-sm">활동하면 칭호를 획득해요</p>
                   </div>
                   <span className="text-amber-300 text-2xl">›</span>
                 </div>
@@ -335,12 +335,12 @@ export default function HomePage() {
               <button onClick={() => router.push("/tools/contact")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-2xl shadow">🎧</div>
+                  <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🎧</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">Q&A방</p>
-                    <p className="text-sky-500 text-sm">궁금한 점을 남겨보세요</p>
+                    <p className="text-sky-600 text-sm">궁금한 점을 남겨보세요</p>
                   </div>
-                  <span className="text-sky-300 text-2xl">›</span>
+                  <span className="text-sky-400 text-2xl">›</span>
                 </div>
               </button>
 

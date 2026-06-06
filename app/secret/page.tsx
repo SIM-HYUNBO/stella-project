@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { db, auth } from "@/app/firebase";
@@ -79,7 +79,7 @@ export default function MeatChat() {
   };
 
   const stateColors: Record<string, string> = {
-    raw: "text-sky-500", grilling: "text-sky-500", perfect: "text-green-500", burn: "text-red-500",
+    raw: "text-sky-600", grilling: "text-sky-600", perfect: "text-green-500", burn: "text-red-500",
   };
 
   return (
@@ -113,7 +113,7 @@ export default function MeatChat() {
             </button>
           )}
 
-          <p className="text-[10px] text-sky-500 font-semibold">{nickname}</p>
+          <p className="text-[10px] text-sky-600 font-semibold">{nickname}</p>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export default function MeatChat() {
       <div className="relative z-10 h-44 overflow-y-auto bg-white px-4 py-3 space-y-1">
         {messages.map((m) => (
           <div key={m.id} className="text-sm">
-            <span className="font-black text-sky-500">{m.from}</span>
+            <span className="font-black text-sky-600">{m.from}</span>
             <span className="text-slate-800"> : {m.content}</span>
           </div>
         ))}
@@ -139,7 +139,7 @@ export default function MeatChat() {
         />
         <button onClick={sendMessage}
           className={`w-11 h-11 rounded-[14px] text-white font-black active:scale-95 transition-transform flex items-center justify-center ${
-            state === "perfect" ? "bg-sky-100" : "bg-gray-300"
+            state === "perfect" ? "bg-sky-200" : "bg-gray-300"
           }`}>
           ▶
         </button>

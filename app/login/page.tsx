@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -43,8 +43,8 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg- mb-4">
             <span className="text-4xl">💬</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-500">WAGIE</h1>
-          <p className="text-sky-600 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
+          <p className="text-sky-700 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
         </div>
 
         {/* 폼 카드 */}
@@ -66,7 +66,7 @@ export default function LoginPage() {
             <label className="flex items-center gap-2.5 cursor-pointer select-none px-1">
               <div
                 onClick={() => setKeepLogin(!keepLogin)}
-                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-100" : "bg-gray-200"}`}
+                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-200" : "bg-gray-200"}`}
               >
                 <div className={`w-5 h-5 rounded-full bg-white transition-all duration-300 ${keepLogin ? "translate-x-4" : "translate-x-0"}`} />
               </div>
@@ -81,7 +81,7 @@ export default function LoginPage() {
 
             <button type="submit" disabled={loading}
               className="group relative w-full h-14 rounded-[18px] overflow-hidden active:scale-[0.98] transition-transform disabled:opacity-70">
-              <div className="absolute inset-0 bg-sky-100" />
+              <div className="absolute inset-0 bg-sky-200" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
                 {loading ? "로그인 중..." : "로그인 💭"}
@@ -92,7 +92,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-[#b08060] mt-6">
           계정이 없으신가요?{" "}
-          <a href="/signup" className="text-sky-500 font-black">회원가입 →</a>
+          <a href="/signup" className="text-sky-600 font-black">회원가입 →</a>
         </p>
       </div>
 

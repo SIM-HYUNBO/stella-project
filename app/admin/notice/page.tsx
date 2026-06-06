@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -71,7 +71,7 @@ export default function AdminNoticePage() {
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">공지사항 관리</span>
       </div>
 
@@ -83,19 +83,19 @@ export default function AdminNoticePage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목"
-            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-300"
+            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-400"
           />
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력하세요"
             rows={5}
-            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-300 resize-none"
+            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-400 resize-none"
           />
           <button
             onClick={handleAdd}
             disabled={adding || !title.trim() || !content.trim()}
-            className="w-full py-3 rounded-xl bg-sky-100 text-white font-black text-sm disabled:opacity-40"
+            className="w-full py-3 rounded-xl bg-sky-200 text-white font-black text-sm disabled:opacity-40"
           >
             {adding ? "등록 중..." : "공지 등록"}
           </button>

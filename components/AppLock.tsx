@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 
@@ -53,7 +53,7 @@ export default function AppLock({ onUnlock }: Props) {
             key={i}
             className={`w-4 h-4 rounded-full border-2 transition-colors ${
               i < pin.length
-                ? error ? "bg-red-400" : "bg-sky-400"
+                ? error ? "bg-red-400" : "bg-sky-500"
                 : "border-gray-300 bg-transparent"
             }`}
           />

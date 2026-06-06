@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,7 @@ export default function LinedNotepad() {
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10 flex flex-col h-screen">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20 shrink-0">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">📝 메모장</span>
         </div>
 
@@ -58,7 +58,7 @@ export default function LinedNotepad() {
               <p className="font-black text-slate-800 text-sm">{selectedId ? "메모 수정" : "새 메모"}</p>
               {selectedId && (
                 <button onClick={() => { setText(""); setSelectedId(null); }}
-                  className="ml-auto text-xs text-sky-500 font-semibold">취소</button>
+                  className="ml-auto text-xs text-sky-600 font-semibold">취소</button>
               )}
             </div>
             <textarea value={text} onChange={(e) => setText(e.target.value)}
@@ -66,7 +66,7 @@ export default function LinedNotepad() {
               style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 27px, rgba(56,189,248,0.08) 28px)" }}
               placeholder="여기에 내용을 입력하세요..." />
             <button onClick={handleSave}
-              className="mx-4 mb-4 h-12 rounded-[16px] bg-sky-100 text-white font-black text-sm active:scale-[0.98] transition-transform">
+              className="mx-4 mb-4 h-12 rounded-[16px] bg-sky-200 text-white font-black text-sm active:scale-[0.98] transition-transform">
               {selectedId ? "수정하기 ✓" : "저장하기 💾"}
             </button>
           </div>
@@ -77,7 +77,7 @@ export default function LinedNotepad() {
             {notes.length === 0 && <p className="text-slate-400 text-xs text-center py-4">아직 없어요</p>}
             {notes.map((note) => (
               <div key={note.id}
-                className={`rounded-[16px] border px-3 py-3 cursor-pointer transition-all ${note.id === selectedId ? "bg-sky-100 border-transparent" : "bg-white/80 border-sky-100"}`}
+                className={`rounded-[16px] border px-3 py-3 cursor-pointer transition-all ${note.id === selectedId ? "bg-sky-200 border-transparent" : "bg-white/80 border-sky-200"}`}
                 onClick={() => handleSelect(note.id)}>
                 <p className={`text-xs font-semibold truncate ${note.id === selectedId ? "text-white" : "text-slate-800"}`}>
                   {note.content.slice(0, 20) || "빈 메모"}

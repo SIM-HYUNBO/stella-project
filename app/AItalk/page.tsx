@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -64,8 +64,8 @@ export default function Page() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
-        <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center text-lg mr-2">🧠</div>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+        <div className="w-9 h-9 rounded-full bg-sky-200 flex items-center justify-center text-lg mr-2">🧠</div>
         <div>
           <p className="font-black text-slate-800 text-sm leading-tight">이효린</p>
           <p className="text-[10px] text-green-500 font-semibold">온라인</p>
@@ -77,11 +77,11 @@ export default function Page() {
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} items-end gap-2`}>
             {m.role === "assistant" && (
-              <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm shrink-0">🧠</div>
+              <div className="w-8 h-8 rounded-full bg-sky-200 flex items-center justify-center text-sm shrink-0">🧠</div>
             )}
             <div className={`px-4 py-2.5 rounded-[18px] max-w-[72%] text-sm leading-relaxed ${
               m.role === "user"
-                ? "bg-sky-100 text-white rounded-br-[6px]"
+                ? "bg-sky-200 text-white rounded-br-[6px]"
                 : "bg-white text-slate-800 rounded-bl-[6px]"
             }`}>
               {m.content}
@@ -90,7 +90,7 @@ export default function Page() {
         ))}
         {loading && (
           <div className="flex justify-start items-end gap-2">
-            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm shrink-0">🧠</div>
+            <div className="w-8 h-8 rounded-full bg-sky-200 flex items-center justify-center text-sm shrink-0">🧠</div>
             <div className="px-4 py-3 rounded-[18px] rounded-bl-[6px] bg-white">
               <div className="flex gap-1">
                 <div className="w-2 h-2 rounded-full bg-orange-300 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -114,7 +114,7 @@ export default function Page() {
           disabled={loading}
         />
         <button onClick={sendMessage} disabled={loading}
-          className="w-11 h-11 rounded-[14px] bg-sky-100 text-white font-black text-sm active:scale-95 transition-transform flex items-center justify-center">
+          className="w-11 h-11 rounded-[14px] bg-sky-200 text-white font-black text-sm active:scale-95 transition-transform flex items-center justify-center">
           {loading ? "·" : "▶"}
         </button>
       </div>

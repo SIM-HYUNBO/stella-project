@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 
@@ -26,7 +26,7 @@ export default function TextAvatar({ nickname, size = 40, profileImage }: Props)
     />
   ) : (
     <div
-      className="rounded-full bg-sky-400 text-white font-bold flex items-center justify-center"
+      className="rounded-full bg-sky-500 text-white font-bold flex items-center justify-center"
       style={style}
     >
       {initials}

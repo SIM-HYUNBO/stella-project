@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -22,7 +22,7 @@ export default function RootPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fefce8]">
         <div className="relative">
-          <div className="w-14 h-14 rounded-full border-[6px] border-sky-200" />
+          <div className="w-14 h-14 rounded-full border-[6px] border-sky-300" />
           <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-orange-400 animate-spin" />
         </div>
       </div>
@@ -34,10 +34,10 @@ export default function RootPage() {
 
       {/* ── 배경 오브 ── */}
       <div className="fixed inset-0 bg-sky-50" />
-      <div className="fixed top-[-180px] right-[-180px] w-[560px] h-[560px] rounded-full bg-sky-300/20 blur-[120px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
+      <div className="fixed top-[-180px] right-[-180px] w-[560px] h-[560px] rounded-full bg-sky-400/20 blur-[120px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
       <div className="fixed bottom-[-220px] left-[-180px] w-[520px] h-[520px] rounded-full bg-yellow-300/25 blur-[120px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
       <div className="fixed top-[30%] left-[10%] w-[320px] h-[320px] rounded-full bg-yellow-100/20 blur-[90px] animate-[floatC_8s_ease-in-out_infinite_alternate]" />
-      <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-100/20 blur-[80px] animate-[floatD_11s_ease-in-out_infinite_alternate]" />
+      <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-200/20 blur-[80px] animate-[floatD_11s_ease-in-out_infinite_alternate]" />
       <div className="fixed top-[15%] left-[40%] w-[200px] h-[200px] rounded-full bg-yellow-300/20 blur-[60px] animate-[floatE_9s_ease-in-out_infinite_alternate]" />
 
       {/* ── 떠다니는 이모티콘 파티클 ── */}
@@ -60,8 +60,8 @@ export default function RootPage() {
           <div className="relative inline-flex items-center justify-center mb-6">
             <div className="absolute w-36 h-36 rounded-full/30 animate-[spinSlow_8s_linear_infinite]" />
             <div className="absolute w-28 h-28 rounded-full/40 animate-[spinSlow_5s_linear_infinite_reverse]" />
-            <div className="absolute w-40 h-40 rounded-full bg-sky-200/25 blur-2xl" />
-            <div className="relative w-[88px] h-[88px] rounded-[30px] bg-sky-100 flex items-center justify-center">
+            <div className="absolute w-40 h-40 rounded-full bg-sky-300/25 blur-2xl" />
+            <div className="relative w-[88px] h-[88px] rounded-[30px] bg-sky-200 flex items-center justify-center">
               <span className="text-5xl">💬</span>
             </div>
             {/* 스파클 */}
@@ -70,12 +70,12 @@ export default function RootPage() {
           </div>
 
           <h1 className="text-[64px] font-black tracking-[0.22em] leading-none">
-            <span className="text-sky-500">WAGIE</span>
+            <span className="text-sky-600">WAGIE</span>
           </h1>
-          <p className="mt-3 text-sky-600 font-bold text-base">따뜻한 대화가 시작되는 곳 🧡</p>
+          <p className="mt-3 text-sky-700 font-bold text-base">따뜻한 대화가 시작되는 곳 🧡</p>
 
           {/* 라이브 뱃지 */}
-          <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 shadow-[0_4px_16px_rgba(14,165,233,0.3)]">
+          <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 shadow-[0_4px_16px_rgba(14,165,233,0.3)]">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
             <span className="text-white text-xs font-black tracking-widest">LIVE · 지금 바로 시작해요</span>
           </div>
@@ -84,14 +84,14 @@ export default function RootPage() {
         {/* ── 스탯 바 ── */}
         <div className="grid grid-cols-3 gap-2.5">
           {[
-            { icon: "👥", value: "1,200+", label: "활성 유저", color: "bg-sky-100" },
-            { icon: "💬", value: "50만+",  label: "오간 메시지", color: "from-sky-300" },
-            { icon: "🤝", value: "3,000+", label: "친구 연결",  color: "from-sky-400" },
+            { icon: "👥", value: "1,200+", label: "활성 유저", color: "bg-sky-200" },
+            { icon: "💬", value: "50만+",  label: "오간 메시지", color: "from-sky-400" },
+            { icon: "🤝", value: "3,000+", label: "친구 연결",  color: "from-sky-500" },
           ].map(({ icon, value, label, color }) => (
             <div key={label} className="rounded-[20px] bg-white shadow-sm/60 px-2 py-4 text-center">
               <div className={`w-9 h-9 rounded-xl bg-${color} flex items-center justify-center text-lg mx-auto mb-2`}>{icon}</div>
-              <p className="text-sky-600 font-black text-[17px] leading-none">{value}</p>
-              <p className="text-sky-500 text-[10px] font-semibold mt-1">{label}</p>
+              <p className="text-sky-700 font-black text-[17px] leading-none">{value}</p>
+              <p className="text-sky-600 text-[10px] font-semibold mt-1">{label}</p>
             </div>
           ))}
         </div>
@@ -99,15 +99,15 @@ export default function RootPage() {
         {/* ── 채팅 미리보기 ── */}
         <div className="rounded-[28px] bg-white/65 backdrop-blur-md/80 px-4 py-5 space-y-3">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-[10px] font-black text-sky-500 tracking-widest">✦ LIVE PREVIEW ✦</p>
+            <p className="text-[10px] font-black text-sky-600 tracking-widest">✦ LIVE PREVIEW ✦</p>
             <span className="flex items-center gap-1 text-[10px] text-green-500 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />온라인</span>
           </div>
 
           {[
             { side: "left",  avatar: "🐣", bg: "bg-yellow-100", msg: "오늘 진짜 힘들었다 😭",          bubble: "bg-white text-gray-700" },
-            { side: "right", avatar: "🌸", bg: "from-sky-200",   msg: "고생했어... 내가 안아줄게 ☁️", bubble: "bg-sky-100 text-white" },
+            { side: "right", avatar: "🌸", bg: "from-sky-300",   msg: "고생했어... 내가 안아줄게 ☁️", bubble: "bg-sky-200 text-white" },
             { side: "left",  avatar: "🐣", bg: "bg-yellow-100", msg: "여기 오니까 마음 편하다 🧡",    bubble: "bg-white text-gray-700" },
-            { side: "right", avatar: "🌸", bg: "from-sky-200",   msg: "나도! 매일 여기서 얘기하자 ✨", bubble: "bg-sky-100 text-white" },
+            { side: "right", avatar: "🌸", bg: "from-sky-300",   msg: "나도! 매일 여기서 얘기하자 ✨", bubble: "bg-sky-200 text-white" },
           ].map(({ side, avatar, bg, msg, bubble }, i) => (
             <div key={i} className={`flex items-end gap-2 ${side === "right" ? "justify-end" : ""}`}>
               {side === "left" && <div className={`w-9 h-9 rounded-full bg-${bg} flex items-center justify-center text-lg shrink-0`}>{avatar}</div>}
@@ -124,8 +124,8 @@ export default function RootPage() {
             {[
               { grad: "from-red-400", shadow: "rgba(255,100,50,0.35)",  icon: "💬", title: "1:1 채팅",   sub: "친구와 나만의\n소중한 대화" },
               { grad: "from-yellow-400",             shadow: "rgba(255,180,30,0.35)", icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
-              { grad: "from-sky-300",                 shadow: "rgba(255,100,160,0.3)", icon: "📔", title: "다이어리",  sub: "오늘 하루를\n글로 남겨봐요" },
-              { grad: "from-sky-400",             shadow: "rgba(150,80,255,0.3)",  icon: "🤝", title: "친구 맺기", sub: "새로운 인연을\n만들어봐요" },
+              { grad: "from-sky-400",                 shadow: "rgba(255,100,160,0.3)", icon: "📔", title: "다이어리",  sub: "오늘 하루를\n글로 남겨봐요" },
+              { grad: "from-sky-500",             shadow: "rgba(150,80,255,0.3)",  icon: "🤝", title: "친구 맺기", sub: "새로운 인연을\n만들어봐요" },
             ].map(({ grad, shadow, icon, title, sub }) => (
               <div key={title} className={`rounded-[24px] bg-${grad} px-5 py-5 relative overflow-hidden`}>
                 <div className="absolute top-[-20px] right-[-20px] w-24 h-24 rounded-full bg-white/10" />
@@ -139,7 +139,7 @@ export default function RootPage() {
 
         {/* ── WHY WAGIE 배너 ── */}
         <div className="rounded-[30px] overflow-hidden relative">
-          <div className="bg-sky-100 px-6 py-7 relative">
+          <div className="bg-sky-200 px-6 py-7 relative">
             <div className="absolute top-[-40px] right-[-40px] w-52 h-52 rounded-full bg-white/10" />
             <div className="absolute bottom-[-30px] left-[-30px] w-36 h-36 rounded-full bg-white/10" />
             <div className="absolute top-4 right-4 text-3xl opacity-40 animate-[pulse_3s_infinite]">🌟</div>
@@ -157,9 +157,9 @@ export default function RootPage() {
         </div>
 
         {/* ── 알림 소개 ── */}
-        <div className="rounded-[24px] bg-sky-100 border px-5 py-5 flex items-center gap-4">
+        <div className="rounded-[24px] bg-sky-200 border px-5 py-5 flex items-center gap-4">
           <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center text-3xl">🔔</div>
+            <div className="w-14 h-14 rounded-2xl bg-sky-200 flex items-center justify-center text-3xl">🔔</div>
             <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white text-white text-[9px] font-black flex items-center justify-center shadow">3</span>
           </div>
           <div>
@@ -172,7 +172,7 @@ export default function RootPage() {
         <div className="space-y-3 pt-2">
           <Link href="/login"
             className="group relative flex items-center justify-center h-16 rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-            <div className="absolute inset-0 bg-sky-100" />
+            <div className="absolute inset-0 bg-sky-200" />
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.2)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
             <span className="relative text-white text-xl font-black tracking-wide drop-shadow">로그인</span>
             <span className="absolute right-6 text-2xl">💭</span>
@@ -181,7 +181,7 @@ export default function RootPage() {
           <Link href="/signup"
             className="group flex items-center justify-center h-16 rounded-[24px] bg-white/90 backdrop-blur-sm active:scale-[0.98] transition-transform relative overflow-hidden">
             <div className=" opacity-0 group-hover:opacity-100 transition" />
-            <span className="relative text-sky-700 text-xl font-black tracking-wide">회원가입</span>
+            <span className="relative text-sky-800 text-xl font-black tracking-wide">회원가입</span>
             <span className="absolute right-6 text-xl">✨</span>
           </Link>
         </div>

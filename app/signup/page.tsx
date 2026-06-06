@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -63,8 +63,8 @@ export default function SignupPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg- mb-4">
             <span className="text-4xl">✨</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-500">WAGIE</h1>
-          <p className="text-sky-600 text-sm font-medium mt-2">함께라서 더 따뜻해요 🧡</p>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
+          <p className="text-sky-700 text-sm font-medium mt-2">함께라서 더 따뜻해요 🧡</p>
         </div>
 
         {/* 폼 카드 */}
@@ -88,7 +88,7 @@ export default function SignupPage() {
 
             <button type="submit" disabled={loading}
               className="group relative w-full h-14 rounded-[18px] overflow-hidden active:scale-[0.98] transition-transform disabled:opacity-70 mt-2">
-              <div className="absolute inset-0 bg-sky-100" />
+              <div className="absolute inset-0 bg-sky-200" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
                 {loading ? "가입 중..." : "시작하기 🚀"}
@@ -99,7 +99,7 @@ export default function SignupPage() {
 
         <p className="text-center text-sm text-[#b08060] mt-6">
           이미 계정이 있으신가요?{" "}
-          <a href="/login" className="text-sky-500 font-black">로그인 →</a>
+          <a href="/login" className="text-sky-600 font-black">로그인 →</a>
         </p>
       </div>
 

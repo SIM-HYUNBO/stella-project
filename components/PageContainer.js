@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -137,14 +137,14 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 flex items-center justify-around px-2 h-12 shadow-[0_-2px_16px_rgba(14,165,233,0.08)] ">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-200 flex items-center justify-around px-2 h-12 shadow-[0_-2px_16px_rgba(14,165,233,0.08)] ">
         {NAV_ITEMS.map(({ label, path, icon }) => {
           const active = pathname === path || pathname?.startsWith(path + "/");
           return (
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-sky-500" : "text-gray-400"}`}
+              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-sky-600" : "text-gray-400"}`}
             >
               {icon(false)}
             </button>
