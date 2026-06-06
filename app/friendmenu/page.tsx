@@ -249,6 +249,45 @@ export default function FriendsPage() {
               placeholder="사용자 검색" />
           </div>
 
+          {/* 사용자 검색 결과 — 검색어 있을 때만 표시 */}
+          {search.trim() !== "" && (
+            <div>
+              <p className="font-black text-slate-800 text-base mb-3 px-1">
+                검색 결과 <span className="text-sky-600">{filteredUsers.length}</span>
+              </p>
+              {filteredUsers.length === 0 ? (
+                <div className="rounded-[20px] bg-white px-4 py-6 text-center text-slate-400 text-sm">
+                  일치하는 사용자가 없어요
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredUsers.map((u) => (
+                    <div key={u.uid} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
+                          <TextAvatar nickname={u.nickname} size={44} profileImage={u.profileImage ?? null} />
+                        </div>
+                        <p className="font-black text-slate-800 text-sm">{u.nickname}</p>
+                      </div>
+                      {isFriend(u.uid) ? (
+                        <span className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-500 text-xs font-black">친구 ✓</span>
+                      ) : sentRequests.has(u.uid) ? (
+                        <span className="px-3 py-1.5 rounded-full bg-gray-100 text-gray-400 text-xs font-black">요청됨</span>
+                      ) : (
+                        <button
+                          onClick={() => sendFriendRequest(u)}
+                          className="px-3 py-1.5 rounded-full bg-sky-200 text-white text-xs font-black active:scale-95 transition"
+                        >
+                          친구 추가
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 받은 요청 */}
           {requests.length > 0 && (
             <div>
