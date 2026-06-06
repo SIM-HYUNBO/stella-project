@@ -10,6 +10,7 @@
 
 html {
   transition: 0.2s;
+  overflow-x: hidden;
 }
 
 body {
@@ -17,40 +18,20 @@ body {
   padding: 0;
   min-height: 100vh;
   overflow-x: hidden;
-
-  background: #f0f9ff;
-  color: #0f172a;
-
-  /* 🇰🇷 한국어 우선 + fallback 구조 */
+  background: #FFFBF0;
+  color: #1c1410;
   font-family: var(--app-font);
 }
 
-html {
-  overflow-x: hidden;
-}
-
-
-/* 애니메이션 */
 @keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-spin-slow {
   animation: spin-slow 1.2s linear infinite;
 }
 
-/* 버튼 */
 button {
   transition: all 0.2s ease;
-}
-
-.vip button:hover {
-  background: linear-gradient(135deg, #ffd700, #ffb800) !important;
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
-  transform: scale(1.02);
 }

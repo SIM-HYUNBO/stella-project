@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,16 +21,16 @@ type Title = {
 const ALL_TITLES = [
   { id: "newcomer",    icon: "🌱", name: "새싹",       desc: "WAGIE에 처음 왔어요",           condition: "가입만 해도",         color: "from-green-400" },
   { id: "talker",      icon: "💬", name: "수다쟁이",    desc: "메시지 50개 이상 보냄",          condition: "메시지 50개",         color: "from-blue-400" },
-  { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 200개 이상 보냄",         condition: "메시지 200개",        color: "bg-sky-100" },
-  { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 500개 이상 보냄",         condition: "메시지 500개",        color: "from-yellow-400" },
-  { id: "talkgod",     icon: "⚡", name: "말신",        desc: "메시지 1000개 이상 보냄",        condition: "메시지 1000개",       color: "from-sky-500" },
+  { id: "chatterer",   icon: "🗣️", name: "채팅왕",      desc: "메시지 200개 이상 보냄",         condition: "메시지 200개",        color: "bg-amber-100" },
+  { id: "talkmaster",  icon: "👑", name: "말왕",        desc: "메시지 500개 이상 보냄",         condition: "메시지 500개",        color: "from-yellow-500" },
+  { id: "talkgod",     icon: "⚡", name: "말신",        desc: "메시지 1000개 이상 보냄",        condition: "메시지 1000개",       color: "from-amber-700" },
   { id: "friendly",    icon: "🤝", name: "친화력 갑",   desc: "친구 10명 이상",                 condition: "친구 10명",           color: "from-sky-300" },
   { id: "richfriend",  icon: "💎", name: "친구부자",    desc: "친구 50명 이상",                 condition: "친구 50명",           color: "from-cyan-400" },
   { id: "popular",     icon: "😎", name: "인싸",        desc: "친구 100명 이상",                condition: "친구 100명",          color: "from-indigo-400" },
   { id: "partyperson", icon: "🎉", name: "파티피플",    desc: "단체 채팅방 3개 이상 참여",      condition: "단체방 3개",          color: "from-fuchsia-400" },
   { id: "groupmaster", icon: "🎪", name: "방장",        desc: "단체 채팅방 5개 이상 참여",      condition: "단체방 5개",          color: "bg-yellow-100" },
   { id: "nightowl",    icon: "🦉", name: "야행성",      desc: "자정 이후 메시지 보냄",          condition: "자정 이후 접속",      color: "from-slate-500" },
-  { id: "legend",      icon: "🌟", name: "레전드",      desc: "모든 칭호 10개 이상 획득",       condition: "칭호 10개",           color: "bg-sky-100" },
+  { id: "legend",      icon: "🌟", name: "레전드",      desc: "모든 칭호 10개 이상 획득",       condition: "칭호 10개",           color: "bg-amber-100" },
 ];
 
 export default function TitlesPage() {
@@ -111,11 +111,11 @@ export default function TitlesPage() {
   const equippedTitle = ALL_TITLES.find((t) => t.id === equipped);
 
   return (
-    <div className="min-h-screen bg-[#fefce8]">
+    <div className="min-h-screen bg-[#FFFBF0]">
       {/* 헤더 */}
       <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold text-lg mr-3">←</button>
         <span className="font-black text-gray-800 text-base">🎫 칭호</span>
       </div>
 
@@ -141,7 +141,7 @@ export default function TitlesPage() {
             )}
           </div>
           <div className="bg-white px-5 py-3 flex items-center justify-between">
-            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-sky-500 font-black">{earnedTitles.length}</span> / {titles.length}</p>
+            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-amber-700 font-black">{earnedTitles.length}</span> / {titles.length}</p>
             <div className="flex gap-1">
               {earnedTitles.slice(0, 5).map((t) => (
                 <span key={t.id} className="text-lg">{t.icon}</span>
@@ -192,7 +192,7 @@ export default function TitlesPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <div className="w-10 h-10 rounded-full border-4 border-sky-200 border-t-orange-400 animate-spin" />
+            <div className="w-10 h-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
           </div>
         )}
 

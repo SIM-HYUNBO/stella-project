@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -113,13 +113,13 @@ export default function ProfilePage() {
         {coverImage ? (
           <img src={coverImage} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-sky-100 flex flex-col items-center justify-center gap-2">
+          <div className="w-full h-full bg-amber-100 flex flex-col items-center justify-center gap-2">
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
             <span className="text-4xl">🖼️</span>
             <p className="text-white/80 text-sm font-semibold">커버 이미지 설정하기</p>
           </div>
         )}
-        <div className="absolute inset-0 bg-sky-100/50 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-amber-100/50 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-3 right-3 bg-black/30 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">사진 변경</div>
       </div>
       <input type="file" ref={coverRef} onChange={changeCoverImage} className="hidden" />
@@ -131,7 +131,7 @@ export default function ProfilePage() {
           {/* 프로필 이미지 */}
           <div className="flex items-end gap-4 -mt-16 mb-5">
             <div onClick={() => profileRef.current?.click()}
-              className="relative w-24 h-24 rounded-[22px] bg-sky-100 overflow-hidden cursor-pointer shrink-0">
+              className="relative w-24 h-24 rounded-[22px] bg-amber-100 overflow-hidden cursor-pointer shrink-0">
               {profileImage ? (
                 <img src={profileImage} className="w-full h-full object-cover" />
               ) : (
@@ -148,14 +148,14 @@ export default function ProfilePage() {
             {editNickname ? (
               <div className="flex gap-2">
                 <input value={nickname} onChange={(e) => setNickname(e.target.value)}
-                  className="flex-1 bg-sky-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
+                  className="flex-1 bg-amber-50 rounded-[14px] px-3 py-2 text-sm text-stone-800 outline-none focus:ring-2 focus:ring-amber-400" />
                 <button onClick={saveNickname}
-                  className="px-4 py-2 bg-sky-100 text-white rounded-[14px] text-sm font-black">저장</button>
+                  className="px-4 py-2 bg-amber-100 text-white rounded-[14px] text-sm font-black">저장</button>
               </div>
             ) : (
               <button onClick={() => setEditNickname(true)} className="flex items-center gap-2 group">
-                <span className="text-xl font-black text-slate-800">{nickname || "닉네임 없음"}</span>
-                <span className="text-slate-400 text-sm opacity-0 group-hover:opacity-100 transition">✏️</span>
+                <span className="text-xl font-black text-stone-800">{nickname || "닉네임 없음"}</span>
+                <span className="text-stone-400 text-sm opacity-0 group-hover:opacity-100 transition">✏️</span>
               </button>
             )}
           </div>
@@ -166,14 +166,14 @@ export default function ProfilePage() {
             {editStatus ? (
               <div className="flex gap-2">
                 <input value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="flex-1 bg-sky-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
+                  className="flex-1 bg-amber-50 rounded-[14px] px-3 py-2 text-sm text-stone-800 outline-none focus:ring-2 focus:ring-amber-400" />
                 <button onClick={saveStatus}
-                  className="px-4 py-2 bg-sky-100 text-white rounded-[14px] text-sm font-black">저장</button>
+                  className="px-4 py-2 bg-amber-100 text-white rounded-[14px] text-sm font-black">저장</button>
               </div>
             ) : (
               <button onClick={() => setEditStatus(true)} className="flex items-center gap-2 group">
                 <span className="text-sm text-[#9d7060]">{status || "상태 메시지를 입력해보세요"}</span>
-                <span className="text-slate-400 text-sm opacity-0 group-hover:opacity-100 transition">✏️</span>
+                <span className="text-stone-400 text-sm opacity-0 group-hover:opacity-100 transition">✏️</span>
               </button>
             )}
           </div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
           {/* 버튼들 */}
           <div className="space-y-3">
             <button onClick={handleLogout}
-              className="w-full h-12 rounded-[18px] bg-white text-sky-700 font-black text-sm active:scale-[0.98] transition-transform">
+              className="w-full h-12 rounded-[18px] bg-white text-amber-800 font-black text-sm active:scale-[0.98] transition-transform">
               로그아웃
             </button>
             <button onClick={() => setConfirmDelete(true)}
@@ -198,15 +198,15 @@ export default function ProfilePage() {
           <div className="w-full max-w-sm rounded-[28px] bg-white/95 border border-red-100 p-7 space-y-4">
             <div className="text-center">
               <span className="text-4xl">😢</span>
-              <p className="font-black text-slate-800 text-lg mt-3">정말 탈퇴하시겠어요?</p>
-              <p className="text-sky-500 text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
+              <p className="font-black text-stone-800 text-lg mt-3">정말 탈퇴하시겠어요?</p>
+              <p className="text-amber-700 text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
             </div>
             <input type="password" placeholder="비밀번호 확인" value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-red-50 border border-red-100 rounded-[16px] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-200" />
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(false)}
-                className="flex-1 h-12 rounded-[16px] bg-gray-50 text-sky-700 font-black text-sm">취소</button>
+                className="flex-1 h-12 rounded-[16px] bg-[#FFFBF0] text-amber-800 font-black text-sm">취소</button>
               <button onClick={handleDelete}
                 className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm">탈퇴</button>
             </div>

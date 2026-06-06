@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -60,14 +60,14 @@ export default function Page() {
 
   return (
     <main className="relative h-screen overflow-hidden flex flex-col">
-      <div className="fixed inset-0 bg-gray-50" />
+      <div className="fixed inset-0 bg-[#FFFBF0]" />
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
-        <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center text-lg mr-2">🧠</div>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold text-lg mr-3">←</button>
+        <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-lg mr-2">🧠</div>
         <div>
-          <p className="font-black text-slate-800 text-sm leading-tight">이효린</p>
+          <p className="font-black text-stone-800 text-sm leading-tight">이효린</p>
           <p className="text-[10px] text-green-500 font-semibold">온라인</p>
         </div>
       </div>
@@ -77,12 +77,12 @@ export default function Page() {
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} items-end gap-2`}>
             {m.role === "assistant" && (
-              <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm shrink-0">🧠</div>
+              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-sm shrink-0">🧠</div>
             )}
             <div className={`px-4 py-2.5 rounded-[18px] max-w-[72%] text-sm leading-relaxed ${
               m.role === "user"
-                ? "bg-sky-100 text-white rounded-br-[6px]"
-                : "bg-white text-slate-800 rounded-bl-[6px]"
+                ? "bg-amber-100 text-white rounded-br-[6px]"
+                : "bg-white text-stone-800 rounded-bl-[6px]"
             }`}>
               {m.content}
             </div>
@@ -90,7 +90,7 @@ export default function Page() {
         ))}
         {loading && (
           <div className="flex justify-start items-end gap-2">
-            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm shrink-0">🧠</div>
+            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-sm shrink-0">🧠</div>
             <div className="px-4 py-3 rounded-[18px] rounded-bl-[6px] bg-white">
               <div className="flex gap-1">
                 <div className="w-2 h-2 rounded-full bg-orange-300 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -106,7 +106,7 @@ export default function Page() {
       {/* 입력 */}
       <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white shrink-0">
         <input
-          className="flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+          className="flex-1 bg-[#FFFBF0] rounded-[16px] px-4 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -114,7 +114,7 @@ export default function Page() {
           disabled={loading}
         />
         <button onClick={sendMessage} disabled={loading}
-          className="w-11 h-11 rounded-[14px] bg-sky-100 text-white font-black text-sm active:scale-95 transition-transform flex items-center justify-center">
+          className="w-11 h-11 rounded-[14px] bg-amber-100 text-white font-black text-sm active:scale-95 transition-transform flex items-center justify-center">
           {loading ? "·" : "▶"}
         </button>
       </div>

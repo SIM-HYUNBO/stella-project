@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -42,12 +42,12 @@ export default function LiveSTTWithHeader() {
 
   return (
     <main className="relative min-h-screen overflow-hidden flex flex-col">
-      <div className="fixed inset-0 bg-gray-50" />
+      <div className="fixed inset-0 bg-[#FFFBF0]" />
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
-        <span className="font-black text-slate-800 text-base">🗣 와글와글 토의방</span>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold text-lg mr-3">←</button>
+        <span className="font-black text-stone-800 text-base">🗣 와글와글 토의방</span>
         {listening && (
           <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -59,7 +59,7 @@ export default function LiveSTTWithHeader() {
       <div className="relative z-10 flex-1 flex flex-col px-4 py-4 gap-4 overflow-y-auto">
         {/* 제목 입력 */}
         <input
-          className="rounded-[20px] bg-white px-5 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none font-semibold"
+          className="rounded-[20px] bg-white px-5 py-3.5 text-sm text-stone-800 placeholder:text-stone-400 outline-none font-semibold"
           placeholder="회의 제목을 입력하세요"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -69,7 +69,7 @@ export default function LiveSTTWithHeader() {
         <div className="flex-1 min-h-[180px] rounded-[20px] bg-white px-5 py-4 overflow-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🎤</span>
-            <p className="font-black text-slate-800 text-sm">음성 인식 내용</p>
+            <p className="font-black text-stone-800 text-sm">음성 인식 내용</p>
           </div>
           <p className="text-sm text-[#9d7060] leading-relaxed whitespace-pre-wrap">
             {text || "음성이 여기에 표시됩니다."}
@@ -77,10 +77,10 @@ export default function LiveSTTWithHeader() {
         </div>
 
         {/* AI 요약 */}
-        <div className={`rounded-[20px] border px-5 py-4 transition-all ${summary ? "bg-sky-100 border-purple-100" : "bg-white/80 border-sky-100"}`}>
+        <div className={`rounded-[20px] border px-5 py-4 transition-all ${summary ? "bg-amber-100 border-purple-100" : "bg-white/80 border-amber-100"}`}>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-base">📌</span>
-            <p className="font-black text-slate-800 text-sm">AI 요약</p>
+            <p className="font-black text-stone-800 text-sm">AI 요약</p>
           </div>
           <p className="text-sm text-[#9d7060] leading-relaxed">
             {loading ? "요약 중..." : summary || "회의가 끝나면 요약 버튼을 눌러주세요."}
@@ -98,7 +98,7 @@ export default function LiveSTTWithHeader() {
             ⏹ 중지
           </button>
           <button onClick={summarizeMeeting} disabled={loading || !text}
-            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!text || loading ? "bg-gray-200 text-gray-400" : "bg-sky-100 text-white"}`}>
+            className={`flex-1 h-12 rounded-[16px] font-black text-sm active:scale-[0.98] transition-transform ${!text || loading ? "bg-gray-200 text-gray-400" : "bg-amber-100 text-white"}`}>
             ✨ 요약
           </button>
         </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -60,25 +60,25 @@ export default function AdminNoticePage() {
   if (nickname === null) return null;
   if (nickname !== "관리자") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <main className="min-h-screen flex items-center justify-center bg-[#FFFBF0]">
         <p className="text-gray-400 font-semibold">접근 권한이 없어요.</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#FFFBF0]">
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
-        <span className="font-black text-slate-800 text-base">공지사항 관리</span>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold text-lg mr-3">←</button>
+        <span className="font-black text-stone-800 text-base">공지사항 관리</span>
       </div>
 
       <div className="px-5 pt-6 pb-20 space-y-5">
         {/* 작성 폼 */}
         <div className="rounded-[24px] bg-white p-5 space-y-3">
-          <p className="font-black text-slate-800 text-sm">새 공지 작성</p>
+          <p className="font-black text-stone-800 text-sm">새 공지 작성</p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -95,7 +95,7 @@ export default function AdminNoticePage() {
           <button
             onClick={handleAdd}
             disabled={adding || !title.trim() || !content.trim()}
-            className="w-full py-3 rounded-xl bg-sky-100 text-white font-black text-sm disabled:opacity-40"
+            className="w-full py-3 rounded-xl bg-amber-100 text-white font-black text-sm disabled:opacity-40"
           >
             {adding ? "등록 중..." : "공지 등록"}
           </button>
@@ -104,12 +104,12 @@ export default function AdminNoticePage() {
         {/* 공지 목록 */}
         {notices.length > 0 && (
           <div className="space-y-3">
-            <p className="font-black text-slate-800 text-sm px-1">등록된 공지 ({notices.length})</p>
+            <p className="font-black text-stone-800 text-sm px-1">등록된 공지 ({notices.length})</p>
             {notices.map((n) => (
               <div key={n.id} className="rounded-[20px] bg-white px-5 py-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-800 text-sm">{n.title}</p>
+                    <p className="font-black text-stone-800 text-sm">{n.title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{formatDate(n.createdAt)}</p>
                     <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{n.content}</p>
                   </div>
