@@ -136,6 +136,7 @@ export default function GroupChat() {
 
   const profileInputRef =
     useRef<HTMLInputElement>(null);
+  const msgInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -698,6 +699,28 @@ export default function GroupChat() {
     );
   }
 
+  const renderHighlighted = (text: string) => {
+    const parts = text.split(/(==.+?==)/s);
+    return parts.map((part, i) =>
+      part.startsWith("==") && part.endsWith("==") && part.length > 4
+        ? <mark key={i} className="bg-yellow-300/80 text-slate-800 rounded px-0.5 not-italic">{part.slice(2, -2)}</mark>
+        : <span key={i}>{part}</span>
+    );
+  };
+
+  const applyHighlight = () => {
+    const el = msgInputRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    if (start === end) return;
+    const before = input.slice(0, start);
+    const selected = input.slice(start, end);
+    const after = input.slice(end);
+    setInput(`${before}==${selected}==${after}`);
+    setTimeout(() => { el.focus(); el.setSelectionRange(start + 2, end + 2); }, 0);
+  };
+
   // 초대 모달
   const renderInviteModal = () => {
     if (!showInvite || !currentRoom)
@@ -1033,7 +1056,7 @@ export default function GroupChat() {
                       <audio src={m.content} controls className="max-w-[220px] rounded-xl" />
                     ) : (
                       <span className="break-words whitespace-pre-wrap">
-                        {m.content}
+                        {renderHighlighted(m.content)}
                       </span>
                     )}
                   </div>
@@ -1115,7 +1138,15 @@ export default function GroupChat() {
           }}
         />
 
+        <button
+          onClick={applyHighlight}
+          title="형광 표시 (텍스트 선택 후 클릭)"
+          className="w-10 h-10 rounded-[12px] bg-yellow-200 hover:bg-yellow-300 active:scale-95 flex items-center justify-center transition shrink-0 text-[11px] font-black text-yellow-800"
+        >
+          형광
+        </button>
         <input
+          ref={msgInputRef}
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
