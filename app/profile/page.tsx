@@ -148,7 +148,7 @@ export default function ProfilePage() {
             {editNickname ? (
               <div className="flex gap-2">
                 <input value={nickname} onChange={(e) => setNickname(e.target.value)}
-                  className="flex-1 bg-yellow-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
+                  className="flex-1 bg-sky-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
                 <button onClick={saveNickname}
                   className="px-4 py-2 bg-sky-100 text-white rounded-[14px] text-sm font-black">저장</button>
               </div>
@@ -166,7 +166,7 @@ export default function ProfilePage() {
             {editStatus ? (
               <div className="flex gap-2">
                 <input value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="flex-1 bg-yellow-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
+                  className="flex-1 bg-sky-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
                 <button onClick={saveStatus}
                   className="px-4 py-2 bg-sky-100 text-white rounded-[14px] text-sm font-black">저장</button>
               </div>
@@ -199,7 +199,7 @@ export default function ProfilePage() {
             <div className="text-center">
               <span className="text-4xl">😢</span>
               <p className="font-black text-slate-800 text-lg mt-3">정말 탈퇴하시겠어요?</p>
-              <p className="text-sky-400 text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
+              <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
             </div>
             <input type="password" placeholder="비밀번호 확인" value={password}
               onChange={(e) => setPassword(e.target.value)}

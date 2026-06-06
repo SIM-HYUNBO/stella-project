@@ -6,7 +6,7 @@ const jua = Jua({ weight: "400", subsets: ["latin"] });
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full">
-      <div className="absolute inset-0 bg-yellow-50" />
+      <div className="absolute inset-0 bg-white" />
       <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-white/20" />
 

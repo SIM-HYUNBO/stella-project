@@ -115,7 +115,7 @@ export default function TitlesPage() {
       {/* 헤더 */}
       <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-gray-800 text-base">🎫 칭호</span>
       </div>
 
@@ -141,7 +141,7 @@ export default function TitlesPage() {
             )}
           </div>
           <div className="bg-white px-5 py-3 flex items-center justify-between">
-            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-sky-400 font-black">{earnedTitles.length}</span> / {titles.length}</p>
+            <p className="text-sm text-gray-500 font-semibold">획득한 칭호 <span className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-black">{earnedTitles.length}</span> / {titles.length}</p>
             <div className="flex gap-1">
               {earnedTitles.slice(0, 5).map((t) => (
                 <span key={t.id} className="text-lg">{t.icon}</span>

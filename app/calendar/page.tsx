@@ -196,13 +196,13 @@ export default function CalendarPage() {
               <span className="text-sm text-gray-400 font-semibold">{year}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <button onClick={goToday} className="px-3 py-1.5 rounded-xl bg-yellow-50 text-sky-500 text-xs font-black">오늘</button>
+              <button onClick={goToday} className="px-3 py-1.5 rounded-xl bg-sky-50 text-sky-500 text-xs font-black">오늘</button>
               {/* 월/일 뷰 토글 */}
               <div className="flex rounded-xl overflow-hidden">
                 <button onClick={() => setViewMode("month")}
-                  className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "month" ? "bg-yellow-500 text-white" : "bg-white text-gray-400"}`}>월</button>
+                  className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "month" ? "bg-sky-500 text-white" : "bg-white text-gray-400"}`}>월</button>
                 <button onClick={() => setViewMode("day")}
-                  className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "day" ? "bg-yellow-500 text-white" : "bg-white text-gray-400"}`}>일</button>
+                  className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "day" ? "bg-sky-500 text-white" : "bg-white text-gray-400"}`}>일</button>
               </div>
               {viewMode === "month" && <>
                 <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
@@ -240,7 +240,7 @@ export default function CalendarPage() {
                   <button key={cell.key + i} onClick={() => setSelectedDate(cell.key)}
                     className="flex flex-col items-center pb-1.5 pt-1 active:scale-95 transition">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition
-                      ${isToday ? "bg-yellow-500 text-white font-black" :
+                      ${isToday ? "bg-sky-500 text-white font-black" :
                         isSelected ? "bg-sky-100 text-sky-600" :
                         isHoliday ? "text-red-400" :
                         isSun ? "text-red-400" : isSat ? "text-blue-400" :
@@ -264,13 +264,13 @@ export default function CalendarPage() {
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-black text-[#1c1c1e]">{selM}월 {selD}일</span>
                   <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>{selDayLabel}</span>
-                  {isSelToday && <span className="text-[10px] bg-yellow-500 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
+                  {isSelToday && <span className="text-[10px] bg-sky-500 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => setViewMode("day")}
                     className="px-2.5 py-1 rounded-xl bg-gray-100 text-gray-500 text-xs font-black">시간표</button>
                   <button onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); }}
-                    className="w-7 h-7 rounded-full bg-yellow-500 text-white flex items-center justify-center active:scale-90 transition">
+                    className="w-7 h-7 rounded-full bg-sky-500 text-white flex items-center justify-center active:scale-90 transition">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -323,7 +323,7 @@ export default function CalendarPage() {
               <div className="flex items-baseline gap-2">
                 <span className={`text-lg font-black ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-[#1c1c1e]"}`}>{selM}월 {selD}일</span>
                 <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>{selDayLabel}요일</span>
-                {isSelToday && <span className="text-[10px] bg-yellow-500 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
+                {isSelToday && <span className="text-[10px] bg-sky-500 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
               </div>
               <button onClick={nextDay} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -375,7 +375,7 @@ export default function CalendarPage() {
                     <span className="w-14 text-right pr-2 text-[9px] text-sky-500 font-black shrink-0">
                       {String(Math.floor(nowMin / 60)).padStart(2,"0")}:{String(nowMin % 60).padStart(2,"0")}
                     </span>
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 shrink-0 -ml-1" />
+                    <div className="w-2 h-2 rounded-full bg-sky-500 shrink-0 -ml-1" />
                     <div className="flex-1 border-t-2 border-sky-500" />
                   </div>
                 )}
@@ -414,7 +414,7 @@ export default function CalendarPage() {
             {/* 추가 버튼 */}
             <button
               onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); }}
-              className="absolute bottom-20 right-5 w-12 h-12 rounded-full bg-yellow-500 text-white flex items-center justify-center active:scale-90 transition z-30"
+              className="absolute bottom-20 right-5 w-12 h-12 rounded-full bg-sky-500 text-white flex items-center justify-center active:scale-90 transition z-30"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -438,7 +438,7 @@ export default function CalendarPage() {
               <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addEvent()}
                 placeholder="일정 제목" autoFocus
-                className="w-full h-12 rounded-2xl bg-gray-50 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"/>
+                className="w-full h-12 rounded-2xl bg-white border border-gray-200 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"/>
 
               {/* 종일 토글 */}
               <div className="flex items-center justify-between">

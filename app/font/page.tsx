@@ -29,7 +29,7 @@ export default function FontSettings() {
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">⚙️ 폰트 설정</span>
         </div>
 
@@ -49,7 +49,7 @@ export default function FontSettings() {
                         : "bg-white border-sky-100"
                       }`}>
                     <span style={{ fontSize: s.value }} className={`font-bold leading-none ${isActive ? "text-white" : "text-slate-800"}`}>가</span>
-                    <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-sky-400"}`}>{s.label}</span>
+                    <span className={`text-[10px] font-medium ${isActive ? "text-white/80" : "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"}`}>{s.label}</span>
                   </button>
                 );
               })}
@@ -74,7 +74,7 @@ export default function FontSettings() {
                       }`}>
                     <div className="text-left">
                       <p className={`font-black text-sm ${isActive ? "text-white" : "text-slate-800"}`}>{f.label}</p>
-                      <p className={`text-xs mt-0.5 ${isActive ? "text-white/75" : "text-sky-400"}`}
+                      <p className={`text-xs mt-0.5 ${isActive ? "text-white/75" : "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"}`}
                         style={{ fontFamily: f.value }}>{f.preview}</p>
                     </div>
                     {isActive && <span className="text-white text-lg">✓</span>}

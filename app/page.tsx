@@ -33,12 +33,12 @@ export default function RootPage() {
     <main className="relative overflow-hidden">
 
       {/* ── 배경 오브 ── */}
-      <div className="fixed inset-0 bg-yellow-50" />
-      <div className="fixed top-[-180px] right-[-180px] w-[560px] h-[560px] rounded-full bg-sky-200/30 blur-[120px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
+      <div className="fixed inset-0 bg-sky-50" />
+      <div className="fixed top-[-180px] right-[-180px] w-[560px] h-[560px] rounded-full bg-sky-300/20 blur-[120px] animate-[floatA_10s_ease-in-out_infinite_alternate]" />
       <div className="fixed bottom-[-220px] left-[-180px] w-[520px] h-[520px] rounded-full bg-yellow-300/25 blur-[120px] animate-[floatB_13s_ease-in-out_infinite_alternate]" />
       <div className="fixed top-[30%] left-[10%] w-[320px] h-[320px] rounded-full bg-yellow-100/20 blur-[90px] animate-[floatC_8s_ease-in-out_infinite_alternate]" />
       <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full bg-sky-100/20 blur-[80px] animate-[floatD_11s_ease-in-out_infinite_alternate]" />
-      <div className="fixed top-[15%] left-[40%] w-[200px] h-[200px] rounded-full bg-yellow-200/20 blur-[60px] animate-[floatE_9s_ease-in-out_infinite_alternate]" />
+      <div className="fixed top-[15%] left-[40%] w-[200px] h-[200px] rounded-full bg-yellow-300/20 blur-[60px] animate-[floatE_9s_ease-in-out_infinite_alternate]" />
 
       {/* ── 떠다니는 이모티콘 파티클 ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -60,7 +60,7 @@ export default function RootPage() {
           <div className="relative inline-flex items-center justify-center mb-6">
             <div className="absolute w-36 h-36 rounded-full/30 animate-[spinSlow_8s_linear_infinite]" />
             <div className="absolute w-28 h-28 rounded-full/40 animate-[spinSlow_5s_linear_infinite_reverse]" />
-            <div className="absolute w-40 h-40 rounded-full bg-sky-200/20 blur-2xl" />
+            <div className="absolute w-40 h-40 rounded-full bg-sky-200/25 blur-2xl" />
             <div className="relative w-[88px] h-[88px] rounded-[30px] bg-sky-100 flex items-center justify-center">
               <span className="text-5xl">💬</span>
             </div>
@@ -70,12 +70,12 @@ export default function RootPage() {
           </div>
 
           <h1 className="text-[64px] font-black tracking-[0.22em] leading-none">
-            <span className="text-sky-400">WAGIE</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">WAGIE</span>
           </h1>
           <p className="mt-3 text-sky-600 font-bold text-base">따뜻한 대화가 시작되는 곳 🧡</p>
 
           {/* 라이브 뱃지 */}
-          <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-sky-100">
+          <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 shadow-[0_4px_16px_rgba(14,165,233,0.3)]">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
             <span className="text-white text-xs font-black tracking-widest">LIVE · 지금 바로 시작해요</span>
           </div>
@@ -88,10 +88,10 @@ export default function RootPage() {
             { icon: "💬", value: "50만+",  label: "오간 메시지", color: "from-sky-300" },
             { icon: "🤝", value: "3,000+", label: "친구 연결",  color: "from-sky-400" },
           ].map(({ icon, value, label, color }) => (
-            <div key={label} className="rounded-[20px] bg-white/75 backdrop-blur-sm/60 px-2 py-4 text-center">
+            <div key={label} className="rounded-[20px] bg-white shadow-sm/60 px-2 py-4 text-center">
               <div className={`w-9 h-9 rounded-xl bg-${color} flex items-center justify-center text-lg mx-auto mb-2`}>{icon}</div>
               <p className="text-sky-600 font-black text-[17px] leading-none">{value}</p>
-              <p className="text-sky-400 text-[10px] font-semibold mt-1">{label}</p>
+              <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-[10px] font-semibold mt-1">{label}</p>
             </div>
           ))}
         </div>

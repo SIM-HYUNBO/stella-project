@@ -63,7 +63,7 @@ export default function SignupPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg- mb-4">
             <span className="text-4xl">✨</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-400">WAGIE</h1>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">WAGIE</h1>
           <p className="text-sky-600 text-sm font-medium mt-2">함께라서 더 따뜻해요 🧡</p>
         </div>
 
@@ -76,7 +76,7 @@ export default function SignupPage() {
               <input key={placeholder}
                 type={type} placeholder={placeholder} value={value}
                 onChange={(e) => setter(e.target.value)} required
-                className="w-full bg-yellow-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-orange-300 transition"
+                className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-orange-300 transition"
               />
             ))}
 

@@ -87,10 +87,10 @@ export default function QnaPage() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
         <div>
           <p className="font-black text-slate-800 text-base">Q&amp;A방</p>
-          <p className="text-[10px] text-sky-400 font-semibold -mt-0.5">궁금한 게 있으면 질문하세요</p>
+          <p className="text-[10px] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold -mt-0.5">궁금한 게 있으면 질문하세요</p>
         </div>
         {isAdmin && (
           <span className="ml-auto px-3 py-1 rounded-full bg-sky-100 text-white text-xs font-black">관리자</span>
@@ -102,7 +102,7 @@ export default function QnaPage() {
         {items.length === 0 && (
           <div className="text-center py-20">
             <p className="text-4xl mb-3">💬</p>
-            <p className="text-sky-400 font-semibold text-sm">아직 질문이 없어요</p>
+            <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold text-sm">아직 질문이 없어요</p>
             <p className="text-slate-400 text-xs mt-1">첫 번째 질문을 남겨보세요!</p>
           </div>
         )}
@@ -116,7 +116,7 @@ export default function QnaPage() {
               <div className="flex-1 rounded-[18px] rounded-tl-[6px] bg-white px-4 py-3">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-xs font-black text-sky-500">{item.askerName}</p>
-                  <p className="text-[10px] text-sky-400">{formatDate(item.createdAt)}</p>
+                  <p className="text-[10px] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">{formatDate(item.createdAt)}</p>
                 </div>
                 <p className="text-sm text-slate-800 leading-relaxed">{item.question}</p>
               </div>
@@ -129,7 +129,7 @@ export default function QnaPage() {
                 <div className="flex-1 rounded-[18px] rounded-tl-[6px] bg-sky-50 border px-4 py-3">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-black text-sky-500">관리자</p>
-                    <p className="text-[10px] text-sky-400">{formatDate(item.answeredAt)}</p>
+                    <p className="text-[10px] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">{formatDate(item.answeredAt)}</p>
                   </div>
                   <p className="text-sm text-slate-800 leading-relaxed">{item.answer}</p>
                 </div>
@@ -144,7 +144,7 @@ export default function QnaPage() {
                     <div className="flex gap-2">
                       <input
                         autoFocus
-                        className="flex-1 bg-white/80 border rounded-[14px] px-3 py-2 text-sm text-slate-800 placeholder:text-sky-400 outline-none"
+                        className="flex-1 bg-white/80 border rounded-[14px] px-3 py-2 text-sm text-slate-800 placeholder:text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 outline-none"
                         placeholder="답변 입력..."
                         value={answerInputs[item.id] || ""}
                         onChange={(e) => setAnswerInputs((p) => ({ ...p, [item.id]: e.target.value }))}
@@ -155,18 +155,18 @@ export default function QnaPage() {
                         등록
                       </button>
                       <button onClick={() => setAnsweringId(null)}
-                        className="px-3 rounded-[14px] bg-gray-100 text-sky-400 font-bold text-xs">
+                        className="px-3 rounded-[14px] bg-gray-100 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-xs">
                         취소
                       </button>
                     </div>
                   ) : (
                     <button onClick={() => setAnsweringId(item.id)}
-                      className="text-xs font-black text-sky-400 border bg-sky-50 rounded-full px-4 py-1.5 active:scale-95 transition-transform">
+                      className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 border bg-sky-50 rounded-full px-4 py-1.5 active:scale-95 transition-transform">
                       + 답변하기
                     </button>
                   )
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-sky-400 bg-gray-50 rounded-full px-3 py-1">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 bg-gray-50 rounded-full px-3 py-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-orange-300 animate-pulse" />
                     답변 대기 중
                   </span>

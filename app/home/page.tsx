@@ -123,7 +123,7 @@ export default function HomePage() {
       <div className="relative min-h-screen overflow-hidden -m-4">
 
         {/* ── 배경 오브 ── */}
-        <div className="fixed inset-0 bg-yellow-50 -z-10" />
+        <div className="fixed inset-0 bg-sky-50 -z-10" />
         <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" />
         <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full bg-yellow-300/20 blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" />
         <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full bg-yellow-100/15 blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" />
@@ -205,7 +205,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <p className="font-black text-slate-800 text-base">친구들 👫</p>
-                <button onClick={() => router.push("/friendmenu")} className="text-xs text-sky-400 font-bold">전체보기 →</button>
+                <button onClick={() => router.push("/friendmenu")} className="text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold">전체보기 →</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                 {friends.map((f) => (
@@ -299,7 +299,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-2xl shadow">🤝</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">친구 목록</p>
-                    <p className="text-sky-400 text-sm">친구 {friends.length}명과 함께해요</p>
+                    <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm">친구 {friends.length}명과 함께해요</p>
                   </div>
                   <span className="text-orange-300 text-2xl">›</span>
                 </div>
@@ -312,7 +312,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shadow">📋</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">회의방</p>
-                    <p className="text-sky-400 text-sm">주제 고정 · 긴급회의 알림</p>
+                    <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm">주제 고정 · 긴급회의 알림</p>
                   </div>
                   <span className="text-red-300 text-2xl">›</span>
                 </div>
@@ -325,7 +325,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shadow">🎫</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">칭호</p>
-                    <p className="text-sky-400 text-sm">활동하면 칭호를 획득해요</p>
+                    <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm">활동하면 칭호를 획득해요</p>
                   </div>
                   <span className="text-amber-300 text-2xl">›</span>
                 </div>
@@ -338,7 +338,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-2xl shadow">🎧</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">Q&A방</p>
-                    <p className="text-sky-400 text-sm">궁금한 점을 남겨보세요</p>
+                    <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm">궁금한 점을 남겨보세요</p>
                   </div>
                   <span className="text-sky-300 text-2xl">›</span>
                 </div>

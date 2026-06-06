@@ -99,7 +99,7 @@ export default function DiaryPage() {
         {/* 헤더 */}
         <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-yellow-50 text-sky-400 font-bold text-lg">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-base">📔 미니 다이어리</span>
           <div className="w-9" />
         </div>
@@ -111,7 +111,7 @@ export default function DiaryPage() {
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
                 tab === t
                   ? "bg-sky-100 text-white"
-                  : "text-sky-400"
+                  : "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"
               }`}>
               {t === "mine" ? "내 일기" : "친구 일기"}
             </button>
@@ -130,15 +130,15 @@ export default function DiaryPage() {
                   </div>
                   {todayEntry && !editing && (
                     <button onClick={() => setEditing(true)}
-                      className="px-3 py-1.5 rounded-full bg-yellow-50 text-sky-400 text-xs font-black">수정 ✏️</button>
+                      className="px-3 py-1.5 rounded-full bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-xs font-black">수정 ✏️</button>
                   )}
                 </div>
 
                 {todayEntry && !editing ? (
-                  <div className={`bg-yellow-50 rounded-[20px] p-4`}>
+                  <div className={`bg-sky-50 rounded-[20px] p-4`}>
                     <div className="text-3xl mb-2">{todayEntry.mood}</div>
                     <p className="text-slate-800 text-sm leading-relaxed">{todayEntry.content}</p>
-                    <p className="mt-3 text-xs text-sky-400 font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
+                    <p className="mt-3 text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
                   </div>
                 ) : (
                   <>
@@ -149,7 +149,7 @@ export default function DiaryPage() {
                           className={`text-2xl w-11 h-11 rounded-[14px] transition-all ${
                             selectedMood === m
                               ? "bg-sky-100 scale-110"
-                              : "bg-yellow-50/50 hover:bg-yellow-50"
+                              : "bg-sky-50/50 hover:bg-sky-50"
                           }`}>
                           {m}
                         </button>
@@ -158,14 +158,14 @@ export default function DiaryPage() {
 
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      className="w-full text-sm text-slate-800 bg-yellow-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
+                      className="w-full text-sm text-slate-800 bg-sky-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
                     />
                     <div className="text-right text-xs text-slate-400 mb-3">{content.length}/200</div>
 
                     <div className="flex items-center justify-between">
                       <button onClick={() => setIsPublic(!isPublic)}
                         className={`text-xs px-4 py-2 rounded-full font-black transition-all border ${
-                          isPublic ? "bg-yellow-50 border-sky-200 text-sky-500" : "bg-gray-50 border-gray-200 text-gray-500"
+                          isPublic ? "bg-sky-50 border-sky-200 text-sky-500" : "bg-gray-50 border-gray-200 text-gray-500"
                         }`}>
                         {isPublic ? "🌍 공개" : "🔒 비공개"}
                       </button>
@@ -183,11 +183,11 @@ export default function DiaryPage() {
               <div className="space-y-3">
                 {myEntries.filter((e) => e.date !== today).map((entry) => (
                   <div key={entry.id}
-                    className={`bg-yellow-50 rounded-[22px] p-4`}>
+                    className={`bg-sky-50 rounded-[22px] p-4`}>
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-xs text-[#9d7060] font-semibold">{formatDate(entry.date)}</p>
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-sky-400">{entry.isPublic ? "🌍" : "🔒"}</span>
+                        <span className="text-[10px] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">{entry.isPublic ? "🌍" : "🔒"}</span>
                         <span className="text-2xl">{entry.mood}</span>
                       </div>
                     </div>
@@ -205,7 +205,7 @@ export default function DiaryPage() {
             <div className="space-y-3">
               {friendEntries.map((entry) => (
                 <div key={entry.id}
-                  className={`bg-yellow-50 rounded-[22px] p-4`}>
+                  className={`bg-sky-50 rounded-[22px] p-4`}>
                   <div className="flex items-center gap-2 mb-3">
                     {entry.profileImage ? (
                       <img src={entry.profileImage} className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow" />
@@ -215,7 +215,7 @@ export default function DiaryPage() {
                       </div>
                     )}
                     <span className="font-black text-slate-800 text-sm">{entry.nickname}</span>
-                    <span className="text-xs text-sky-400 ml-auto">{formatDate(entry.date)}</span>
+                    <span className="text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 ml-auto">{formatDate(entry.date)}</span>
                     <span className="text-2xl">{entry.mood}</span>
                   </div>
                   <p className="text-slate-800 text-sm leading-relaxed">{entry.content}</p>
