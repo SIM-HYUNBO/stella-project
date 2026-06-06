@@ -1388,6 +1388,7 @@ export default function Chat() {
           }}
         />
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={applyHighlight}
           title="형광 표시 (텍스트 선택 후 클릭)"
           className="w-10 h-10 rounded-[12px] bg-yellow-200 hover:bg-yellow-300 active:scale-95 flex items-center justify-center transition shrink-0 text-[11px] font-black text-yellow-800"
