@@ -99,7 +99,7 @@ export default function DiaryPage() {
         {/* 헤더 */}
         <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-base">📔 미니 다이어리</span>
           <div className="w-9" />
         </div>
@@ -111,7 +111,7 @@ export default function DiaryPage() {
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
                 tab === t
                   ? "bg-sky-100 text-white"
-                  : "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"
+                  : "text-sky-500"
               }`}>
               {t === "mine" ? "내 일기" : "친구 일기"}
             </button>
@@ -130,7 +130,7 @@ export default function DiaryPage() {
                   </div>
                   {todayEntry && !editing && (
                     <button onClick={() => setEditing(true)}
-                      className="px-3 py-1.5 rounded-full bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-xs font-black">수정 ✏️</button>
+                      className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-500 text-xs font-black">수정 ✏️</button>
                   )}
                 </div>
 
@@ -138,7 +138,7 @@ export default function DiaryPage() {
                   <div className={`bg-sky-50 rounded-[20px] p-4`}>
                     <div className="text-3xl mb-2">{todayEntry.mood}</div>
                     <p className="text-slate-800 text-sm leading-relaxed">{todayEntry.content}</p>
-                    <p className="mt-3 text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
+                    <p className="mt-3 text-xs text-sky-500 font-semibold">{todayEntry.isPublic ? "🌍 공개" : "🔒 비공개"}</p>
                   </div>
                 ) : (
                   <>
@@ -187,7 +187,7 @@ export default function DiaryPage() {
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-xs text-[#9d7060] font-semibold">{formatDate(entry.date)}</p>
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">{entry.isPublic ? "🌍" : "🔒"}</span>
+                        <span className="text-[10px] text-sky-500">{entry.isPublic ? "🌍" : "🔒"}</span>
                         <span className="text-2xl">{entry.mood}</span>
                       </div>
                     </div>
@@ -215,7 +215,7 @@ export default function DiaryPage() {
                       </div>
                     )}
                     <span className="font-black text-slate-800 text-sm">{entry.nickname}</span>
-                    <span className="text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 ml-auto">{formatDate(entry.date)}</span>
+                    <span className="text-xs text-sky-500 ml-auto">{formatDate(entry.date)}</span>
                     <span className="text-2xl">{entry.mood}</span>
                   </div>
                   <p className="text-slate-800 text-sm leading-relaxed">{entry.content}</p>

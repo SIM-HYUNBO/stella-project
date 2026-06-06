@@ -46,7 +46,7 @@ export default function LiveSTTWithHeader() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">🗣 와글와글 토의방</span>
         {listening && (
           <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50">

@@ -16,7 +16,7 @@ export default function CleanupPage() {
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🧹 친구 정리</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-3">
@@ -25,7 +25,7 @@ export default function CleanupPage() {
               <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-2xl shrink-0 shadow">{icon}</div>
               <div>
                 <p className="font-black text-slate-800 text-sm">{label}</p>
-                <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-xs mt-0.5">{sub}</p>
+                <p className="text-sky-500 text-xs mt-0.5">{sub}</p>
               </div>
             </div>
           ))}

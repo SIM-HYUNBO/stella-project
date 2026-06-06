@@ -22,7 +22,7 @@ export default function AISettingsPage() {
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🧠 AI 요약</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-4">
@@ -44,7 +44,7 @@ export default function AISettingsPage() {
           <div className="rounded-[24px] bg-white px-5 py-4 flex items-center justify-between">
             <div>
               <p className="font-black text-slate-800 text-base">AI 요약 사용</p>
-              <p className={`text-xs font-semibold mt-0.5 ${enabled ? "text-green-500" : "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"}`}>
+              <p className={`text-xs font-semibold mt-0.5 ${enabled ? "text-green-500" : "text-sky-500"}`}>
                 {enabled ? "ON · 활성화됨" : "OFF · 비활성화됨"}
               </p>
             </div>

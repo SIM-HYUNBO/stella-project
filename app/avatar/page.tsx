@@ -1271,7 +1271,7 @@ export default function Chat() {
                     const readByArr = m.readBy || [];
                     const unread = 2 - readByArr.length;
                     return unread > 0 ? (
-                      <span className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold">{unread}</span>
+                      <span className="text-sky-500 font-bold">{unread}</span>
                     ) : null;
                   })()}
                   {m.edited && <span>수정됨</span>}
@@ -1344,7 +1344,7 @@ export default function Chat() {
       <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-100 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center transition shrink-0"
+          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-100 text-sky-500 flex items-center justify-center transition shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1376,7 +1376,7 @@ export default function Chat() {
 
         <button
           onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-100 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"}`}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-100 text-sky-500"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>

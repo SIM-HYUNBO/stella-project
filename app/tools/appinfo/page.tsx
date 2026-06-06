@@ -47,12 +47,12 @@ export default function AppInfoPage() {
         {/* 헤더 */}
         <div className="flex items-center h-14 px-4 bg-white">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">앱 정보</span>
           {nickname === "관리자" && (
             <button
               onClick={() => router.push("/admin/notice")}
-              className="ml-auto text-xs font-black text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 bg-sky-50 px-3 py-1.5 rounded-xl"
+              className="ml-auto text-xs font-black text-sky-500 bg-sky-50 px-3 py-1.5 rounded-xl"
             >
               관리
             </button>
@@ -79,7 +79,7 @@ export default function AppInfoPage() {
                 <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-xl">📦</div>
                 <span className="font-semibold text-slate-800 text-sm">버전</span>
               </div>
-              <span className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full">v0.2.2</span>
+              <span className="text-sky-500 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full">v0.2.2</span>
             </div>
 
             <button onClick={() => router.push("/tools/contact")}

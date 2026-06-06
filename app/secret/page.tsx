@@ -79,7 +79,7 @@ export default function MeatChat() {
   };
 
   const stateColors: Record<string, string> = {
-    raw: "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400", grilling: "text-sky-500", perfect: "text-green-500", burn: "text-red-500",
+    raw: "text-sky-500", grilling: "text-sky-500", perfect: "text-green-500", burn: "text-red-500",
   };
 
   return (
@@ -113,7 +113,7 @@ export default function MeatChat() {
             </button>
           )}
 
-          <p className="text-[10px] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold">{nickname}</p>
+          <p className="text-[10px] text-sky-500 font-semibold">{nickname}</p>
         </div>
       </div>
 

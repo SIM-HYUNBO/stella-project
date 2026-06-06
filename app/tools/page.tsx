@@ -144,7 +144,7 @@ export default function SettingsPage() {
     <main className="relative min-h-screen bg-gray-50">
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
       </div>
 

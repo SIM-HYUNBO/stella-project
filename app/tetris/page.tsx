@@ -109,14 +109,14 @@ export default function DragBlockGame() {
       {/* 헤더 */}
       <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white sticky top-0">
         <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg">←</button>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-base">🧩 블록 게임</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="rounded-[12px] bg-sky-100 px-4 py-1.5">
             <p className="text-white font-black text-sm">{score}점</p>
           </div>
-          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-base">↺</button>
+          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-base">↺</button>
         </div>
       </div>
 
@@ -162,7 +162,7 @@ export default function DragBlockGame() {
           {gameOver && (
             <div className="rounded-[24px] bg-white shadow-sm px-5 py-5 text-center">
               <p className="text-2xl font-black text-red-500 mb-1">GAME OVER</p>
-              <p className="text-sm text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 mb-4">최종 점수: {score}점</p>
+              <p className="text-sm text-sky-500 mb-4">최종 점수: {score}점</p>
               <button onClick={resetGame}
                 className="px-6 py-3 rounded-[16px] bg-sky-100 text-white font-black active:scale-95 transition-transform">
                 다시 시작

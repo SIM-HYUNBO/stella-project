@@ -85,10 +85,10 @@ export default function AIChatPage() {
       {/* 헤더 */}
       <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white shrink-0">
         <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg">←</button>
+          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-sm">🧠 AI Chat</span>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-black ${isVip ? "bg-yellow-100 text-white" : "bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"}`}>
+        <div className={`px-3 py-1 rounded-full text-xs font-black ${isVip ? "bg-yellow-100 text-white" : "bg-sky-50 text-sky-500"}`}>
           {isVip ? "💎 VIP" : "FREE"}
         </div>
       </div>

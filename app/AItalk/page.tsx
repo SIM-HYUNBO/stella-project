@@ -64,7 +64,7 @@ export default function Page() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
         <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center text-lg mr-2">🧠</div>
         <div>
           <p className="font-black text-slate-800 text-sm leading-tight">이효린</p>

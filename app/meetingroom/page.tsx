@@ -593,7 +593,7 @@ export default function MeetingRoomPage() {
 
       {/* 멤버 */}
       <div className="px-4 py-2 bg-white/60 backdrop-blur-md">
-        <div className="text-xs text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 truncate font-semibold">
+        <div className="text-xs text-sky-500 truncate font-semibold">
           👥 {currentRoom?.members.join(", ")}
         </div>
       </div>
@@ -678,7 +678,7 @@ export default function MeetingRoomPage() {
                     {(() => {
                       const unread = (currentRoom?.members.length || 0) - (m.readBy?.length || 0);
                       return unread > 0 ? (
-                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold">{unread}</span>
+                        <span className="text-sky-500 font-bold">{unread}</span>
                       ) : null;
                     })()}
                     {formatTime(m.createdAt)}
@@ -725,7 +725,7 @@ export default function MeetingRoomPage() {
       <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-100 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center transition shrink-0"
+          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-100 text-sky-500 flex items-center justify-center transition shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -756,7 +756,7 @@ export default function MeetingRoomPage() {
         />
         <button
           onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-100 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400"}`}
+          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-100 text-sky-500"}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -857,7 +857,7 @@ export default function MeetingRoomPage() {
               </button>
               <button
                 onClick={() => { setShowCreate(false); setNewRoomName(""); }}
-                className="flex-1 h-11 rounded-[16px] bg-white text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold"
+                className="flex-1 h-11 rounded-[16px] bg-white text-sky-500 font-semibold"
               >
                 취소
               </button>
@@ -894,9 +894,9 @@ export default function MeetingRoomPage() {
             <div className="flex-1 min-w-0">
               <div className="font-black text-sm truncate text-slate-800">{room.name}</div>
               {room.topic ? (
-                <div className="text-xs truncate text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold mt-0.5">📌 {room.topic}</div>
+                <div className="text-xs truncate text-sky-500 font-semibold mt-0.5">📌 {room.topic}</div>
               ) : (
-                <div className="text-xs truncate text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">멤버 {room.members.length}명</div>
+                <div className="text-xs truncate text-sky-500">멤버 {room.members.length}명</div>
               )}
             </div>
             {(unreadCounts[room.id] ?? 0) > 0 && (

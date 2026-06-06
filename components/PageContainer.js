@@ -144,7 +144,7 @@ const PageContainer = ({ children }) => {
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400" : "text-gray-400"}`}
+              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-sky-500" : "text-gray-400"}`}
             >
               {icon(false)}
             </button>

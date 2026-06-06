@@ -71,7 +71,7 @@ export default function AdminNoticePage() {
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 font-bold text-lg mr-3">←</button>
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-500 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">공지사항 관리</span>
       </div>
 

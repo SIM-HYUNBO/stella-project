@@ -199,7 +199,7 @@ export default function ProfilePage() {
             <div className="text-center">
               <span className="text-4xl">😢</span>
               <p className="font-black text-slate-800 text-lg mt-3">정말 탈퇴하시겠어요?</p>
-              <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
+              <p className="text-sky-500 text-sm mt-1">모든 데이터가 삭제되고 복구할 수 없어요.</p>
             </div>
             <input type="password" placeholder="비밀번호 확인" value={password}
               onChange={(e) => setPassword(e.target.value)}

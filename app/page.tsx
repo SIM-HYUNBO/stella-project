@@ -70,7 +70,7 @@ export default function RootPage() {
           </div>
 
           <h1 className="text-[64px] font-black tracking-[0.22em] leading-none">
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">WAGIE</span>
+            <span className="text-sky-500">WAGIE</span>
           </h1>
           <p className="mt-3 text-sky-600 font-bold text-base">따뜻한 대화가 시작되는 곳 🧡</p>
 
@@ -91,7 +91,7 @@ export default function RootPage() {
             <div key={label} className="rounded-[20px] bg-white shadow-sm/60 px-2 py-4 text-center">
               <div className={`w-9 h-9 rounded-xl bg-${color} flex items-center justify-center text-lg mx-auto mb-2`}>{icon}</div>
               <p className="text-sky-600 font-black text-[17px] leading-none">{value}</p>
-              <p className="text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400 text-[10px] font-semibold mt-1">{label}</p>
+              <p className="text-sky-500 text-[10px] font-semibold mt-1">{label}</p>
             </div>
           ))}
         </div>

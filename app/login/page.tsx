@@ -43,7 +43,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg- mb-4">
             <span className="text-4xl">💬</span>
           </div>
-          <h1 className="text-4xl font-black tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-br from-sky-500 to-cyan-400">WAGIE</h1>
+          <h1 className="text-4xl font-black tracking-[0.18em] text-sky-500">WAGIE</h1>
           <p className="text-sky-600 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
         </div>
 
