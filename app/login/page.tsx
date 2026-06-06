@@ -34,13 +34,13 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gray-50" />
+      <div className="fixed inset-0 bg-yellow-50" />
 
       <div className="relative z-10 min-h-screen flex flex-col justify-center px-5 py-10">
 
         {/* 브랜드 */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100 shadow-[0_16px_40px_rgba(14,165,233,0.45)] mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100-[0_16px_40px_rgba(14,165,233,0.45)] mb-4">
             <span className="text-4xl">💬</span>
           </div>
           <h1 className="text-4xl font-black tracking-[0.18em] text-sky-400">WAGIE</h1>
@@ -48,39 +48,39 @@ export default function LoginPage() {
         </div>
 
         {/* 폼 카드 */}
-        <div className="rounded-[28px] bg-white/80 backdrop-blur-md border border-gray-300 shadow-sm px-6 py-7 space-y-4">
+        <div className="rounded-[28px] bg-white/80 backdrop-blur-md  px-6 py-7 space-y-4">
           <p className="font-black text-[gray-800] text-xl mb-1">로그인</p>
 
           <form onSubmit={handleLogin} className="space-y-3">
             <input
               type="email" placeholder="이메일" value={email}
               onChange={(e) => setEmail(e.target.value)} required
-              className="w-full bg-sky-50/80 border border-gray-300 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-200 transition"
+              className="w-full bg-sky-50/80  rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-200 transition"
             />
             <input
               type="password" placeholder="비밀번호" value={password}
               onChange={(e) => setPassword(e.target.value)} required
-              className="w-full bg-sky-50/80 border border-gray-300 rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-200 transition"
+              className="w-full bg-sky-50/80  rounded-[16px] px-4 py-3.5 text-sm text-[gray-800] placeholder:text-[sky-400] outline-none focus:ring-2 focus:ring-sky-200 transition"
             />
 
             <label className="flex items-center gap-2.5 cursor-pointer select-none px-1">
               <div
                 onClick={() => setKeepLogin(!keepLogin)}
-                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-100" : "bg-gray-200"}`}
+                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-100" : "bg-yellow-100"}`}
               >
-                <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${keepLogin ? "translate-x-4" : "translate-x-0"}`} />
+                <div className={`w-5 h-5 rounded-full bg-white transition-all duration-300 ${keepLogin ? "translate-x-4" : "translate-x-0"}`} />
               </div>
               <span className="text-sm text-[#9d7060] font-medium">로그인 상태 유지</span>
             </label>
 
             {error && (
-              <div className="rounded-[14px] bg-red-50 border border-red-100 px-4 py-3 text-red-500 text-sm font-medium text-center">
+              <div className="rounded-[14px] bg-red-50  px-4 py-3 text-red-500 text-sm font-medium text-center">
                 {error}
               </div>
             )}
 
             <button type="submit" disabled={loading}
-              className="group relative w-full h-14 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(14,165,233,0.4)] active:scale-[0.98] transition-transform disabled:opacity-70">
+              className="group relative w-full h-14 rounded-[18px] overflow-hidden-[0_10px_30px_rgba(14,165,233,0.4)] active:scale-[0.98] transition-transform disabled:opacity-70">
               <div className="absolute inset-0 bg-sky-100" />
               <div className="absolute inset-0  animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">

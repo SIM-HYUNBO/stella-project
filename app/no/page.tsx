@@ -56,16 +56,16 @@ export default function AlarmSoundPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gray-50" />
+      <div className="fixed inset-0 bg-yellow-50" />
       <div className="relative z-10">
-        <div className="flex items-center h-14 px-4 bg-white border-b border-gray-300 sticky top-0 z-20">
+        <div className="flex items-center h-14 px-4 bg-white  sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[gray-800] text-base">🔔 알림 소리 설정</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-3">
 
           {/* VIP 상태 */}
-          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border shadow-sm ${isVip ? "bg-sky-100 border-transparent" : "bg-white/80 border-sky-100"}`}>
+          <div className={`rounded-[20px] px-5 py-3 flex items-center gap-3 border ${isVip ? "bg-sky-100 border-transparent" : "bg-white/80 border-sky-100"}`}>
             <span className="text-2xl">{isVip ? "💎" : "👤"}</span>
             <p className={`font-black text-sm ${isVip ? "text-white" : "text-[gray-800]"}`}>{isVip ? "VIP 활성 상태" : "일반 사용자"}</p>
           </div>
@@ -76,8 +76,8 @@ export default function AlarmSoundPage() {
             const locked = isVipOnly && !isVip;
             return (
               <div key={s.id} onClick={() => { if (locked) { alert("VIP 전용입니다"); return; } selectSound(s.id); }}
-                className={`rounded-[20px] px-5 py-4 flex items-center justify-between cursor-pointer border transition-all active:scale-[0.98] shadow-sm
-                  ${isSelected ? "bg-sky-100 border-transparent shadow-sm" : "bg-white/80 border-sky-100"}
+                className={`rounded-[20px] px-5 py-4 flex items-center justify-between cursor-pointer border transition-all active:scale-[0.98]
+                  ${isSelected ? "bg-sky-100 border-transparent" : "bg-white/80 border-sky-100"}
                   ${locked ? "opacity-50" : ""}`}>
                 <div className="flex items-center gap-3">
                   {isSelected ? <span className="text-white text-lg">✓</span> : <span className="text-[sky-400] text-lg">🔈</span>}
@@ -87,7 +87,7 @@ export default function AlarmSoundPage() {
                   </div>
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); if (locked) return alert("VIP 전용"); playSound(s.id, s.file); }}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-base shadow ${isSelected ? "bg-white/25 text-white" : "bg-sky-50 text-sky-400"}`}>
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-base ${isSelected ? "bg-white/25 text-white" : "bg-sky-50 text-sky-400"}`}>
                   ▶
                 </button>
               </div>

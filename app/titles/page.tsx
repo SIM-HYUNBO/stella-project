@@ -113,7 +113,7 @@ export default function TitlesPage() {
   return (
     <div className="min-h-screen bg-[#fff7ef]">
       {/* 헤더 */}
-      <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white border-b border-gray-300">
+      <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white ">
         <button onClick={() => router.back()}
           className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-gray-800 text-base">🎫 칭호</span>
@@ -122,7 +122,7 @@ export default function TitlesPage() {
       <div className="px-4 pt-5 pb-24 space-y-6">
 
         {/* 현재 장착 칭호 */}
-        <div className={`rounded-[28px] overflow-hidden shadow-sm`}>
+        <div className={`rounded-[28px] overflow-hidden`}>
           <div className={`bg-gradient-to-r ${equippedTitle?.color || "from-gray-300 to-gray-400"} p-6 relative`}>
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
             <p className="text-white/80 text-xs font-black tracking-widest mb-2">현재 칭호</p>
@@ -158,7 +158,7 @@ export default function TitlesPage() {
             <div className="grid grid-cols-2 gap-3">
               {earnedTitles.map((t) => (
                 <button key={t.id} onClick={() => equipTitle(t.id)}
-                  className={`rounded-[20px] overflow-hidden shadow-sm active:scale-95 transition-transform ${equipped === t.id ? "ring-2 ring-sky-200 ring-offset-2" : ""}`}>
+                  className={`rounded-[20px] overflow-hidden active:scale-95 transition-transform ${equipped === t.id ? "ring-2 ring-sky-200 ring-offset-2" : ""}`}>
                   <div className={`bg-gradient-to-br ${t.color} px-4 py-4 relative`}>
                     <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
                     {equipped === t.id && (
@@ -180,7 +180,7 @@ export default function TitlesPage() {
             <p className="font-black text-gray-800 text-base px-1 mb-3">🔒 잠긴 칭호</p>
             <div className="grid grid-cols-2 gap-3">
               {lockedTitles.map((t) => (
-                <div key={t.id} className="rounded-[20px] bg-white border border-gray-300 px-4 py-4 opacity-60 shadow-sm">
+                <div key={t.id} className="rounded-[20px] bg-white  px-4 py-4 opacity-60">
                   <p className="text-3xl mb-2 grayscale">{t.icon}</p>
                   <p className="text-gray-500 font-black text-sm">{t.name}</p>
                   <p className="text-gray-400 text-[10px] mt-1">🔒 {t.condition}</p>

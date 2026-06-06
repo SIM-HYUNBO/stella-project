@@ -109,7 +109,7 @@ export default function ForestBackgroundWithMusic() {
 function Tree({ size }: { size: string }) {
   return (
     <div
-      className={`${size} text-green-700/80 drop-shadow-xl animate-[float_10s_ease-in-out_infinite]`}
+      className={`${size} text-green-700/80 drop-animate-[float_10s_ease-in-out_infinite]`}
     >
       🌲
     </div>

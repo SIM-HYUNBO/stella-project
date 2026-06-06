@@ -76,16 +76,6 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
-  {
-    label: "설정",
-    path: "/tools",
-    icon: () => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8.82 5.76L8.58 2.6L15.42 2.6L15.18 5.76L15.82 6.13L18.43 4.34L21.85 10.26L18.99 11.64V12.36L21.85 13.74L18.43 19.66L15.82 17.87L15.18 18.24L15.42 21.4L8.58 21.4L8.82 18.24L8.18 17.87L5.57 19.66L2.15 13.74L5.01 12.36V11.64L2.15 10.26L5.57 4.34L8.18 6.13Z"/>
-        <circle cx="12" cy="12" r="3.5"/>
-      </svg>
-    ),
-  },
 ];
 
 const PageContainer = ({ children }) => {
@@ -147,7 +137,7 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-300 flex items-center justify-around px-2 h-12 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white flex items-center justify-around px-2 h-12">
         {NAV_ITEMS.map(({ label, path, icon }) => {
           const active = pathname === path || pathname?.startsWith(path + "/");
           return (

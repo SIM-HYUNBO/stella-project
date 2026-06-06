@@ -12,16 +12,16 @@ const Header = () => {
 
       <div className="relative flex justify-between items-center px-5 py-3">
         <Link href="/home" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-inner text-xl">
+          <div className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center text-xl">
             💬
           </div>
-          <span className={`${jua.className} text-[28px] text-white drop-shadow-sm tracking-wide`}>
+          <span className={`${jua.className} text-[28px] text-white drop-tracking-wide`}>
             WAGIE
           </span>
         </Link>
 
         <Link href="/tools"
-          className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-inner active:scale-90 transition-transform">
+          className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />

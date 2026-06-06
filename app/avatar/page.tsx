@@ -193,8 +193,8 @@ function SwipeUserItem({
       </div>
 
       <div
-        className={`relative z-10 px-3 py-3 bg-white border border-gray-300 shadow-sm cursor-pointer transition ${
-          isActive ? "bg-sky-50" : "hover:bg-gray-50"
+        className={`relative z-10 px-3 py-3 bg-white  cursor-pointer transition ${
+          isActive ? "bg-sky-50" : "hover:bg-yellow-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
@@ -218,15 +218,15 @@ function SwipeUserItem({
               <img
                 src={u.profileImage}
                 alt={u.nickname}
-                className="w-11 h-11 rounded-full object-cover shadow"
+                className="w-11 h-11 rounded-full object-cover"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-800 shadow">
+              <div className="w-11 h-11 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-800">
                 {u.nickname[0]}
               </div>
             )}
             <span
-              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full  ${
                 isOnline ? "bg-green-400" : "bg-gray-300"
               }`}
             />
@@ -243,7 +243,7 @@ function SwipeUserItem({
           </div>
 
           {unreadCount > 0 && (
-            <div className="min-w-[22px] h-[22px] px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold shadow">
+            <div className="min-w-[22px] h-[22px] px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
               {unreadCount > 99 ? "99+" : unreadCount}
             </div>
           )}
@@ -1033,9 +1033,9 @@ export default function Chat() {
   };
 
   const renderChat = () => (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+    <div className="flex-1 flex flex-col overflow-hidden bg-yellow-50">
       {currentChatUser && (
-        <div className="px-4 py-3 border-b border-gray-300 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="px-4 py-3  bg-white backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCurrentChatUser(null)}
@@ -1049,16 +1049,16 @@ export default function Chat() {
                 <img
                   src={currentChatUser.profileImage}
                   alt={currentChatUser.nickname}
-                  className="w-11 h-11 rounded-full object-cover shadow"
+                  className="w-11 h-11 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-sky-100 text-sky-900 font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-full bg-sky-100 text-sky-900 font-bold flex items-center justify-center">
                   {currentChatUser.nickname[0]}
                 </div>
               )}
 
               <span
-                className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                className={`absolute bottom-0 right-0 w-3 h-3 rounded-full  ${
                   onlineUsers.has(
                     currentChatUser.nickname
                   )
@@ -1124,7 +1124,7 @@ export default function Chat() {
       )}
 
       {pushBlocked && (
-        <div className="m-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-red-600">
+        <div className="m-3 px-4 py-3 rounded-2xl bg-red-50  text-sm text-red-600">
           브라우저 알림이 차단되어 있어요
         </div>
       )}
@@ -1132,7 +1132,7 @@ export default function Chat() {
       {showMsgSearch && (
         <div className="px-4 py-2 border-b bg-white">
           <input
-            className="w-full px-4 py-2 rounded-2xl bg-gray-50 text-sm"
+            className="w-full px-4 py-2 rounded-2xl bg-yellow-50 text-sm"
             placeholder="메시지 검색..."
             value={msgSearch}
             onChange={(e) =>
@@ -1162,9 +1162,9 @@ export default function Chat() {
             <div key={m.id}>
               {showDate && (
                 <div className="flex items-center gap-2 my-2">
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px bg-yellow-100" />
                   <span className="text-xs text-gray-400 shrink-0">{currentDate}</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px bg-yellow-100" />
                 </div>
               )}
             <div
@@ -1181,10 +1181,10 @@ export default function Chat() {
                     <img
                       src={currentChatUser.profileImage}
                       alt={currentChatUser.nickname}
-                      className="w-8 h-8 rounded-full object-cover shadow"
+                      className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-xs font-bold text-sky-800 shadow">
+                    <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-xs font-bold text-sky-800">
                       {m.from[0]}
                     </div>
                   )}
@@ -1198,7 +1198,7 @@ export default function Chat() {
                 )}
 
                 {m.replyTo && (
-                  <div className="mb-1 px-3 py-2 rounded-xl bg-blue-50 border-l-4 border-blue-400 text-xs">
+                  <div className="mb-1 px-3 py-2 rounded-xl bg-blue-50  text-xs">
                     <div className="font-semibold text-blue-600">
                       {m.replyTo.from}
                     </div>
@@ -1212,10 +1212,10 @@ export default function Chat() {
                 )}
 
                 <div
-                  className={`px-4 py-3 rounded-3xl text-sm shadow-sm ${
+                  className={`px-4 py-3 rounded-3xl text-sm ${
                     isMine
-                      ? "bg-sky-100 text-sky-900 border border-sky-200 rounded-br-md"
-                      : "bg-white text-gray-800 border border-gray-300 rounded-bl-md"
+                      ? "bg-sky-100 text-sky-900  rounded-br-md"
+                      : "bg-white text-gray-800  rounded-bl-md"
                   }`}
                   onContextMenu={(e) =>
                     openCtxMenu(e, m, isMine)
@@ -1312,14 +1312,14 @@ export default function Chat() {
       )}
 
       {pendingImage && (
-        <div className="px-3 py-2 bg-sky-50 border-t border-gray-300 flex items-center gap-3 shrink-0">
+        <div className="px-3 py-2 bg-sky-50  flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white  flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-yellow-50 disabled:opacity-40">✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center disabled:opacity-50"
+              className="w-10 h-10 rounded-[12px] bg-sky-100 text-sky-700  flex items-center justify-center disabled:opacity-50"
             >
               {sendingImage
                 ? <div className="w-4 h-4 border-2 border-sky-700 border-t-transparent rounded-full animate-spin" />
@@ -1330,18 +1330,18 @@ export default function Chat() {
       )}
 
       {pendingAudio && (
-        <div className="px-3 py-2 bg-sky-50 border-t border-gray-300 flex items-center gap-2 shrink-0">
+        <div className="px-3 py-2 bg-sky-50  flex items-center gap-2 shrink-0">
           <span className="text-lg shrink-0">🎵</span>
           <span className="text-xs font-black text-sky-400 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
-          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center shrink-0 disabled:opacity-50">
+          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white  flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
+          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-100 text-sky-700  flex items-center justify-center shrink-0 disabled:opacity-50">
             {sendingAudio ? <div className="w-4 h-4 border-2 border-sky-700 border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
       )}
 
-      <div className="px-3 py-2 bg-white border-t border-gray-300 flex items-center gap-2 shrink-0">
+      <div className="px-3 py-2 bg-white  flex items-center gap-2 shrink-0">
         <button
           onClick={() => imageInputRef.current?.click()}
           className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-50 text-sky-400 flex items-center justify-center transition shrink-0"
@@ -1365,7 +1365,7 @@ export default function Chat() {
           }}
         />
         <input
-          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-gray-50 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-yellow-50 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
           placeholder="메시지 입력"
           value={input}
           onChange={handleInputChange}
@@ -1388,7 +1388,7 @@ export default function Chat() {
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-50 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-sky-100 text-sky-700  hover:bg-sky-50 active:scale-95 transition shrink-0"
         >
           ➤
         </button>
@@ -1402,7 +1402,7 @@ export default function Chat() {
             left: ctxMenu.x,
           }}
         >
-          <div className="w-44 bg-white rounded-3xl shadow-2xl border border-gray-300 overflow-hidden">
+          <div className="w-44 bg-white rounded-3xl  overflow-hidden">
             <div className="flex justify-around py-3 border-b">
               {REACTION_EMOJIS.map((emoji) => (
                 <button
@@ -1421,7 +1421,7 @@ export default function Chat() {
             </div>
 
             <button
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
+              className="w-full px-4 py-3 text-left hover:bg-yellow-50 text-sm"
               onClick={() => {
                 setReplyTo({
                   id: ctxMenu.msg.id,
@@ -1440,7 +1440,7 @@ export default function Chat() {
             {ctxMenu.isMine && (
               <>
                 <button
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
+                  className="w-full px-4 py-3 text-left hover:bg-yellow-50 text-sm"
                   onClick={() =>
                     editMessage(
                       ctxMenu.msgId
@@ -1469,8 +1469,8 @@ export default function Chat() {
   );
 
   const renderUserList = () => (
-    <div className="flex flex-col h-full bg-gray-50">
-      <div className="px-4 py-4 border-b border-gray-300 flex items-center justify-between">
+    <div className="flex flex-col h-full bg-yellow-50">
+      <div className="px-4 py-4  flex items-center justify-between">
         <div>
           <div className="text-xl font-black text-sky-400">
             WAGIE
@@ -1486,15 +1486,15 @@ export default function Chat() {
     console.log("nickname:", nickname);
     toggle();
   }}
-  className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
+  className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-yellow-100 text-sm transition"
 >
   {isSubscribed ? "🔕" : "🔔"}
 </button>
       </div>
 
-      <div className="px-3 py-3 border-b border-gray-300">
+      <div className="px-3 py-3 ">
         <input
-          className="w-full h-11 rounded-[16px] bg-gray-50 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
+          className="w-full h-11 rounded-[16px] bg-yellow-50 px-4 text-sm outline-none text-[gray-800] placeholder:text-[sky-400]"
           placeholder="사용자 검색..."
           onChange={(e) => {}}
         />
@@ -1541,10 +1541,10 @@ export default function Chat() {
   // 채팅 중: 모바일·데스크탑 모두 fixed inset-0 (PageContainer p-4 오버플로우 문제 방지)
   if (currentChatUser) {
     return (
-      <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
+      <div className="fixed inset-0 z-40 flex flex-col bg-yellow-50">
         {pendingRequest && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
+            <div className="bg-white rounded-2xl p-6 w-72 flex flex-col gap-4">
               <div className="text-center">
                 <div className="text-2xl mb-2">👋</div>
                 <div className="font-bold text-gray-800 text-base">
@@ -1567,7 +1567,7 @@ export default function Chat() {
     <PageContainer>
       {pendingRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-72 flex flex-col gap-4">
+          <div className="bg-white rounded-2xl p-6 w-72 flex flex-col gap-4">
             <div className="text-center">
               <div className="text-2xl mb-2">👋</div>
               <div className="font-bold text-gray-800 text-base">

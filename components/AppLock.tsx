@@ -69,7 +69,7 @@ export default function AppLock({ onUnlock }: Props) {
             <button
               key={i}
               onClick={del}
-              className="h-16 rounded-2xl bg-white border border-gray-300 shadow-sm text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition"
+              className="h-16 rounded-2xl bg-white  text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition"
             >
               ←
             </button>
@@ -77,7 +77,7 @@ export default function AppLock({ onUnlock }: Props) {
             <button
               key={i}
               onClick={() => press(k)}
-              className="h-16 rounded-2xl bg-white border border-gray-300 shadow-sm text-2xl font-black text-[gray-800] flex items-center justify-center active:scale-95 transition active:bg-sky-50"
+              className="h-16 rounded-2xl bg-white  text-2xl font-black text-[gray-800] flex items-center justify-center active:scale-95 transition active:bg-sky-50"
             >
               {k}
             </button>

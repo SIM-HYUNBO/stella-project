@@ -60,16 +60,16 @@ export default function AdminNoticePage() {
   if (nickname === null) return null;
   if (nickname !== "관리자") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <main className="min-h-screen flex items-center justify-center bg-yellow-50">
         <p className="text-gray-400 font-semibold">접근 권한이 없어요.</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-yellow-50">
       {/* 헤더 */}
-      <div className="flex items-center h-14 px-4 bg-white border-b border-gray-300">
+      <div className="flex items-center h-14 px-4 bg-white ">
         <button onClick={() => router.back()}
           className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-[gray-800] text-base">공지사항 관리</span>
@@ -77,20 +77,20 @@ export default function AdminNoticePage() {
 
       <div className="px-5 pt-6 pb-20 space-y-5">
         {/* 작성 폼 */}
-        <div className="rounded-[24px] bg-white border border-gray-300 shadow-sm p-5 space-y-3">
+        <div className="rounded-[24px] bg-white  p-5 space-y-3">
           <p className="font-black text-[gray-800] text-sm">새 공지 작성</p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목"
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-200"
+            className="w-full  rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-200"
           />
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력하세요"
             rows={5}
-            className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-200 resize-none"
+            className="w-full  rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-200 resize-none"
           />
           <button
             onClick={handleAdd}
@@ -106,7 +106,7 @@ export default function AdminNoticePage() {
           <div className="space-y-3">
             <p className="font-black text-[gray-800] text-sm px-1">등록된 공지 ({notices.length})</p>
             {notices.map((n) => (
-              <div key={n.id} className="rounded-[20px] bg-white border border-gray-300 shadow-sm px-5 py-4">
+              <div key={n.id} className="rounded-[20px] bg-white  px-5 py-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-[gray-800] text-sm">{n.title}</p>

@@ -17,9 +17,9 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <button
       onClick={() => onChange(!value)}
-      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-100" : "bg-gray-200"}`}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-100" : "bg-yellow-100"}`}
     >
-      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
     </button>
   );
 }
@@ -141,9 +141,9 @@ export default function SettingsPage() {
   const pinKeys = ["1","2","3","4","5","6","7","8","9","","0","←"];
 
   return (
-    <main className="relative min-h-screen bg-gray-50">
+    <main className="relative min-h-screen bg-yellow-50">
       {/* 헤더 */}
-      <div className="flex items-center h-14 px-4 bg-white border-b border-gray-300 sticky top-0 z-20">
+      <div className="flex items-center h-14 px-4 bg-white  sticky top-0 z-20">
         <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
         <span className="font-black text-gray-800 text-base flex items-center gap-2">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -157,7 +157,7 @@ export default function SettingsPage() {
       <div className="px-5 pt-5 pb-20 space-y-4">
 
         {/* 내 정보 */}
-        <div className="bg-white rounded-[20px] border border-gray-300 shadow-sm px-5 py-4">
+        <div className="bg-white rounded-[20px]  px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">내 정보</span>
             <button
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 <input
                   value={editNickname}
                   onChange={(e) => setEditNickname(e.target.value)}
-                  className="w-full font-black text-[gray-800] text-base bg-gray-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-sky-200"
+                  className="w-full font-black text-[gray-800] text-base bg-yellow-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-sky-200"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && saveNickname()}
                 />
@@ -191,8 +191,8 @@ export default function SettingsPage() {
         </div>
 
         {/* 앱 설정 토글 */}
-        <div className="bg-white rounded-[20px] border border-gray-300 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-50">
+        <div className="bg-white rounded-[20px]  overflow-hidden">
+          <div className="px-5 py-3 ">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">앱 설정</span>
           </div>
 
@@ -203,10 +203,10 @@ export default function SettingsPage() {
           ].map(({ label, icon, value, onChange }, i, arr) => (
             <div
               key={label}
-              className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}
+              className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">
                   {icon}
                 </div>
                 <span className="font-bold text-[gray-800] text-sm">{label}</span>
@@ -217,18 +217,18 @@ export default function SettingsPage() {
         </div>
 
         {/* 기능 버튼들 */}
-        <div className="bg-white rounded-[20px] border border-gray-300 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-50">
+        <div className="bg-white rounded-[20px]  overflow-hidden">
+          <div className="px-5 py-3 ">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">기능</span>
           </div>
           {navItems.map(({ icon, label, path }, i) => (
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
+              className={`w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg shadow-sm">{icon}</div>
+                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">{icon}</div>
                 <span className="font-bold text-[gray-800] text-sm">{label}</span>
               </div>
               <span className="text-sky-400 text-lg font-bold">›</span>
@@ -266,12 +266,12 @@ export default function SettingsPage() {
               k === "" ? <div key={i} /> :
               k === "←" ? (
                 <button key={i} onClick={delPinKey}
-                  className="h-16 rounded-2xl bg-white border border-gray-300 shadow-sm text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
+                  className="h-16 rounded-2xl bg-white  text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
                   ←
                 </button>
               ) : (
                 <button key={i} onClick={() => pressPinKey(k)}
-                  className="h-16 rounded-2xl bg-white border border-gray-300 shadow-sm text-2xl font-black text-[gray-800] flex items-center justify-center active:scale-95 active:bg-sky-50 transition">
+                  className="h-16 rounded-2xl bg-white  text-2xl font-black text-[gray-800] flex items-center justify-center active:scale-95 active:bg-sky-50 transition">
                   {k}
                 </button>
               )

@@ -104,7 +104,7 @@ export default function ProfilePage() {
 
       {/* 뒤로가기 */}
       <button onClick={() => router.back()}
-        className="absolute top-4 left-4 z-50 flex items-center gap-1.5 bg-black/30 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+        className="absolute top-4 left-4 z-50 flex items-center gap-1.5 bg-black/30 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-bold">
         ← 뒤로가기
       </button>
 
@@ -126,12 +126,12 @@ export default function ProfilePage() {
 
       {/* 프로필 카드 */}
       <div className="relative z-10 -mt-16 px-5">
-        <div className="rounded-[28px] bg-white/90 backdrop-blur-md border border-gray-300 shadow-[0_12px_40px_rgba(14,165,233,0.2)] px-6 pt-6 pb-7">
+        <div className="rounded-[28px] bg-white/90 backdrop-blur-md -[0_12px_40px_rgba(14,165,233,0.2)] px-6 pt-6 pb-7">
 
           {/* 프로필 이미지 */}
           <div className="flex items-end gap-4 -mt-16 mb-5">
             <div onClick={() => profileRef.current?.click()}
-              className="relative w-24 h-24 rounded-[22px] bg-sky-100 overflow-hidden ring-4 ring-white shadow-xl cursor-pointer shrink-0">
+              className="relative w-24 h-24 rounded-[22px] bg-sky-100 overflow-hidden ring-4 ring-white cursor-pointer shrink-0">
               {profileImage ? (
                 <img src={profileImage} className="w-full h-full object-cover" />
               ) : (
@@ -148,9 +148,9 @@ export default function ProfilePage() {
             {editNickname ? (
               <div className="flex gap-2">
                 <input value={nickname} onChange={(e) => setNickname(e.target.value)}
-                  className="flex-1 bg-sky-50 border border-sky-200 rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-200" />
+                  className="flex-1 bg-sky-50  rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-200" />
                 <button onClick={saveNickname}
-                  className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[14px] text-sm font-black shadow-md">저장</button>
+                  className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[14px] text-sm font-black">저장</button>
               </div>
             ) : (
               <button onClick={() => setEditNickname(true)} className="flex items-center gap-2 group">
@@ -166,9 +166,9 @@ export default function ProfilePage() {
             {editStatus ? (
               <div className="flex gap-2">
                 <input value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="flex-1 bg-sky-50 border border-sky-200 rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-200" />
+                  className="flex-1 bg-sky-50  rounded-[14px] px-3 py-2 text-sm text-[gray-800] outline-none focus:ring-2 focus:ring-sky-200" />
                 <button onClick={saveStatus}
-                  className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[14px] text-sm font-black shadow-md">저장</button>
+                  className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[14px] text-sm font-black">저장</button>
               </div>
             ) : (
               <button onClick={() => setEditStatus(true)} className="flex items-center gap-2 group">
@@ -181,11 +181,11 @@ export default function ProfilePage() {
           {/* 버튼들 */}
           <div className="space-y-3">
             <button onClick={handleLogout}
-              className="w-full h-12 rounded-[18px] bg-white border border-sky-200 text-[#c07030] font-black text-sm shadow-sm active:scale-[0.98] transition-transform">
+              className="w-full h-12 rounded-[18px] bg-white  text-[#c07030] font-black text-sm active:scale-[0.98] transition-transform">
               로그아웃
             </button>
             <button onClick={() => setConfirmDelete(true)}
-              className="w-full h-12 rounded-[18px] bg-red-50 border border-red-100 text-red-500 font-black text-sm active:scale-[0.98] transition-transform">
+              className="w-full h-12 rounded-[18px] bg-red-50  text-red-500 font-black text-sm active:scale-[0.98] transition-transform">
               계정 탈퇴
             </button>
           </div>
@@ -195,7 +195,7 @@ export default function ProfilePage() {
       {/* 탈퇴 모달 */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-5">
-          <div className="w-full max-w-sm rounded-[28px] bg-white/95 border border-red-100 shadow-[0_20px_60px_rgba(0,0,0,0.2)] p-7 space-y-4">
+          <div className="w-full max-w-sm rounded-[28px] bg-white/95 -[0_20px_60px_rgba(0,0,0,0.2)] p-7 space-y-4">
             <div className="text-center">
               <span className="text-4xl">😢</span>
               <p className="font-black text-[gray-800] text-lg mt-3">정말 탈퇴하시겠어요?</p>
@@ -203,12 +203,12 @@ export default function ProfilePage() {
             </div>
             <input type="password" placeholder="비밀번호 확인" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-red-50 border border-red-100 rounded-[16px] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-200" />
+              className="w-full bg-red-50  rounded-[16px] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-200" />
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(false)}
-                className="flex-1 h-12 rounded-[16px] bg-gray-50 border border-gray-300 text-[#c07030] font-black text-sm">취소</button>
+                className="flex-1 h-12 rounded-[16px] bg-yellow-50  text-[#c07030] font-black text-sm">취소</button>
               <button onClick={handleDelete}
-                className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm shadow-md">탈퇴</button>
+                className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm">탈퇴</button>
             </div>
           </div>
         </div>

@@ -227,15 +227,15 @@ export default function FriendsPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden" onClick={() => setMenuOpen(null)}>
-      <div className="fixed inset-0 bg-gray-50" />
+      <div className="fixed inset-0 bg-yellow-50" />
 
       <div className="relative z-10">
-        <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white border-b border-gray-300">
+        <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white ">
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-400 font-bold text-lg mr-3">←</button>
           <span className="font-black text-[gray-800] text-base">친구 🤝</span>
           {requests.length > 0 && (
-            <span className="ml-2 w-5 h-5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
+            <span className="ml-2 w-5 h-5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-black flex items-center justify-center">{requests.length}</span>
           )}
         </div>
 
@@ -245,7 +245,7 @@ export default function FriendsPage() {
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[sky-400] text-lg">🔍</span>
             <input value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-[18px] pl-11 pr-4 py-3.5 text-sm text-[gray-800] placeholder:text-[#d4b090] outline-none focus:ring-2 focus:ring-sky-200 shadow-sm"
+              className="w-full bg-white  rounded-[18px] pl-11 pr-4 py-3.5 text-sm text-[gray-800] placeholder:text-[#d4b090] outline-none focus:ring-2 focus:ring-sky-200"
               placeholder="사용자 검색" />
           </div>
 
@@ -255,7 +255,7 @@ export default function FriendsPage() {
               <p className="font-black text-[gray-800] text-base mb-3 px-1">받은 요청 🔔 <span className="text-sky-400">{requests.length}</span></p>
               <div className="space-y-2">
                 {requests.map((r) => (
-                  <div key={r.id} className="rounded-[20px] bg-white border border-gray-300 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={r.id} className="rounded-[20px] bg-white  px-4 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-200 shrink-0">
                         <TextAvatar nickname={r.fromNickname || r.from} size={44} profileImage={null} />
@@ -267,9 +267,9 @@ export default function FriendsPage() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => acceptRequest(r)}
-                        className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[12px] text-xs font-black shadow-md">수락</button>
+                        className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[12px] text-xs font-black">수락</button>
                       <button onClick={() => rejectRequest(r)}
-                        className="px-4 py-2 bg-gray-50 border border-gray-300 text-[#c07030] rounded-[12px] text-xs font-black">거절</button>
+                        className="px-4 py-2 bg-yellow-50  text-[#c07030] rounded-[12px] text-xs font-black">거절</button>
                     </div>
                   </div>
                 ))}
@@ -288,7 +288,7 @@ export default function FriendsPage() {
               </p>
               <div className="space-y-2">
                 {friends.filter((f) => favoriteDocs[f.uid]).map((f) => (
-                  <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-amber-50 border border-amber-100 px-4 py-3.5 flex items-center justify-between shadow-sm cursor-pointer active:scale-[0.98] transition">
+                  <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-amber-50  px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-blue-400 shrink-0">
@@ -325,13 +325,13 @@ export default function FriendsPage() {
               <p className="font-black text-[gray-800] text-base mb-3 px-1">내 친구 👫 <span className="text-sky-400">{visibleFriends.length}</span></p>
               <div className="space-y-2">
                 {visibleFriends.map((f) => (
-                  <div key={f.uid} onClick={() => openProfile(f)} className="relative rounded-[20px] bg-white border border-gray-300 px-4 py-3.5 flex items-center justify-between shadow-sm cursor-pointer active:scale-[0.98] transition">
+                  <div key={f.uid} onClick={() => openProfile(f)} className="relative rounded-[20px] bg-white  px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-200 shrink-0">
                           <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
                         </div>
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-white" />
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 " />
                       </div>
                       <div>
                         <p className="font-black text-[gray-800] text-sm">{f.nickname}</p>
@@ -348,7 +348,7 @@ export default function FriendsPage() {
                     {/* 액션 메뉴 */}
                     {menuOpen === f.uid && (
                       <div onClick={(e) => e.stopPropagation()}
-                        className="absolute right-4 top-14 z-30 w-44 bg-white rounded-[16px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-300 overflow-hidden">
+                        className="absolute right-4 top-14 z-30 w-44 bg-white rounded-[16px]-[0_8px_30px_rgba(0,0,0,0.12)]  overflow-hidden">
                         <button onClick={() => toggleFavorite(f)}
                           className="w-full px-4 py-3 text-left text-sm font-semibold text-[gray-800] hover:bg-amber-50 flex items-center gap-2">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill={favoriteDocs[f.uid] ? "#f59e0b" : "none"} stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -387,7 +387,7 @@ export default function FriendsPage() {
                 const alreadyFriend = isFriend(user.uid);
                 const alreadySent = sentRequests.has(user.uid);
                 return (
-                  <div key={user.uid} className="rounded-[20px] bg-white border border-gray-300 px-4 py-3.5 flex items-center justify-between shadow-sm">
+                  <div key={user.uid} className="rounded-[20px] bg-white  px-4 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
                         <TextAvatar nickname={user.nickname} size={44} profileImage={user.profileImage ?? null} />
@@ -400,7 +400,7 @@ export default function FriendsPage() {
                       <span className="px-3 py-1.5 rounded-full bg-sky-50 text-[sky-500] text-xs font-black">요청됨</span>
                     ) : (
                       <button onClick={() => sendFriendRequest(user)}
-                        className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[12px] text-xs font-black shadow-md">요청</button>
+                        className="px-4 py-2 bg-sky-100 text-sky-800 rounded-[12px] text-xs font-black">요청</button>
                     )}
                   </div>
                 );
@@ -416,7 +416,7 @@ export default function FriendsPage() {
         <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={() => setProfileView(null)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
           <div
-            className="relative z-10 bg-white rounded-t-[32px] overflow-hidden shadow-2xl"
+            className="relative z-10 bg-white rounded-t-[32px] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 커버 이미지 */}
@@ -436,7 +436,7 @@ export default function FriendsPage() {
                 </svg>
               </button>
               {/* 프로필 이미지 */}
-              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full ring-4 ring-white shadow-lg overflow-hidden">
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full ring-4 ring-white overflow-hidden">
                 <TextAvatar nickname={profileView.nickname} size={80} profileImage={profileView.profileImage} />
               </div>
             </div>
@@ -455,7 +455,7 @@ export default function FriendsPage() {
             <div className="flex gap-3 px-6 pb-8">
               <button
                 onClick={() => { setProfileView(null); router.push(`/avatar?open=${profileView.nickname}`); }}
-                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] bg-sky-100 text-sky-800 font-black shadow-sm active:scale-95 transition"
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] bg-sky-100 text-sky-800 font-black active:scale-95 transition"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -464,7 +464,7 @@ export default function FriendsPage() {
               </button>
               <button
                 onClick={() => { if (profileView.phone) setPhonePopup(profileView.phone); }}
-                className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] font-black active:scale-95 transition ${profileView.phone ? "bg-green-500 text-white shadow-[0_4px_14px_rgba(34,197,94,0.35)]" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] font-black active:scale-95 transition ${profileView.phone ? "bg-green-500 text-white-[0_4px_14px_rgba(34,197,94,0.35)]" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.83a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
@@ -481,7 +481,7 @@ export default function FriendsPage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center" onClick={() => setPhonePopup(null)}>
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative z-10 bg-white rounded-[28px] w-72 px-6 py-7 shadow-2xl flex flex-col items-center gap-5"
+            className="relative z-10 bg-white rounded-[28px] w-72 px-6 py-7 flex flex-col items-center gap-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
@@ -502,7 +502,7 @@ export default function FriendsPage() {
               </button>
               <a
                 href={`tel:${phonePopup}`}
-                className="flex-1 h-11 rounded-[14px] bg-green-500 text-white font-black text-sm flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(34,197,94,0.4)] active:scale-95 transition"
+                className="flex-1 h-11 rounded-[14px] bg-green-500 text-white font-black text-sm flex items-center justify-center gap-1.5-[0_4px_12px_rgba(34,197,94,0.4)] active:scale-95 transition"
                 onClick={() => setPhonePopup(null)}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
