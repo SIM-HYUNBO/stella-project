@@ -138,12 +138,6 @@ export default function LoginPage() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#3C1E1E"><path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.7 1.6 5.08 4.02 6.54L5 21l4.23-2.23c.88.2 1.81.3 2.77.3 5.52 0 10-3.48 10-7.8S17.52 3 12 3z"/></svg>
             <span className="text-sm font-bold text-[#3C1E1E]">카카오로 계속하기</span>
           </button>
-
-          <button onClick={() => alert("Apple 로그인은 준비 중이에요")}
-            className="w-full h-12 rounded-[16px] bg-black flex items-center px-4 gap-3 active:scale-[0.98] transition">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.42c1.27.06 2.15.72 2.9.73.9-.14 1.75-.8 3.04-.87 1.55.07 2.73.62 3.48 1.63-3.18 1.9-2.39 6.19.58 7.37zM12.9 7.35c-.18-2.31 1.69-4.22 3.83-4.35.25 2.38-2.13 4.35-3.83 4.35z"/></svg>
-            <span className="text-sm font-bold text-white">Apple로 계속하기</span>
-          </button>
         </div>
 
       </div>
