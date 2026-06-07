@@ -31,7 +31,7 @@ export default function LoginPage() {
       }
       router.push("/home");
     } catch (err: any) {
-      if (err.code !== "auth/popup-closed-by-user") setError("구글 로그인에 실패했어요.");
+      if (err.code !== "auth/popup-closed-by-user") setError(`구글 로그인 실패: ${err.code || err.message}`);
     } finally {
       setLoading(false);
     }
