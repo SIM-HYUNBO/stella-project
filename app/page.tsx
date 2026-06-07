@@ -139,7 +139,7 @@ export default function RootPage() {
 
         {/* ── WHY WAGIE 배너 ── */}
         <div className="rounded-[30px] overflow-hidden relative shadow-lg shadow-sky-200">
-          <div className="bg-gradient-to-br from-sky-600 via-sky-500 to-cyan-400 px-6 py-7 relative">
+          <div className="bg-gradient-to-br from-yellow-400 via-yellow-300 to-cyan-400 px-6 py-7 relative">
             <div className="absolute top-[-40px] right-[-40px] w-52 h-52 rounded-full bg-white/10" />
             <div className="absolute bottom-[-30px] left-[-30px] w-36 h-36 rounded-full bg-white/10" />
             <div className="absolute top-4 right-4 text-3xl opacity-40 animate-[pulse_3s_infinite]">🌟</div>
