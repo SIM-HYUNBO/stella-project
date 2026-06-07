@@ -16,6 +16,7 @@ import {
   serverTimestamp,
   updateDoc,
   doc,
+  setDoc,
   arrayUnion,
   arrayRemove,
   where,
@@ -78,6 +79,8 @@ export default function GroupChat() {
   >([]);
 
   const [input, setInput] = useState("");
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [hlColor, setHlColor] = useState("y");
   const [showHlPicker, setShowHlPicker] = useState(false);
@@ -317,6 +320,28 @@ export default function GroupChat() {
 
     return () => unsub();
   }, [currentRoom?.id, nickname]);
+
+  // 타이핑 구독
+  useEffect(() => {
+    if (!currentRoom || !nickname) return;
+    const unsub = onSnapshot(doc(db, "group_typing", currentRoom.id), (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const now = Date.now();
+      const typers = Object.entries(data)
+        .filter(([k, v]: any) => k !== nickname && v.isTyping && now - v.updatedAt < 5000)
+        .map(([, v]: any) => v.nickname as string);
+      setTypingUsers(typers);
+    });
+    return () => unsub();
+  }, [currentRoom?.id, nickname]);
+
+  const sendTyping = async (isTyping: boolean) => {
+    if (!currentRoom || !nickname) return;
+    await setDoc(doc(db, "group_typing", currentRoom.id), {
+      [nickname]: { isTyping, nickname, updatedAt: Date.now() },
+    }, { merge: true });
+  };
 
   // 멤버 칭호 로드
   useEffect(() => {
@@ -1090,6 +1115,24 @@ export default function GroupChat() {
           );
         })}
 
+        {typingUsers.length > 0 && (
+          <div className="flex items-end gap-2 animate-[fadeInUp_0.2s_ease]">
+            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-500 shrink-0">
+              {typingUsers[0][0]}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] text-slate-400 px-1">
+                {typingUsers.length === 1 ? typingUsers[0] : `${typingUsers[0]} 외 ${typingUsers.length - 1}명`}
+              </span>
+              <div className="bg-white rounded-[18px] rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"0ms"}} />
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"200ms"}} />
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"400ms"}} />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -1180,7 +1223,12 @@ export default function GroupChat() {
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            sendTyping(true);
+            if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+            typingTimerRef.current = setTimeout(() => sendTyping(false), 2000);
+          }}
           onSelect={(e) => {
             const el = e.currentTarget;
             setHlSel({ start: el.selectionStart ?? 0, end: el.selectionEnd ?? 0 });
@@ -1424,6 +1472,16 @@ export default function GroupChat() {
         {renderRoomSettings()}
         {renderPasswordPrompt()}
       </div>
+      <style>{`
+        @keyframes typingDot {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-5px); opacity: 1; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </PageContainer>
   );
 }

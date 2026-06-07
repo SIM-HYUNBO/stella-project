@@ -1175,11 +1175,6 @@ export default function Chat() {
         </div>
       )}
 
-      {peerTyping && (
-        <div className="px-4 py-2 text-xs text-gray-400 italic">
-          {currentChatUser?.nickname}님이 입력 중...
-        </div>
-      )}
 
       <div
         className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3"
@@ -1315,6 +1310,23 @@ export default function Chat() {
             </div>
           );
         })}
+
+        {/* 타이핑 인디케이터 */}
+        {peerTyping && (
+          <div className="flex items-end gap-2 animate-[fadeIn_0.2s_ease]">
+            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-500 shrink-0">
+              {currentChatUser?.nickname?.[0] ?? "?"}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] text-slate-400 px-1">{currentChatUser?.nickname}</span>
+              <div className="bg-white rounded-[18px] rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"0ms"}} />
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"200ms"}} />
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"400ms"}} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div ref={messagesEndRef} />
       </div>
@@ -1653,6 +1665,16 @@ export default function Chat() {
         </div>
       )}
       <div className="flex flex-col">{renderUserList()}</div>
+      <style>{`
+        @keyframes typingDot {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-5px); opacity: 1; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </PageContainer>
   );
 }
