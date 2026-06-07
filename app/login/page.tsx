@@ -146,10 +146,6 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="text-center text-sm text-[#b08060] mt-5">
-          계정이 없으신가요?{" "}
-          <a href="/signup" className="text-sky-600 font-black">회원가입 →</a>
-        </p>
       </div>
 
       <style>{`
