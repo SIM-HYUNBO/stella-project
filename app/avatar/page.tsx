@@ -553,7 +553,7 @@ export default function Chat() {
         updated && Date.now() - updated.getTime() < 5000;
 
       setPeerTyping(data.isTyping && isRecent);
-    });
+    }, () => { setPeerTyping(false); });
   }, [currentChatUser, nickname]);
 
   useEffect(() => {
@@ -634,12 +634,14 @@ export default function Chat() {
 
       const key = `${nicknameRef.current}_to_${currentChatUser.nickname}`;
 
-      await setDoc(doc(db, "typing", key), {
-        from: nicknameRef.current,
-        to: currentChatUser.nickname,
-        isTyping,
-        updatedAt: serverTimestamp(),
-      });
+      try {
+        await setDoc(doc(db, "typing", key), {
+          from: nicknameRef.current,
+          to: currentChatUser.nickname,
+          isTyping,
+          updatedAt: serverTimestamp(),
+        });
+      } catch { /* 타이핑 표시 실패는 무시 */ }
     },
     [currentChatUser]
   );

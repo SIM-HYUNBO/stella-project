@@ -332,15 +332,17 @@ export default function GroupChat() {
         .filter(([k, v]: any) => k !== nickname && v.isTyping && now - v.updatedAt < 5000)
         .map(([, v]: any) => v.nickname as string);
       setTypingUsers(typers);
-    });
+    }, () => { setTypingUsers([]); });
     return () => unsub();
   }, [currentRoom?.id, nickname]);
 
   const sendTyping = async (isTyping: boolean) => {
     if (!currentRoom || !nickname) return;
-    await setDoc(doc(db, "group_typing", currentRoom.id), {
-      [nickname]: { isTyping, nickname, updatedAt: Date.now() },
-    }, { merge: true });
+    try {
+      await setDoc(doc(db, "group_typing", currentRoom.id), {
+        [nickname]: { isTyping, nickname, updatedAt: Date.now() },
+      }, { merge: true });
+    } catch { /* 타이핑 표시 실패는 무시 */ }
   };
 
   // 멤버 칭호 로드
