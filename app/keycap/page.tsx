@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 // ── 한글 두벌식 ──────────────────────────────────────────────────────────────
 const KO_NORMAL: Record<string, string> = {
@@ -86,6 +86,32 @@ function koBackspace(text:string,comp:Comp):[string,Comp] {
   return [text,null];
 }
 
+// ── 사운드 ────────────────────────────────────────────────────────────────────
+type SoundParams = { clickFreq:number; clickQ:number; clickVol:number; thumpStart:number; thumpEnd:number; thumpDecay:number; thumpVol:number };
+
+function playClick(ctx:AudioContext, s:SoundParams, type:"normal"|"space"|"accent") {
+  const now = ctx.currentTime;
+  const mult   = type==="space"?1.7:type==="accent"?1.25:1.0;
+  const pMult  = type==="space"?0.55:type==="accent"?0.82:1.0;
+
+  // 노이즈 클릭
+  const dur = 0.004;
+  const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate*dur), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(d.length*0.4));
+  const src=ctx.createBufferSource(); src.buffer=buf;
+  const bpf=ctx.createBiquadFilter(); bpf.type="bandpass"; bpf.frequency.value=s.clickFreq*pMult; bpf.Q.value=s.clickQ;
+  const ng=ctx.createGain(); ng.gain.setValueAtTime(s.clickVol*mult,now); ng.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  src.connect(bpf); bpf.connect(ng); ng.connect(ctx.destination); src.start(now);
+
+  // 저음 thump
+  const osc=ctx.createOscillator(); osc.type="sine";
+  osc.frequency.setValueAtTime(s.thumpStart*pMult,now);
+  osc.frequency.exponentialRampToValueAtTime(s.thumpEnd*pMult,now+s.thumpDecay);
+  const og=ctx.createGain(); og.gain.setValueAtTime(s.thumpVol*mult,now); og.gain.exponentialRampToValueAtTime(0.0001,now+s.thumpDecay+0.01);
+  osc.connect(og); og.connect(ctx.destination); osc.start(now); osc.stop(now+s.thumpDecay+0.02);
+}
+
 // ── 테마 ──────────────────────────────────────────────────────────────────────
 type ThemeDef = {
   id:string; name:string; dot:string;
@@ -101,6 +127,7 @@ type ThemeDef = {
   dispBg:string; dispText:string; dispBorder:string;
   dispCursor:string; dispPlaceholder:string;
   scanline:string;
+  sound:SoundParams;
 };
 
 const THEMES: ThemeDef[] = [
@@ -121,6 +148,7 @@ const THEMES: ThemeDef[] = [
     dispBg:"#060608", dispText:"#a0ffb0", dispBorder:"#2a2a3a",
     dispCursor:"#a0ffb0", dispPlaceholder:"#2a3a2a",
     scanline:"rgba(255,255,255,0.015)",
+    sound:{clickFreq:3500,clickQ:1.0,clickVol:0.28,thumpStart:240,thumpEnd:65,thumpDecay:0.055,thumpVol:0.20},
   },
   {
     id:"light", name:"라이트", dot:"#d4d0c8",
@@ -139,6 +167,7 @@ const THEMES: ThemeDef[] = [
     dispBg:"#f8f6f2", dispText:"#1a1a2a", dispBorder:"#c8c4bc",
     dispCursor:"#4a6a9a", dispPlaceholder:"#b8b4ac",
     scanline:"rgba(0,0,0,0.015)",
+    sound:{clickFreq:2200,clickQ:0.6,clickVol:0.16,thumpStart:160,thumpEnd:50,thumpDecay:0.07,thumpVol:0.13},
   },
   {
     id:"ocean", name:"오션", dot:"#0ea5e9",
@@ -157,6 +186,7 @@ const THEMES: ThemeDef[] = [
     dispBg:"#040c18", dispText:"#38bdf8", dispBorder:"#0e3560",
     dispCursor:"#38bdf8", dispPlaceholder:"#0e3560",
     scanline:"rgba(14,165,233,0.02)",
+    sound:{clickFreq:1800,clickQ:0.5,clickVol:0.12,thumpStart:130,thumpEnd:40,thumpDecay:0.09,thumpVol:0.10},
   },
   {
     id:"retro", name:"레트로", dot:"#d4a853",
@@ -175,6 +205,7 @@ const THEMES: ThemeDef[] = [
     dispBg:"#120c04", dispText:"#d4a853", dispBorder:"#6a4a28",
     dispCursor:"#d4a853", dispPlaceholder:"#4a3010",
     scanline:"rgba(212,168,83,0.03)",
+    sound:{clickFreq:5500,clickQ:2.0,clickVol:0.40,thumpStart:380,thumpEnd:90,thumpDecay:0.04,thumpVol:0.25},
   },
   {
     id:"neon", name:"네온", dot:"#ff00ff",
@@ -193,6 +224,7 @@ const THEMES: ThemeDef[] = [
     dispBg:"#08001a", dispText:"#ff60ff", dispBorder:"#3d0080",
     dispCursor:"#ff00ff", dispPlaceholder:"#3d0060",
     scanline:"rgba(255,0,255,0.025)",
+    sound:{clickFreq:6000,clickQ:3.0,clickVol:0.22,thumpStart:800,thumpEnd:200,thumpDecay:0.03,thumpVol:0.18},
   },
 ];
 
@@ -260,9 +292,27 @@ export default function KeycapPage() {
   const [koMode, setKoMode] = useState(false);
   const [themeIdx, setThemeIdx] = useState(0);
   const [showThemes, setShowThemes] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
+  const audioCtxRef = useRef<AudioContext|null>(null);
+  const soundOnRef  = useRef(true);
+  const themeIdxRef = useRef(0);
+  soundOnRef.current  = soundOn;
+  themeIdxRef.current = themeIdx;
 
   const T = THEMES[themeIdx];
   const displayText = text + getCompChar(comp);
+
+  const fireClick = useCallback((keyType:"normal"|"space"|"accent") => {
+    if(!soundOnRef.current) return;
+    try {
+      if(!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext||(window as {webkitAudioContext?:typeof AudioContext}).webkitAudioContext!)();
+      }
+      const ctx = audioCtxRef.current;
+      if(ctx.state==="suspended") ctx.resume();
+      playClick(ctx, THEMES[themeIdxRef.current].sound, keyType);
+    } catch(_){}
+  },[]);
 
   const flash = useCallback((key:string) => {
     setPressed(p=>{const n=new Set(p);n.add(key);return n;});
@@ -273,6 +323,12 @@ export default function KeycapPage() {
     flash(key);
     const mods=["LCtrl","RCtrl","LAlt","RAlt","Win","RWin"];
     if(mods.includes(key)) return;
+    // 소리 종류 결정
+    const accentKeys=["Enter","Backspace","Tab","LShift","RShift","CapsLock"];
+    if(accentKeys.includes(key)) fireClick("accent");
+    else if(key===" ") fireClick("space");
+    else fireClick("normal");
+
     if(key==="CapsLock"){setCaps(c=>!c);return;}
     if(key==="LShift"||key==="RShift"){setShift(s=>!s);return;}
     if(key==="Backspace"){
@@ -300,7 +356,7 @@ export default function KeycapPage() {
     if(shift){char=SHIFT_OUT[key]??(isLetter?key.toUpperCase():key);setShift(false);}
     else if(caps&&isLetter) char=key.toUpperCase();
     setText(t=>t+char);
-  },[text,comp,shift,caps,koMode,flash]);
+  },[text,comp,shift,caps,koMode,flash,fireClick]);
 
   useEffect(()=>{
     const down=(e:KeyboardEvent)=>{
@@ -425,6 +481,19 @@ export default function KeycapPage() {
             STELLA KEYCAP
           </span>
           <div className="flex gap-2 items-center">
+            {/* 소리 토글 */}
+            <button
+              onMouseDown={e=>e.preventDefault()}
+              onClick={()=>setSoundOn(v=>!v)}
+              style={{
+                padding:"4px 10px",borderRadius:8,fontSize:13,fontWeight:700,
+                background:soundOn?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",
+                color:soundOn?"rgba(255,255,255,0.7)":"rgba(255,255,255,0.25)",
+                border:"1px solid rgba(255,255,255,0.1)",
+                cursor:"pointer",transition:"all 0.15s",
+              }}>
+              {soundOn?"🔊":"🔇"}
+            </button>
             <button
               onMouseDown={e=>e.preventDefault()}
               onClick={()=>setShowThemes(v=>!v)}
