@@ -123,7 +123,7 @@ export default function RootPage() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { cls: "bg-gradient-to-br from-sky-500 to-sky-400",     icon: "💬", title: "1:1 채팅",   sub: "친구와 나만의\n소중한 대화" },
-              { cls: "bg-gradient-to-br from-yellow-600 to-amber-1000", icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
+              { cls: "bg-gradient-to-br from-yellow-400 to-yellow-300", icon: "👥", title: "단체채팅",  sub: "친구들 모두\n같이 얘기해요" },
               { cls: "bg-gradient-to-br from-sky-600 to-sky-500",      icon: "📔", title: "다이어리",  sub: "오늘 하루를\n글로 남겨봐요" },
               { cls: "bg-gradient-to-br from-cyan-500 to-sky-400",     icon: "🤝", title: "친구 맺기", sub: "새로운 인연을\n만들어봐요" },
             ].map(({ cls, icon, title, sub }) => (

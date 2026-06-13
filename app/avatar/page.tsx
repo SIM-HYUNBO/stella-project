@@ -96,16 +96,17 @@ function SwipeUserItem({
   onMute,
   onFavorite,
 }: any) {
-  const BUTTON_WIDTH = 240;
+  const LEFT_WIDTH = 72;   // 즐겨찾기 (왼→오 슬라이드)
+  const RIGHT_WIDTH = 180; // 알림·숨기기·차단 (오→왼 슬라이드)
 
   const [offset, setOffset] = useState(0);
-  const [open, setOpen] = useState(false);
+  const [side, setSide] = useState<"none" | "left" | "right">("none");
 
   const startX = useRef(0);
   const isDragging = useRef(false);
   const currentOffset = useRef(0);
 
-  const closePanel = () => { setOffset(0); setOpen(false); currentOffset.current = 0; };
+  const closePanel = () => { setOffset(0); setSide("none"); currentOffset.current = 0; };
 
   const onMoveStart = (clientX: number) => {
     startX.current = clientX - offset;
@@ -114,37 +115,47 @@ function SwipeUserItem({
 
   const onMove = (clientX: number) => {
     if (!isDragging.current) return;
-    const newOffset = Math.min(0, Math.max(-BUTTON_WIDTH, clientX - startX.current));
-    setOffset(newOffset);
-    currentOffset.current = newOffset;
+    const raw = clientX - startX.current;
+    const clamped = Math.min(LEFT_WIDTH, Math.max(-RIGHT_WIDTH, raw));
+    setOffset(clamped);
+    currentOffset.current = clamped;
   };
 
   const onMoveEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    if (!open) {
-      if (currentOffset.current < -40) { setOffset(-BUTTON_WIDTH); setOpen(true); }
+    const o = currentOffset.current;
+    if (side === "none") {
+      if (o > 30)  { setOffset(LEFT_WIDTH);   setSide("left"); }
+      else if (o < -50) { setOffset(-RIGHT_WIDTH); setSide("right"); }
       else { setOffset(0); }
+    } else if (side === "left") {
+      if (o < 20) { setOffset(0); setSide("none"); }
+      else { setOffset(LEFT_WIDTH); }
     } else {
-      if (currentOffset.current > -40) { setOffset(0); setOpen(false); }
-      else { setOffset(-BUTTON_WIDTH); }
+      if (o > -50) { setOffset(0); setSide("none"); }
+      else { setOffset(-RIGHT_WIDTH); }
     }
   };
 
   return (
     <div className="relative overflow-hidden rounded-2xl mb-2">
-      <div className="absolute right-0 top-0 h-full flex" style={{ width: BUTTON_WIDTH }}>
-        {/* 즐겨찾기 */}
+      {/* 왼쪽 패널 — 즐겨찾기 (왼→오 슬라이드) */}
+      <div className="absolute left-0 top-0 h-full flex" style={{ width: LEFT_WIDTH }}>
         <button
           onClick={(e) => { e.stopPropagation(); onFavorite(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-sky-600" : "bg-amber-1000"}`}
+          className={`w-full flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isFavorite ? "bg-sky-500" : "bg-amber-400"}`}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill={isFavorite ? "white" : "none"} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
           <span>{isFavorite ? "해제" : "즐겨찾기"}</span>
         </button>
-        {/* 알림 끄기 */}
+      </div>
+
+      {/* 오른쪽 패널 — 알림·숨기기·차단 (오→왼 슬라이드) */}
+      <div className="absolute right-0 top-0 h-full flex" style={{ width: RIGHT_WIDTH }}>
+        {/* 알림 */}
         <button
           onClick={(e) => { e.stopPropagation(); onMute(); closePanel(); }}
           className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isMuted ? "bg-sky-500" : "bg-gray-400"}`}
@@ -163,7 +174,7 @@ function SwipeUserItem({
               <line x1="1" y1="1" x2="23" y2="23" />
             </svg>
           )}
-          <span>{isMuted ? "알림 켜기" : "알림 끄기"}</span>
+          <span>{isMuted ? "알림켜기" : "알림끄기"}</span>
         </button>
         {/* 숨기기 */}
         <button
@@ -187,7 +198,7 @@ function SwipeUserItem({
         {/* 차단 */}
         <button
           onClick={(e) => { e.stopPropagation(); onBlock(); closePanel(); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-yellow-200"}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-white text-[10px] font-bold ${isBlocked ? "bg-emerald-500" : "bg-red-400"}`}
         >
           {isBlocked ? (
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -343,6 +354,7 @@ export default function Chat() {
   const nicknameRef = useRef<string | null>(null);
 
   const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [showSpecialMenu, setShowSpecialMenu] = useState(false);
@@ -690,17 +702,25 @@ export default function Chat() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert("이 브라우저는 받아쓰기를 지원하지 않아요. Chrome을 사용해주세요."); return; }
     if (isDictating) { recognitionRef.current?.stop(); return; }
+    let finalText = "";
     const recognition = new SR();
     recognition.lang = "ko-KR";
     recognition.interimResults = true;
     recognition.continuous = true;
     recognition.onstart = () => setIsDictating(true);
     recognition.onend = () => setIsDictating(false);
-    recognition.onerror = () => setIsDictating(false);
+    recognition.onerror = (e: any) => {
+      setIsDictating(false);
+      if (e.error === "not-allowed") alert("마이크 권한이 없어요. 브라우저 설정에서 마이크를 허용해주세요.");
+      else if (e.error !== "aborted" && e.error !== "no-speech") alert(`받아쓰기 오류: ${e.error}`);
+    };
     recognition.onresult = (e: any) => {
-      let transcript = "";
-      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
-      setInput(transcript);
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      setInput(finalText + interim);
     };
     recognition.start();
     recognitionRef.current = recognition;
@@ -1260,31 +1280,44 @@ export default function Chat() {
               🔍
             </button>
 
-            <button
-              onClick={async () => {
-                if (!nickname || !currentChatUser) return;
-                if (!confirm(`${currentChatUser.nickname}님과의 대화를 모두 삭제하고 나가시겠습니까?`)) return;
-                const { getDocs: _getDocs, query: _query, collection: _col, where: _where, deleteDoc: _del, doc: _doc } = await import("firebase/firestore");
-                const snap = await _getDocs(_query(_col(db, "messages"),
-                  _where("from", "in", [nickname, currentChatUser.nickname]),
-                ));
-                await Promise.all(
-                  snap.docs
-                    .filter(d => {
-                      const data = d.data();
-                      return (
-                        (data.from === nickname && data.to === currentChatUser.nickname) ||
-                        (data.from === currentChatUser.nickname && data.to === nickname)
+            <div className="relative">
+              <button
+                onClick={() => setShowHeaderMenu((p) => !p)}
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+              </button>
+              {showHeaderMenu && (
+                <div className="absolute right-0 top-11 z-50 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-32">
+                  <button
+                    onClick={async () => {
+                      setShowHeaderMenu(false);
+                      if (!nickname || !currentChatUser) return;
+                      if (!confirm(`${currentChatUser.nickname}님과의 대화를 모두 삭제하고 나가시겠습니까?`)) return;
+                      const { getDocs: _getDocs, query: _query, collection: _col, where: _where, deleteDoc: _del, doc: _doc } = await import("firebase/firestore");
+                      const snap = await _getDocs(_query(_col(db, "messages"),
+                        _where("from", "in", [nickname, currentChatUser.nickname]),
+                      ));
+                      await Promise.all(
+                        snap.docs
+                          .filter(d => {
+                            const data = d.data();
+                            return (
+                              (data.from === nickname && data.to === currentChatUser.nickname) ||
+                              (data.from === currentChatUser.nickname && data.to === nickname)
+                            );
+                          })
+                          .map(d => _del(_doc(db, "messages", d.id)))
                       );
-                    })
-                    .map(d => _del(_doc(db, "messages", d.id)))
-                );
-                setCurrentChatUser(null);
-              }}
-              className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm font-medium transition"
-            >
-              나가기
-            </button>
+                      setCurrentChatUser(null);
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+                  >
+                    나가기
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

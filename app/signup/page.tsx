@@ -14,6 +14,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nickname, setNickname] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -33,6 +35,14 @@ export default function SignupPage() {
       setError("닉네임은 2자 이상이어야 해요.");
       return;
     }
+    if (!birthdate) {
+      setError("생년월일을 입력해주세요.");
+      return;
+    }
+    if (phone.replace(/\D/g, "").length < 10) {
+      setError("올바른 전화번호를 입력해주세요.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -41,6 +51,8 @@ export default function SignupPage() {
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         nickname: nickname.trim(),
+        birthdate,
+        phone: phone.replace(/\D/g, ""),
         createdAt: serverTimestamp(),
       });
 
@@ -95,6 +107,19 @@ export default function SignupPage() {
             <input
               type="email" placeholder="이메일" value={email}
               onChange={(e) => setEmail(e.target.value)} required
+              className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-300 transition"
+            />
+            <div className="relative">
+              <input
+                type="date" value={birthdate}
+                onChange={(e) => setBirthdate(e.target.value)} required
+                className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-sky-300 transition"
+              />
+              {!birthdate && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">생년월일</span>}
+            </div>
+            <input
+              type="tel" placeholder="전화번호 (숫자만)" value={phone}
+              onChange={(e) => setPhone(e.target.value)} required
               className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-300 transition"
             />
             <input

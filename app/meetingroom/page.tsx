@@ -79,6 +79,7 @@ export default function MeetingRoomPage() {
   const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
   const [sendingAudio, setSendingAudio] = useState(false);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -234,17 +235,25 @@ export default function MeetingRoomPage() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert("이 브라우저는 받아쓰기를 지원하지 않아요. Chrome을 사용해주세요."); return; }
     if (isDictating) { recognitionRef.current?.stop(); return; }
+    let finalText = "";
     const recognition = new SR();
     recognition.lang = "ko-KR";
     recognition.interimResults = true;
     recognition.continuous = true;
     recognition.onstart = () => setIsDictating(true);
     recognition.onend = () => setIsDictating(false);
-    recognition.onerror = () => setIsDictating(false);
+    recognition.onerror = (e: any) => {
+      setIsDictating(false);
+      if (e.error === "not-allowed") alert("마이크 권한이 없어요. 브라우저 설정에서 마이크를 허용해주세요.");
+      else if (e.error !== "aborted" && e.error !== "no-speech") alert(`받아쓰기 오류: ${e.error}`);
+    };
     recognition.onresult = (e: any) => {
-      let transcript = "";
-      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
-      setInput(transcript);
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      setInput(finalText + interim);
     };
     recognition.start();
     recognitionRef.current = recognition;
@@ -642,24 +651,36 @@ export default function MeetingRoomPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={sendUrgent}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs active:scale-95 transition animate-[pulse_3s_infinite]"
-          >
-            🚨 긴급
-          </button>
-          <button
-            onClick={() => setShowInvite(true)}
-            className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
-          >
-            초대
-          </button>
-          <button
-            onClick={leaveRoom}
-            className="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 text-sm transition"
-          >
-            나가기
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowHeaderMenu((p) => !p)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            </button>
+            {showHeaderMenu && (
+              <div className="absolute right-0 top-11 z-50 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-32">
+                <button
+                  onClick={() => { setShowHeaderMenu(false); sendUrgent(); }}
+                  className="w-full px-4 py-3 text-left text-sm text-red-600 font-bold hover:bg-red-50 transition"
+                >
+                  🚨 긴급
+                </button>
+                <button
+                  onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
+                  className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
+                >
+                  초대
+                </button>
+                <button
+                  onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
+                  className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+                >
+                  나가기
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
