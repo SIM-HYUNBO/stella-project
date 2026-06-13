@@ -34,6 +34,7 @@ const HOUR_HEIGHT = 64; // px per hour
 type CalEvent = {
   id: string; date: string; title: string; color: string; userId: string;
   startTime?: string; endTime?: string; allDay?: boolean;
+  repeat?: "none" | "daily" | "weekly" | "monthly" | "yearly";
 };
 
 function toKey(y: number, m: number, d: number) {
@@ -67,6 +68,7 @@ export default function CalendarPage() {
   const [newAllDay, setNewAllDay] = useState(false);
   const [newStart, setNewStart] = useState("09:00");
   const [newEnd, setNewEnd] = useState("10:00");
+  const [newRepeat, setNewRepeat] = useState<"none"|"daily"|"weekly"|"monthly"|"yearly">("none");
   const [adding, setAdding] = useState(false);
 
   const [nowMin, setNowMin] = useState(0);
@@ -135,13 +137,32 @@ export default function CalendarPage() {
     return map;
   }, [events]);
 
-  const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) => {
+  const selectedEvents = getEventsForDate(selectedDate).sort((a, b) => {
     if (a.allDay && !b.allDay) return -1;
     if (!a.allDay && b.allDay) return 1;
     return (a.startTime || "00:00").localeCompare(b.startTime || "00:00");
   });
   const selectedHoliday = HOLIDAYS[selectedDate];
   const tk = todayKey();
+
+  const eventAppliesToDate = (e: CalEvent, key: string): boolean => {
+    if (key < e.date) return false;
+    if (!e.repeat || e.repeat === "none") return e.date === key;
+    const [ty, tm, td] = key.split("-").map(Number);
+    const [, em, ed] = e.date.split("-").map(Number);
+    const target = new Date(ty, tm - 1, td);
+    const start = new Date(e.date);
+    switch (e.repeat) {
+      case "daily":   return true;
+      case "weekly":  return target.getDay() === start.getDay();
+      case "monthly": return td === ed;
+      case "yearly":  return tm === em && td === ed;
+      default: return e.date === key;
+    }
+  };
+
+  const getEventsForDate = (key: string) =>
+    events.filter((e) => eventAppliesToDate(e, key));
 
   const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); };
   const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); };
@@ -164,9 +185,9 @@ export default function CalendarPage() {
     await addDoc(collection(db, "calendar_events"), {
       userId: uid, date: selectedDate, title: newTitle.trim(), color: newColor,
       allDay: newAllDay, startTime: newAllDay ? null : newStart, endTime: newAllDay ? null : newEnd,
-      createdAt: serverTimestamp(),
+      repeat: newRepeat, createdAt: serverTimestamp(),
     });
-    setNewTitle(""); setShowAdd(false); setAdding(false);
+    setNewTitle(""); setShowAdd(false); setAdding(false); setNewRepeat("none");
   };
 
   const deleteEvent = async (id: string) => {
@@ -234,7 +255,7 @@ export default function CalendarPage() {
                 const isToday = cell.key === tk;
                 const isSelected = cell.key === selectedDate;
                 const isHoliday = !!HOLIDAYS[cell.key];
-                const dayEvts = eventsByDate[cell.key] || [];
+                const dayEvts = getEventsForDate(cell.key);
                 const isSun = col === 0; const isSat = col === 6;
                 return (
                   <button key={cell.key + i} onClick={() => setSelectedDate(cell.key)}
@@ -269,7 +290,7 @@ export default function CalendarPage() {
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => setViewMode("day")}
                     className="px-2.5 py-1 rounded-xl bg-gray-100 text-gray-500 text-xs font-black">시간표</button>
-                  <button onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); }}
+                  <button onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); setNewRepeat("none"); }}
                     className="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center active:scale-90 transition">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -296,8 +317,13 @@ export default function CalendarPage() {
                     <div className="w-3 h-3 rounded-full shrink-0" style={{ background: e.color }} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-[#1c1c1e] truncate">{e.title}</div>
-                      <div className="text-xs text-gray-400">
-                        {e.allDay || !e.startTime ? "종일" : `${e.startTime}${e.endTime ? ` ~ ${e.endTime}` : ""}`}
+                      <div className="text-xs text-gray-400 flex items-center gap-1">
+                        <span>{e.allDay || !e.startTime ? "종일" : `${e.startTime}${e.endTime ? ` ~ ${e.endTime}` : ""}`}</span>
+                        {e.repeat && e.repeat !== "none" && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-500 font-bold">
+                            {e.repeat === "daily" ? "매일" : e.repeat === "weekly" ? "매주" : e.repeat === "monthly" ? "매월" : "매년"}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <button onClick={() => deleteEvent(e.id)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition shrink-0">
@@ -389,7 +415,7 @@ export default function CalendarPage() {
                   return (
                     <div key={e.id}
                       className="absolute left-16 right-3 rounded-xl px-2.5 py-1.5 z-20 overflow-hidden"
-                      style={{ top, height, background: e.color + "dd" }}
+                      style={{ top, height, background: e.color + "66" }}
                     >
                       <div className="flex items-start justify-between gap-1">
                         <div className="min-w-0">
@@ -413,7 +439,7 @@ export default function CalendarPage() {
 
             {/* 추가 버튼 */}
             <button
-              onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); }}
+              onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); setNewRepeat("none"); }}
               className="absolute bottom-20 right-5 w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center active:scale-90 transition z-30"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -464,6 +490,25 @@ export default function CalendarPage() {
                   </div>
                 </div>
               )}
+
+              {/* 반복 */}
+              <div>
+                <p className="text-xs font-black text-gray-400 mb-2">반복</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {([
+                    { v: "none", l: "없음" },
+                    { v: "daily", l: "매일" },
+                    { v: "weekly", l: "매주" },
+                    { v: "monthly", l: "매월" },
+                    { v: "yearly", l: "매년" },
+                  ] as const).map(({ v, l }) => (
+                    <button key={v} onClick={() => setNewRepeat(v)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${newRepeat === v ? "bg-sky-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* 색상 */}
               <div>
