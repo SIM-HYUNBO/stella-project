@@ -131,20 +131,6 @@ export default function CalendarPage() {
     return arr;
   }, [year, month, firstDay, daysInMonth, daysInPrev, totalCells]);
 
-  const eventsByDate = useMemo(() => {
-    const map: Record<string, CalEvent[]> = {};
-    events.forEach((e) => { (map[e.date] ||= []).push(e); });
-    return map;
-  }, [events]);
-
-  const selectedEvents = getEventsForDate(selectedDate).sort((a, b) => {
-    if (a.allDay && !b.allDay) return -1;
-    if (!a.allDay && b.allDay) return 1;
-    return (a.startTime || "00:00").localeCompare(b.startTime || "00:00");
-  });
-  const selectedHoliday = HOLIDAYS[selectedDate];
-  const tk = todayKey();
-
   const eventAppliesToDate = (e: CalEvent, key: string): boolean => {
     if (key < e.date) return false;
     if (!e.repeat || e.repeat === "none") return e.date === key;
@@ -163,6 +149,14 @@ export default function CalendarPage() {
 
   const getEventsForDate = (key: string) =>
     events.filter((e) => eventAppliesToDate(e, key));
+
+  const selectedEvents = getEventsForDate(selectedDate).sort((a, b) => {
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    return (a.startTime || "00:00").localeCompare(b.startTime || "00:00");
+  });
+  const selectedHoliday = HOLIDAYS[selectedDate];
+  const tk = todayKey();
 
   const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); };
   const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); };
