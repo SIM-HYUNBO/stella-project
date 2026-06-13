@@ -1298,7 +1298,9 @@ export default function Chat() {
       {wordGame?.active && (
         <div className="flex items-center justify-between px-4 py-2 bg-sky-50 border-b border-sky-100 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-base">🎮</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-700">
+              <rect x="2" y="6" width="20" height="14" rx="6"/><line x1="6" y1="13" x2="10" y2="13"/><line x1="8" y1="11" x2="8" y2="15"/><circle cx="16" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/>
+            </svg>
             <span className="text-xs font-black text-sky-700">끝말잇기 진행 중</span>
             {wordGame.lastChar && (
               <span className="px-2.5 py-0.5 rounded-full bg-sky-200 text-sky-700 text-xs font-black">
@@ -1609,7 +1611,9 @@ export default function Chat() {
                 onClick={startDictation}
                 className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
               >
-                <span className="text-base leading-none">🗣️</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
             </div>
@@ -1648,14 +1652,18 @@ export default function Chat() {
                 onClick={startWordGame}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-xs font-black text-sky-600 whitespace-nowrap active:scale-95 transition"
               >
-                <span>🎮</span> 끝말잇기
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="6" width="20" height="14" rx="6"/><line x1="6" y1="13" x2="10" y2="13"/><line x1="8" y1="11" x2="8" y2="15"/><circle cx="16" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/>
+                </svg> 끝말잇기
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={openFortune}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-xs font-black text-sky-600 whitespace-nowrap active:scale-95 transition"
               >
-                <span>🔮</span> 오늘의 운세
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg> 오늘의 운세
               </button>
             </div>
           )}
@@ -1870,7 +1878,15 @@ export default function Chat() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { if (!fortuneSpinning) setShowFortune(false); }}>
           <div className="mx-6 w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="bg-gradient-to-br from-sky-400 to-cyan-400 px-6 py-6 text-center">
-              <p className="text-white/80 text-xs font-black tracking-widest mb-2">🔮 오늘의 운세</p>
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <p className="text-white/80 text-xs font-black tracking-widest">오늘의 운세</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </div>
               <div className={`text-7xl mb-2 ${fortuneSpinning ? "animate-[fortuneSpin_0.08s_linear_infinite]" : "animate-[fortuneReveal_0.4s_ease]"}`}>
                 {FORTUNES[fortuneIdx].emoji}
               </div>
