@@ -234,7 +234,7 @@ function SwipeUserItem({
         onTouchMove={(e) => onMove(e.touches[0].clientX)}
         onTouchEnd={onMoveEnd}
         onClick={() => {
-          if (open) { closePanel(); }
+          if (side !== "none") { closePanel(); }
           else if (offset === 0) { onClick(); }
         }}
       >
@@ -1288,7 +1288,7 @@ export default function Chat() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
               </button>
               {showHeaderMenu && (
-                <div className="absolute right-0 top-11 z-50 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-32">
+                <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36">
                   <button
                     onClick={async () => {
                       setShowHeaderMenu(false);

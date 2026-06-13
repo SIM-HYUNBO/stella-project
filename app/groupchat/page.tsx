@@ -1114,7 +1114,7 @@ export default function GroupChat() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
             </button>
             {showHeaderMenu && (
-              <div className="absolute right-0 top-11 z-50 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-32">
+              <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36">
                 <button
                   onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
                   className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
