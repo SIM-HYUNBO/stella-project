@@ -57,6 +57,7 @@ type MeetingMessage = {
   type?: "text" | "image" | "urgent" | "audio";
   createdAt?: any;
   readBy?: string[];
+  replyTo?: { id: string; from: string; content: string };
 };
 
 type User = {

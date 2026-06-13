@@ -140,6 +140,7 @@ type GroupMessage = {
   type?: "text" | "image" | "audio" | "system";
   createdAt?: any;
   readBy?: string[];
+  replyTo?: { id: string; from: string; content: string };
 };
 
 type User = {
