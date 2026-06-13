@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
+import KeycapKeyboard from "../../components/KeycapKeyboard";
 import { db, storage } from "@/app/firebase";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { watchAuthState } from "../authService";
@@ -72,6 +73,7 @@ export default function MeetingRoomPage() {
   const [currentRoom, setCurrentRoom] = useState<MeetingRoom | null>(null);
   const [messages, setMessages] = useState<MeetingMessage[]>([]);
   const [input, setInput] = useState("");
+  const [showKeycap, setShowKeycap] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
@@ -421,9 +423,10 @@ export default function MeetingRoomPage() {
     setCtxMenu(null);
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || !nickname || !currentRoom) return;
-    const text = input.trim();
+  const sendMessage = async (textOverride?: string) => {
+    const rawInput = textOverride ?? input;
+    if (!rawInput.trim() || !nickname || !currentRoom) return;
+    const text = rawInput.trim();
     await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
       from: nickname,
       content: text,
@@ -988,6 +991,8 @@ export default function MeetingRoomPage() {
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
+          readOnly={showKeycap}
+          onFocus={() => setShowKeycap(true)}
           onChange={(e) => {
             setInput(e.target.value);
             sendTyping(true);
@@ -1166,6 +1171,14 @@ export default function MeetingRoomPage() {
       <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
         {renderRoom()}
         {renderInviteModal()}
+        {showKeycap && (
+          <KeycapKeyboard
+            defaultValue={input}
+            onChange={setInput}
+            onEnter={(fullText) => { setInput(""); sendMessage(fullText); setShowKeycap(false); }}
+            onClose={() => setShowKeycap(false)}
+          />
+        )}
         {ctxMenu && (
           <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>

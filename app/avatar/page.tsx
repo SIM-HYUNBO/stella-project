@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
+import KeycapKeyboard from "../../components/KeycapKeyboard";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
@@ -360,6 +361,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [input, setInput] = useState("");
+  const [showKeycap, setShowKeycap] = useState(false);
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [hlColor, setHlColor] = useState("y");
   const [showHlPicker, setShowHlPicker] = useState(false);
@@ -1001,11 +1003,12 @@ export default function Chat() {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || !nickname || !currentChatUser)
+  const sendMessage = async (textOverride?: string) => {
+    const rawInput = textOverride ?? input;
+    if (!rawInput.trim() || !nickname || !currentChatUser)
       return;
 
-    const text = input.trim();
+    const text = rawInput.trim();
 
     // 초성 퀴즈 정답 체크
     if (chosungGame?.active && !chosungGame.solved && wordGameKey) {
@@ -1881,7 +1884,9 @@ export default function Chat() {
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력"}
           value={input}
+          readOnly={showKeycap}
           onChange={handleInputChange}
+          onFocus={() => setShowKeycap(true)}
           onSelect={(e) => {
             const el = e.currentTarget;
             setHlSel({ start: el.selectionStart ?? 0, end: el.selectionEnd ?? 0 });
@@ -2156,6 +2161,14 @@ export default function Chat() {
           </div>
         )}
         {showFireworks && <FireworksOverlay onClose={() => setShowFireworks(false)} />}
+        {showKeycap && (
+          <KeycapKeyboard
+            defaultValue={input}
+            onChange={setInput}
+            onEnter={(fullText) => { setInput(""); sendMessage(fullText); setShowKeycap(false); }}
+            onClose={() => setShowKeycap(false)}
+          />
+        )}
       </div>
     );
   }
