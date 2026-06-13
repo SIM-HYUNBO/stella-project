@@ -1014,7 +1014,7 @@ export default function GroupChat() {
   const renderRoom = () => (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
       {/* 헤더 */}
-      <div className="px-4 py-3 bg-white backdrop-blur-md flex items-center justify-between shrink-0">
+      <div className="px-4 py-3 bg-white flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
 
@@ -1134,7 +1134,7 @@ export default function GroupChat() {
       </div>
 
       {/* 멤버 */}
-      <div className="px-4 py-2 bg-white/60 backdrop-blur-md">
+      <div className="px-4 py-2 bg-white/60">
         <div className="text-xs text-sky-600 truncate font-semibold">
           👥{" "}
           {currentRoom?.members.join(", ")}
