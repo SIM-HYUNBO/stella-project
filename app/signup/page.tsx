@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { saveFCMToken } from "../hooks/usePushSubscription";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -42,6 +43,19 @@ export default function SignupPage() {
         nickname: nickname.trim(),
         createdAt: serverTimestamp(),
       });
+
+      // 신규 가입자 푸쉬 알림 자동 활성화
+      try {
+        if ("serviceWorker" in navigator && "PushManager" in window) {
+          const permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            await saveFCMToken(nickname.trim());
+          }
+        }
+      } catch {
+        // 알림 설정 실패는 무시하고 계속 진행
+      }
+
       router.push("/home");
     } catch (err: any) {
       if (err.code === "auth/email-already-in-use") setError("이미 사용 중인 이메일이에요.");

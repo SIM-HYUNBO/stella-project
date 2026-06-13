@@ -353,7 +353,7 @@ export default function Chat() {
   const [selectedFortune, setSelectedFortune] = useState<typeof FORTUNES[0] | null>(null);
   const fortuneIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { isSubscribed, isBlocked: pushBlocked, toggle } =
+  const { isBlocked: pushBlocked } =
     usePushSubscription(nickname);
 
   useEffect(() => {
@@ -1771,15 +1771,6 @@ export default function Chat() {
           </div>
         </div>
 
-       <button
-  onClick={() => {
-    console.log("nickname:", nickname);
-    toggle();
-  }}
-  className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm transition"
->
-  {isSubscribed ? "🔕" : "🔔"}
-</button>
       </div>
 
       <div className="px-3 py-3">

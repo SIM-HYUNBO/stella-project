@@ -8,7 +8,7 @@ import { doc, setDoc, deleteDoc } from "firebase/firestore";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 
-async function saveFCMToken(nickname: string) {
+export async function saveFCMToken(nickname: string) {
   try {
     const messaging = await getFirebaseMessaging();
     if (!messaging) return;
