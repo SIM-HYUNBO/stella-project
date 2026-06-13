@@ -1012,7 +1012,7 @@ export default function MeetingRoomPage() {
         />
 
         <button
-          onClick={sendMessage}
+          onClick={() => sendMessage()}
           className="w-11 h-11 rounded-[14px] bg-sky-400 text-white hover:scale-105 active:scale-95 transition shrink-0 flex items-center justify-center"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
