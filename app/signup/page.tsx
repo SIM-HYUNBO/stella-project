@@ -3,30 +3,51 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
-  const [keepLogin, setKeepLogin] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("비밀번호가 일치하지 않아요.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("비밀번호는 6자 이상이어야 해요.");
+      return;
+    }
+    if (nickname.trim().length < 2) {
+      setError("닉네임은 2자 이상이어야 해요.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await setPersistence(auth, keepLogin ? browserLocalPersistence : browserSessionPersistence);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      if (userDoc.exists()) alert(`${userDoc.data().nickname}님 환영합니다!`);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        nickname: nickname.trim(),
+        createdAt: serverTimestamp(),
+      });
       router.push("/home");
-    } catch {
-      setError("이메일 또는 비밀번호가 올바르지 않아요.");
+    } catch (err: any) {
+      if (err.code === "auth/email-already-in-use") setError("이미 사용 중인 이메일이에요.");
+      else if (err.code === "auth/invalid-email") setError("올바른 이메일 형식이 아니에요.");
+      else if (err.code === "auth/weak-password") setError("비밀번호가 너무 약해요.");
+      else setError(`회원가입 실패: ${err.code || err.message}`);
     } finally {
       setLoading(false);
     }
@@ -44,34 +65,34 @@ export default function LoginPage() {
             <span className="text-4xl">💬</span>
           </div>
           <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
-          <p className="text-sky-700 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
+          <p className="text-sky-700 text-sm font-medium mt-2">처음 만나서 반가워요 🧡</p>
         </div>
 
         {/* 폼 카드 */}
         <div className="rounded-[28px] bg-white/80 backdrop-blur-md px-6 py-7 space-y-4">
-          <p className="font-black text-slate-800 text-xl mb-1">로그인</p>
+          <p className="font-black text-slate-800 text-xl mb-1">회원가입</p>
 
-          <form onSubmit={handleLogin} className="space-y-3">
+          <form onSubmit={handleSignup} className="space-y-3">
+            <input
+              type="text" placeholder="닉네임 (2자 이상)" value={nickname}
+              onChange={(e) => setNickname(e.target.value)} required
+              className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-300 transition"
+            />
             <input
               type="email" placeholder="이메일" value={email}
               onChange={(e) => setEmail(e.target.value)} required
               className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-300 transition"
             />
             <input
-              type="password" placeholder="비밀번호" value={password}
+              type="password" placeholder="비밀번호 (6자 이상)" value={password}
               onChange={(e) => setPassword(e.target.value)} required
               className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-300 transition"
             />
-
-            <label className="flex items-center gap-2.5 cursor-pointer select-none px-1">
-              <div
-                onClick={() => setKeepLogin(!keepLogin)}
-                className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${keepLogin ? "bg-sky-200" : "bg-gray-200"}`}
-              >
-                <div className={`w-5 h-5 rounded-full bg-white transition-all duration-300 ${keepLogin ? "translate-x-4" : "translate-x-0"}`} />
-              </div>
-              <span className="text-sm text-slate-500 font-medium">로그인 상태 유지</span>
-            </label>
+            <input
+              type="password" placeholder="비밀번호 확인" value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)} required
+              className="w-full bg-sky-50/80 rounded-[16px] px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-300 transition"
+            />
 
             {error && (
               <div className="rounded-[14px] bg-red-50 border border-red-100 px-4 py-3 text-red-500 text-sm font-medium text-center">
@@ -84,18 +105,18 @@ export default function LoginPage() {
               <div className="absolute inset-0 bg-sky-400" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
-                {loading ? "로그인 중..." : "로그인 💭"}
+                {loading ? "가입 중..." : "가입하기 🌸"}
               </span>
             </button>
           </form>
         </div>
 
-        {/* 회원가입 링크 */}
+        {/* 로그인 링크 */}
         <div className="mt-6 text-center">
           <p className="text-sm text-slate-500">
-            아직 계정이 없어요?{" "}
-            <Link href="/signup" className="text-sky-600 font-bold underline underline-offset-2">
-              회원가입
+            이미 계정이 있어요?{" "}
+            <Link href="/login" className="text-sky-600 font-bold underline underline-offset-2">
+              로그인
             </Link>
           </p>
         </div>

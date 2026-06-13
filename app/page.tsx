@@ -169,12 +169,16 @@ export default function RootPage() {
         </div>
 
         {/* ── 버튼 ── */}
-        <div className="pt-2">
+        <div className="pt-2 space-y-3">
           <Link href="/login"
             className="relative flex items-center justify-center h-16 rounded-[24px] overflow-hidden bg-gradient-to-r from-sky-500 to-cyan-400 shadow-[0_8px_24px_rgba(14,165,233,0.30)] active:scale-[0.98] transition-transform">
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
-            <span className="relative text-white text-xl font-black tracking-wide drop-shadow">시작하기</span>
+            <span className="relative text-white text-xl font-black tracking-wide drop-shadow">로그인</span>
             <span className="absolute right-6 text-2xl">💭</span>
+          </Link>
+          <Link href="/signup"
+            className="flex items-center justify-center h-14 rounded-[24px] bg-white border-2 border-sky-300 active:scale-[0.98] transition-transform">
+            <span className="text-sky-600 text-lg font-black tracking-wide">회원가입 🌸</span>
           </Link>
         </div>
 
