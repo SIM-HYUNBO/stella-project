@@ -66,6 +66,70 @@ const TITLE_MAP: Record<string, { icon: string; name: string }> = {
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
 const is369 = (n: number) => String(n).split("").some((d) => d === "3" || d === "6" || d === "9");
 
+function FireworksOverlay({ onClose }: { onClose: () => void }) {
+  const cvs = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = cvs.current!;
+    const ctx = c.getContext("2d")!;
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    const COLORS = ["#ff453a","#ff9f0a","#ffd60a","#30d158","#40c8e0","#0a84ff","#bf5af2","#ff375f","#ff6b35","#ffffff","#ff2f92","#aaff00"];
+    type P = { x:number;y:number;vx:number;vy:number;color:string;life:number;size:number };
+    const ps: P[] = [];
+    const burst = (bx:number, by:number) => {
+      const c1 = COLORS[Math.floor(Math.random()*COLORS.length)];
+      const c2 = COLORS[Math.floor(Math.random()*COLORS.length)];
+      const n = 50 + Math.floor(Math.random()*20);
+      for (let i=0;i<n;i++) {
+        const a = (i/n)*Math.PI*2 + Math.random()*0.4;
+        const sp = 3 + Math.random()*6;
+        ps.push({x:bx,y:by,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,color:i%2===0?c1:c2,life:70+Math.floor(Math.random()*40),size:2+Math.random()*3.5});
+        ps.push({x:bx,y:by,vx:Math.cos(a)*sp*0.45,vy:Math.sin(a)*sp*0.45,color:"#ffffff",life:30+Math.floor(Math.random()*25),size:1});
+      }
+    };
+    const POS=[[.13,.18],[.32,.12],[.52,.08],[.74,.15],[.88,.22],[.06,.42],[.5,.35],[.9,.4],[.22,.58],[.72,.52],[.12,.75],[.43,.78],[.65,.7],[.85,.78],[.5,.52],[.3,.35],[.7,.3]];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    POS.forEach(([px,py],i) => {
+      const t1 = setTimeout(() => burst(px*c.width, py*c.height), i*140);
+      const t2 = setTimeout(() => burst(px*c.width+(Math.random()-.5)*70, py*c.height+(Math.random()-.5)*70), i*140+500);
+      timers.push(t1,t2);
+    });
+    let raf:number;
+    const draw = () => {
+      ctx.fillStyle="rgba(0,0,0,0.13)";
+      ctx.fillRect(0,0,c.width,c.height);
+      for (let i=ps.length-1;i>=0;i--) {
+        const p=ps[i];
+        p.x+=p.vx; p.y+=p.vy;
+        p.vy+=0.07; p.vx*=0.985; p.vy*=0.985;
+        p.life--;
+        if(p.life<=0){ps.splice(i,1);continue;}
+        ctx.globalAlpha=Math.min(1,p.life/70);
+        ctx.fillStyle=p.color;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha=1;
+      raf=requestAnimationFrame(draw);
+    };
+    raf=requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); timers.forEach(clearTimeout); };
+  }, []);
+  return (
+    <div className="fixed inset-0 z-[300]" onClick={onClose}>
+      <canvas ref={cvs} className="absolute inset-0 w-full h-full" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none" style={{animation:"fw-pop 0.7s 0.4s ease both",opacity:0}}>
+        <div style={{fontSize:88,lineHeight:1}}>🎆</div>
+        <p style={{fontSize:68,fontWeight:900,color:"#fff",marginTop:14,textShadow:"0 0 40px #ffd60a,0 0 80px #ff9f0a,0 0 120px #ff453a"}}>1000!</p>
+        <p style={{fontSize:20,fontWeight:800,color:"#ffd60a",marginTop:12}}>🎊 천 번 돌파! 🎊</p>
+        <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:36}}>탭해서 닫기</p>
+      </div>
+      <style>{`@keyframes fw-pop{from{transform:scale(0) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(3deg)}to{transform:scale(1) rotate(0deg);opacity:1}}`}</style>
+    </div>
+  );
+}
+
 const FORTUNES = [
   { emoji: "🌟", title: "대길!", text: "오늘은 뭘 해도 잘 풀리는 날이에요! 주저하지 말고 도전해보세요." },
   { emoji: "💕", title: "연애운 UP", text: "좋아하는 사람에게 먼저 연락해봐요. 오늘은 인연이 깊어지는 날이에요." },
@@ -371,6 +435,7 @@ export default function Chat() {
   const [chosungConsonants, setChosungConsonants] = useState("");
   const [chosungAnswer, setChosungAnswer] = useState("");
   const [game369, setGame369] = useState<{ active: boolean; currentNumber: number; lastPlayer: string; startedBy: string } | null>(null);
+  const [showFireworks, setShowFireworks] = useState(false);
 
   const { isBlocked: pushBlocked } =
     usePushSubscription(nickname);
@@ -625,9 +690,17 @@ export default function Chat() {
   useEffect(() => {
     if (!wordGameKey) { setGame369(null); return; }
     return onSnapshot(doc(db, "game369_1v1", wordGameKey), (snap) => {
-      setGame369(snap.exists() ? snap.data() as any : null);
+      const data = snap.exists() ? snap.data() as any : null;
+      setGame369(data);
+      if (data?.currentNumber === 1000) setShowFireworks(true);
     }, () => setGame369(null));
   }, [wordGameKey]);
+
+  useEffect(() => {
+    if (!showFireworks) return;
+    const t = setTimeout(() => setShowFireworks(false), 8000);
+    return () => clearTimeout(t);
+  }, [showFireworks]);
 
   useEffect(() => {
     if (!currentChatUser || !nickname) return;
@@ -2081,6 +2154,7 @@ export default function Chat() {
             </div>
           </div>
         )}
+        {showFireworks && <FireworksOverlay onClose={() => setShowFireworks(false)} />}
       </div>
     );
   }
