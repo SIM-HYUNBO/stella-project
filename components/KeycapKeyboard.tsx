@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 // ── 한글 두벌식 ──────────────────────────────────────────────────────────────
 const CHOSUNG  = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
@@ -154,66 +155,96 @@ export default function KeycapKeyboard({ defaultValue, onChange, onEnter, onClos
   };
 
   const rows = numMode ? NUM_ROWS : ALPHA_ROWS;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
 
-  return (
+  const keyboard = (
     <div style={{
-      position:"fixed", bottom:0, left:0, right:0, zIndex:200,
-      background:"#1a1a1a",
-      borderTop:"1px solid #333",
-      boxShadow:"0 -4px 24px rgba(0,0,0,0.5)",
-      padding:"0 4px 8px",
+      position:"fixed", bottom:0, left:0, right:0, zIndex:9999,
+      background:"#1c1c1e",
+      borderTop:"1px solid #3a3a3c",
+      boxShadow:"0 -6px 30px rgba(0,0,0,0.6)",
+      paddingBottom:"max(8px, env(safe-area-inset-bottom))",
       userSelect:"none", WebkitUserSelect:"none",
+      touchAction:"none",
     }}>
       {/* 미리보기 + 닫기 */}
-      <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 4px 4px",borderBottom:"1px solid #2a2a2a",marginBottom:4}}>
+      <div style={{
+        display:"flex", alignItems:"center", gap:8,
+        padding:"8px 10px 6px",
+        borderBottom:"1px solid #2c2c2e",
+      }}>
         <div style={{
-          flex:1, fontFamily:"monospace", fontSize:15, color:"#e0e0e0",
-          minHeight:24, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-          direction:"ltr",
+          flex:1, fontSize:15, color:"#e5e5ea",
+          minHeight:22, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
         }}>
-          {displayText||<span style={{color:"#555"}}>입력...</span>}
-          <span style={{display:"inline-block",width:2,height:"1em",background:"#60a5fa",marginLeft:1,verticalAlign:"text-bottom",animation:"kchat-blink 1s step-end infinite"}}/>
+          {displayText || <span style={{color:"#48484a"}}>입력...</span>}
+          <span style={{
+            display:"inline-block", width:2, height:"1em",
+            background:"#0a84ff", marginLeft:1, verticalAlign:"text-bottom",
+            animation:"kchat-blink 1s step-end infinite",
+          }}/>
         </div>
-        <button onMouseDown={e=>e.preventDefault()} onTouchStart={e=>{e.preventDefault();onClose();}} onClick={onClose}
-          style={{padding:"2px 10px",borderRadius:6,background:"#333",color:"#aaa",border:"none",cursor:"pointer",fontSize:12,fontWeight:700,flexShrink:0}}>
+        <button
+          onMouseDown={e=>e.preventDefault()}
+          onTouchStart={e=>{e.preventDefault(); onClose();}}
+          onClick={onClose}
+          style={{
+            padding:"3px 12px", borderRadius:8,
+            background:"#2c2c2e", color:"#8e8e93",
+            border:"none", cursor:"pointer", fontSize:13, fontWeight:600, flexShrink:0,
+          }}>
           닫기
         </button>
       </div>
 
       {/* 키 */}
-      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+      <div style={{display:"flex", flexDirection:"column", gap:5, padding:"6px 4px 0"}}>
         {rows.map((row,ri)=>(
-          <div key={ri} style={{display:"flex",gap:3}}>
+          <div key={ri} style={{display:"flex", flexDirection:"row", gap:4, width:"100%"}}>
             {row.map(k=>{
-              const isDown=pressed.has(k);
-              const isActive=(k==="Shift"&&shift)||(k==="한/영"&&koMode);
-              const showKo=koMode&&!numMode&&KO_MAP[k];
-              const label=showKo?(shift&&KO_SH[k]?KO_SH[k]:KO_MAP[k]!):k;
-              const isEnter=k==="↩";
-              const isSpace=k===" ";
+              const isDown  = pressed.has(k);
+              const isActive= (k==="Shift"&&shift)||(k==="한/영"&&koMode);
+              const showKo  = koMode&&!numMode&&!!KO_MAP[k];
+              const label   = showKo ? (shift&&KO_SH[k] ? KO_SH[k] : KO_MAP[k]!) : k;
+              const isEnter = k==="↩";
+              const isSpace = k===" ";
 
               return (
                 <button key={k+ri}
-                  onMouseDown={e=>{e.preventDefault();pressKey(k);}}
-                  onTouchStart={e=>{e.preventDefault();pressKey(k);}}
+                  onMouseDown={e=>{e.preventDefault(); pressKey(k);}}
+                  onTouchStart={e=>{e.preventDefault(); pressKey(k);}}
                   style={{
-                    flex:keyFlex(k), height:42, borderRadius:6,
-                    background:isDown?"#111":isActive?"#3b5bdb":isEnter?"#2563eb":isSpace?"#3a3a3a":"#2e2e2e",
-                    color:isDown?"#888":"#e0e0e0",
-                    fontSize:showKo?20:label.length>2?10:14,
-                    fontWeight:700,
-                    border:"none",
-                    cursor:"pointer",
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    transform:isDown?"scale(0.93)":"scale(1)",
-                    transition:"transform 0.07s,background 0.07s",
-                    touchAction:"none",
-                    boxShadow:isDown?"none":"0 2px 0 #111",
-                    position:"relative",
+                    flex: keyFlex(k),
+                    height: 50,
+                    minWidth: 0,
+                    borderRadius: 9,
+                    background: isDown ? "#0a0a0a"
+                      : isActive   ? "#0a84ff"
+                      : isEnter    ? "#0a84ff"
+                      : isSpace    ? "#3a3a3c"
+                      : "#2c2c2e",
+                    color: isDown ? "#555" : "#f5f5f7",
+                    fontSize: showKo ? 21 : label.length > 2 ? 11 : 16,
+                    fontWeight: 600,
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: isDown ? "scale(0.91)" : "scale(1)",
+                    transition: "transform 0.06s, background 0.06s",
+                    touchAction: "none",
+                    boxShadow: isDown ? "none" : "0 2px 0 #080808",
+                    position: "relative",
+                    flexShrink: 1,
                   }}>
-                  {/* 영문 서브라벨 (한글 모드) */}
-                  {showKo&&(
-                    <span style={{position:"absolute",top:2,right:4,fontSize:7,color:"rgba(255,255,255,0.3)",fontFamily:"monospace"}}>{k.toUpperCase()}</span>
+                  {showKo && (
+                    <span style={{
+                      position:"absolute", top:3, right:5,
+                      fontSize:8, color:"rgba(255,255,255,0.3)", fontFamily:"monospace",
+                    }}>{k.toUpperCase()}</span>
                   )}
                   {label}
                 </button>
@@ -226,4 +257,6 @@ export default function KeycapKeyboard({ defaultValue, onChange, onEnter, onClos
       <style>{`@keyframes kchat-blink{0%,100%{opacity:1}50%{opacity:0}}`}</style>
     </div>
   );
+
+  return createPortal(keyboard, document.body);
 }
