@@ -137,16 +137,24 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-200 flex items-center justify-around px-2 h-12 shadow-[0_-2px_16px_rgba(14,165,233,0.08)] ">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 flex items-center justify-around px-1 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.1)]">
         {NAV_ITEMS.map(({ label, path, icon }) => {
           const active = pathname === path || pathname?.startsWith(path + "/");
           return (
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex items-center justify-center flex-1 h-full transition-colors ${active ? "text-sky-600" : "text-gray-400"}`}
+              className={`flex flex-col items-center justify-center gap-[3px] flex-1 h-full transition-all duration-150 ${active ? "text-sky-500" : "text-gray-400 hover:text-gray-500"}`}
             >
-              {icon(false)}
+              <div className={`transition-transform duration-150 ${active ? "scale-110" : ""}`}>
+                {icon(active)}
+              </div>
+              <span className={`text-[9px] font-bold leading-none tracking-tight ${active ? "text-sky-500" : "text-gray-400"}`}>
+                {label}
+              </span>
+              {active && (
+                <span className="absolute bottom-1 w-1 h-1 rounded-full bg-sky-400" style={{position:"relative", display:"block", marginTop: -1}} />
+              )}
             </button>
           );
         })}
