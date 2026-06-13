@@ -17,6 +17,7 @@ import {
   updateDoc,
   doc,
   setDoc,
+  deleteDoc,
   arrayUnion,
   arrayRemove,
   where,
@@ -162,6 +163,9 @@ export default function GroupChat() {
   const [input, setInput] = useState("");
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; from: string; content: string; type: string } | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [hlColor, setHlColor] = useState("y");
   const [showHlPicker, setShowHlPicker] = useState(false);
@@ -822,7 +826,9 @@ export default function GroupChat() {
       type: "text",
       createdAt: serverTimestamp(),
       readBy: [nickname],
+      ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
     });
+    setReplyTo(null);
 
     const targets = currentRoom.members.filter((m) => m !== nickname);
     if (targets.length > 0) {
@@ -840,6 +846,29 @@ export default function GroupChat() {
     }
 
     setInput("");
+  };
+
+  const openCtxMenu = (e: React.MouseEvent | React.TouchEvent, m: any, isMine: boolean) => {
+    let x = 0, y = 0;
+    if ("touches" in e) { x = e.touches[0].clientX; y = e.touches[0].clientY; }
+    else { e.preventDefault(); x = e.clientX; y = e.clientY; }
+    const menuW = 176, menuH = isMine ? 108 : 60;
+    if (x + menuW > window.innerWidth) x = window.innerWidth - menuW - 8;
+    if (x < 8) x = 8;
+    if (y + menuH > window.innerHeight) y = window.innerHeight - menuH - 8;
+    if (y < 8) y = 8;
+    setCtxMenu({ msgId: m.id, x, y, isMine, msg: m });
+  };
+  const handleTouchStart = (e: React.TouchEvent, m: any, isMine: boolean) => {
+    longPressTimer.current = setTimeout(() => openCtxMenu(e, m, isMine), 500);
+  };
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+  };
+  const deleteGroupMsg = async (msgId: string) => {
+    if (!currentRoom) return;
+    await deleteDoc(doc(db, "group_rooms", currentRoom.id, "messages", msgId));
+    setCtxMenu(null);
   };
 
   const compressToBase64 = (
@@ -1440,7 +1469,16 @@ export default function GroupChat() {
                         ? "bg-sky-200 text-white rounded-br-md"
                         : "bg-white rounded-bl-md"
                     }`}
+                    onContextMenu={(e) => openCtxMenu(e, m, isMine)}
+                    onTouchStart={(e) => handleTouchStart(e, m, isMine)}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchEnd}
                   >
+                    {m.replyTo && (
+                      <div className={`mb-2 px-2 py-1 rounded-xl border-l-4 text-xs opacity-70 ${isMine ? "border-white/60 bg-white/20" : "border-sky-300 bg-sky-50"}`}>
+                        <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}
+                      </div>
+                    )}
                     {m.type === "image" ? (
                       <img
                         src={m.content}
@@ -1525,6 +1563,16 @@ export default function GroupChat() {
           <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center shrink-0 disabled:opacity-50">
             {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
+        </div>
+      )}
+
+      {replyTo && (
+        <div className="px-4 py-2 bg-sky-50 border-t border-sky-100 flex items-center gap-2 shrink-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black text-sky-500">↩ {replyTo.from}에게 답장</p>
+            <p className="text-xs text-gray-500 truncate">{replyTo.content}</p>
+          </div>
+          <button onClick={() => setReplyTo(null)} className="text-gray-400 text-sm font-bold shrink-0">✕</button>
         </div>
       )}
 
@@ -1945,6 +1993,16 @@ export default function GroupChat() {
           </div>
         )}
         {showFireworks && <FireworksOverlay onClose={() => setShowFireworks(false)} />}
+        {ctxMenu && (
+          <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
+            <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
+              <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type }); setCtxMenu(null); }}>↩ 답장</button>
+              {ctxMenu.isMine && (
+                <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteGroupMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

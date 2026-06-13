@@ -1306,13 +1306,14 @@ export default function Chat() {
       y = e.clientY;
     }
 
-    setCtxMenu({
-      msgId: m.id,
-      x,
-      y,
-      isMine,
-      msg: m,
-    });
+    const menuW = 176;
+    const menuH = isMine ? 204 : 108;
+    if (x + menuW > window.innerWidth) x = window.innerWidth - menuW - 8;
+    if (x < 8) x = 8;
+    if (y + menuH > window.innerHeight) y = window.innerHeight - menuH - 8;
+    if (y < 8) y = 8;
+
+    setCtxMenu({ msgId: m.id, x, y, isMine, msg: m });
   };
 
   const handleTouchStart = (
