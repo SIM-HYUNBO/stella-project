@@ -56,7 +56,7 @@ export default function KeycapPage() {
   const [caps, setCaps] = useState(false);
 
   const flash = useCallback((key: string) => {
-    setPressed(p => new Set([...p, key]));
+    setPressed(p => { const n = new Set(p); n.add(key); return n; });
     setTimeout(() => setPressed(p => { const n = new Set(p); n.delete(key); return n; }), 130);
   }, []);
 
