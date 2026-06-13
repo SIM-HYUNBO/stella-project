@@ -831,9 +831,9 @@ export default function Chat() {
   const sendClap = async () => {
     if (!game369?.active || !wordGameKey || !nickname || !currentChatUser) return;
     const expected = game369.currentNumber + 1;
-    if (!is369(expected)) return;
+    const claps = String(expected).split("").filter(d => "369".includes(d)).length || 1;
     await setDoc(doc(db, "game369_1v1", wordGameKey), { active: true, currentNumber: expected, lastPlayer: nickname, startedBy: game369.startedBy });
-    await addDoc(collection(db, "messages"), { from: nickname, to: currentChatUser.nickname, content: "👏", type: "text", createdAt: serverTimestamp(), readBy: [nickname] });
+    await addDoc(collection(db, "messages"), { from: nickname, to: currentChatUser.nickname, content: "👏".repeat(claps), type: "text", createdAt: serverTimestamp(), readBy: [nickname] });
   };
 
   const drawLots = async () => {
@@ -953,11 +953,12 @@ export default function Chat() {
     // 369 검증
     if (game369?.active && wordGameKey) {
       const expected = game369.currentNumber + 1;
-      const isClap = ["👏", "박수", "짝"].includes(text);
+      const requiredClaps = String(expected).split("").filter(d => "369".includes(d)).length;
+      const isClap = requiredClaps > 0 && (text === "👏".repeat(requiredClaps) || text === "박수" || text === "짝".repeat(requiredClaps));
       if (is369(expected)) {
         if (!isClap) {
           setInput("");
-          await end369(`❌ ${expected}에서 👏를 쳐야 했는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          await end369(`❌ ${expected}에서 ${"👏".repeat(requiredClaps)}를 쳐야 했는데 ${nickname}님이 틀렸어요! 게임 종료.`);
           return;
         }
       } else {
