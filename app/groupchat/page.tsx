@@ -1287,12 +1287,10 @@ export default function GroupChat() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {is369(game369.currentNumber + 1) && (
-              <button onClick={sendClap}
-                className="px-3 py-1 rounded-xl bg-orange-400 text-white text-sm font-black active:scale-90 transition animate-pulse">
-                👏 박수
-              </button>
-            )}
+            <button onClick={sendClap}
+              className="px-3 py-1 rounded-xl bg-orange-400 text-white text-sm font-black active:scale-90 transition">
+              👏 박수
+            </button>
             <button onClick={() => end369("🏳️ 369 게임이 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
           </div>
         </div>
@@ -1808,6 +1806,70 @@ export default function GroupChat() {
         {renderInviteModal()}
         {renderRoomSettings()}
         {renderPasswordPrompt()}
+        {showChosungSetup && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40" onClick={() => setShowChosungSetup(false)}>
+            <div className="mx-6 w-full max-w-sm bg-white rounded-3xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+              <p className="font-black text-slate-800 text-lg">❓ 초성 퀴즈 만들기</p>
+              <div>
+                <p className="text-xs font-bold text-gray-400 mb-1.5">초성 힌트 (모두에게 보여요)</p>
+                <input value={chosungConsonants} onChange={(e) => setChosungConsonants(e.target.value)}
+                  placeholder="예: ㅅㄹ" autoFocus
+                  className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-lg font-black tracking-[0.3em] text-center outline-none focus:ring-2 focus:ring-violet-200"/>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 mb-1.5">정답 (나만 알고 있어요)</p>
+                <input value={chosungAnswer} onChange={(e) => setChosungAnswer(e.target.value)}
+                  placeholder="예: 사랑" onKeyDown={(e) => e.key === "Enter" && submitChosung()}
+                  className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-violet-200"/>
+              </div>
+              <button onClick={submitChosung} disabled={!chosungConsonants.trim() || !chosungAnswer.trim()}
+                className="w-full h-12 rounded-2xl bg-violet-400 text-white font-black disabled:opacity-40 active:scale-95 transition">
+                퀴즈 시작!
+              </button>
+            </div>
+          </div>
+        )}
+        {showFortune && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { if (!fortuneSpinning) setShowFortune(false); }}>
+            <div className="mx-6 w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-gradient-to-br from-sky-400 to-cyan-400 px-6 py-6 text-center">
+                <div className="flex items-center justify-center gap-1.5 mb-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  <p className="text-white/80 text-xs font-black tracking-widest">오늘의 운세</p>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
+                <div className={`text-7xl mb-2 ${fortuneSpinning ? "animate-[fortuneSpin_0.08s_linear_infinite]" : "animate-[fortuneReveal_0.4s_ease]"}`}>
+                  {FORTUNES[fortuneIdx].emoji}
+                </div>
+                <p className={`text-white font-black text-2xl ${fortuneSpinning ? "opacity-30" : "opacity-100 transition-opacity duration-300"}`}>
+                  {fortuneSpinning ? "룰렛 돌리는 중..." : FORTUNES[fortuneIdx].title}
+                </p>
+              </div>
+              <div className="px-6 py-5">
+                {fortuneSpinning ? (
+                  <div className="flex justify-center py-4">
+                    <div className="flex gap-1.5">
+                      {[0,1,2].map(i => (
+                        <span key={i} className="w-2.5 h-2.5 rounded-full bg-sky-300" style={{animation:`typingDot 1.2s ease-in-out infinite`, animationDelay:`${i*200}ms`}} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-slate-700 text-sm leading-relaxed text-center">{selectedFortune?.text}</p>
+                    <button onClick={() => setShowFortune(false)} className="mt-5 w-full h-12 rounded-[16px] bg-sky-100 text-sky-600 font-black text-sm active:scale-95 transition">
+                      확인 ✨
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1820,72 +1882,6 @@ export default function GroupChat() {
         {renderRoomSettings()}
         {renderPasswordPrompt()}
       </div>
-
-      {showChosungSetup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40" onClick={() => setShowChosungSetup(false)}>
-          <div className="mx-6 w-full max-w-sm bg-white rounded-3xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
-            <p className="font-black text-slate-800 text-lg">❓ 초성 퀴즈 만들기</p>
-            <div>
-              <p className="text-xs font-bold text-gray-400 mb-1.5">초성 힌트 (모두에게 보여요)</p>
-              <input value={chosungConsonants} onChange={(e) => setChosungConsonants(e.target.value)}
-                placeholder="예: ㅅㄹ" autoFocus
-                className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-lg font-black tracking-[0.3em] text-center outline-none focus:ring-2 focus:ring-violet-200"/>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 mb-1.5">정답 (나만 알고 있어요)</p>
-              <input value={chosungAnswer} onChange={(e) => setChosungAnswer(e.target.value)}
-                placeholder="예: 사랑" onKeyDown={(e) => e.key === "Enter" && submitChosung()}
-                className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-violet-200"/>
-            </div>
-            <button onClick={submitChosung} disabled={!chosungConsonants.trim() || !chosungAnswer.trim()}
-              className="w-full h-12 rounded-2xl bg-violet-400 text-white font-black disabled:opacity-40 active:scale-95 transition">
-              퀴즈 시작!
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showFortune && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { if (!fortuneSpinning) setShowFortune(false); }}>
-          <div className="mx-6 w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="bg-gradient-to-br from-sky-400 to-cyan-400 px-6 py-6 text-center">
-              <div className="flex items-center justify-center gap-1.5 mb-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-                <p className="text-white/80 text-xs font-black tracking-widest">오늘의 운세</p>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-              </div>
-              <div className={`text-7xl mb-2 ${fortuneSpinning ? "animate-[fortuneSpin_0.08s_linear_infinite]" : "animate-[fortuneReveal_0.4s_ease]"}`}>
-                {FORTUNES[fortuneIdx].emoji}
-              </div>
-              <p className={`text-white font-black text-2xl ${fortuneSpinning ? "opacity-30" : "opacity-100 transition-opacity duration-300"}`}>
-                {fortuneSpinning ? "룰렛 돌리는 중..." : FORTUNES[fortuneIdx].title}
-              </p>
-            </div>
-            <div className="px-6 py-5">
-              {fortuneSpinning ? (
-                <div className="flex justify-center py-4">
-                  <div className="flex gap-1.5">
-                    {[0,1,2].map(i => (
-                      <span key={i} className="w-2.5 h-2.5 rounded-full bg-sky-300" style={{animation:`typingDot 1.2s ease-in-out infinite`, animationDelay:`${i*200}ms`}} />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <p className="text-slate-700 text-sm leading-relaxed text-center">{selectedFortune?.text}</p>
-                  <button onClick={() => setShowFortune(false)} className="mt-5 w-full h-12 rounded-[16px] bg-sky-100 text-sky-600 font-black text-sm active:scale-95 transition">
-                    확인 ✨
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes typingDot {
