@@ -78,6 +78,7 @@ export default function MeetingRoomPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
   const [sendingAudio, setSendingAudio] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
   const [showInvite, setShowInvite] = useState(false);
@@ -801,14 +802,6 @@ export default function MeetingRoomPage() {
       )}
 
       <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
-        <button
-          onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-200 text-sky-600 flex items-center justify-center transition shrink-0"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </button>
         <input
           type="file"
           ref={imageInputRef}
@@ -823,33 +816,69 @@ export default function MeetingRoomPage() {
             e.target.value = "";
           }}
         />
+
+        {/* + 버튼 */}
         <div className="relative shrink-0">
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
-              if (hlSel.start !== hlSel.end) {
-                applyHighlight(hlColor);
-              } else {
-                setShowHlPicker((p) => !p);
-              }
-            }}
-            className="w-9 h-9 rounded-[12px] bg-sky-50 hover:bg-sky-100 active:scale-90 transition flex items-center justify-center"
-          >
-            <span className="text-[13px] font-black text-sky-500 leading-none">Aa</span>
-          </button>
-          {showHlPicker && (
-            <div className="absolute bottom-10 left-0 bg-white rounded-2xl shadow-xl p-2 flex gap-2 z-50">
-              {(["y","g","p","b"] as const).map((key) => (
+          {showPlusMenu && (
+            <div className="absolute bottom-[52px] left-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span className="text-[9px] font-bold text-sky-500">이미지</span>
+              </button>
+              <div className="relative">
                 <button
-                  key={key}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { setHlColor(key); setShowHlPicker(false); }}
-                  className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
-                />
-              ))}
+                  onClick={() => {
+                    if (hlSel.start !== hlSel.end) { applyHighlight(hlColor); setShowPlusMenu(false); }
+                    else setShowHlPicker((p) => !p);
+                  }}
+                  className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md active:scale-95 transition"
+                >
+                  <span className="text-[13px] font-black text-sky-500">Aa</span>
+                  <span className="text-[9px] font-bold text-sky-500">글자 강조</span>
+                </button>
+                {showHlPicker && (
+                  <div className="absolute bottom-14 left-0 bg-white rounded-2xl shadow-xl p-2 flex gap-2 z-50">
+                    {(["y","g","p","b"] as const).map((key) => (
+                      <button
+                        key={key}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setHlColor(key); setShowHlPicker(false); }}
+                        className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { toggleRecording(); setShowPlusMenu(false); }}
+                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isRecording ? "bg-red-50 border-red-200 text-red-500 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+                <span className="text-[9px] font-bold">받아쓰기</span>
+              </button>
             </div>
           )}
+          <button
+            onClick={() => setShowPlusMenu((p) => !p)}
+            className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 text-xl font-black ${showPlusMenu ? "bg-sky-200 text-white" : "bg-sky-50 text-sky-500"}`}
+          >
+            {showPlusMenu ? "✕" : "+"}
+          </button>
         </div>
+
         <input
           ref={msgInputRef}
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
@@ -872,23 +901,15 @@ export default function MeetingRoomPage() {
             if (e.key === "Enter" && !e.shiftKey) sendMessage();
           }}
         />
-        <button
-          onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-200 text-sky-600"}`}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </button>
 
         <button
           onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-sky-200 text-white hover:scale-105 active:scale-95 transition shrink-0"
+          className="w-11 h-11 rounded-[14px] bg-sky-400 text-white hover:scale-105 active:scale-95 transition shrink-0 flex items-center justify-center"
         >
-          ➤
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
         </button>
       </div>
 

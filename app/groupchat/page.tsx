@@ -38,6 +38,21 @@ const TITLE_MAP: Record<string, { icon: string; name: string }> = {
   legend:      { icon: "🌟", name: "레전드" },
 };
 
+const FORTUNES = [
+  { emoji: "🌟", title: "대길!", text: "오늘은 뭘 해도 잘 풀리는 날이에요! 주저하지 말고 도전해보세요." },
+  { emoji: "💕", title: "연애운 UP", text: "좋아하는 사람에게 먼저 연락해봐요. 오늘은 인연이 깊어지는 날이에요." },
+  { emoji: "💸", title: "금전운 UP", text: "예상치 못한 곳에서 행운이 들어올 수 있어요. 지갑을 열어두세요!" },
+  { emoji: "😴", title: "오늘은 쉬어요", text: "무리하지 말고 푹 쉬는 날이에요. 충전이 곧 실력이에요." },
+  { emoji: "🤝", title: "인연운 UP", text: "오늘 만나는 사람과 깊은 인연이 생길지도 몰라요. 따뜻하게 대해보세요." },
+  { emoji: "⚡", title: "에너지 충만", text: "오늘은 평소보다 두 배 에너지가 넘쳐요! 미뤘던 일을 해치워봐요." },
+  { emoji: "🌧️", title: "조심의 날", text: "작은 실수가 큰 결과를 만들 수 있어요. 오늘은 신중하게 행동해요." },
+  { emoji: "🎯", title: "집중력 MAX", text: "오늘은 놀라운 집중력을 발휘하는 날이에요. 공부나 업무에 딱 좋아요." },
+  { emoji: "🍀", title: "행운의 날", text: "숫자 3이 오늘의 행운 번호예요. 세 번째 선택을 믿어보세요." },
+  { emoji: "🥱", title: "평범한 날", text: "특별한 일은 없지만... 평범함도 행복이에요. 소소한 것에 감사해봐요." },
+  { emoji: "🔥", title: "불꽃 같은 날", text: "열정이 불타오르는 날이에요! 하고 싶은 걸 마음껏 표현해봐요." },
+  { emoji: "🌈", title: "반전 대길", text: "오전에 안 풀려도 오후에 기분 좋은 일이 생길 거예요. 포기하지 마요!" },
+];
+
 type GroupRoom = {
   id: string;
   name: string;
@@ -55,7 +70,7 @@ type GroupMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image" | "audio";
+  type?: "text" | "image" | "audio" | "system";
   createdAt?: any;
   readBy?: string[];
 };
@@ -87,6 +102,15 @@ export default function GroupChat() {
   const [isRecording, setIsRecording] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; url: string } | null>(null);
   const [sendingAudio, setSendingAudio] = useState(false);
+
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showSpecialMenu, setShowSpecialMenu] = useState(false);
+  const [wordGame, setWordGame] = useState<{ active: boolean; lastWord: string; lastChar: string; lastPlayer: string; startedBy: string } | null>(null);
+  const [showFortune, setShowFortune] = useState(false);
+  const [fortuneIdx, setFortuneIdx] = useState(0);
+  const [fortuneSpinning, setFortuneSpinning] = useState(false);
+  const [selectedFortune, setSelectedFortune] = useState<typeof FORTUNES[0] | null>(null);
+  const fortuneIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
@@ -345,6 +369,59 @@ export default function GroupChat() {
     } catch { /* 타이핑 표시 실패는 무시 */ }
   };
 
+  // 끝말잇기 게임 상태 구독
+  useEffect(() => {
+    if (!currentRoom) { setWordGame(null); return; }
+    const unsub = onSnapshot(doc(db, "wordgame_group", currentRoom.id), (snap) => {
+      if (!snap.exists()) { setWordGame(null); return; }
+      setWordGame(snap.data() as any);
+    }, () => setWordGame(null));
+    return () => unsub();
+  }, [currentRoom?.id]);
+
+  const startWordGame = async () => {
+    if (!currentRoom || !nickname) return;
+    setShowSpecialMenu(false);
+    await setDoc(doc(db, "wordgame_group", currentRoom.id), {
+      active: true, lastWord: "", lastChar: "", lastPlayer: "", startedBy: nickname,
+    });
+    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+      from: "__system__", content: `🎮 ${nickname}님이 끝말잇기를 시작했어요! 먼저 단어를 입력하세요.`,
+      type: "system", createdAt: serverTimestamp(),
+    });
+  };
+
+  const endWordGame = async (reason?: string) => {
+    if (!currentRoom || !nickname) return;
+    await setDoc(doc(db, "wordgame_group", currentRoom.id), {
+      active: false, lastWord: "", lastChar: "", lastPlayer: "", startedBy: "",
+    });
+    if (reason) {
+      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+        from: "__system__", content: reason, type: "system", createdAt: serverTimestamp(),
+      });
+    }
+  };
+
+  const openFortune = () => {
+    setShowSpecialMenu(false);
+    setShowFortune(true);
+    setFortuneSpinning(true);
+    setSelectedFortune(null);
+    let idx = 0;
+    fortuneIntervalRef.current = setInterval(() => {
+      idx = (idx + 1) % FORTUNES.length;
+      setFortuneIdx(idx);
+    }, 80);
+    setTimeout(() => {
+      if (fortuneIntervalRef.current) clearInterval(fortuneIntervalRef.current);
+      const final = Math.floor(Math.random() * FORTUNES.length);
+      setFortuneIdx(final);
+      setSelectedFortune(FORTUNES[final]);
+      setFortuneSpinning(false);
+    }, 1800);
+  };
+
   // 멤버 칭호 로드
   useEffect(() => {
     if (!currentRoom) return;
@@ -505,30 +582,31 @@ export default function GroupChat() {
   };
 
   const sendMessage = async () => {
-    if (
-      !input.trim() ||
-      !nickname ||
-      !currentRoom
-    )
-      return;
+    if (!input.trim() || !nickname || !currentRoom) return;
 
     const text = input.trim();
 
-    await addDoc(
-      collection(
-        db,
-        "group_rooms",
-        currentRoom.id,
-        "messages"
-      ),
-      {
-        from: nickname,
-        content: text,
-        type: "text",
-        createdAt: serverTimestamp(),
-        readBy: [nickname],
+    // 끝말잇기 검증
+    if (wordGame?.active) {
+      if (wordGame.lastChar && text.charAt(0) !== wordGame.lastChar) {
+        setInput("");
+        await endWordGame(`❌ '${wordGame.lastChar}'(으)로 시작해야 하는데 '${text}'를 입력했어요. ${nickname}님 탈락! 게임 종료.`);
+        return;
       }
-    );
+      const newLastChar = text.charAt(text.length - 1);
+      await setDoc(doc(db, "wordgame_group", currentRoom.id), {
+        active: true, lastWord: text, lastChar: newLastChar,
+        lastPlayer: nickname, startedBy: wordGame.startedBy || nickname,
+      });
+    }
+
+    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+      from: nickname,
+      content: text,
+      type: "text",
+      createdAt: serverTimestamp(),
+      readBy: [nickname],
+    });
 
     const targets = currentRoom.members.filter((m) => m !== nickname);
     if (targets.length > 0) {
@@ -1019,9 +1097,32 @@ export default function GroupChat() {
         </div>
       </div>
 
+      {wordGame?.active && (
+        <div className="flex items-center justify-between px-4 py-2 bg-sky-50 border-b border-sky-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🎮</span>
+            <span className="text-xs font-black text-sky-700">끝말잇기 진행 중</span>
+            {wordGame.lastChar && (
+              <span className="px-2.5 py-0.5 rounded-full bg-sky-200 text-sky-700 text-xs font-black">
+                다음: &apos;{wordGame.lastChar}&apos;
+              </span>
+            )}
+          </div>
+          <button onClick={() => endWordGame("🏳️ 끝말잇기가 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+        </div>
+      )}
+
       {/* 메시지 */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3">
         {messages.map((m, i) => {
+          if (m.type === "system") return (
+            <div key={m.id} className="flex justify-center my-1">
+              <div className="bg-sky-50 border border-sky-100 text-sky-600 text-xs font-bold px-4 py-2 rounded-full">
+                {m.content}
+              </div>
+            </div>
+          );
+
           const isMine =
             m.from === nickname;
 
@@ -1170,14 +1271,6 @@ export default function GroupChat() {
       )}
 
       <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
-        <button
-          onClick={() => imageInputRef.current?.click()}
-          className="w-10 h-10 rounded-[12px] bg-sky-50 hover:bg-sky-200 text-sky-600 flex items-center justify-center transition shrink-0"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </button>
         <input
           type="file"
           ref={imageInputRef}
@@ -1193,40 +1286,76 @@ export default function GroupChat() {
           }}
         />
 
+        {/* + 버튼 */}
         <div className="relative shrink-0">
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
-              if (hlSel.start !== hlSel.end) {
-                applyHighlight(hlColor);
-              } else {
-                setShowHlPicker((p) => !p);
-              }
-            }}
-            className="w-9 h-9 rounded-[12px] bg-sky-50 hover:bg-sky-100 active:scale-90 transition flex items-center justify-center"
-          >
-            <span className="text-[13px] font-black text-sky-500 leading-none">Aa</span>
-          </button>
-          {showHlPicker && (
-            <div className="absolute bottom-10 left-0 bg-white rounded-2xl shadow-xl p-2 flex gap-2 z-50">
-              {(["y","g","p","b"] as const).map((key) => (
+          {showPlusMenu && (
+            <div className="absolute bottom-[52px] left-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span className="text-[9px] font-bold text-sky-500">이미지</span>
+              </button>
+              <div className="relative">
                 <button
-                  key={key}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { setHlColor(key); setShowHlPicker(false); }}
-                  className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
-                />
-              ))}
+                  onClick={() => {
+                    if (hlSel.start !== hlSel.end) { applyHighlight(hlColor); setShowPlusMenu(false); }
+                    else setShowHlPicker((p) => !p);
+                  }}
+                  className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md active:scale-95 transition"
+                >
+                  <span className="text-[13px] font-black text-sky-500">Aa</span>
+                  <span className="text-[9px] font-bold text-sky-500">글자 강조</span>
+                </button>
+                {showHlPicker && (
+                  <div className="absolute bottom-14 left-0 bg-white rounded-2xl shadow-xl p-2 flex gap-2 z-50">
+                    {(["y","g","p","b"] as const).map((key) => (
+                      <button
+                        key={key}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setHlColor(key); setShowHlPicker(false); }}
+                        className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { toggleRecording(); setShowPlusMenu(false); }}
+                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isRecording ? "bg-red-50 border-red-200 text-red-500 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+                <span className="text-[9px] font-bold">받아쓰기</span>
+              </button>
             </div>
           )}
+          <button
+            onClick={() => setShowPlusMenu((p) => !p)}
+            className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 text-xl font-black ${showPlusMenu ? "bg-sky-200 text-white" : "bg-sky-50 text-sky-500"}`}
+          >
+            {showPlusMenu ? "✕" : "+"}
+          </button>
         </div>
+
         <input
           ref={msgInputRef}
           className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
-          placeholder="메시지 입력"
+          placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력"}
           value={input}
           onChange={(e) => {
             setInput(e.target.value);
+            if (e.target.value.trim()) setShowSpecialMenu(false);
             sendTyping(true);
             if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
             typingTimerRef.current = setTimeout(() => sendTyping(false), 2000);
@@ -1239,28 +1368,44 @@ export default function GroupChat() {
             setHlSel({ start: e.currentTarget.selectionStart ?? 0, end: e.currentTarget.selectionEnd ?? 0 });
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) sendMessage();
+            if (e.key === "Enter" && !e.shiftKey) { sendMessage(); setShowSpecialMenu(false); }
           }}
         />
 
-        <button
-          onClick={toggleRecording}
-          className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 ${isRecording ? "bg-red-100 text-red-500 animate-pulse" : "bg-sky-50 hover:bg-sky-200 text-sky-600"}`}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </button>
-
-        <button
-          onClick={sendMessage}
-          className="w-11 h-11 rounded-[14px] bg-sky-200 text-white hover:scale-105 active:scale-95 transition shrink-0"
-        >
-          ➤
-        </button>
+        <div className="relative shrink-0">
+          {showSpecialMenu && (
+            <div className="absolute bottom-[52px] right-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={startWordGame}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-xs font-black text-sky-600 whitespace-nowrap active:scale-95 transition"
+              >
+                <span>🎮</span> 끝말잇기
+              </button>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={openFortune}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-xs font-black text-sky-600 whitespace-nowrap active:scale-95 transition"
+              >
+                <span>🔮</span> 오늘의 운세
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              if (input.trim()) { sendMessage(); }
+              else { setShowSpecialMenu((p) => !p); }
+            }}
+            className={`w-11 h-11 rounded-[14px] flex items-center justify-center font-black text-base transition shrink-0 ${input.trim() ? "bg-sky-400 text-white hover:scale-105 active:scale-95" : "bg-sky-100 text-sky-500 active:scale-95"}`}
+          >
+            {input.trim() ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            ) : "#"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1474,6 +1619,41 @@ export default function GroupChat() {
         {renderRoomSettings()}
         {renderPasswordPrompt()}
       </div>
+
+      {showFortune && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { if (!fortuneSpinning) setShowFortune(false); }}>
+          <div className="mx-6 w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-gradient-to-br from-sky-400 to-cyan-400 px-6 py-6 text-center">
+              <p className="text-white/80 text-xs font-black tracking-widest mb-2">🔮 오늘의 운세</p>
+              <div className={`text-7xl mb-2 ${fortuneSpinning ? "animate-[fortuneSpin_0.08s_linear_infinite]" : "animate-[fortuneReveal_0.4s_ease]"}`}>
+                {FORTUNES[fortuneIdx].emoji}
+              </div>
+              <p className={`text-white font-black text-2xl ${fortuneSpinning ? "opacity-30" : "opacity-100 transition-opacity duration-300"}`}>
+                {fortuneSpinning ? "룰렛 돌리는 중..." : FORTUNES[fortuneIdx].title}
+              </p>
+            </div>
+            <div className="px-6 py-5">
+              {fortuneSpinning ? (
+                <div className="flex justify-center py-4">
+                  <div className="flex gap-1.5">
+                    {[0,1,2].map(i => (
+                      <span key={i} className="w-2.5 h-2.5 rounded-full bg-sky-300" style={{animation:`typingDot 1.2s ease-in-out infinite`, animationDelay:`${i*200}ms`}} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-slate-700 text-sm leading-relaxed text-center">{selectedFortune?.text}</p>
+                  <button onClick={() => setShowFortune(false)} className="mt-5 w-full h-12 rounded-[16px] bg-sky-100 text-sky-600 font-black text-sm active:scale-95 transition">
+                    확인 ✨
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes typingDot {
           0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -1482,6 +1662,15 @@ export default function GroupChat() {
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(4px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fortuneSpin {
+          0%   { transform: scale(1) rotate(0deg); }
+          50%  { transform: scale(1.1) rotate(10deg); }
+          100% { transform: scale(1) rotate(0deg); }
+        }
+        @keyframes fortuneReveal {
+          from { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+          to   { transform: scale(1) rotate(0deg); opacity: 1; }
         }
       `}</style>
     </PageContainer>
