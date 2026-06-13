@@ -828,6 +828,13 @@ export default function Chat() {
     await setDoc(doc(db, "game369_1v1", wordGameKey), { active: false, currentNumber: 0, lastPlayer: "", startedBy: "" });
     await addDoc(collection(db, "messages"), { from: nickname, to: currentChatUser.nickname, content: msg, type: "system", createdAt: serverTimestamp() });
   };
+  const sendClap = async () => {
+    if (!game369?.active || !wordGameKey || !nickname || !currentChatUser) return;
+    const expected = game369.currentNumber + 1;
+    if (!is369(expected)) return;
+    await setDoc(doc(db, "game369_1v1", wordGameKey), { active: true, currentNumber: expected, lastPlayer: nickname, startedBy: game369.startedBy });
+    await addDoc(collection(db, "messages"), { from: nickname, to: currentChatUser.nickname, content: "👏", type: "text", createdAt: serverTimestamp(), readBy: [nickname] });
+  };
 
   const drawLots = async () => {
     if (!nickname || !currentChatUser) return;
@@ -1470,7 +1477,15 @@ export default function Chat() {
               다음: {game369.currentNumber + 1}{is369(game369.currentNumber + 1) ? " → 👏" : ""}
             </span>
           </div>
-          <button onClick={() => end369("🏳️ 369 게임이 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+          <div className="flex items-center gap-2">
+            {is369(game369.currentNumber + 1) && (
+              <button onClick={sendClap}
+                className="px-3 py-1 rounded-xl bg-orange-400 text-white text-sm font-black active:scale-90 transition animate-pulse">
+                👏 박수
+              </button>
+            )}
+            <button onClick={() => end369("🏳️ 369 게임이 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+          </div>
         </div>
       )}
 
