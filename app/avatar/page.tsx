@@ -343,6 +343,8 @@ export default function Chat() {
   const nicknameRef = useRef<string | null>(null);
 
   const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [isDictating, setIsDictating] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const [showSpecialMenu, setShowSpecialMenu] = useState(false);
   const [wordGame, setWordGame] = useState<{ active: boolean; lastWord: string; lastChar: string; lastPlayer: string; startedBy: string } | null>(null);
   const [showFortune, setShowFortune] = useState(false);
@@ -683,6 +685,27 @@ export default function Chat() {
     },
     [currentChatUser]
   );
+
+  const startDictation = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert("이 브라우저는 받아쓰기를 지원하지 않아요. Chrome을 사용해주세요."); return; }
+    if (isDictating) { recognitionRef.current?.stop(); return; }
+    const recognition = new SR();
+    recognition.lang = "ko-KR";
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    recognition.onstart = () => setIsDictating(true);
+    recognition.onend = () => setIsDictating(false);
+    recognition.onerror = () => setIsDictating(false);
+    recognition.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      setInput(transcript);
+    };
+    recognition.start();
+    recognitionRef.current = recognition;
+    setShowPlusMenu(false);
+  };
 
   const startWordGame = async () => {
     if (!wordGameKey || !nickname || !currentChatUser) return;
@@ -1579,7 +1602,15 @@ export default function Chat() {
                   <line x1="12" y1="19" x2="12" y2="23"/>
                   <line x1="8" y1="23" x2="16" y2="23"/>
                 </svg>
-                <span className="text-[9px] font-bold">받아쓰기</span>
+                <span className="text-[9px] font-bold">마이크</span>
+              </button>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={startDictation}
+                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+              >
+                <span className="text-base leading-none">🗣️</span>
+                <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
             </div>
           )}
