@@ -293,11 +293,20 @@ export default function KeycapPage() {
   const [themeIdx, setThemeIdx] = useState(0);
   const [showThemes, setShowThemes] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
+  const [kbScale, setKbScale] = useState(1);
   const audioCtxRef = useRef<AudioContext|null>(null);
   const soundOnRef  = useRef(true);
   const themeIdxRef = useRef(0);
   soundOnRef.current  = soundOn;
   themeIdxRef.current = themeIdx;
+
+  // 모바일 zoom 계산: 키보드 자연 너비 1060px 기준
+  useEffect(() => {
+    const update = () => setKbScale(Math.min(1, (window.innerWidth - 32) / 1060));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const T = THEMES[themeIdx];
   const displayText = text + getCompChar(comp);
@@ -380,7 +389,7 @@ export default function KeycapPage() {
       style={{background:T.pageBg}}>
 
       {/* 디스플레이 */}
-      <div className="w-full max-w-5xl">
+      <div style={{width:1060, zoom:kbScale}}>
         <div className="relative rounded-2xl overflow-hidden transition-all duration-500"
           style={{background:T.dispBg,border:`1px solid ${T.dispBorder}`,boxShadow:`inset 0 2px 12px rgba(0,0,0,0.8),0 0 20px rgba(0,0,0,0.3)`}}>
           <div className="absolute inset-0 pointer-events-none"
@@ -426,7 +435,8 @@ export default function KeycapPage() {
       )}
 
       {/* 키보드 본체 */}
-      <div className="w-full max-w-5xl rounded-[32px] flex flex-col gap-[7px] p-7 transition-all duration-500"
+      <div style={{width:1060, zoom:kbScale}}>
+      <div className="w-full rounded-[32px] flex flex-col gap-[7px] p-7 transition-all duration-500"
         style={{background:T.boardBg,boxShadow:T.boardShadow}}>
 
         {ROWS.map((row,ri)=>(
@@ -523,6 +533,7 @@ export default function KeycapPage() {
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       <style>{`@keyframes kc-blink{0%,100%{opacity:1}50%{opacity:0}}`}</style>
