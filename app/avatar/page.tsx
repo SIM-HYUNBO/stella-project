@@ -64,6 +64,7 @@ const TITLE_MAP: Record<string, { icon: string; name: string }> = {
 };
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
+const is369 = (n: number) => String(n).split("").some((d) => d === "3" || d === "6" || d === "9");
 
 const FORTUNES = [
   { emoji: "🌟", title: "대길!", text: "오늘은 뭘 해도 잘 풀리는 날이에요! 주저하지 말고 도전해보세요." },
@@ -365,6 +366,12 @@ export default function Chat() {
   const [selectedFortune, setSelectedFortune] = useState<typeof FORTUNES[0] | null>(null);
   const fortuneIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [chosungGame, setChosungGame] = useState<{ active: boolean; consonants: string; answer: string; startedBy: string; solved: boolean; solvedBy?: string } | null>(null);
+  const [showChosungSetup, setShowChosungSetup] = useState(false);
+  const [chosungConsonants, setChosungConsonants] = useState("");
+  const [chosungAnswer, setChosungAnswer] = useState("");
+  const [game369, setGame369] = useState<{ active: boolean; currentNumber: number; lastPlayer: string; startedBy: string } | null>(null);
+
   const { isBlocked: pushBlocked } =
     usePushSubscription(nickname);
 
@@ -609,6 +616,20 @@ export default function Chat() {
   }, [wordGameKey]);
 
   useEffect(() => {
+    if (!wordGameKey) { setChosungGame(null); return; }
+    return onSnapshot(doc(db, "chosunggame_1v1", wordGameKey), (snap) => {
+      setChosungGame(snap.exists() ? snap.data() as any : null);
+    }, () => setChosungGame(null));
+  }, [wordGameKey]);
+
+  useEffect(() => {
+    if (!wordGameKey) { setGame369(null); return; }
+    return onSnapshot(doc(db, "game369_1v1", wordGameKey), (snap) => {
+      setGame369(snap.exists() ? snap.data() as any : null);
+    }, () => setGame369(null));
+  }, [wordGameKey]);
+
+  useEffect(() => {
     if (!currentChatUser || !nickname) return;
 
     const q = query(
@@ -772,6 +793,54 @@ export default function Chat() {
     }, 1800);
   };
 
+  const openChosungSetup = () => { setShowSpecialMenu(false); setShowChosungSetup(true); };
+  const submitChosung = async () => {
+    if (!chosungConsonants.trim() || !chosungAnswer.trim() || !wordGameKey || !nickname || !currentChatUser) return;
+    setShowChosungSetup(false);
+    await setDoc(doc(db, "chosunggame_1v1", wordGameKey), {
+      active: true, consonants: chosungConsonants.trim(), answer: chosungAnswer.trim(), startedBy: nickname, solved: false,
+    });
+    await addDoc(collection(db, "messages"), {
+      from: nickname, to: currentChatUser.nickname,
+      content: `❓ 초성 퀴즈! 힌트: 【 ${chosungConsonants.trim()} 】 무슨 단어일까요?`,
+      type: "system", createdAt: serverTimestamp(),
+    });
+    setChosungConsonants(""); setChosungAnswer("");
+  };
+  const endChosungGame = async (msg?: string) => {
+    if (!wordGameKey || !nickname || !currentChatUser) return;
+    await setDoc(doc(db, "chosunggame_1v1", wordGameKey), { active: false, consonants: "", answer: "", startedBy: "", solved: false });
+    if (msg) await addDoc(collection(db, "messages"), { from: nickname, to: currentChatUser.nickname, content: msg, type: "system", createdAt: serverTimestamp() });
+  };
+
+  const start369 = async () => {
+    if (!wordGameKey || !nickname || !currentChatUser) return;
+    setShowSpecialMenu(false);
+    await setDoc(doc(db, "game369_1v1", wordGameKey), { active: true, currentNumber: 0, lastPlayer: "", startedBy: nickname });
+    await addDoc(collection(db, "messages"), {
+      from: nickname, to: currentChatUser.nickname,
+      content: `🔢 ${nickname}님이 369 게임을 시작했어요! 1부터 차례로 세고 3·6·9가 들어간 숫자는 👏로 치세요.`,
+      type: "system", createdAt: serverTimestamp(),
+    });
+  };
+  const end369 = async (msg: string) => {
+    if (!wordGameKey || !nickname || !currentChatUser) return;
+    await setDoc(doc(db, "game369_1v1", wordGameKey), { active: false, currentNumber: 0, lastPlayer: "", startedBy: "" });
+    await addDoc(collection(db, "messages"), { from: nickname, to: currentChatUser.nickname, content: msg, type: "system", createdAt: serverTimestamp() });
+  };
+
+  const drawLots = async () => {
+    if (!nickname || !currentChatUser) return;
+    setShowSpecialMenu(false);
+    const candidates = [nickname, currentChatUser.nickname];
+    const winner = candidates[Math.floor(Math.random() * candidates.length)];
+    await addDoc(collection(db, "messages"), {
+      from: nickname, to: currentChatUser.nickname,
+      content: `🎰 제비뽑기 결과: 🎉 ${winner}님이 당첨됐어요!`,
+      type: "system", createdAt: serverTimestamp(),
+    });
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -857,6 +926,44 @@ export default function Chat() {
       return;
 
     const text = input.trim();
+
+    // 초성 퀴즈 정답 체크
+    if (chosungGame?.active && !chosungGame.solved && wordGameKey) {
+      if (text === chosungGame.answer.trim()) {
+        await setDoc(doc(db, "chosunggame_1v1", wordGameKey), {
+          active: true, consonants: chosungGame.consonants, answer: chosungGame.answer,
+          startedBy: chosungGame.startedBy, solved: true, solvedBy: nickname,
+        });
+        await addDoc(collection(db, "messages"), {
+          from: nickname, to: currentChatUser.nickname,
+          content: `🎉 정답! ${nickname}님이 맞췄어요! 정답은 「${chosungGame.answer}」`,
+          type: "system", createdAt: serverTimestamp(),
+        });
+        setInput(""); setReplyTo(null); return;
+      }
+    }
+
+    // 369 검증
+    if (game369?.active && wordGameKey) {
+      const expected = game369.currentNumber + 1;
+      const isClap = ["👏", "박수", "짝"].includes(text);
+      if (is369(expected)) {
+        if (!isClap) {
+          setInput("");
+          await end369(`❌ ${expected}에서 👏를 쳐야 했는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          return;
+        }
+      } else {
+        if (text !== String(expected)) {
+          setInput("");
+          await end369(`❌ ${expected}가 정답이었는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          return;
+        }
+      }
+      await setDoc(doc(db, "game369_1v1", wordGameKey), {
+        active: true, currentNumber: expected, lastPlayer: nickname, startedBy: game369.startedBy,
+      });
+    }
 
     // 끝말잇기 검증
     if (wordGame?.active && wordGameKey) {
@@ -1345,6 +1452,28 @@ export default function Chat() {
         </div>
       )}
 
+      {chosungGame?.active && !chosungGame.solved && (
+        <div className="flex items-center justify-between px-4 py-2 bg-purple-50 border-b border-purple-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black text-purple-700">❓ 초성 퀴즈</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-purple-200 text-purple-700 text-xs font-black tracking-widest">【 {chosungGame.consonants} 】</span>
+          </div>
+          <button onClick={() => endChosungGame(`❌ 초성 퀴즈 종료. 정답은 「${chosungGame.answer}」였어요.`)} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+        </div>
+      )}
+
+      {game369?.active && (
+        <div className="flex items-center justify-between px-4 py-2 bg-orange-50 border-b border-orange-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black text-orange-700">🔢 369 게임</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-orange-200 text-orange-700 text-xs font-black">
+              다음: {game369.currentNumber + 1}{is369(game369.currentNumber + 1) ? " → 👏" : ""}
+            </span>
+          </div>
+          <button onClick={() => end369("🏳️ 369 게임이 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+        </div>
+      )}
+
       {showMsgSearch && (
         <div className="px-4 py-2 border-b bg-white">
           <input
@@ -1679,25 +1808,26 @@ export default function Chat() {
 
         <div className="relative shrink-0">
           {showSpecialMenu && (
-            <div className="absolute bottom-[52px] right-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
-              <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={startWordGame}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-xs font-black text-sky-600 whitespace-nowrap active:scale-95 transition"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="6" width="20" height="14" rx="6"/><line x1="6" y1="13" x2="10" y2="13"/><line x1="8" y1="11" x2="8" y2="15"/><circle cx="16" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/>
-                </svg> 끝말잇기
-              </button>
-              <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={openFortune}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-xs font-black text-sky-600 whitespace-nowrap active:scale-95 transition"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg> 오늘의 운세
-              </button>
+            <div className="absolute bottom-[56px] left-[-240px] right-0 z-50 animate-[fadeInUp_0.15s_ease]">
+              <div className="bg-white rounded-[20px] shadow-xl border border-gray-100 p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "끝말잇기", onClick: startWordGame, icon: <rect x="2" y="6" width="20" height="14" rx="6"/>, extraPaths: <><line x1="6" y1="13" x2="10" y2="13"/><line x1="8" y1="11" x2="8" y2="15"/><circle cx="16" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/></>, color: "text-sky-600 border-sky-100 bg-sky-50" },
+                    { label: "오늘의 운세", onClick: openFortune, color: "text-purple-600 border-purple-100 bg-purple-50" },
+                    { label: "초성 퀴즈", onClick: openChosungSetup, color: "text-violet-600 border-violet-100 bg-violet-50" },
+                    { label: "369 게임", onClick: start369, color: "text-orange-600 border-orange-100 bg-orange-50" },
+                  ].map(({ label, onClick, color }) => (
+                    <button key={label} onMouseDown={(e) => e.preventDefault()} onClick={onClick}
+                      className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[14px] border text-xs font-black whitespace-nowrap active:scale-95 transition ${color}`}>
+                      {label}
+                    </button>
+                  ))}
+                  <button onMouseDown={(e) => e.preventDefault()} onClick={drawLots}
+                    className="col-span-2 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[14px] border text-xs font-black bg-yellow-50 border-yellow-100 text-yellow-600 active:scale-95 transition">
+                    🎰 제비뽑기
+                  </button>
+                </div>
+              </div>
             </div>
           )}
           <button
@@ -1898,6 +2028,30 @@ export default function Chat() {
           </div>
         </div>
       )}
+      {showChosungSetup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40" onClick={() => setShowChosungSetup(false)}>
+          <div className="mx-6 w-full max-w-sm bg-white rounded-3xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <p className="font-black text-slate-800 text-lg">❓ 초성 퀴즈 만들기</p>
+            <div>
+              <p className="text-xs font-bold text-gray-400 mb-1.5">초성 힌트 (상대에게 보여요)</p>
+              <input value={chosungConsonants} onChange={(e) => setChosungConsonants(e.target.value)}
+                placeholder="예: ㅅㄹ" autoFocus
+                className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-lg font-black tracking-[0.3em] text-center outline-none focus:ring-2 focus:ring-violet-200"/>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 mb-1.5">정답 (나만 알고 있어요)</p>
+              <input value={chosungAnswer} onChange={(e) => setChosungAnswer(e.target.value)}
+                placeholder="예: 사랑" onKeyDown={(e) => e.key === "Enter" && submitChosung()}
+                className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-violet-200"/>
+            </div>
+            <button onClick={submitChosung} disabled={!chosungConsonants.trim() || !chosungAnswer.trim()}
+              className="w-full h-12 rounded-2xl bg-violet-400 text-white font-black disabled:opacity-40 active:scale-95 transition">
+              퀴즈 시작!
+            </button>
+          </div>
+        </div>
+      )}
+
       {showFortune && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { if (!fortuneSpinning) setShowFortune(false); }}>
           <div className="mx-6 w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
