@@ -342,10 +342,11 @@ function SnakeGame({ audioCtxRef, onExit }:{ audioCtxRef:React.MutableRefObject<
   },[]);
 
   const onJoyMove=useCallback((e:React.PointerEvent<HTMLDivElement>)=>{
+    // getBoundingClientRect은 업데이터 밖에서 동기적으로 계산
+    const rect=e.currentTarget.getBoundingClientRect();
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
     setJoy(j=>{
       if(!j.active)return j;
-      const rect=e.currentTarget.getBoundingClientRect();
-      const mx=e.clientX-rect.left,my=e.clientY-rect.top;
       const dx=mx-j.bx,dy=my-j.by,dist=Math.hypot(dx,dy);
       const tx=j.bx+(dist>0?dx/dist:0)*Math.min(dist,JOY_R);
       const ty=j.by+(dist>0?dy/dist:0)*Math.min(dist,JOY_R);
