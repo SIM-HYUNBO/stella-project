@@ -1,5 +1,6 @@
 "use client";
 import { useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 type SoundParams = {
   clickFreq: number; clickQ: number; clickVol: number;
@@ -95,6 +96,7 @@ const THEMES: ThemeDef[] = [
 const PITCH_MULTS = [1.3, 1.0, 0.8, 1.2, 1.0, 0.85, 1.15, 1.0, 0.9];
 
 export default function KeycapPage() {
+  const router = useRouter();
   const [pressed, setPressed] = useState<number | null>(null);
   const [themeIdx, setThemeIdx] = useState(0);
   const [showThemes, setShowThemes] = useState(false);
@@ -126,6 +128,18 @@ export default function KeycapPage() {
       className="min-h-screen flex flex-col items-center justify-center gap-8 select-none"
       style={{ background: T.pageBg, padding: "32px 20px" }}
     >
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => router.back()}
+        style={{
+          alignSelf: "flex-start",
+          padding: "8px 16px", borderRadius: 12, fontSize: 16, fontWeight: 700,
+          background: T.keyBg, border: `1px solid ${T.border}`,
+          boxShadow: T.keyShadow, cursor: "pointer",
+          color: "rgba(255,255,255,0.5)",
+        }}
+      >←</button>
+
       {/* 9키 그리드 */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, width: "100%", maxWidth: 340 }}>
         {Array.from({ length: 9 }, (_, i) => {
