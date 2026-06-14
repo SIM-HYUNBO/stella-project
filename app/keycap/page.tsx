@@ -509,7 +509,6 @@ export default function KeycapPage() {
             <button onPointerDown={e=>e.preventDefault()} onClick={()=>setShowThemes(v=>!v)} style={{...btnStyle,display:"flex",alignItems:"center",gap:7,fontSize:12}}>
               <span style={{width:10,height:10,borderRadius:"50%",background:T.dot,display:"inline-block",boxShadow:`0 0 8px ${T.dot}`}}/>테마
             </button>
-            <button onPointerDown={e=>e.preventDefault()} onClick={()=>setShowGamePicker(v=>!v)} style={{...btnStyle,fontSize:13}}>🎮 게임</button>
           </div>
 
           {showGamePicker&&(
