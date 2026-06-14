@@ -241,7 +241,7 @@ function GalagaGame({ audioCtxRef, onExit }:{ audioCtxRef:React.MutableRefObject
   );
 }
 
-// ── 스네이크 ─────────────────────────────────────────────────────────────────
+// ── 스네이크 (캐주얼 토이) ───────────────────────────────────────────────────
 const SNAKE_GRID=20;
 const FOOD_COLORS=["#ff44ff","#44ffff","#aaff44","#ffaa44","#ff4488"];
 
@@ -251,19 +251,15 @@ function SnakeGame({ audioCtxRef, onExit }:{ audioCtxRef:React.MutableRefObject<
 
   const G=useRef({
     snake:[] as {x:number;y:number}[],
-    dir:{x:1,y:0}, nextDir:{x:1,y:0},
+    lastDir:{x:1,y:0},
     food:{x:5,y:5}, foodColor:"#ff44ff",
-    score:0, highScore:0,
-    running:false, frameId:0, lastMove:0, frame:0, cell:16,
+    running:false, frameId:0, frame:0, cell:16,
   });
-  const [phase,setPhase]=useState<"idle"|"playing"|"over">("idle");
-  const [final,setFinal]=useState({score:0,highScore:0,isNew:false});
-
-  useEffect(()=>{ try{G.current.highScore=parseInt(localStorage.getItem("neonSnakeHS")||"0");}catch(_){} },[]);
+  const [started,setStarted]=useState(false);
 
   const placeFood=useCallback(()=>{
     const g=G.current;
-    let pos:{ x:number;y:number };
+    let pos:{x:number;y:number};
     do{ pos={x:Math.floor(Math.random()*SNAKE_GRID),y:Math.floor(Math.random()*SNAKE_GRID)}; }
     while(g.snake.some(s=>s.x===pos.x&&s.y===pos.y));
     g.food=pos; g.foodColor=FOOD_COLORS[Math.floor(Math.random()*FOOD_COLORS.length)];
@@ -274,134 +270,164 @@ function SnakeGame({ audioCtxRef, onExit }:{ audioCtxRef:React.MutableRefObject<
     const ctx=canvas.getContext("2d");if(!ctx)return;
     const g=G.current,c=g.cell,W=canvas.width,H=canvas.height,total=g.snake.length;
     ctx.fillStyle="#030008";ctx.fillRect(0,0,W,H);
-    // grid
-    ctx.strokeStyle="rgba(200,0,255,0.05)";ctx.lineWidth=0.5;
+    // 그리드 (아주 은은하게)
+    ctx.strokeStyle="rgba(200,0,255,0.04)";ctx.lineWidth=0.5;
     for(let i=0;i<=SNAKE_GRID;i++){ctx.beginPath();ctx.moveTo(i*c,0);ctx.lineTo(i*c,H);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*c);ctx.lineTo(W,i*c);ctx.stroke();}
-    // food
-    const fp=1+0.22*Math.sin(g.frame*0.1);
+    // 먹이
+    const fp=1+0.22*Math.sin(g.frame*0.08);
     ctx.shadowBlur=20;ctx.shadowColor=g.foodColor;ctx.fillStyle=g.foodColor;
     ctx.beginPath();ctx.arc(g.food.x*c+c/2,g.food.y*c+c/2,(c/2-1)*fp,0,Math.PI*2);ctx.fill();
     ctx.fillStyle="rgba(255,255,255,0.55)";ctx.shadowBlur=0;
     ctx.beginPath();ctx.arc(g.food.x*c+c/2-c/6,g.food.y*c+c/2-c/6,c/7,0,Math.PI*2);ctx.fill();
-    // snake
+    // 뱀
     g.snake.forEach((seg,idx)=>{
       const t=total<=1?0:Math.min(1,idx/(total-1));
       const r=Math.round(t*255),gr=Math.round(255-t*180),b=255,a=1-t*0.28;
       const glow=t<0.5?"#00ffff":"#ff00ff";
       const isHead=idx===0,pad=isHead?0:1;
-      ctx.shadowBlur=isHead?18:7;ctx.shadowColor=glow;ctx.fillStyle=`rgba(${r},${gr},${b},${a})`;
+      ctx.shadowBlur=isHead?18:6;ctx.shadowColor=glow;ctx.fillStyle=`rgba(${r},${gr},${b},${a})`;
       ctx.beginPath();ctx.roundRect(seg.x*c+pad,seg.y*c+pad,c-pad*2,c-pad*2,isHead?5:3);ctx.fill();
       ctx.shadowBlur=0;
       if(isHead){
-        const d=g.dir,cx2=seg.x*c+c/2,cy2=seg.y*c+c/2,er=c*0.12;
+        const d=g.lastDir,cx2=seg.x*c+c/2,cy2=seg.y*c+c/2,er=c*0.12;
         ctx.fillStyle="#000820";
         if(Math.abs(d.x)>0){[cy2-c*0.2,cy2+c*0.2].forEach(ey=>{ctx.beginPath();ctx.arc(cx2+d.x*c*0.15,ey,er,0,Math.PI*2);ctx.fill();});}
         else{[cx2-c*0.2,cx2+c*0.2].forEach(ex=>{ctx.beginPath();ctx.arc(ex,cy2+d.y*c*0.15,er,0,Math.PI*2);ctx.fill();});}
       }
     });
-    // HUD
-    ctx.shadowBlur=8;ctx.shadowColor="#ff00ff";ctx.font="bold 15px monospace";ctx.textAlign="left";ctx.fillStyle="#ff88ff";ctx.fillText(`${g.score}`,8,22);
-    ctx.textAlign="right";ctx.fillStyle="#44ffff";ctx.shadowColor="#44ffff";ctx.fillText(`BEST ${g.highScore}`,W-8,22);
-    ctx.textAlign="center";ctx.fillStyle="rgba(180,120,255,0.45)";ctx.font="10px monospace";ctx.fillText(`LEN ${total}`,W/2,H-4);ctx.shadowBlur=0;
   },[]);
 
+  // 렌더링 루프 (이동 없음 — 입력 시에만 이동)
   const loop=useCallback(()=>{
     const g=G.current;if(!g.running)return;
-    const now=performance.now();g.frame++;
-    const speed=Math.max(90,175-(g.snake.length-3)*3);
-    if(now-g.lastMove>=speed){
-      g.dir={...g.nextDir};
-      const head=g.snake[0],nh={x:head.x+g.dir.x,y:head.y+g.dir.y};
-      if(nh.x<0||nh.x>=SNAKE_GRID||nh.y<0||nh.y>=SNAKE_GRID||g.snake.slice(0,-1).some(s=>s.x===nh.x&&s.y===nh.y)){
-        g.running=false;
-        const isNew=g.score>g.highScore&&g.score>0;
-        if(isNew){g.highScore=g.score;try{localStorage.setItem("neonSnakeHS",g.score.toString());}catch(_){}}
-        setFinal({score:g.score,highScore:g.highScore,isNew});setPhase("over");return;
-      }
-      g.snake.unshift(nh);
-      if(nh.x===g.food.x&&nh.y===g.food.y){
-        g.score+=10;placeFood();
-        try{playClick(getAudio(),SND_EAT,0.9+Math.random()*0.3);}catch(_){}
-      } else { g.snake.pop(); }
-      g.lastMove=now;
+    g.frame++;draw();g.frameId=requestAnimationFrame(loop);
+  },[draw]);
+
+  // 한 칸 이동 (스와이프/버튼 누를 때 호출)
+  const step=useCallback((dx:number,dy:number)=>{
+    const g=G.current;if(!g.running)return;
+    const head=g.snake[0];
+    // 벽 통과 (반대편으로)
+    const nh={x:(head.x+dx+SNAKE_GRID)%SNAKE_GRID,y:(head.y+dy+SNAKE_GRID)%SNAKE_GRID};
+    g.lastDir={x:dx,y:dy};
+    g.snake.unshift(nh);
+    if(nh.x===g.food.x&&nh.y===g.food.y){
+      placeFood();
+      try{playClick(getAudio(),SND_EAT,0.9+Math.random()*0.3);}catch(_){}
+    } else {
+      g.snake.pop();
     }
-    draw();g.frameId=requestAnimationFrame(loop);
-  },[draw,placeFood,getAudio]);
+  },[placeFood,getAudio]);
+
+  const joyDirRef=useRef({x:0,y:0});
+  const [joy,setJoy]=useState({active:false,bx:0,by:0,tx:0,ty:0});
+  const JOY_R=48, TIP_R=24;
+
+  // 조이스틱 방향으로 연속 이동
+  useEffect(()=>{
+    if(!joy.active)return;
+    const id=setInterval(()=>{
+      const {x,y}=joyDirRef.current;
+      if(x!==0||y!==0)step(x,y);
+    },170);
+    return()=>clearInterval(id);
+  },[joy.active,step]);
+
+  const onJoyDown=useCallback((e:React.PointerEvent<HTMLDivElement>)=>{
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect=e.currentTarget.getBoundingClientRect();
+    const bx=e.clientX-rect.left,by=e.clientY-rect.top;
+    setJoy({active:true,bx,by,tx:bx,ty:by});
+    joyDirRef.current={x:0,y:0};
+  },[]);
+
+  const onJoyMove=useCallback((e:React.PointerEvent<HTMLDivElement>)=>{
+    setJoy(j=>{
+      if(!j.active)return j;
+      const rect=e.currentTarget.getBoundingClientRect();
+      const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+      const dx=mx-j.bx,dy=my-j.by,dist=Math.hypot(dx,dy);
+      const tx=j.bx+(dist>0?dx/dist:0)*Math.min(dist,JOY_R);
+      const ty=j.by+(dist>0?dy/dist:0)*Math.min(dist,JOY_R);
+      if(dist>14){
+        if(Math.abs(dx)>=Math.abs(dy))joyDirRef.current={x:dx>0?1:-1,y:0};
+        else joyDirRef.current={x:0,y:dy>0?1:-1};
+      }else{joyDirRef.current={x:0,y:0};}
+      return{...j,tx,ty};
+    });
+  },[]);
+
+  const onJoyUp=useCallback(()=>{
+    setJoy({active:false,bx:0,by:0,tx:0,ty:0});
+    joyDirRef.current={x:0,y:0};
+  },[]);
 
   const startGame=useCallback(()=>{
     const g=G.current;cancelAnimationFrame(g.frameId);
     const canvas=canvasRef.current;if(!canvas)return;
     g.cell=Math.floor(canvas.width/SNAKE_GRID);
     g.snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];
-    g.dir={x:1,y:0};g.nextDir={x:1,y:0};
-    g.score=0;g.frame=0;g.lastMove=0;g.running=true;
-    placeFood();setPhase("playing");g.frameId=requestAnimationFrame(loop);
+    g.lastDir={x:1,y:0};g.frame=0;g.running=true;
+    placeFood();setStarted(true);g.frameId=requestAnimationFrame(loop);
   },[loop,placeFood]);
 
-  const changeDir=useCallback((dx:number,dy:number)=>{
-    const g=G.current;
-    if(dx!==0&&g.dir.x!==0)return;
-    if(dy!==0&&g.dir.y!==0)return;
-    g.nextDir={x:dx,y:dy};
-  },[]);
-
+  // 키보드
   useEffect(()=>{
     const dn=(e:KeyboardEvent)=>{
-      if(e.key==="ArrowUp"||e.key==="w"||e.key==="W"){e.preventDefault();changeDir(0,-1);}
-      if(e.key==="ArrowDown"||e.key==="s"||e.key==="S"){e.preventDefault();changeDir(0,1);}
-      if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A"){e.preventDefault();changeDir(-1,0);}
-      if(e.key==="ArrowRight"||e.key==="d"||e.key==="D"){e.preventDefault();changeDir(1,0);}
-      if((e.key==="Enter"||e.key===" ")&&phase!=="playing")startGame();
+      if(e.key==="ArrowUp"   ||e.key==="w"||e.key==="W"){e.preventDefault();step(0,-1);}
+      if(e.key==="ArrowDown" ||e.key==="s"||e.key==="S"){e.preventDefault();step(0,1);}
+      if(e.key==="ArrowLeft" ||e.key==="a"||e.key==="A"){e.preventDefault();step(-1,0);}
+      if(e.key==="ArrowRight"||e.key==="d"||e.key==="D"){e.preventDefault();step(1,0);}
+      if(!started&&(e.key==="Enter"||e.key===" "))startGame();
     };
     window.addEventListener("keydown",dn);return()=>window.removeEventListener("keydown",dn);
-  },[startGame,changeDir,phase]);
-
-  // 스와이프
-  useEffect(()=>{
-    const canvas=canvasRef.current;if(!canvas)return;
-    let tx=0,ty=0;
-    const ts=(e:TouchEvent)=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;};
-    const te=(e:TouchEvent)=>{const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>Math.abs(dy))changeDir(dx>0?1:-1,0);else changeDir(0,dy>0?1:-1);};
-    canvas.addEventListener("touchstart",ts,{passive:true});canvas.addEventListener("touchend",te,{passive:true});
-    return()=>{canvas.removeEventListener("touchstart",ts);canvas.removeEventListener("touchend",te);};
-  },[changeDir]);
+  },[step,startGame,started]);
 
   useEffect(()=>{
     const canvas=canvasRef.current;if(!canvas)return;
     canvas.width=Math.min(340,window.innerWidth-40);canvas.height=canvas.width;
     const ctx=canvas.getContext("2d");if(!ctx)return;
     ctx.fillStyle="#030008";ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.shadowBlur=18;ctx.shadowColor="#ff00ff";ctx.font="bold 22px monospace";ctx.textAlign="center";ctx.fillStyle="#ff88ff";ctx.fillText("NEON SNAKE",canvas.width/2,canvas.height/2-16);
-    ctx.shadowBlur=8;ctx.shadowColor="#44ffff";ctx.font="10px monospace";ctx.fillStyle="rgba(100,220,255,0.5)";ctx.fillText("WASD / 방향키 / 스와이프",canvas.width/2,canvas.height/2+8);ctx.shadowBlur=0;
+    ctx.shadowBlur=18;ctx.shadowColor="#ff00ff";ctx.font="bold 22px monospace";ctx.textAlign="center";ctx.fillStyle="#ff88ff";
+    ctx.fillText("NEON SNAKE",canvas.width/2,canvas.height/2-16);
+    ctx.shadowBlur=6;ctx.shadowColor="#44ffff";ctx.font="10px monospace";ctx.fillStyle="rgba(100,220,255,0.5)";
+    ctx.fillText("조이스틱 드래그로 이동",canvas.width/2,canvas.height/2+8);ctx.shadowBlur=0;
   },[]);
   useEffect(()=>()=>{cancelAnimationFrame(G.current.frameId);G.current.running=false;},[]);
 
-  const dpadBtn=(label:string,dx:number,dy:number,col:number,row:number)=>(
-    <button key={label} onClick={()=>changeDir(dx,dy)} style={{gridColumn:col,gridRow:row,borderRadius:12,background:"rgba(0,200,255,0.08)",border:"1.5px solid rgba(0,255,255,0.4)",cursor:"pointer",fontSize:20,color:"#44ffff",boxShadow:"0 0 10px rgba(0,200,255,0.12)",touchAction:"manipulation"}}>{label}</button>
-  );
+  const CW=canvasRef.current?.width??300;
 
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,width:"100%"}}>
       <canvas ref={canvasRef} style={{borderRadius:16,border:"1px solid rgba(200,0,255,0.2)",boxShadow:"0 0 40px rgba(180,0,255,0.15)"}}/>
-      {phase==="idle"&&<button onClick={startGame} style={{padding:"13px 52px",borderRadius:16,background:"linear-gradient(135deg,#cc00ff,#6600cc)",color:"white",fontWeight:900,fontSize:19,border:"none",cursor:"pointer",boxShadow:"0 0 24px rgba(200,0,255,0.55)",letterSpacing:3}}>START</button>}
-      {phase==="over"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
-          <div style={{fontFamily:"monospace",textAlign:"center",lineHeight:1.8}}>
-            <div style={{fontSize:26,fontWeight:900,color:"#ffff55",textShadow:"0 0 16px #ffff00"}}>{final.score}</div>
-            {final.isNew&&<div style={{fontSize:13,color:"#ff88ff",fontWeight:900}}>NEW BEST!</div>}
-            <div style={{fontSize:11,color:"#80ffff"}}>BEST {final.highScore}</div>
+
+      {!started
+        ? <button onClick={startGame} style={{padding:"13px 52px",borderRadius:16,background:"linear-gradient(135deg,#cc00ff,#6600cc)",color:"white",fontWeight:900,fontSize:19,border:"none",cursor:"pointer",boxShadow:"0 0 24px rgba(200,0,255,0.55)",letterSpacing:3}}>START</button>
+        : (
+          // 조이스틱 존
+          <div
+            onPointerDown={onJoyDown} onPointerMove={onJoyMove}
+            onPointerUp={onJoyUp} onPointerLeave={onJoyUp} onPointerCancel={onJoyUp}
+            style={{width:CW,height:140,borderRadius:20,background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,255,255,0.1)",position:"relative",touchAction:"none",userSelect:"none",cursor:"pointer"}}>
+            {joy.active?(
+              <>
+                {/* 베이스 */}
+                <div style={{position:"absolute",left:joy.bx-JOY_R,top:joy.by-JOY_R,width:JOY_R*2,height:JOY_R*2,borderRadius:"50%",border:"2px solid rgba(0,255,255,0.3)",background:"rgba(0,200,255,0.07)",pointerEvents:"none"}}/>
+                {/* 방향 표시 선 */}
+                {(()=>{const dx=joy.tx-joy.bx,dy=joy.ty-joy.by,dist=Math.hypot(dx,dy);if(dist<8)return null;return(<div style={{position:"absolute",left:joy.bx,top:joy.by,width:dist,height:2,background:"rgba(0,255,255,0.25)",transformOrigin:"0 50%",transform:`rotate(${Math.atan2(dy,dx)}rad) translateY(-50%)`,pointerEvents:"none"}}/> ); })()}
+                {/* 팁 */}
+                <div style={{position:"absolute",left:joy.tx-TIP_R,top:joy.ty-TIP_R,width:TIP_R*2,height:TIP_R*2,borderRadius:"50%",background:"rgba(0,220,255,0.5)",boxShadow:"0 0 20px rgba(0,200,255,0.7), inset 0 0 10px rgba(255,255,255,0.2)",pointerEvents:"none"}}/>
+              </>
+            ):(
+              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:6,pointerEvents:"none"}}>
+                <div style={{width:JOY_R*2,height:JOY_R*2,borderRadius:"50%",border:"1.5px solid rgba(0,255,255,0.15)",background:"rgba(0,200,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <div style={{width:TIP_R*2,height:TIP_R*2,borderRadius:"50%",background:"rgba(0,200,255,0.15)",boxShadow:"0 0 10px rgba(0,200,255,0.2)"}}/>
+                </div>
+              </div>
+            )}
           </div>
-          <button onClick={startGame} style={{padding:"11px 38px",borderRadius:14,background:"linear-gradient(135deg,#cc00ff,#6600cc)",color:"white",fontWeight:900,fontSize:16,border:"none",cursor:"pointer",boxShadow:"0 0 16px rgba(200,0,255,0.45)",letterSpacing:2}}>다시하기</button>
-        </div>
-      )}
-      {phase==="playing"&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,66px)",gridTemplateRows:"repeat(3,50px)",gap:8}}>
-          {dpadBtn("▲",0,-1,2,1)}
-          {dpadBtn("◀",-1,0,1,2)}
-          {dpadBtn("▶",1,0,3,2)}
-          {dpadBtn("▼",0,1,2,3)}
-        </div>
-      )}
+        )
+      }
       <button onClick={onExit} style={{fontSize:12,color:"rgba(255,100,255,0.35)",background:"none",border:"none",cursor:"pointer"}}>← 뒤로</button>
     </div>
   );
