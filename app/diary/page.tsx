@@ -1,11 +1,10 @@
 ﻿"use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, setDoc, query, where, limit } from "firebase/firestore";
-import KeycapKeyboard from "@/components/KeycapKeyboard";
 
 const MOODS = ["😊", "🥰", "😢", "😡", "😴", "🤔", "🥳", "😌", "🫠", "💪"];
 
@@ -22,7 +21,6 @@ export default function DiaryPage() {
   const [tab, setTab] = useState<"mine" | "friends">("mine");
   const [selectedMood, setSelectedMood] = useState("😊");
   const [content, setContent] = useState("");
-  const [showKeycap, setShowKeycap] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [saving, setSaving] = useState(false);
   const [myEntries, setMyEntries] = useState<DiaryEntry[]>([]);
@@ -160,18 +158,8 @@ export default function DiaryPage() {
 
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      readOnly={showKeycap}
-                      onFocus={() => setShowKeycap(true)}
                       className="w-full text-sm text-slate-800 bg-sky-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
                     />
-                    {showKeycap && (
-                      <KeycapKeyboard
-                        defaultValue={content}
-                        onChange={(t) => setContent(t.slice(0, 200))}
-                        onEnter={(t) => setContent(t.slice(0, 200))}
-                        onClose={() => setShowKeycap(false)}
-                      />
-                    )}
                     <div className="text-right text-xs text-slate-400 mb-3">{content.length}/200</div>
 
                     <div className="flex items-center justify-between">
