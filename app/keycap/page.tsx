@@ -36,7 +36,7 @@ type ThemeDef = {
   keyBg: string; keyDownBg: string;
   keyShadow: string; keyDownShadow: string;
   border: string; topBorder: string;
-  iconColor: string;
+  iconColor: string; btnColor: string;
   sound: SoundParams;
 };
 
@@ -49,7 +49,7 @@ const THEMES: ThemeDef[] = [
     keyShadow: "0 8px 0 #0a0a0a,inset 0 1px 0 rgba(255,255,255,0.1)",
     keyDownShadow: "0 2px 0 #080808,inset 0 2px 6px rgba(0,0,0,0.7)",
     border: "rgba(255,255,255,0.06)", topBorder: "rgba(255,255,255,0.1)",
-    iconColor: "rgba(255,255,255,0.55)",
+    iconColor: "rgba(255,255,255,0.55)", btnColor: "rgba(255,255,255,0.6)",
     sound: { clickFreq: 3500, clickQ: 1.0, clickVol: 0.28, thumpStart: 240, thumpEnd: 65, thumpDecay: 0.055, thumpVol: 0.20 },
   },
   {
@@ -60,7 +60,7 @@ const THEMES: ThemeDef[] = [
     keyShadow: "0 8px 0 #999,inset 0 1px 0 rgba(255,255,255,0.8)",
     keyDownShadow: "0 2px 0 #aaa,inset 0 2px 6px rgba(0,0,0,0.2)",
     border: "rgba(0,0,0,0.08)", topBorder: "rgba(255,255,255,0.7)",
-    iconColor: "rgba(60,50,40,0.4)",
+    iconColor: "rgba(60,50,40,0.4)", btnColor: "rgba(60,50,40,0.7)",
     sound: { clickFreq: 2200, clickQ: 0.6, clickVol: 0.16, thumpStart: 160, thumpEnd: 50, thumpDecay: 0.07, thumpVol: 0.13 },
   },
   {
@@ -71,7 +71,7 @@ const THEMES: ThemeDef[] = [
     keyShadow: "0 8px 0 #041020,inset 0 1px 0 rgba(14,165,233,0.2)",
     keyDownShadow: "0 2px 0 #030c18,inset 0 2px 6px rgba(0,0,0,0.8)",
     border: "rgba(14,165,233,0.12)", topBorder: "rgba(14,165,233,0.15)",
-    iconColor: "rgba(100,200,255,0.6)",
+    iconColor: "rgba(100,200,255,0.6)", btnColor: "rgba(100,200,255,0.7)",
     sound: { clickFreq: 1800, clickQ: 0.5, clickVol: 0.12, thumpStart: 130, thumpEnd: 40, thumpDecay: 0.09, thumpVol: 0.10 },
   },
   {
@@ -82,7 +82,7 @@ const THEMES: ThemeDef[] = [
     keyShadow: "0 8px 0 #3a2810,inset 0 1px 0 rgba(255,220,150,0.3)",
     keyDownShadow: "0 2px 0 #2a1808,inset 0 2px 6px rgba(0,0,0,0.5)",
     border: "rgba(212,168,83,0.15)", topBorder: "rgba(212,168,83,0.25)",
-    iconColor: "rgba(42,26,8,0.4)",
+    iconColor: "rgba(42,26,8,0.4)", btnColor: "rgba(42,26,8,0.65)",
     sound: { clickFreq: 5500, clickQ: 2.0, clickVol: 0.40, thumpStart: 380, thumpEnd: 90, thumpDecay: 0.04, thumpVol: 0.25 },
   },
   {
@@ -93,7 +93,7 @@ const THEMES: ThemeDef[] = [
     keyShadow: "0 8px 0 #060010,0 0 12px rgba(200,0,255,0.5),inset 0 1px 0 rgba(255,0,255,0.2)",
     keyDownShadow: "0 2px 0 #040008,0 0 20px rgba(255,0,255,0.8),inset 0 2px 6px rgba(0,0,0,0.9)",
     border: "rgba(200,0,255,0.15)", topBorder: "rgba(255,0,255,0.15)",
-    iconColor: "rgba(255,100,255,0.65)",
+    iconColor: "rgba(255,100,255,0.65)", btnColor: "rgba(255,100,255,0.7)",
     sound: { clickFreq: 6000, clickQ: 3.0, clickVol: 0.22, thumpStart: 800, thumpEnd: 200, thumpDecay: 0.03, thumpVol: 0.18 },
   },
 ];
@@ -189,7 +189,7 @@ export default function KeycapPage() {
   const btnStyle = {
     padding: "8px 16px", borderRadius: 12, fontSize: 15, fontWeight: 700,
     background: T.keyBg, border: `1px solid ${T.border}`,
-    boxShadow: T.keyShadow, cursor: "pointer",
+    boxShadow: T.keyShadow, cursor: "pointer", color: T.btnColor,
   };
 
   return (
@@ -197,8 +197,11 @@ export default function KeycapPage() {
       className="min-h-screen flex flex-col items-center justify-center gap-8 select-none"
       style={{ background: T.pageBg, padding: "32px 20px" }}
     >
-      {/* 뒤로가기 */}
-      <button onClick={() => router.back()} style={{ ...btnStyle, color: "rgba(255,255,255,0.5)", alignSelf: "flex-start" }}>←</button>
+      {/* 뒤로가기 - 왼쪽 위 고정 */}
+      <button
+        onClick={() => router.back()}
+        style={{ ...btnStyle, position: "fixed", top: 16, left: 16, zIndex: 10 }}
+      >←</button>
 
       {/* 9키 그리드 */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, width: "100%", maxWidth: 340 }}>
@@ -236,13 +239,13 @@ export default function KeycapPage() {
         <button
           onPointerDown={e => e.preventDefault()}
           onClick={() => setSoundOn(v => !v)}
-          style={{ ...btnStyle, color: soundOn ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)" }}
+          style={{ ...btnStyle, opacity: soundOn ? 1 : 0.35 }}
         >{soundOn ? "🔊" : "🔇"}</button>
 
         <button
           onPointerDown={e => e.preventDefault()}
           onClick={() => setShowThemes(v => !v)}
-          style={{ ...btnStyle, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 7, fontSize: 12 }}
+          style={{ ...btnStyle, display: "flex", alignItems: "center", gap: 7, fontSize: 12 }}
         >
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: T.dot, display: "inline-block", boxShadow: `0 0 8px ${T.dot}` }} />
           테마
