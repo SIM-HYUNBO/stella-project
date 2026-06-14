@@ -164,15 +164,8 @@ export default function KeycapPage() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
-            >
-              {/* 키캡 등록점 */}
-              <div style={{
-                width: 8, height: 8, borderRadius: "50%",
-                background: T.keyText,
-                transition: "opacity 0.07s",
-                opacity: isDown ? 0.4 : 1,
-              }} />
-            </button>
+            />
+
           );
         })}
       </div>
