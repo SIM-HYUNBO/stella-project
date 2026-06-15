@@ -81,11 +81,14 @@ const NAV_ITEMS = [
   },
 ];
 
+const HIDE_NAV_PATHS = ["/friendmenu", "/diary", "/keycap"];
+
 const PageContainer = ({ children }) => {
   const [ripples, setRipples] = useState([]);
   const [locked, setLocked] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const hideNav = HIDE_NAV_PATHS.some((p) => pathname === p || pathname?.startsWith(p + "/"));
 
   useEffect(() => {
     const enabled = localStorage.getItem("appLockEnabled") === "true";
@@ -139,21 +142,35 @@ const PageContainer = ({ children }) => {
         </main>
       </div>
 
-      {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 flex items-center justify-around px-1 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.1)]">
-        {NAV_ITEMS.map(({ label, path, icon }) => {
-          const active = pathname === path || pathname?.startsWith(path + "/");
-          return (
-            <button
-              key={path}
-              onClick={() => router.push(path)}
-              className={`flex items-center justify-center flex-1 h-full transition-all duration-150 ${active ? "text-sky-500" : "text-gray-400 hover:text-gray-500"}`}
-            >
-              {icon(active)}
-            </button>
-          );
-        })}
-      </nav>
+      {/* 하단 네비게이션 or 뒤로가기 */}
+      {hideNav ? (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 flex items-center justify-center h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.1)]">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-6 py-2 rounded-2xl text-sky-500 font-bold text-sm active:bg-sky-50 transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M5 12l7-7M5 12l7 7" />
+            </svg>
+            뒤로가기
+          </button>
+        </div>
+      ) : (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 flex items-center justify-around px-1 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.1)]">
+          {NAV_ITEMS.map(({ label, path, icon }) => {
+            const active = pathname === path || pathname?.startsWith(path + "/");
+            return (
+              <button
+                key={path}
+                onClick={() => router.push(path)}
+                className={`flex items-center justify-center flex-1 h-full transition-all duration-150 ${active ? "text-sky-500" : "text-gray-400 hover:text-gray-500"}`}
+              >
+                {icon(active)}
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       {/* 파동 레이어 */}
       <div className="pointer-events-none fixed inset-0 z-[9999]">
