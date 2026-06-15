@@ -24,6 +24,7 @@ const ADMIN = "Stella";
 export default function QnaPage() {
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
+  const [adminModeOn, setAdminModeOn] = useState(false);
   const [uid, setUid] = useState<string>("");
   const [items, setItems] = useState<QnaItem[]>([]);
   const [input, setInput] = useState("");
@@ -38,6 +39,7 @@ export default function QnaPage() {
         setNickname(user.displayName || "유저");
       }
     });
+    setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
     return () => unsub();
   }, []);
 
@@ -79,7 +81,7 @@ export default function QnaPage() {
     return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
-  const isAdmin = nickname === ADMIN;
+  const isAdmin = nickname === ADMIN && adminModeOn;
 
   return (
     <main className="relative h-screen flex flex-col overflow-hidden">

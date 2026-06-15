@@ -13,11 +13,13 @@ export default function AppInfoPage() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [nickname, setNickname] = useState<string | null>(null);
+  const [adminModeOn, setAdminModeOn] = useState(false);
 
   useEffect(() => {
     const unsub = watchAuthState((user: any) => {
       setNickname(user?.displayName ?? null);
     });
+    setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
     return () => unsub();
   }, []);
 
@@ -49,7 +51,7 @@ export default function AppInfoPage() {
           <button onClick={() => router.back()}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">앱 정보</span>
-          {nickname === "Stella" && (
+          {nickname === "Stella" && adminModeOn && (
             <button
               onClick={() => router.push("/admin/notice")}
               className="ml-auto text-xs font-black text-sky-600 bg-sky-50 px-3 py-1.5 rounded-xl"

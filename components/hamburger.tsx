@@ -26,13 +26,17 @@ export default function HamburgerMenuWithDelete() {
   const [nickname, setNickname] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isVip, setIsVip] = useState(false);
+  const [adminModeOn, setAdminModeOn] = useState(false);
 
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const SPECIAL_USERS = ["Stella", "나율", "Fred"];
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
+  }, []);
 
   /* 사용자 로드 */
   useEffect(() => {
@@ -181,7 +185,7 @@ export default function HamburgerMenuWithDelete() {
             </>
 
           {/* 특별 메뉴 */}
-          {SPECIAL_USERS.includes(nickname || "") && (
+          {(SPECIAL_USERS.includes(nickname || "") && nickname !== "Stella" || nickname === "Stella" && adminModeOn) && (
             <>
               <div className="border-t my-2"></div>
 

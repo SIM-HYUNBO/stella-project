@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState(false);
   const [appLock, setAppLock] = useState(false);
   const [sound, setSound] = useState(true);
+  const [adminMode, setAdminMode] = useState(false);
 
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [newPin, setNewPin] = useState("");
@@ -64,6 +65,7 @@ export default function SettingsPage() {
     setNotifications(localStorage.getItem("notificationsEnabled") === "true");
     setAppLock(localStorage.getItem("appLockEnabled") === "true");
     setSound(localStorage.getItem("soundEnabled") !== "false");
+    setAdminMode(localStorage.getItem("stellaAdminMode") === "true");
   }, []);
 
   const handleNotifications = (v: boolean) => {
@@ -74,6 +76,11 @@ export default function SettingsPage() {
   const handleSound = (v: boolean) => {
     setSound(v);
     localStorage.setItem("soundEnabled", String(v));
+  };
+
+  const handleAdminMode = (v: boolean) => {
+    setAdminMode(v);
+    localStorage.setItem("stellaAdminMode", String(v));
   };
 
   const handleAppLock = (v: boolean) => {
@@ -209,6 +216,25 @@ export default function SettingsPage() {
             </div>
           ))}
         </div>
+
+        {/* 관리자 모드 (Stella 전용) */}
+        {user?.nickname === "Stella" && (
+          <div className="bg-white rounded-[20px] overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-50">
+              <span className="text-xs font-black text-gray-400 uppercase tracking-wider">관리자</span>
+            </div>
+            <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center text-lg">🔑</div>
+                <div>
+                  <span className="font-bold text-slate-800 text-sm block">관리자 모드</span>
+                  <span className="text-xs text-gray-400">{adminMode ? "관리자 권한 활성화 중" : "일반 사용자 모드"}</span>
+                </div>
+              </div>
+              <Toggle value={adminMode} onChange={handleAdminMode} />
+            </div>
+          </div>
+        )}
 
         {/* 기능 버튼들 */}
         <div className="bg-white rounded-[20px] overflow-hidden">

@@ -14,6 +14,7 @@ type Notice = { id: string; title: string; content: string; createdAt?: any };
 export default function AdminNoticePage() {
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
+  const [adminModeOn, setAdminModeOn] = useState(false);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -23,6 +24,7 @@ export default function AdminNoticePage() {
     const unsub = watchAuthState((user: any) => {
       setNickname(user?.displayName ?? null);
     });
+    setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
     return () => unsub();
   }, []);
 
@@ -58,7 +60,7 @@ export default function AdminNoticePage() {
   };
 
   if (nickname === null) return null;
-  if (nickname !== "Stella") {
+  if (nickname !== "Stella" || !adminModeOn) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
         <p className="text-gray-400 font-semibold">접근 권한이 없어요.</p>
