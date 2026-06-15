@@ -19,7 +19,7 @@ type QnaItem = {
   answeredAt: any;
 };
 
-const ADMIN = "관리자";
+const ADMIN = "Stella";
 
 export default function QnaPage() {
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function QnaPage() {
           <p className="text-[10px] text-sky-600 font-semibold -mt-0.5">궁금한 게 있으면 질문하세요</p>
         </div>
         {isAdmin && (
-          <span className="ml-auto px-3 py-1 rounded-full bg-sky-200 text-white text-xs font-black">관리자</span>
+          <span className="ml-auto px-3 py-1 rounded-full bg-sky-200 text-white text-xs font-black">Stella</span>
         )}
       </div>
 
@@ -128,7 +128,7 @@ export default function QnaPage() {
                 <div className="w-8 h-8 rounded-full bg-sky-200 flex items-center justify-center text-white font-black text-sm shrink-0">A</div>
                 <div className="flex-1 rounded-[18px] rounded-tl-[6px] bg-sky-50 border px-4 py-3">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-black text-sky-600">관리자</p>
+                    <p className="text-xs font-black text-sky-600">Stella</p>
                     <p className="text-[10px] text-sky-600">{formatDate(item.answeredAt)}</p>
                   </div>
                   <p className="text-sm text-slate-800 leading-relaxed">{item.answer}</p>

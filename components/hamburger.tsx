@@ -30,7 +30,7 @@ export default function HamburgerMenuWithDelete() {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const SPECIAL_USERS = ["관리자", "나율", "Fred"];
+  const SPECIAL_USERS = ["Stella", "나율", "Fred"];
 
   useEffect(() => setMounted(true), []);
 

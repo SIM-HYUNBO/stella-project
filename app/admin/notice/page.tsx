@@ -58,7 +58,7 @@ export default function AdminNoticePage() {
   };
 
   if (nickname === null) return null;
-  if (nickname !== "관리자") {
+  if (nickname !== "Stella") {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
         <p className="text-gray-400 font-semibold">접근 권한이 없어요.</p>
