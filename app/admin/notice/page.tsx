@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { db } from "@/app/firebase";
-import { watchAuthState } from "@/app/authService";
+import { db, auth } from "@/app/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import {
-  collection, addDoc, deleteDoc, doc,
+  collection, addDoc, deleteDoc, doc, getDoc,
   query, orderBy, onSnapshot, serverTimestamp,
 } from "firebase/firestore";
 
@@ -21,10 +21,15 @@ export default function AdminNoticePage() {
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    const unsub = watchAuthState((user: any) => {
-      setNickname(user?.displayName ?? null);
-    });
     setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
+  }, []);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { setNickname(null); return; }
+      const snap = await getDoc(doc(db, "users", user.uid));
+      setNickname(snap.exists() ? (snap.data().nickname ?? null) : null);
+    });
     return () => unsub();
   }, []);
 

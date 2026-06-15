@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  collection, addDoc, updateDoc, doc,
+  collection, addDoc, updateDoc, doc, getDoc,
   query, orderBy, onSnapshot, serverTimestamp,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -33,10 +33,11 @@ export default function QnaPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUid(user.uid);
-        setNickname(user.displayName || "유저");
+        const snap = await getDoc(doc(db, "users", user.uid));
+        setNickname(snap.exists() ? (snap.data().nickname || "유저") : "유저");
       }
     });
     setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
