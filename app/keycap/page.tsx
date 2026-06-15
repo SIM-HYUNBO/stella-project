@@ -1,6 +1,5 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 // ── 사운드 ───────────────────────────────────────────────────────────────────
 type SP = { clickFreq:number; clickQ:number; clickVol:number; thumpStart:number; thumpEnd:number; thumpDecay:number; thumpVol:number };
@@ -436,7 +435,6 @@ function SnakeGame({ audioCtxRef, onExit }:{ audioCtxRef:React.MutableRefObject<
 
 // ── 메인 페이지 ──────────────────────────────────────────────────────────────
 export default function KeycapPage() {
-  const router=useRouter();
   const [pressed,setPressed]=useState<number|null>(null);
   const [themeIdx,setThemeIdx]=useState(0);
   const [showThemes,setShowThemes]=useState(false);
@@ -486,8 +484,6 @@ export default function KeycapPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 select-none"
       style={{background:T.pageBg,padding:"32px 20px",transition:"background 0.4s"}}>
-      <button onClick={()=>router.back()} style={{...btnStyle,position:"fixed",top:16,left:16,zIndex:10}}>←</button>
-
       {gameMode==="galaga" ? <GalagaGame audioCtxRef={audioCtxRef} onExit={exitGame}/>
       : gameMode==="snake" ? <SnakeGame audioCtxRef={audioCtxRef} onExit={exitGame}/>
       : (

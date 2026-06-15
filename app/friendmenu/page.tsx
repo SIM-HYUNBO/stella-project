@@ -231,8 +231,6 @@ export default function FriendsPage() {
 
       <div className="relative z-10">
         <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white">
-          <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">친구 🤝</span>
           {requests.length > 0 && (
             <span className="ml-2 w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>

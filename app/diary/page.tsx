@@ -98,8 +98,7 @@ export default function DiaryPage() {
       <div className="relative z-10">
         {/* 헤더 */}
         <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white">
-          <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg">←</button>
+          <div className="w-9" />
           <span className="font-black text-slate-800 text-base">📔 미니 다이어리</span>
           <div className="w-9" />
         </div>
