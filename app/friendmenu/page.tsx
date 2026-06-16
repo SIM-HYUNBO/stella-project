@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
+import PageContainer from "@/components/PageContainer";
 import { auth, db } from "@/app/firebase";
 import {
   collection, doc, getDocs, getDoc, setDoc, deleteDoc, addDoc,
@@ -226,6 +227,7 @@ export default function FriendsPage() {
   const visibleFriends = friends.filter((f) => !hiddenDocs[f.uid]);
 
   return (
+    <PageContainer>
     <main className="relative min-h-screen overflow-hidden" onClick={() => setMenuOpen(null)}>
       <div className="fixed inset-0 bg-gray-50" />
 
@@ -524,5 +526,6 @@ export default function FriendsPage() {
         </div>
       )}
     </main>
+    </PageContainer>
   );
 }

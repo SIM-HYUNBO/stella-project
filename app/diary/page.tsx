@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import PageContainer from "@/components/PageContainer";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -92,6 +93,7 @@ export default function DiaryPage() {
   };
 
   return (
+    <PageContainer>
     <main className="relative min-h-screen overflow-hidden">
       <div className="fixed inset-0 bg-gray-50" />
 
@@ -234,5 +236,6 @@ export default function DiaryPage() {
         @keyframes floatC { 0%{transform:translate(0,0)} 100%{transform:translate(-20px,25px)} }
       `}</style>
     </main>
+    </PageContainer>
   );
 }

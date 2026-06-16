@@ -1,5 +1,6 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
+import PageContainer from "@/components/PageContainer";
 
 // ── 사운드 ───────────────────────────────────────────────────────────────────
 type SP = { clickFreq:number; clickQ:number; clickVol:number; thumpStart:number; thumpEnd:number; thumpDecay:number; thumpVol:number };
@@ -482,6 +483,7 @@ export default function KeycapPage() {
   const exitGame=()=>{ setGameMode("none"); setShowGamePicker(false); };
 
   return (
+    <PageContainer>
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 select-none"
       style={{background:T.pageBg,padding:"32px 20px",transition:"background 0.4s"}}>
       {gameMode==="galaga" ? <GalagaGame audioCtxRef={audioCtxRef} onExit={exitGame}/>
@@ -555,5 +557,6 @@ export default function KeycapPage() {
         </>
       )}
     </div>
+    </PageContainer>
   );
 }
