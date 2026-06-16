@@ -131,7 +131,7 @@ const PageContainer = ({ children }) => {
         );
       }}
     >
-      <div className="flex flex-col w-full max-w-3xl relative pb-12">
+      <div className="flex flex-col w-full max-w-4xl relative pb-12">
         <Header />
 
         <main className="w-full p-4 relative z-10">
@@ -141,7 +141,7 @@ const PageContainer = ({ children }) => {
 
       {/* 하단 네비게이션 */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.1)] flex justify-center">
-        <div className="flex items-center justify-around w-full max-w-3xl px-1">
+        <div className="flex items-center justify-around w-full max-w-4xl px-1">
           {NAV_ITEMS.map(({ label, path, icon }) => {
             const active = pathname === path || pathname?.startsWith(path + "/");
             return (
