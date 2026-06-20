@@ -91,21 +91,6 @@ export default function RootPage() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-2">
-              {[
-                "bg-sky-400", "bg-yellow-400", "bg-sky-500", "bg-amber-400",
-              ].map((c, i) => (
-                <div key={i} className={`w-9 h-9 rounded-full ${c} border-2 border-yellow-50 flex items-center justify-center text-white text-xs font-black shadow`}>
-                  {["W","A","G","I"][i]}
-                </div>
-              ))}
-            </div>
-            <div>
-              <p className="text-slate-700 font-black text-sm">1,200+ 사용자</p>
-              <p className="text-slate-400 text-xs">지금도 함께하고 있어요</p>
-            </div>
-          </div>
         </div>
 
         {/* 오른쪽: 폰 목업 */}

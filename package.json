@@ -1,6 +1,6 @@
 {
   "name": "stella-project",
-  "version": "0.3.90",
+  "version": "0.3.91",
   "private": true,
   "scripts": {
     "dev": "next dev",
