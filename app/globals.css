@@ -10,10 +10,13 @@
 
 html {
   transition: 0.2s;
-  cursor: none;
 }
 
-* {
+*, *:hover {
+  cursor: url('/cursor.svg') 10 10, auto !important;
+}
+
+.no-cursor, .no-cursor * {
   cursor: none !important;
 }
 
