@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
     const userSnap = await db.collection("users").doc(uid).get();
     const callerNickname = userSnap.data()?.nickname;
 
-    // Stella/관리자는 아무 닉네임이나 교체 가능, 일반 유저는 자기 현재 닉네임만 교체 가능
     const isAdmin = callerNickname === "Stella" || callerNickname === "관리자";
     const isSelfMigration = from === callerNickname;
     if (!isAdmin && !isSelfMigration) {
@@ -25,23 +24,39 @@ export async function POST(req: NextRequest) {
 
     let updated = 0;
 
-    const groupSnap = await db.collection("group_rooms").get();
-    for (const docSnap of groupSnap.docs) {
-      const members: string[] = docSnap.data().members || [];
-      if (members.includes(from)) {
-        const newMembers = members.map((m) => (m === from ? to : m));
-        await docSnap.ref.update({ members: newMembers });
-        updated++;
-      }
-    }
+    for (const colName of ["group_rooms", "meeting_rooms"]) {
+      const roomSnap = await db.collection(colName).get();
+      for (const roomDoc of roomSnap.docs) {
+        const data = roomDoc.data();
+        const updates: Record<string, any> = {};
 
-    const meetingSnap = await db.collection("meeting_rooms").get();
-    for (const docSnap of meetingSnap.docs) {
-      const members: string[] = docSnap.data().members || [];
-      if (members.includes(from)) {
-        const newMembers = members.map((m) => (m === from ? to : m));
-        await docSnap.ref.update({ members: newMembers });
-        updated++;
+        // members 배열
+        const members: string[] = data.members || [];
+        if (members.includes(from)) {
+          updates.members = members.map((m) => (m === from ? to : m));
+        }
+
+        // createdBy
+        if (data.createdBy === from) {
+          updates.createdBy = to;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          await roomDoc.ref.update(updates);
+          updated++;
+        }
+
+        // 메시지 subcollection의 from, readBy
+        const msgSnap = await roomDoc.ref.collection("messages").where("from", "==", from).get();
+        for (const msgDoc of msgSnap.docs) {
+          const msgData = msgDoc.data();
+          const msgUpdates: Record<string, any> = { from: to };
+          const readBy: string[] = msgData.readBy || [];
+          if (readBy.includes(from)) {
+            msgUpdates.readBy = readBy.map((r) => (r === from ? to : r));
+          }
+          await msgDoc.ref.update(msgUpdates);
+        }
       }
     }
 

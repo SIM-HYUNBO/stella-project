@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/app/firebase";
 import TextAvatar from "@/components/TextAvatar";
@@ -135,6 +135,7 @@ export default function SettingsPage() {
     if (oldNickname === newNickname) { setEditMode(false); return; }
     setSaving(true);
     await updateDoc(doc(db, "users", uid), { nickname: newNickname });
+    if (auth.currentUser) await updateProfile(auth.currentUser, { displayName: newNickname });
     setUser((prev) => prev ? { ...prev, nickname: newNickname } : prev);
     // 채팅방 멤버 목록도 자동 업데이트
     if (oldNickname) {
