@@ -60,6 +60,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 1:1 messages 컬렉션 (from / to / readBy)
+    const fromMsgs = await db.collection("messages").where("from", "==", from).get();
+    for (const msgDoc of fromMsgs.docs) {
+      const msgData = msgDoc.data();
+      const msgUpdates: Record<string, any> = { from: to };
+      const readBy: string[] = msgData.readBy || [];
+      if (readBy.includes(from)) msgUpdates.readBy = readBy.map((r) => (r === from ? to : r));
+      await msgDoc.ref.update(msgUpdates);
+      updated++;
+    }
+
+    const toMsgs = await db.collection("messages").where("to", "==", from).get();
+    for (const msgDoc of toMsgs.docs) {
+      const msgData = msgDoc.data();
+      const msgUpdates: Record<string, any> = { to: to };
+      const readBy: string[] = msgData.readBy || [];
+      if (readBy.includes(from)) msgUpdates.readBy = readBy.map((r) => (r === from ? to : r));
+      await msgDoc.ref.update(msgUpdates);
+      updated++;
+    }
+
     return NextResponse.json({ ok: true, updated });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 });

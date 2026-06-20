@@ -13,6 +13,7 @@ import {
   onSnapshot,
   serverTimestamp,
   getDocs,
+  getDoc,
   updateDoc,
   doc,
   setDoc,
@@ -455,10 +456,11 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    const unsub = watchAuthState((user) => {
+    const unsub = watchAuthState(async (user) => {
       setAuthReady(true);
       if (user) {
-        setNickname(user.displayName || "유저");
+        const snap = await getDoc(doc(db, "users", user.uid));
+        setNickname(snap.exists() ? (snap.data().nickname || "유저") : (user.displayName || "유저"));
         setUid(user.uid);
       } else {
         router.replace("/login");
