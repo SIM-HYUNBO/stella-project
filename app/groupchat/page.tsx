@@ -631,7 +631,7 @@ export default function GroupChat() {
               d.data().nickname as string,
           }))
           .filter(
-            (u) => u.nickname !== nickname
+            (u) => u.nickname !== nickname && u.nickname !== "Stella"
           );
 
         list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
