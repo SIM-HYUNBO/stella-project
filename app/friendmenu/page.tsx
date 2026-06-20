@@ -239,10 +239,10 @@ export default function FriendsPage() {
   };
 
   const upcomingBirthdays = friends.filter((f) => {
-    if (!f.birthday) return false;
-    const days = getDaysUntilBirthday(f.birthday);
+    if (!f.birthdate) return false;
+    const days = getDaysUntilBirthday(f.birthdate);
     return days !== null && days <= 7;
-  }).sort((a, b) => (getDaysUntilBirthday(a.birthday) ?? 99) - (getDaysUntilBirthday(b.birthday) ?? 99));
+  }).sort((a, b) => (getDaysUntilBirthday(a.birthdate) ?? 99) - (getDaysUntilBirthday(b.birthdate) ?? 99));
 
   const isFriend = (uid: string) => friends.some((f) => f.uid === uid);
   const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
@@ -345,7 +345,7 @@ export default function FriendsPage() {
               <p className="font-black text-slate-800 text-base mb-3 px-1">곧 생일인 친구 🎂</p>
               <div className="space-y-2">
                 {upcomingBirthdays.map((f) => {
-                  const days = getDaysUntilBirthday(f.birthday)!;
+                  const days = getDaysUntilBirthday(f.birthdate)!;
                   return (
                     <div key={f.uid} className="rounded-[20px] bg-yellow-50 border border-yellow-200 px-4 py-3.5 flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-yellow-300 shrink-0">
