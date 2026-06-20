@@ -2,13 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import getAdmin from "@/lib/firebaseAdmin";
 import webpush from "web-push";
 
-webpush.setVapidDetails(
-  "mailto:hbsim0605@gmail.com",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
 export async function POST(req: NextRequest) {
+  webpush.setVapidDetails(
+    "mailto:hbsim0605@gmail.com",
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
   const admin = getAdmin();
   if (!admin) return NextResponse.json({ error: "admin not configured" }, { status: 500 });
 
