@@ -511,10 +511,22 @@ export default function MeetingRoomPage() {
 
   const inviteUser = async (targetNickname: string) => {
     if (!currentRoom || inviting) return;
+
+    const targetUser = allUsers.find((u) => u.nickname === targetNickname);
+    if (!targetUser) return;
+
     setInviting(true);
     try {
-      await updateDoc(doc(db, "meeting_rooms", currentRoom.id), {
-        members: arrayUnion(targetNickname),
+      await addDoc(collection(db, "room_invitations"), {
+        from: nickname,
+        fromNickname: nickname,
+        toUid: targetUser.id,
+        toNickname: targetNickname,
+        roomId: currentRoom.id,
+        roomName: currentRoom.name,
+        roomType: "meeting",
+        status: "pending",
+        createdAt: serverTimestamp(),
       });
       setShowInvite(false);
     } finally {

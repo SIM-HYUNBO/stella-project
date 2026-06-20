@@ -972,10 +972,21 @@ export default function GroupChat() {
       }
     }
 
+    const targetUser = allUsers.find((u) => u.nickname === targetNickname);
+    if (!targetUser) return;
+
     setInviting(true);
     try {
-      await updateDoc(doc(db, "group_rooms", currentRoom.id), {
-        members: arrayUnion(targetNickname),
+      await addDoc(collection(db, "room_invitations"), {
+        from: nickname,
+        fromNickname: nickname,
+        toUid: targetUser.id,
+        toNickname: targetNickname,
+        roomId: currentRoom.id,
+        roomName: currentRoom.name,
+        roomType: "group",
+        status: "pending",
+        createdAt: serverTimestamp(),
       });
       setShowInvite(false);
       setShowPasswordPrompt(false);

@@ -30,6 +30,7 @@ import FCMToken from "@/components/FCMToken";
 import AppBadge from "@/components/AppBadge";
 import BirthdayNotification from "@/components/BirthdayNotification";
 import FriendRequestPopup from "@/components/FriendRequestPopup";
+import RoomInvitePopup from "@/components/RoomInvitePopup";
 
 import "./globals.css";
 
@@ -92,6 +93,9 @@ export default function RootLayout({ children }) {
 
             {/* 친구 요청 팝업 */}
             <FriendRequestPopup />
+
+            {/* 채팅방 초대 팝업 */}
+            <RoomInvitePopup />
 
             {children}
 
