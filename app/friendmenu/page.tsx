@@ -30,6 +30,7 @@ export default function FriendsPage() {
   // 프로필 카드
   const [profileView, setProfileView] = useState<any | null>(null);
   const [phonePopup, setPhonePopup] = useState<string | null>(null);
+  const [actionSheet, setActionSheet] = useState<any | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -225,6 +226,24 @@ export default function FriendsPage() {
     return p;
   };
 
+  const getDaysUntilBirthday = (birthday: string): number | null => {
+    const parts = birthday.replace(/\./g, "-").split("-");
+    if (parts.length < 2) return null;
+    const month = parseInt(parts[parts.length - 2]);
+    const day   = parseInt(parts[parts.length - 1]);
+    if (!month || !day) return null;
+    const now = new Date();
+    const next = new Date(now.getFullYear(), month - 1, day);
+    if (next < now) next.setFullYear(now.getFullYear() + 1);
+    return Math.ceil((next.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const upcomingBirthdays = friends.filter((f) => {
+    if (!f.birthday) return false;
+    const days = getDaysUntilBirthday(f.birthday);
+    return days !== null && days <= 7;
+  }).sort((a, b) => (getDaysUntilBirthday(a.birthday) ?? 99) - (getDaysUntilBirthday(b.birthday) ?? 99));
+
   const isFriend = (uid: string) => friends.some((f) => f.uid === uid);
   const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
   // 숨긴 친구는 목록에서 제외
@@ -320,6 +339,31 @@ export default function FriendsPage() {
             </div>
           )}
 
+          {/* 곧 생일인 친구 */}
+          {upcomingBirthdays.length > 0 && (
+            <div>
+              <p className="font-black text-slate-800 text-base mb-3 px-1">곧 생일인 친구 🎂</p>
+              <div className="space-y-2">
+                {upcomingBirthdays.map((f) => {
+                  const days = getDaysUntilBirthday(f.birthday)!;
+                  return (
+                    <div key={f.uid} className="rounded-[20px] bg-yellow-50 border border-yellow-200 px-4 py-3.5 flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-yellow-300 shrink-0">
+                        <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-black text-slate-800 text-sm">{f.nickname}</p>
+                        <p className="text-xs text-yellow-600 mt-0.5">
+                          {days === 0 ? "🎉 오늘 생일이에요!" : `🎂 ${days}일 후 생일`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* 즐겨찾는 친구 */}
           {friends.filter((f) => favoriteDocs[f.uid]).length > 0 && (
             <div>
@@ -384,38 +428,9 @@ export default function FriendsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === f.uid ? null : f.uid); }}
+                      onClick={(e) => { e.stopPropagation(); setActionSheet(f); }}
                       className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-sky-50 text-sky-600 font-black text-lg"
                     >···</button>
-
-                    {/* 액션 메뉴 */}
-                    {menuOpen === f.uid && (
-                      <div onClick={(e) => e.stopPropagation()}
-                        className="absolute right-4 top-14 z-30 w-44 bg-white rounded-[16px] overflow-hidden">
-                        <button onClick={() => toggleFavorite(f)}
-                          className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-800 hover:bg-sky-50 flex items-center gap-2">
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill={favoriteDocs[f.uid] ? "#f59e0b" : "none"} stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                          </svg>
-                          {favoriteDocs[f.uid] ? "즐겨찾기 해제" : "즐겨찾기"}
-                        </button>
-                        <div className="h-px bg-sky-50" />
-                        <button onClick={() => toggleMute(f)}
-                          className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-800 hover:bg-sky-50 flex items-center gap-2">
-                          {mutedDocs[f.uid] ? "🔔 알림 켜기" : "🔕 알림 끄기"}
-                        </button>
-                        <div className="h-px bg-sky-50" />
-                        <button onClick={() => toggleHide(f)}
-                          className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-800 hover:bg-sky-50 flex items-center gap-2">
-                          🙈 숨기기
-                        </button>
-                        <div className="h-px bg-sky-50" />
-                        <button onClick={() => removeFriend(f.uid)}
-                          className="w-full px-4 py-3 text-left text-sm font-semibold text-red-400 hover:bg-red-50 flex items-center gap-2">
-                          🗑 친구 삭제
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -525,6 +540,47 @@ export default function FriendsPage() {
                 </svg>
                 통화
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 액션 시트 */}
+      {actionSheet && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={() => setActionSheet(null)}>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className="relative z-10 bg-white rounded-t-[28px] pb-10 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-center pt-3 pb-2">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
+            <div className="px-5 py-3 flex items-center gap-3 border-b border-gray-50">
+              <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
+                <TextAvatar nickname={actionSheet.nickname} size={40} profileImage={actionSheet.profileImage ?? null} />
+              </div>
+              <p className="font-black text-slate-800">{actionSheet.nickname}</p>
+            </div>
+            <div className="mt-1">
+              <button onClick={() => { toggleFavorite(actionSheet); setActionSheet(null); }}
+                className="w-full px-5 py-4 text-left text-sm font-semibold text-slate-800 flex items-center gap-3 active:bg-sky-50">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={favoriteDocs[actionSheet.uid] ? "#f59e0b" : "none"} stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                {favoriteDocs[actionSheet.uid] ? "즐겨찾기 해제" : "즐겨찾기"}
+              </button>
+              <div className="h-px bg-gray-50 mx-5" />
+              <button onClick={() => { toggleMute(actionSheet); setActionSheet(null); }}
+                className="w-full px-5 py-4 text-left text-sm font-semibold text-slate-800 flex items-center gap-3 active:bg-sky-50">
+                {mutedDocs[actionSheet.uid] ? "🔔 알림 켜기" : "🔕 알림 끄기"}
+              </button>
+              <div className="h-px bg-gray-50 mx-5" />
+              <button onClick={() => { toggleHide(actionSheet); setActionSheet(null); }}
+                className="w-full px-5 py-4 text-left text-sm font-semibold text-slate-800 flex items-center gap-3 active:bg-sky-50">
+                🙈 숨기기
+              </button>
+              <div className="h-px bg-gray-50 mx-5" />
+              <button onClick={() => { removeFriend(actionSheet.uid); setActionSheet(null); }}
+                className="w-full px-5 py-4 text-left text-sm font-semibold text-red-400 flex items-center gap-3 active:bg-red-50">
+                🗑 친구 삭제
+              </button>
             </div>
           </div>
         </div>
