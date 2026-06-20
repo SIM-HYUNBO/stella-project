@@ -162,7 +162,6 @@ export default function SettingsPage() {
     { icon: "ℹ️", label: "앱 정보", path: "/tools/appinfo" },
     { icon: "🔔", label: "알림",    path: "/no" },
     { icon: "👥", label: "친구",    path: "/fri" },
-    { icon: "🎨", label: "테마",    path: "/theme" },
     { icon: "✍️", label: "글씨체", path: "/font" },
   ];
 

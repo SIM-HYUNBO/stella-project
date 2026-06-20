@@ -227,7 +227,7 @@ export default function HomePage() {
   // ── 관리자 대시보드 ──
   if (nickname === "Stella" && adminMode) {
     return (
-      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden no-cursor" style={{ zIndex: 10 }}>
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden no-cursor">
         {/* 커스텀 커서 */}
         <div className="fixed pointer-events-none z-[9999]" style={{ left: mousePos.x, top: mousePos.y, transform: "translate(-50%, -50%)" }}>
           <div className="w-3 h-3 rounded-full bg-purple-400 shadow-[0_0_8px_3px_rgba(168,85,247,0.8)]" />
@@ -440,11 +440,11 @@ export default function HomePage() {
       <div className="relative min-h-screen overflow-hidden -m-4">
 
         {/* ── 배경 오브 ── */}
-        <div className="fixed inset-0 -z-10" style={{ backgroundColor: "var(--theme-bg)" }} />
-        <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate]" style={{ backgroundColor: "var(--theme-orb1)" }} />
-        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate]" style={{ backgroundColor: "var(--theme-orb2)" }} />
-        <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate]" style={{ backgroundColor: "var(--theme-orb3)" }} />
-        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate]" style={{ backgroundColor: "var(--theme-orb4)" }} />
+        <div className="fixed inset-0 -z-10 bg-[#f0f9ff]" />
+        <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate] bg-[rgba(251,146,60,0.20)]" />
+        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate] bg-[rgba(250,204,21,0.20)]" />
+        <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate] bg-[rgba(250,204,21,0.15)]" />
+        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate] bg-[rgba(186,230,253,0.20)]" />
 
         {/* ── 떠다니는 파티클 ── */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -461,7 +461,7 @@ export default function HomePage() {
 
           {/* ── 히어로 ── */}
           <div className="relative rounded-[32px] overflow-hidden">
-            <div className="p-6 relative" style={{ background: "linear-gradient(135deg, var(--theme-hero-from), var(--theme-hero-to))" }}>
+            <div className="p-6 relative" style={{ background: "linear-gradient(135deg, #bae6fd, #e0f2fe)" }}>
               <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
               <div className="absolute top-4 left-1/2 w-20 h-20 rounded-full bg-white/5 -translate-x-1/2" />
@@ -552,7 +552,7 @@ export default function HomePage() {
 
               <button onClick={() => router.push("/avatar")}
                 className="group relative w-full rounded-[26px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="px-6 py-5 flex items-center gap-4 relative shadow-lg" style={{ background: "linear-gradient(to right, var(--theme-card1-from), var(--theme-card1-to))" }}>
+                <div className="px-6 py-5 flex items-center gap-4 relative shadow-lg" style={{ background: "linear-gradient(to right, #7dd3fc, #bae6fd)" }}>
                   <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
                   <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
                   <div className="relative w-14 h-14 rounded-2xl bg-white/25 flex items-center justify-center text-3xl shrink-0">💬</div>
@@ -571,7 +571,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, var(--theme-card2-from), var(--theme-card2-to))" }}>
+                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #facc15, #fbbf24)" }}>
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
                     <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">👥</div>
                     <p className="text-white font-black text-base drop-shadow">단체채팅</p>
@@ -586,7 +586,7 @@ export default function HomePage() {
 
                 <button onClick={() => router.push("/diary")}
                   className="rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform relative">
-                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, var(--theme-card3-from), var(--theme-card3-to))" }}>
+                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #38bdf8, #7dd3fc)" }}>
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
                     <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">📔</div>
                     <p className="text-white font-black text-base drop-shadow">다이어리</p>
