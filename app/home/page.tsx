@@ -315,7 +315,7 @@ export default function HomePage() {
                       const visible = allUsers.filter((u) => !noticeUserSearch || u.nickname?.toLowerCase().includes(noticeUserSearch.toLowerCase()));
                       const allSelected = visible.every((u) => selectedRecipients.includes(u.nickname));
                       if (allSelected) setSelectedRecipients((prev) => prev.filter((n) => !visible.some((u) => u.nickname === n)));
-                      else setSelectedRecipients((prev) => [...new Set([...prev, ...visible.map((u) => u.nickname)])]);
+                      else setSelectedRecipients((prev) => Array.from(new Set([...prev, ...visible.map((u) => u.nickname)])));
                     }}
                     className="text-[10px] text-purple-400 font-black"
                   >
