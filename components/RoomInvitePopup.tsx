@@ -90,7 +90,7 @@ export default function RoomInvitePopup() {
       <div style={{ fontSize: "24px" }}>{current.roomType === "group" ? "💬" : "🎥"}</div>
       <div style={{ fontWeight: 700, fontSize: "15px", textAlign: "center" }}>
         <span style={{ color: "#38bdf8" }}>{current.fromNickname}</span>님이<br />
-        <span style={{ color: "#0ea5e9" }}>"{current.roomName}"</span>에 초대했어요!
+        <span style={{ color: "#0ea5e9" }}>&ldquo;{current.roomName}&rdquo;</span>에 초대했어요!
       </div>
       <div style={{ display: "flex", gap: "8px" }}>
         <button onClick={decline} style={{
