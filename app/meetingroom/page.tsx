@@ -22,6 +22,7 @@ import {
   arrayRemove,
   where,
   getDocs,
+  getDoc,
 } from "firebase/firestore";
 
 const TITLE_MAP: Record<string, { icon: string; name: string }> = {
@@ -122,9 +123,10 @@ export default function MeetingRoomPage() {
   }, []);
 
   useEffect(() => {
-    const unsub = watchAuthState((user) => {
+    const unsub = watchAuthState(async (user) => {
       if (user) {
-        setNickname(user.displayName || "유저");
+        const snap = await getDoc(doc(db, "users", user.uid));
+        setNickname(snap.exists() ? (snap.data().nickname || "유저") : (user.displayName || "유저"));
       } else {
         router.replace("/login");
       }
