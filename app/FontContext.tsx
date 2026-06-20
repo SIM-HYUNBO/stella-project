@@ -30,13 +30,18 @@ export function FontProvider({ children }) {
   const changeFontSize = (value: number) => {
     setFontSize(value);
     localStorage.setItem(SIZE_KEY, String(value));
+    document.documentElement.style.fontSize = `${value}px`;
   };
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSize}px`;
+  }, [fontSize]);
 
   if (!mounted) return null;
 
   return (
     <FontContext.Provider value={{ font, changeFont, fontSize, changeFontSize }}>
-      <div style={{ fontFamily: font, fontSize: `${fontSize}px`, minHeight: "100vh" }}>
+      <div style={{ fontFamily: font, minHeight: "100vh" }}>
         {children}
       </div>
     </FontContext.Provider>
