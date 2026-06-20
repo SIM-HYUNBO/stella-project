@@ -58,7 +58,7 @@ export default function RootPage() {
       </header>
 
       {/* ── 히어로 ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-16 pb-20 grid md:grid-cols-2 gap-16 items-center">
+      <section className="max-w-6xl mx-auto px-6 pt-16 pb-20 flex flex-col md:grid md:grid-cols-2 gap-10 md:gap-16 items-center">
 
         {/* 왼쪽 */}
         <div>
@@ -94,8 +94,8 @@ export default function RootPage() {
         </div>
 
         {/* 오른쪽: 폰 목업 */}
-        <div className="flex justify-center md:justify-end">
-          <div className="relative w-[270px]">
+        <div className="flex justify-center md:justify-end w-full">
+          <div className="relative w-[320px] md:w-[270px]">
             <div className="absolute -inset-4 bg-yellow-200/60 blur-3xl rounded-full" />
             <div className="absolute top-4 -right-6 w-24 h-24 rounded-full bg-sky-200/50 blur-2xl" />
 
