@@ -137,7 +137,7 @@ export default function RootPage() {
               </div>
               <div className="divide-y divide-slate-50">
                 {[
-                  { emoji: "💬", bg: "bg-sky-100",    name: "지은",      last: "오늘 뭐해?",         badge: 2, time: "방금" },
+                  { emoji: "💬", bg: "bg-sky-100",    name: "친구",      last: "오늘 뭐해?",         badge: 2, time: "방금" },
                   { emoji: "👥", bg: "bg-yellow-100", name: "우리방",    last: "다들 어디야~~",       badge: 5, time: "1분" },
                   { emoji: "📔", bg: "bg-sky-50",     name: "내 다이어리", last: "오늘 날씨가 너무 좋",  badge: 0, time: "오늘" },
                   { emoji: "📋", bg: "bg-yellow-50",  name: "회의방",    last: "다음 주 일정 공유",   badge: 1, time: "어제" },
