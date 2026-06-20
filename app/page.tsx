@@ -64,9 +64,6 @@ export default function RootPage() {
             <div className="relative w-[88px] h-[88px] rounded-[30px] bg-sky-200 flex items-center justify-center">
               <img src="/wag.png" alt="logo" className="w-14 h-14 object-contain" />
             </div>
-            {/* 스파클 */}
-            <span className="absolute top-0 right-0 text-lg animate-[pulse_2s_infinite]">✨</span>
-            <span className="absolute bottom-0 left-2 text-sm animate-[pulse_3s_infinite]">⭐</span>
           </div>
 
           <h1 className="text-[64px] font-black tracking-[0.22em] leading-none">
