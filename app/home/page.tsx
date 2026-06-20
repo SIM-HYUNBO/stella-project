@@ -227,7 +227,7 @@ export default function HomePage() {
   // ── 관리자 대시보드 ──
   if (nickname === "Stella" && adminMode) {
     return (
-      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden no-cursor">
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden no-cursor" style={{ zIndex: 10 }}>
         {/* 커스텀 커서 */}
         <div className="fixed pointer-events-none z-[9999]" style={{ left: mousePos.x, top: mousePos.y, transform: "translate(-50%, -50%)" }}>
           <div className="w-3 h-3 rounded-full bg-purple-400 shadow-[0_0_8px_3px_rgba(168,85,247,0.8)]" />

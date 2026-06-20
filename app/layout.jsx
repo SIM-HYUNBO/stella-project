@@ -26,6 +26,7 @@ import { ThemeProvider } from "next-themes";
 import { FontProvider } from "./FontContext";
 import { SeasonProvider } from "./SeasonContext";
 
+import SeasonParticles from "@/components/SeasonParticles";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import FCMToken from "@/components/FCMToken";
 import AppBadge from "@/components/AppBadge";
@@ -80,6 +81,9 @@ export default function RootLayout({ children }) {
         <ThemeProvider attribute="class" enableSystem={false}>
           <SeasonProvider>
           <FontProvider>
+
+            {/* 계절 파티클 */}
+            <SeasonParticles />
 
             {/* 서비스 워커 */}
             <ServiceWorkerRegister />
