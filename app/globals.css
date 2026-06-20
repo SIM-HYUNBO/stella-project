@@ -12,8 +12,8 @@ html {
   transition: 0.2s;
 }
 
-*, *:hover {
-  cursor: url('/cursor.svg') 10 10, auto !important;
+html, body, *, *:hover {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8' fill='%23fefce8' stroke='%2338bdf8' stroke-width='2.5'/%3E%3C/svg%3E") 10 10, auto !important;
 }
 
 .no-cursor, .no-cursor * {
