@@ -50,7 +50,7 @@ export default function HomePage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [dmUnread, setDmUnread] = useState(0);
+  const [dmUnread, setDmUnread] = useState<Record<string, number>>({});
   const [groupUnread, setGroupUnread] = useState(0);
   const [title, setTitle] = useState<string | null>(null);
 
@@ -88,9 +88,14 @@ export default function HomePage() {
     if (!nickname) return;
     const q = query(collection(db, "messages"), where("to", "==", nickname));
     return onSnapshot(q, (snap) => {
-      let n = 0;
-      snap.forEach((d) => { const data = d.data(); if (data.from !== nickname && !data.readBy?.includes(nickname)) n++; });
-      setDmUnread(n);
+      const counts: Record<string, number> = {};
+      snap.forEach((d) => {
+        const data = d.data();
+        if (data.from !== nickname && !data.readBy?.includes(nickname)) {
+          counts[data.from] = (counts[data.from] || 0) + 1;
+        }
+      });
+      setDmUnread(counts);
     });
   }, [nickname]);
 
@@ -180,7 +185,7 @@ export default function HomePage() {
               {/* 스탯 칩 */}
               <div className="relative mt-5 flex gap-3">
                 {[
-                  { val: dmUnread || 0,      label: "안 읽은 DM",  icon: "💬" },
+                  { val: Object.values(dmUnread).reduce((a, b) => a + b, 0), label: "안 읽은 DM",  icon: "💬" },
                   { val: groupUnread || 0,   label: "단체 미확인", icon: "👥" },
                   { val: friends.length,     label: "친구",        icon: "🤝" },
                 ].map(({ val, label, icon }) => (
@@ -208,39 +213,30 @@ export default function HomePage() {
                 <button onClick={() => router.push("/friendmenu")} className="text-xs text-sky-600 font-bold">전체보기 →</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                {friends.map((f) => (
-                  <button key={f.uid} onClick={() => router.push("/avatar")}
-                    className="flex-shrink-0 text-center bg-transparent border-none p-0 cursor-pointer">
-                    <div className="relative mx-auto w-14 h-14">
-                      <div className="absolute inset-0 rounded-full bg- blur-[6px] opacity-50" />
-                      <div className="relative w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-orange-200">
-                        <TextAvatar nickname={f.nickname} size={56} profileImage={f.profileImage} />
+                {friends.map((f) => {
+                  const unread = dmUnread[f.nickname] || 0;
+                  return (
+                    <button key={f.uid} onClick={() => router.push("/avatar")}
+                      className="flex-shrink-0 text-center bg-transparent border-none p-0 cursor-pointer">
+                      <div className="relative mx-auto w-14 h-14">
+                        <div className="absolute inset-0 rounded-full bg- blur-[6px] opacity-50" />
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-orange-200">
+                          <TextAvatar nickname={f.nickname} size={56} profileImage={f.profileImage} />
+                        </div>
+                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white" />
+                        {unread > 0 && (
+                          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center px-1 shadow">
+                            {unread > 99 ? "99+" : unread}
+                          </span>
+                        )}
                       </div>
-                      <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white" />
-                    </div>
-                    <p className="text-[10px] text-[#a07060] mt-1.5 w-14 truncate font-semibold">{f.nickname}</p>
-                  </button>
-                ))}
+                      <p className="text-[10px] text-[#a07060] mt-1.5 w-14 truncate font-semibold">{f.nickname}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
-
-          {/* ── 빠른 액션 ── */}
-          <div className="rounded-[24px] bg-white shadow-[0_4px_16px_rgba(14,165,233,0.10)] border border-sky-100 p-3">
-            <div className="grid grid-cols-3 gap-2.5">
-              {[
-                { icon: "💬", label: "DM 보내기", bg: "bg-gradient-to-br from-sky-300 to-cyan-300",    path: "/avatar" },
-                { icon: "👥", label: "단체방",     bg: "bg-gradient-to-br from-yellow-300 to-amber-300", path: "/groupchat" },
-                { icon: "📔", label: "일기 쓰기",  bg: "bg-gradient-to-br from-sky-400 to-sky-300",     path: "/diary" },
-              ].map(({ icon, label, bg, path }) => (
-                <button key={label} onClick={() => router.push(path)}
-                  className={`rounded-[16px] ${bg} px-3 py-4 text-center active:scale-[0.97] transition-transform shadow-sm`}>
-                  <p className="text-2xl mb-1">{icon}</p>
-                  <p className="text-white font-black text-xs drop-shadow">{label}</p>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* ── 메뉴 ── */}
           <div>
@@ -258,9 +254,9 @@ export default function HomePage() {
                     <p className="text-white font-black text-xl drop-shadow">1:1 채팅</p>
                     <p className="text-white/80 text-sm">친구와 나만의 대화</p>
                   </div>
-                  {dmUnread > 0 && (
+                  {Object.values(dmUnread).reduce((a, b) => a + b, 0) > 0 && (
                     <span className="relative bg-white text-sky-600 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 animate-[pulse_2s_infinite]">
-                      {dmUnread > 99 ? "99+" : dmUnread}
+                      {Object.values(dmUnread).reduce((a, b) => a + b, 0) > 99 ? "99+" : Object.values(dmUnread).reduce((a, b) => a + b, 0)}
                     </span>
                   )}
                 </div>

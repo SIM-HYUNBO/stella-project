@@ -988,6 +988,10 @@ export default function GroupChat() {
         status: "pending",
         createdAt: serverTimestamp(),
       });
+      fetch("/api/push", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toNickname: targetNickname, fromNickname: nickname, message: `${currentRoom.name} 채팅방에 초대되었어요! 🎉` }),
+      }).catch(() => {});
       setShowInvite(false);
       setShowPasswordPrompt(false);
       setEnteredPassword("");
