@@ -130,9 +130,23 @@ export default function SettingsPage() {
 
   const saveNickname = async () => {
     if (!uid || !editNickname.trim()) return;
+    const oldNickname = user?.nickname;
+    const newNickname = editNickname.trim();
+    if (oldNickname === newNickname) { setEditMode(false); return; }
     setSaving(true);
-    await updateDoc(doc(db, "users", uid), { nickname: editNickname.trim() });
-    setUser((prev) => prev ? { ...prev, nickname: editNickname.trim() } : prev);
+    await updateDoc(doc(db, "users", uid), { nickname: newNickname });
+    setUser((prev) => prev ? { ...prev, nickname: newNickname } : prev);
+    // 채팅방 멤버 목록도 자동 업데이트
+    if (oldNickname) {
+      try {
+        const idToken = await auth.currentUser?.getIdToken();
+        await fetch("/api/migrate-nickname", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken, from: oldNickname, to: newNickname }),
+        });
+      } catch {}
+    }
     setSaving(false);
     setEditMode(false);
   };
@@ -223,7 +237,7 @@ export default function SettingsPage() {
             <div className="px-5 py-3 border-b border-gray-50">
               <span className="text-xs font-black text-gray-400 uppercase tracking-wider">관리자</span>
             </div>
-            <div className="flex items-center justify-between px-5 py-4">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center text-lg">🔑</div>
                 <div>
@@ -233,6 +247,30 @@ export default function SettingsPage() {
               </div>
               <Toggle value={adminMode} onChange={handleAdminMode} />
             </div>
+            <button
+              onClick={async () => {
+                if (!confirm("채팅방 멤버 목록의 '관리자' → 'Stella' 일괄 교체할까요?")) return;
+                try {
+                  const { getAuth } = await import("firebase/auth");
+                  const idToken = await getAuth().currentUser?.getIdToken();
+                  const res = await fetch("/api/migrate-nickname", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idToken, from: "관리자", to: "Stella" }),
+                  });
+                  const data = await res.json();
+                  if (data.ok) alert(`완료! ${data.updated}개 방 업데이트됨`);
+                  else alert("오류: " + data.error);
+                } catch (e: any) { alert("오류: " + e.message); }
+              }}
+              className="w-full flex items-center gap-3 px-5 py-4 active:bg-gray-50 transition"
+            >
+              <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-lg">🔄</div>
+              <div className="text-left">
+                <span className="font-bold text-slate-800 text-sm block">닉네임 일괄 교체</span>
+                <span className="text-xs text-gray-400">채팅방 멤버의 &apos;관리자&apos; → &apos;Stella&apos;</span>
+              </div>
+            </button>
           </div>
         )}
 
