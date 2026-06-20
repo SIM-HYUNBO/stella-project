@@ -41,7 +41,7 @@ export default function LoginPage() {
         {/* 브랜드 */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100 mb-4">
-            <span className="text-4xl">💬</span>
+            <img src="/wag.png" alt="logo" className="w-12 h-12 object-contain" />
           </div>
           <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
           <p className="text-sky-700 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>

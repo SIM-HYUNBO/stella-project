@@ -42,7 +42,7 @@ export default function RootPage() {
 
       {/* ── 떠다니는 이모티콘 파티클 ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <span className="absolute top-[8%]  left-[7%]  text-2xl opacity-20 animate-[floatA_7s_ease-in-out_infinite_alternate]">💬</span>
+        <img src="/wag.png" alt="" className="absolute top-[8%] left-[7%] w-7 h-7 object-contain opacity-20 animate-[floatA_7s_ease-in-out_infinite_alternate]" />
         <span className="absolute top-[18%] right-[10%] text-xl  opacity-20 animate-[floatB_9s_ease-in-out_infinite_alternate]">✨</span>
         <span className="absolute top-[40%] left-[4%]  text-lg  opacity-15 animate-[floatC_11s_ease-in-out_infinite_alternate]">🧡</span>
         <span className="absolute top-[55%] right-[6%] text-2xl opacity-20 animate-[floatD_8s_ease-in-out_infinite_alternate]">🌸</span>
@@ -62,7 +62,7 @@ export default function RootPage() {
             <div className="absolute w-28 h-28 rounded-full/40 animate-[spinSlow_5s_linear_infinite_reverse]" />
             <div className="absolute w-40 h-40 rounded-full bg-sky-300/25 blur-2xl" />
             <div className="relative w-[88px] h-[88px] rounded-[30px] bg-sky-200 flex items-center justify-center">
-              <span className="text-5xl">💬</span>
+              <img src="/wag.png" alt="logo" className="w-14 h-14 object-contain" />
             </div>
             {/* 스파클 */}
             <span className="absolute top-0 right-0 text-lg animate-[pulse_2s_infinite]">✨</span>
@@ -85,11 +85,13 @@ export default function RootPage() {
         <div className="grid grid-cols-3 gap-2.5">
           {[
             { icon: "👥", value: "1,200+", label: "활성 유저", color: "bg-sky-200" },
-            { icon: "💬", value: "50만+",  label: "오간 메시지", color: "from-sky-400" },
+            { icon: "__wag__", value: "50만+",  label: "오간 메시지", color: "from-sky-400" },
             { icon: "🤝", value: "3,000+", label: "친구 연결",  color: "from-sky-500" },
           ].map(({ icon, value, label, color }) => (
             <div key={label} className="rounded-[20px] bg-white shadow-sm/60 px-2 py-4 text-center">
-              <div className={`w-9 h-9 rounded-xl bg-${color} flex items-center justify-center text-lg mx-auto mb-2`}>{icon}</div>
+              <div className={`w-9 h-9 rounded-xl bg-${color} flex items-center justify-center text-lg mx-auto mb-2`}>
+                {icon === "__wag__" ? <img src="/wag.png" alt="logo" className="w-5 h-5 object-contain" /> : icon}
+              </div>
               <p className="text-sky-700 font-black text-[17px] leading-none">{value}</p>
               <p className="text-sky-600 text-[10px] font-semibold mt-1">{label}</p>
             </div>
