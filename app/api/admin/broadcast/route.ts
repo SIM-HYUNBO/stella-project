@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (targetNicknames && Array.isArray(targetNicknames) && targetNicknames.length > 0) {
       for (const nick of targetNicknames as string[]) {
         const subDoc = await admin.firestore().collection("push_subscriptions").doc(nick).get();
-        if (!subDoc.exists()) { failed++; continue; }
+        if (!subDoc.exists) { failed++; continue; }
         try {
           const subscription = JSON.parse(subDoc.data()!.subscription);
           await webpush.sendNotification(subscription, payload);
