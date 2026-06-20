@@ -292,7 +292,7 @@ export default function MeetingRoomPage() {
     return onSnapshot(collection(db, "users"), (snap) => {
       const list: User[] = snap.docs
         .map((d) => ({ id: d.id, nickname: d.data().nickname as string }))
-        .filter((u) => u.nickname !== nickname && u.nickname !== "Stella");
+        .filter((u) => u.nickname !== nickname && u.nickname !== "Stella" && u.nickname !== "관리자");
       list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
       setAllUsers(list);
     });
