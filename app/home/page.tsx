@@ -66,6 +66,8 @@ export default function HomePage() {
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [noticeUserSearch, setNoticeUserSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
+  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
+  const [mouseTrail, setMouseTrail] = useState({ x: -100, y: -100 });
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -147,6 +149,17 @@ export default function HomePage() {
     });
   }, [nickname]);
 
+  // ── 어드민 커서 ──
+  useEffect(() => {
+    if (!adminMode || nickname !== "Stella") return;
+    const move = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+      setTimeout(() => setMouseTrail({ x: e.clientX, y: e.clientY }), 80);
+    };
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, [adminMode, nickname]);
+
   // ── 어드민 핸들러 ──
   const handleBroadcast = async () => {
     if (!broadcastMsg.trim() || selectedRecipients.length === 0) return;
@@ -214,7 +227,14 @@ export default function HomePage() {
   // ── 관리자 대시보드 ──
   if (nickname === "Stella" && adminMode) {
     return (
-      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden">
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden cursor-none">
+        {/* 커스텀 커서 */}
+        <div className="fixed pointer-events-none z-[9999]" style={{ left: mousePos.x, top: mousePos.y, transform: "translate(-50%, -50%)" }}>
+          <div className="w-3 h-3 rounded-full bg-purple-400 shadow-[0_0_8px_3px_rgba(168,85,247,0.8)]" />
+        </div>
+        <div className="fixed pointer-events-none z-[9998] transition-[left,top] ease-out duration-[80ms]" style={{ left: mouseTrail.x, top: mouseTrail.y, transform: "translate(-50%, -50%)" }}>
+          <div className="w-7 h-7 rounded-full border border-purple-400/50 shadow-[0_0_12px_2px_rgba(168,85,247,0.3)]" />
+        </div>
         {/* 고정 헤더 + 탭바 */}
         <div className="shrink-0 bg-slate-950 border-b border-white/10 safe-area-top">
           <div className="px-5 pt-12 pb-3 flex items-center justify-between">
