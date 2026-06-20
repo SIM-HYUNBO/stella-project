@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/app/firebase";
 import TextAvatar from "@/components/TextAvatar";
 
@@ -134,6 +134,12 @@ export default function SettingsPage() {
     const newNickname = editNickname.trim();
     if (oldNickname === newNickname) { setEditMode(false); return; }
     setSaving(true);
+    const nickSnap = await getDocs(query(collection(db, "users"), where("nickname", "==", newNickname)));
+    if (!nickSnap.empty) {
+      alert("이미 사용 중인 닉네임이에요.");
+      setSaving(false);
+      return;
+    }
     await updateDoc(doc(db, "users", uid), { nickname: newNickname });
     if (auth.currentUser) await updateProfile(auth.currentUser, { displayName: newNickname });
     setUser((prev) => prev ? { ...prev, nickname: newNickname } : prev);

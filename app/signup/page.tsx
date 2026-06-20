@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
 import { saveFCMToken } from "../hooks/usePushSubscription";
 
 export default function SignupPage() {
@@ -33,6 +33,11 @@ export default function SignupPage() {
     }
     if (nickname.trim().length < 2) {
       setError("닉네임은 2자 이상이어야 해요.");
+      return;
+    }
+    const nickSnap = await getDocs(query(collection(db, "users"), where("nickname", "==", nickname.trim())));
+    if (!nickSnap.empty) {
+      setError("이미 사용 중인 닉네임이에요.");
       return;
     }
     if (!birthdate) {
