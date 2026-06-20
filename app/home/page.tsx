@@ -57,13 +57,14 @@ export default function HomePage() {
 
   // 어드민 상태
   const [adminMode, setAdminMode] = useState(false);
-  const [adminTab, setAdminTab] = useState<"stats" | "notice" | "users" | "rooms">("stats");
+  const [adminTab, setAdminTab] = useState<"stats" | "notice" | "users">("stats");
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [allRooms, setAllRooms] = useState<any[]>([]);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastMsg, setBroadcastMsg] = useState("");
   const [broadcastSending, setBroadcastSending] = useState(false);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [noticeUserSearch, setNoticeUserSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
 
   useEffect(() => {
@@ -88,10 +89,8 @@ export default function HomePage() {
   useEffect(() => {
     if (!adminMode || nickname !== "Stella") return;
     (async () => {
-      const [usersSnap, groupSnap, meetingSnap, configSnap] = await Promise.all([
+      const [usersSnap, configSnap] = await Promise.all([
         getDocs(collection(db, "users")),
-        getDocs(collection(db, "group_rooms")),
-        getDocs(collection(db, "meeting_rooms")),
         getDoc(doc(db, "config", "app")),
       ]);
 
@@ -99,11 +98,6 @@ export default function HomePage() {
       usersSnap.forEach((d) => userList.push({ uid: d.id, ...d.data() }));
       userList.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
       setAllUsers(userList);
-
-      const roomList: any[] = [];
-      groupSnap.forEach((d) => roomList.push({ id: d.id, type: "group", ...d.data() }));
-      meetingSnap.forEach((d) => roomList.push({ id: d.id, type: "meeting", ...d.data() }));
-      setAllRooms(roomList);
 
       if (configSnap.exists()) setMaintenanceMode(configSnap.data()?.maintenance ?? false);
     })();
@@ -155,20 +149,22 @@ export default function HomePage() {
 
   // ── 어드민 핸들러 ──
   const handleBroadcast = async () => {
-    if (!broadcastMsg.trim()) return;
+    if (!broadcastMsg.trim() || selectedRecipients.length === 0) return;
     setBroadcastSending(true);
     try {
       const idToken = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/admin/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken, title: broadcastTitle || "📢 공지", message: broadcastMsg }),
+        body: JSON.stringify({ idToken, title: broadcastTitle || "📢 공지", message: broadcastMsg, targetNicknames: selectedRecipients }),
       });
       const data = await res.json();
       if (data.ok) {
         alert(`${data.sent}명에게 발송 완료!`);
         setBroadcastTitle("");
         setBroadcastMsg("");
+        setSelectedRecipients([]);
+        setNoticeUserSearch("");
       } else {
         alert("오류: " + (data.error || "알 수 없음"));
       }
@@ -234,8 +230,8 @@ export default function HomePage() {
             </button>
           </div>
           <div className="flex border-t border-white/5">
-            {(["stats", "notice", "users", "rooms"] as const).map((t) => {
-              const labels: Record<string, string> = { stats: "📊 통계", notice: "📢 공지", users: "👥 유저", rooms: "🏠 방" };
+            {(["stats", "notice", "users"] as const).map((t) => {
+              const labels: Record<string, string> = { stats: "📊 통계", notice: "📢 공지", users: "👥 유저" };
               return (
                 <button
                   key={t}
@@ -310,10 +306,54 @@ export default function HomePage() {
           {/* ── 공지 탭 ── */}
           {adminTab === "notice" && (
             <div className="space-y-3">
-              <div className="rounded-2xl bg-purple-500/10 border border-purple-500/20 p-4">
-                <p className="text-xs font-black text-purple-300 mb-1">📢 전체 푸쉬 알림 발송</p>
-                <p className="text-[11px] text-white/40">푸쉬 구독 중인 모든 유저에게 즉시 발송돼요</p>
+              {/* 받는 사람 선택 */}
+              <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
+                  <p className="text-[10px] font-black text-white/40 uppercase">받는 사람 {selectedRecipients.length > 0 ? `(${selectedRecipients.length}명 선택)` : ""}</p>
+                  <button
+                    onClick={() => {
+                      const visible = allUsers.filter((u) => !noticeUserSearch || u.nickname?.toLowerCase().includes(noticeUserSearch.toLowerCase()));
+                      const allSelected = visible.every((u) => selectedRecipients.includes(u.nickname));
+                      if (allSelected) setSelectedRecipients((prev) => prev.filter((n) => !visible.some((u) => u.nickname === n)));
+                      else setSelectedRecipients((prev) => [...new Set([...prev, ...visible.map((u) => u.nickname)])]);
+                    }}
+                    className="text-[10px] text-purple-400 font-black"
+                  >
+                    {allUsers.filter((u) => !noticeUserSearch || u.nickname?.toLowerCase().includes(noticeUserSearch.toLowerCase())).every((u) => selectedRecipients.includes(u.nickname)) ? "전체 해제" : "전체 선택"}
+                  </button>
+                </div>
+                <div className="px-3 py-2 border-b border-white/5">
+                  <input
+                    value={noticeUserSearch}
+                    onChange={(e) => setNoticeUserSearch(e.target.value)}
+                    placeholder="닉네임 검색"
+                    className="w-full bg-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="max-h-44 overflow-y-auto divide-y divide-white/5">
+                  {allUsers
+                    .filter((u) => !noticeUserSearch || u.nickname?.toLowerCase().includes(noticeUserSearch.toLowerCase()))
+                    .map((u) => {
+                      const checked = selectedRecipients.includes(u.nickname);
+                      return (
+                        <button
+                          key={u.uid}
+                          onClick={() => setSelectedRecipients((prev) => checked ? prev.filter((n) => n !== u.nickname) : [...prev, u.nickname])}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 active:bg-white/10 transition text-left"
+                        >
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition ${checked ? "bg-purple-500 border-purple-500" : "border-white/20"}`}>
+                            {checked && <span className="text-white text-[9px] font-black">✓</span>}
+                          </div>
+                          <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center text-xs font-black text-purple-300 shrink-0">
+                            {u.nickname?.[0] ?? "?"}
+                          </div>
+                          <p className="text-sm text-white">{u.nickname}</p>
+                        </button>
+                      );
+                    })}
+                </div>
               </div>
+
               <input
                 value={broadcastTitle}
                 onChange={(e) => setBroadcastTitle(e.target.value)}
@@ -324,15 +364,15 @@ export default function HomePage() {
                 value={broadcastMsg}
                 onChange={(e) => setBroadcastMsg(e.target.value)}
                 placeholder="내용을 입력하세요..."
-                rows={6}
+                rows={5}
                 className="w-full bg-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               />
               <button
                 onClick={handleBroadcast}
-                disabled={!broadcastMsg.trim() || broadcastSending}
+                disabled={!broadcastMsg.trim() || broadcastSending || selectedRecipients.length === 0}
                 className="w-full py-4 rounded-2xl bg-purple-600 font-black text-white disabled:opacity-40 active:scale-[0.98] transition"
               >
-                {broadcastSending ? "발송 중..." : `📢 전체 발송 (${allUsers.length}명)`}
+                {broadcastSending ? "발송 중..." : selectedRecipients.length === 0 ? "받는 사람을 선택하세요" : `📢 발송 (${selectedRecipients.length}명)`}
               </button>
             </div>
           )}
@@ -363,33 +403,6 @@ export default function HomePage() {
                       <p className="text-[10px] text-white/20 shrink-0">
                         {u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000).toLocaleDateString("ko") : "—"}
                       </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── 방 현황 탭 ── */}
-          {adminTab === "rooms" && (
-            <div className="space-y-3">
-              <p className="text-[10px] text-white/30 font-black px-1">전체 {allRooms.length}개</p>
-              <div className="rounded-2xl bg-white/5 border border-white/10 divide-y divide-white/5 overflow-hidden">
-                {allRooms.length === 0 ? (
-                  <p className="text-center text-white/30 text-sm py-8">채팅방 없음</p>
-                ) : (
-                  allRooms.map((r) => (
-                    <div key={r.id} className="flex items-center gap-3 px-4 py-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 ${r.type === "meeting" ? "bg-yellow-500/20" : "bg-sky-500/20"}`}>
-                        {r.type === "meeting" ? "📋" : "👥"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate">{r.name || "이름 없음"}</p>
-                        <p className="text-[11px] text-white/30">{r.members?.length ?? 0}명 · {r.createdBy}</p>
-                      </div>
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${r.type === "meeting" ? "bg-yellow-500/20 text-yellow-300" : "bg-sky-500/20 text-sky-300"}`}>
-                        {r.type === "meeting" ? "회의" : "그룹"}
-                      </span>
                     </div>
                   ))
                 )}

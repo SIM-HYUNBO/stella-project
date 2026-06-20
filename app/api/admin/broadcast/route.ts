@@ -13,28 +13,35 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: "admin not configured" }, { status: 500 });
 
   try {
-    const { idToken, title, message } = await req.json();
+    const { idToken, title, message, targetNicknames } = await req.json();
     const decoded = await admin.auth().verifyIdToken(idToken);
     const userSnap = await admin.firestore().collection("users").doc(decoded.uid).get();
     if (userSnap.data()?.nickname !== "Stella") {
       return NextResponse.json({ error: "권한 없음" }, { status: 403 });
     }
 
-    const subs = await admin.firestore().collection("push_subscriptions").get();
     let sent = 0;
     let failed = 0;
+    const payload = JSON.stringify({ title: title || "📢 공지", body: message, url: "/home" });
 
-    for (const sub of subs.docs) {
-      const data = sub.data();
-      try {
-        const subscription = JSON.parse(data.subscription);
-        await webpush.sendNotification(
-          subscription,
-          JSON.stringify({ title: title || "📢 공지", body: message, url: "/home" })
-        );
-        sent++;
-      } catch {
-        failed++;
+    if (targetNicknames && Array.isArray(targetNicknames) && targetNicknames.length > 0) {
+      for (const nick of targetNicknames as string[]) {
+        const subDoc = await admin.firestore().collection("push_subscriptions").doc(nick).get();
+        if (!subDoc.exists()) { failed++; continue; }
+        try {
+          const subscription = JSON.parse(subDoc.data()!.subscription);
+          await webpush.sendNotification(subscription, payload);
+          sent++;
+        } catch { failed++; }
+      }
+    } else {
+      const subs = await admin.firestore().collection("push_subscriptions").get();
+      for (const sub of subs.docs) {
+        try {
+          const subscription = JSON.parse(sub.data().subscription);
+          await webpush.sendNotification(subscription, payload);
+          sent++;
+        } catch { failed++; }
       }
     }
 
