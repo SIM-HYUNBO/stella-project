@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { collection, doc, getDoc, getDocs, query, where, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, onSnapshot, setDoc } from "firebase/firestore";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import PageContainer from "@/components/PageContainer";
 import TextAvatar from "@/components/TextAvatar";
 
@@ -54,6 +55,17 @@ export default function HomePage() {
   const [groupUnread, setGroupUnread] = useState(0);
   const [title, setTitle] = useState<string | null>(null);
 
+  // 어드민 상태
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminTab, setAdminTab] = useState<"stats" | "notice" | "users" | "rooms">("stats");
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allRooms, setAllRooms] = useState<any[]>([]);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [broadcastTitle, setBroadcastTitle] = useState("");
+  const [broadcastMsg, setBroadcastMsg] = useState("");
+  const [broadcastSending, setBroadcastSending] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { router.replace("/login"); return; }
@@ -67,6 +79,35 @@ export default function HomePage() {
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    setAdminMode(localStorage.getItem("stellaAdminMode") === "true");
+  }, []);
+
+  // 어드민 데이터 로딩
+  useEffect(() => {
+    if (!adminMode || nickname !== "Stella") return;
+    (async () => {
+      const [usersSnap, groupSnap, meetingSnap, configSnap] = await Promise.all([
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "group_rooms")),
+        getDocs(collection(db, "meeting_rooms")),
+        getDoc(doc(db, "config", "app")),
+      ]);
+
+      const userList: any[] = [];
+      usersSnap.forEach((d) => userList.push({ uid: d.id, ...d.data() }));
+      userList.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+      setAllUsers(userList);
+
+      const roomList: any[] = [];
+      groupSnap.forEach((d) => roomList.push({ id: d.id, type: "group", ...d.data() }));
+      meetingSnap.forEach((d) => roomList.push({ id: d.id, type: "meeting", ...d.data() }));
+      setAllRooms(roomList);
+
+      if (configSnap.exists()) setMaintenanceMode(configSnap.data()?.maintenance ?? false);
+    })();
+  }, [adminMode, nickname]);
 
   useEffect(() => {
     if (!uid) return;
@@ -112,12 +153,250 @@ export default function HomePage() {
     });
   }, [nickname]);
 
+  // ── 어드민 핸들러 ──
+  const handleBroadcast = async () => {
+    if (!broadcastMsg.trim()) return;
+    setBroadcastSending(true);
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/broadcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, title: broadcastTitle || "📢 공지", message: broadcastMsg }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`${data.sent}명에게 발송 완료!`);
+        setBroadcastTitle("");
+        setBroadcastMsg("");
+      } else {
+        alert("오류: " + (data.error || "알 수 없음"));
+      }
+    } catch (e: any) {
+      alert("오류: " + e.message);
+    }
+    setBroadcastSending(false);
+  };
+
+  const handleMaintenance = async (on: boolean) => {
+    setMaintenanceMode(on);
+    await setDoc(doc(db, "config", "app"), { maintenance: on }, { merge: true });
+  };
+
+  // ── 어드민 계산값 ──
+  const chartData = (() => {
+    const days: { date: string; count: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const label = `${d.getMonth() + 1}/${d.getDate()}`;
+      const count = allUsers.filter((u) => {
+        if (!u.createdAt?.seconds) return false;
+        const ud = new Date(u.createdAt.seconds * 1000);
+        return ud.getDate() === d.getDate() && ud.getMonth() === d.getMonth() && ud.getFullYear() === d.getFullYear();
+      }).length;
+      days.push({ date: label, count });
+    }
+    return days;
+  })();
+
+  const filteredUsers = allUsers.filter(
+    (u) => !userSearch || u.nickname?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
   if (!nickname) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fefce8]">
         <div className="relative">
           <div className="w-14 h-14 rounded-full border-[6px] border-sky-300" />
           <div className="absolute inset-0 w-14 h-14 rounded-full border-[6px] border-transparent border-t-orange-400 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── 관리자 대시보드 ──
+  if (nickname === "Stella" && adminMode) {
+    return (
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden">
+        {/* 고정 헤더 + 탭바 */}
+        <div className="shrink-0 bg-slate-950 border-b border-white/10 safe-area-top">
+          <div className="px-5 pt-12 pb-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black text-purple-400 tracking-[0.2em] uppercase">Wagie Admin Console</p>
+              <h1 className="text-xl font-black text-white mt-0.5">🔑 관리자</h1>
+            </div>
+            <button
+              onClick={() => router.push("/tools")}
+              className="px-3 py-1.5 bg-white/10 rounded-xl text-xs font-bold text-white/70 hover:bg-white/20 active:bg-white/30 transition"
+            >
+              설정 →
+            </button>
+          </div>
+          <div className="flex border-t border-white/5">
+            {(["stats", "notice", "users", "rooms"] as const).map((t) => {
+              const labels: Record<string, string> = { stats: "📊 통계", notice: "📢 공지", users: "👥 유저", rooms: "🏠 방" };
+              return (
+                <button
+                  key={t}
+                  onClick={() => setAdminTab(t)}
+                  className={`flex-1 py-3 text-xs font-black transition border-b-2 ${
+                    adminTab === t ? "border-purple-500 text-purple-400" : "border-transparent text-white/30 hover:text-white/60"
+                  }`}
+                >
+                  {labels[t]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 스크롤 콘텐츠 */}
+        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 pb-10">
+
+          {/* ── 통계 탭 ── */}
+          {adminTab === "stats" && (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "전체 유저", value: allUsers.length, cls: "bg-purple-500/20 border-purple-500/30 text-purple-300" },
+                  {
+                    label: "이번 주 가입",
+                    value: allUsers.filter((u) => u.createdAt?.seconds && Date.now() - u.createdAt.seconds * 1000 < 7 * 24 * 3600 * 1000).length,
+                    cls: "bg-sky-500/20 border-sky-500/30 text-sky-300",
+                  },
+                  { label: "전체 방", value: allRooms.length, cls: "bg-green-500/20 border-green-500/30 text-green-300" },
+                ].map(({ label, value, cls }) => (
+                  <div key={label} className={`rounded-2xl border ${cls} p-4 text-center`}>
+                    <p className="text-2xl font-black">{value}</p>
+                    <p className="text-[10px] text-white/40 mt-1">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+                <p className="text-[10px] font-black text-white/30 mb-4 uppercase tracking-wider">📈 일별 신규 가입 (7일)</p>
+                <ResponsiveContainer width="100%" height={140}>
+                  <BarChart data={chartData} barSize={22}>
+                    <XAxis dataKey="date" tick={{ fill: "#ffffff40", fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis hide allowDecimals={false} />
+                    <Tooltip
+                      cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                      contentStyle={{ background: "#1e1b4b", border: "1px solid rgba(168,85,247,0.3)", borderRadius: 10, fontSize: 12, color: "#fff" }}
+                      formatter={(v: any) => [`${v}명`, "가입"]}
+                    />
+                    <Bar dataKey="count" fill="#a855f7" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-sm font-black">🚧 점검 모드</p>
+                  <p className="text-[11px] text-white/40 mt-0.5">
+                    {maintenanceMode ? "🔴 점검 중 — 일반 유저 접근 제한됨" : "🟢 정상 운영 중"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleMaintenance(!maintenanceMode)}
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${maintenanceMode ? "bg-red-500" : "bg-white/20"}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${maintenanceMode ? "translate-x-[24px]" : "translate-x-0"}`} />
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── 공지 탭 ── */}
+          {adminTab === "notice" && (
+            <div className="space-y-3">
+              <div className="rounded-2xl bg-purple-500/10 border border-purple-500/20 p-4">
+                <p className="text-xs font-black text-purple-300 mb-1">📢 전체 푸쉬 알림 발송</p>
+                <p className="text-[11px] text-white/40">푸쉬 구독 중인 모든 유저에게 즉시 발송돼요</p>
+              </div>
+              <input
+                value={broadcastTitle}
+                onChange={(e) => setBroadcastTitle(e.target.value)}
+                placeholder="제목 (기본: 📢 공지)"
+                className="w-full bg-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <textarea
+                value={broadcastMsg}
+                onChange={(e) => setBroadcastMsg(e.target.value)}
+                placeholder="내용을 입력하세요..."
+                rows={6}
+                className="w-full bg-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              />
+              <button
+                onClick={handleBroadcast}
+                disabled={!broadcastMsg.trim() || broadcastSending}
+                className="w-full py-4 rounded-2xl bg-purple-600 font-black text-white disabled:opacity-40 active:scale-[0.98] transition"
+              >
+                {broadcastSending ? "발송 중..." : `📢 전체 발송 (${allUsers.length}명)`}
+              </button>
+            </div>
+          )}
+
+          {/* ── 유저 탭 ── */}
+          {adminTab === "users" && (
+            <div className="space-y-3">
+              <input
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="닉네임 / 이메일 검색"
+                className="w-full bg-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <p className="text-[10px] text-white/30 font-black px-1">{filteredUsers.length}명</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 divide-y divide-white/5 overflow-hidden">
+                {filteredUsers.length === 0 ? (
+                  <p className="text-center text-white/30 text-sm py-8">검색 결과 없음</p>
+                ) : (
+                  filteredUsers.map((u) => (
+                    <div key={u.uid} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-9 h-9 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-black shrink-0 text-purple-300">
+                        {u.nickname?.[0] ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold">{u.nickname}</p>
+                        <p className="text-[11px] text-white/30 truncate">{u.email}</p>
+                      </div>
+                      <p className="text-[10px] text-white/20 shrink-0">
+                        {u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000).toLocaleDateString("ko") : "—"}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── 방 현황 탭 ── */}
+          {adminTab === "rooms" && (
+            <div className="space-y-3">
+              <p className="text-[10px] text-white/30 font-black px-1">전체 {allRooms.length}개</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 divide-y divide-white/5 overflow-hidden">
+                {allRooms.length === 0 ? (
+                  <p className="text-center text-white/30 text-sm py-8">채팅방 없음</p>
+                ) : (
+                  allRooms.map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 ${r.type === "meeting" ? "bg-yellow-500/20" : "bg-sky-500/20"}`}>
+                        {r.type === "meeting" ? "📋" : "👥"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate">{r.name || "이름 없음"}</p>
+                        <p className="text-[11px] text-white/30">{r.members?.length ?? 0}명 · {r.createdBy}</p>
+                      </div>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${r.type === "meeting" ? "bg-yellow-500/20 text-yellow-300" : "bg-sky-500/20 text-sky-300"}`}>
+                        {r.type === "meeting" ? "회의" : "그룹"}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     );
@@ -150,11 +429,9 @@ export default function HomePage() {
           {/* ── 히어로 ── */}
           <div className="relative rounded-[32px] overflow-hidden">
             <div className="bg-sky-200 p-6 relative">
-              {/* 데코 원 */}
               <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
               <div className="absolute top-4 left-1/2 w-20 h-20 rounded-full bg-white/5 -translate-x-1/2" />
-              {/* shimmer */}
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
 
               <div className="relative flex items-center justify-between">
@@ -170,7 +447,6 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                {/* 아바타 + 회전 링 */}
                 <button onClick={() => router.push("/profile")} className="shrink-0">
                   <div className="relative w-[80px] h-[80px] flex items-center justify-center">
                     <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-[spinSlow_6s_linear_infinite]" />
@@ -182,7 +458,6 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* 스탯 칩 */}
               <div className="relative mt-5 flex gap-3">
                 {[
                   { val: Object.values(dmUnread).reduce((a, b) => a + b, 0), label: "안 읽은 DM",  icon: "💬" },
@@ -198,7 +473,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 오늘의 한마디 */}
             <div className="bg-white/80 backdrop-blur-sm px-5 py-3 flex items-center gap-2">
               <span className="text-base">💡</span>
               <p className="text-sky-800 text-xs font-semibold">{getTodayQuote()}</p>
@@ -243,7 +517,6 @@ export default function HomePage() {
             <p className="font-black text-slate-800 text-base mb-3 px-1">메뉴 ✨</p>
             <div className="space-y-3">
 
-              {/* 1:1 채팅 */}
               <button onClick={() => router.push("/avatar")}
                 className="group relative w-full rounded-[26px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-gradient-to-r from-sky-300 to-sky-200 px-6 py-5 flex items-center gap-4 relative shadow-lg shadow-sky-200">
@@ -262,7 +535,6 @@ export default function HomePage() {
                 </div>
               </button>
 
-              {/* 단체채팅 + 다이어리 */}
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
@@ -290,7 +562,6 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* 친구목록 */}
               <button onClick={() => router.push("/friendmenu")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
@@ -303,7 +574,6 @@ export default function HomePage() {
                 </div>
               </button>
 
-              {/* 회의방 */}
               <button onClick={() => router.push("/meetingroom")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border border-red-100 px-6 py-4 flex items-center gap-4">
@@ -316,9 +586,6 @@ export default function HomePage() {
                 </div>
               </button>
 
-             
-
-              {/* Q&A방 */}
               <button onClick={() => router.push("/tools/contact")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border px-6 py-4 flex items-center gap-4">
@@ -334,7 +601,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* ── 하단 태그라인 ── */}
           <div className="text-center py-4">
             <p className="text-[#d4a57a] text-sm font-medium">✦ 따뜻한 대화가 시작되는 곳 ✦</p>
           </div>
