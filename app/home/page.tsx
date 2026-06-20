@@ -261,7 +261,7 @@ export default function HomePage() {
                     value: allUsers.filter((u) => u.createdAt?.seconds && Date.now() - u.createdAt.seconds * 1000 < 7 * 24 * 3600 * 1000).length,
                     cls: "bg-sky-500/20 border-sky-500/30 text-sky-300",
                   },
-                  { label: "전체 방", value: allRooms.length, cls: "bg-green-500/20 border-green-500/30 text-green-300" },
+                  { label: "내 친구", value: friends.length, cls: "bg-green-500/20 border-green-500/30 text-green-300" },
                 ].map(({ label, value, cls }) => (
                   <div key={label} className={`rounded-2xl border ${cls} p-4 text-center`}>
                     <p className="text-2xl font-black">{value}</p>
