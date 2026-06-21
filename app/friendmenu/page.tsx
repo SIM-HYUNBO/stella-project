@@ -257,11 +257,12 @@ export default function FriendsPage() {
       <div className="relative z-10">
         <div className="px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="text-xl font-black bg-yellow-200">FRIENDS</div>
+            <span className="text-xl font-black bg-yellow-200">FRIENDS</span>
             {requests.length > 0 && (
               <span className="w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
             )}
           </div>
+          <div className="text-xs text-gray-400 mt-0.5">친구 목록</div>
         </div>
 
         <div className="px-5 pt-4 pb-20 space-y-5">

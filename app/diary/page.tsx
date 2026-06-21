@@ -100,7 +100,8 @@ export default function DiaryPage() {
       <div className="relative z-10">
         {/* 헤더 */}
         <div className="px-4 py-4">
-          <div className="text-xl font-black bg-yellow-200">DIARY</div>
+          <span className="text-xl font-black bg-yellow-200">DIARY</span>
+          <div className="text-xs text-gray-400 mt-0.5">일기</div>
         </div>
 
         {/* 탭 */}
