@@ -286,7 +286,7 @@ function SwipeUserItem({
 
       <div
         className={`relative z-10 px-3 py-3 cursor-pointer transition ${
-          isActive ? "bg-sky-200" : "bg-white/80 hover:bg-sky-50"
+          isActive ? "bg-sky-200" : "bg-white hover:bg-sky-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
