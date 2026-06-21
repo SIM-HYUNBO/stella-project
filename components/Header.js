@@ -24,14 +24,14 @@ const Header = () => {
           <Link href="/robot" className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform" title="AI">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="#50caff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="8" width="18" height="13" rx="2"/>
-              <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
-              <circle cx="9" cy="14" r="1.5" fill="#50caff" stroke="none"/>
-              <circle cx="15" cy="14" r="1.5" fill="#50caff" stroke="none"/>
-              <path d="M9 18h6"/>
-              <line x1="12" y1="3" x2="12" y2="5"/>
-              <line x1="1" y1="12" x2="3" y2="12"/>
-              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="12" y1="2" x2="12" y2="6"/>
+              <circle cx="12" cy="2" r="1.2" fill="#50caff" stroke="none"/>
+              <rect x="3" y="6" width="18" height="15" rx="6"/>
+              <circle cx="9" cy="12" r="2.2" fill="white" stroke="none"/>
+              <circle cx="15" cy="12" r="2.2" fill="white" stroke="none"/>
+              <circle cx="9" cy="12" r="1" fill="#50caff" stroke="none"/>
+              <circle cx="15" cy="12" r="1" fill="#50caff" stroke="none"/>
+              <path d="M9 17 Q12 19.5 15 17" fill="none"/>
             </svg>
           </Link>
           <Link href="/tools"
