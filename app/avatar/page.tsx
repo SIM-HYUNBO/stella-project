@@ -33,6 +33,8 @@ type Message = {
   id: string;
   from: string;
   to: string;
+  fromUid?: string;
+  toUid?: string;
   content: string;
   type?: "text" | "image" | "audio" | "system";
   createdAt?: any;
@@ -734,10 +736,12 @@ export default function Chat() {
         };
 
         const isMyChat =
-          (m.from === nickname &&
-            m.to === currentChatUser.nickname) ||
-          (m.from === currentChatUser.nickname &&
-            m.to === nickname);
+          // UID 기반 (닉네임 변경에도 유지)
+          (m.fromUid === uid && m.toUid === currentChatUser.id) ||
+          (m.fromUid === currentChatUser.id && m.toUid === uid) ||
+          // 닉네임 기반 fallback (UID 없는 구 메시지)
+          (!m.fromUid && m.from === nickname && m.to === currentChatUser.nickname) ||
+          (!m.fromUid && m.from === currentChatUser.nickname && m.to === nickname);
 
         if (!isMyChat) continue;
 
@@ -1068,6 +1072,8 @@ export default function Chat() {
     const msgData: any = {
       from: nickname,
       to: currentChatUser.nickname,
+      fromUid: uid,
+      toUid: currentChatUser.id,
       content: text,
       type: "text",
       createdAt: serverTimestamp(),

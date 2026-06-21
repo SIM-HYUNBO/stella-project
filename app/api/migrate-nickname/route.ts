@@ -60,25 +60,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 1:1 messages 컬렉션 (from / to / readBy)
+    // 1:1 messages: from/to 텍스트는 유지, UID 필드만 추가 (닉네임 변경 후에도 채팅 조회 가능)
     const fromMsgs = await db.collection("messages").where("from", "==", from).get();
     for (const msgDoc of fromMsgs.docs) {
-      const msgData = msgDoc.data();
-      const msgUpdates: Record<string, any> = { from: to };
-      const readBy: string[] = msgData.readBy || [];
-      if (readBy.includes(from)) msgUpdates.readBy = readBy.map((r) => (r === from ? to : r));
-      await msgDoc.ref.update(msgUpdates);
-      updated++;
+      if (!msgDoc.data().fromUid) {
+        await msgDoc.ref.update({ fromUid: uid });
+        updated++;
+      }
     }
 
     const toMsgs = await db.collection("messages").where("to", "==", from).get();
     for (const msgDoc of toMsgs.docs) {
-      const msgData = msgDoc.data();
-      const msgUpdates: Record<string, any> = { to: to };
-      const readBy: string[] = msgData.readBy || [];
-      if (readBy.includes(from)) msgUpdates.readBy = readBy.map((r) => (r === from ? to : r));
-      await msgDoc.ref.update(msgUpdates);
-      updated++;
+      if (!msgDoc.data().toUid) {
+        await msgDoc.ref.update({ toUid: uid });
+        updated++;
+      }
     }
 
     return NextResponse.json({ ok: true, updated });
