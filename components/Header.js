@@ -21,11 +21,11 @@ const Header = () => {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href="/robot" className="relative w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform" title="AI">
+          <Link href="/robot" className="relative w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform" title="AI">
             <span className="absolute -top-1 -right-1 bg-red-400 text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">NEW</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="2" x2="12" y2="6" stroke="#94a3b8" strokeWidth="1.5"/>
-              <circle cx="12" cy="2" r="1.5" fill="#94a3b8" stroke="none"/>
+              <line x1="12" y1="2" x2="12" y2="6" stroke="#50caff" strokeWidth="1.5"/>
+              <circle cx="12" cy="2" r="1.5" fill="#50caff" stroke="none"/>
               <rect x="3" y="6" width="18" height="15" rx="5" fill="#2d3748" stroke="none"/>
               <circle cx="9" cy="12" r="1.8" fill="#50caff" stroke="none"/>
               <circle cx="15" cy="12" r="1.8" fill="#50caff" stroke="none"/>
