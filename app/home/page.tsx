@@ -658,7 +658,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => router.push("/groupchat")}
                   className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #facc15, #fbbf24)" }}>
+                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #fde68a, #fcd34d)" }}>
                     <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
                     <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">👥</div>
                     <p className="text-white font-black text-base drop-shadow">단체채팅</p>
