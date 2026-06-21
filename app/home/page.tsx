@@ -457,7 +457,7 @@ export default function HomePage() {
 
           {/* ── 히어로 ── */}
           <div className="relative rounded-[32px] overflow-hidden">
-            <div className="p-6 relative" style={{ background: "linear-gradient(135deg, #bae6fd, #e0f2fe)" }}>
+            <div className="p-6 relative" style={{ background: "linear-gradient(135deg, #38bdf8, #7dd3fc)" }}>
               <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
               <div className="absolute top-4 left-1/2 w-20 h-20 rounded-full bg-white/5 -translate-x-1/2" />
