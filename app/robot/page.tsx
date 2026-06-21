@@ -129,11 +129,9 @@ export default function RobotPage() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="2" x2="12" y2="6"/>
                 <circle cx="12" cy="2" r="1.2" fill="#38bdf8" stroke="none"/>
-                <rect x="3" y="6" width="18" height="15" rx="6"/>
-                <circle cx="9" cy="12" r="2.2" fill="white" stroke="none"/>
-                <circle cx="15" cy="12" r="2.2" fill="white" stroke="none"/>
-                <circle cx="9" cy="12" r="1" fill="#38bdf8" stroke="none"/>
-                <circle cx="15" cy="12" r="1" fill="#38bdf8" stroke="none"/>
+                <rect x="3" y="6" width="18" height="15" rx="6" fill="none"/>
+                <circle cx="9" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
+                <circle cx="15" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
                 <path d="M9 17 Q12 19.5 15 17" fill="none"/>
               </svg>
             </div>
@@ -157,11 +155,9 @@ export default function RobotPage() {
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="2" x2="12" y2="6"/>
                 <circle cx="12" cy="2" r="1.2" fill="#cbd5e1" stroke="none"/>
-                <rect x="3" y="6" width="18" height="15" rx="6"/>
-                <circle cx="9" cy="12" r="2.2" fill="white" stroke="none"/>
-                <circle cx="15" cy="12" r="2.2" fill="white" stroke="none"/>
-                <circle cx="9" cy="12" r="1" fill="#cbd5e1" stroke="none"/>
-                <circle cx="15" cy="12" r="1" fill="#cbd5e1" stroke="none"/>
+                <rect x="3" y="6" width="18" height="15" rx="6" fill="none"/>
+                <circle cx="9" cy="12" r="1.8" fill="#cbd5e1" stroke="none"/>
+                <circle cx="15" cy="12" r="1.8" fill="#cbd5e1" stroke="none"/>
                 <path d="M9 17 Q12 19.5 15 17" fill="none"/>
               </svg>
               <p className="text-sm">무엇이든 물어보세요!</p>
@@ -178,11 +174,9 @@ export default function RobotPage() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="2" x2="12" y2="6"/>
                     <circle cx="12" cy="2" r="1.2" fill="#38bdf8" stroke="none"/>
-                    <rect x="3" y="6" width="18" height="15" rx="6"/>
-                    <circle cx="9" cy="12" r="2.2" fill="white" stroke="none"/>
-                    <circle cx="15" cy="12" r="2.2" fill="white" stroke="none"/>
-                    <circle cx="9" cy="12" r="1" fill="#38bdf8" stroke="none"/>
-                    <circle cx="15" cy="12" r="1" fill="#38bdf8" stroke="none"/>
+                    <rect x="3" y="6" width="18" height="15" rx="6" fill="none"/>
+                    <circle cx="9" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
+                    <circle cx="15" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
                     <path d="M9 17 Q12 19.5 15 17" fill="none"/>
                   </svg>
                 </div>
