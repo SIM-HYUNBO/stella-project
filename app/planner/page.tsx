@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
@@ -24,7 +24,13 @@ export default function PlannerPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [newSubject, setNewSubject] = useState("");
   const [newGoal, setNewGoal] = useState("");
-  const [newDuration, setNewDuration] = useState("60");
+  const [newDuration, setNewDuration] = useState("30");
+
+  // 타이머 상태
+  const [activeTimerId, setActiveTimerId] = useState<string | null>(null);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerValues, setTimerValues] = useState<Record<string, number>>({});
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -39,7 +45,16 @@ export default function PlannerPage() {
   useEffect(() => {
     if (!user) return;
     loadPlanner();
+    // 날짜/탭 바뀌면 타이머 리셋
+    if (timerRef.current) clearInterval(timerRef.current);
+    setTimerRunning(false);
+    setActiveTimerId(null);
+    setTimerValues({});
   }, [user, currentDate, type]);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
 
   const loadPlanner = async () => {
     const id = `${user.uid}_${currentDate}_${type}`;
@@ -64,6 +79,7 @@ export default function PlannerPage() {
     await setDoc(doc(db, "planners", id), data);
   };
 
+  // ── Daily ──
   const addTask = async () => {
     if (!newTask.trim()) return;
     const updated = [...tasks, { id: Date.now().toString(), text: newTask.trim(), done: false }];
@@ -81,28 +97,82 @@ export default function PlannerPage() {
     setTasks(updated); await save(updated);
   };
 
+  // ── Study ──
   const addSession = async () => {
     if (!newSubject.trim()) return;
     const updated = [...sessions, {
       id: Date.now().toString(),
       subject: newSubject.trim(), goal: newGoal.trim(),
-      duration: parseInt(newDuration) || 60, done: false,
+      duration: parseInt(newDuration) || 30, done: false,
     }];
     setSessions(updated);
-    setNewSubject(""); setNewGoal(""); setNewDuration("60");
+    setNewSubject(""); setNewGoal(""); setNewDuration("30");
     await save(undefined, updated);
   };
 
   const toggleSession = async (id: string) => {
+    if (activeTimerId === id) stopTimer();
     const updated = sessions.map((s) => s.id === id ? { ...s, done: !s.done } : s);
     setSessions(updated); await save(undefined, updated);
   };
 
   const deleteSession = async (id: string) => {
+    if (activeTimerId === id) stopTimer();
     const updated = sessions.filter((s) => s.id !== id);
-    setSessions(updated); await save(undefined, updated);
+    setSessions(updated);
+    setTimerValues((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    await save(undefined, updated);
   };
 
+  // ── 타이머 ──
+  const startTimer = (sessionId: string, durationMin: number) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setTimerValues((prev) => ({
+      ...prev,
+      [sessionId]: prev[sessionId] !== undefined ? prev[sessionId] : durationMin * 60,
+    }));
+    setActiveTimerId(sessionId);
+    setTimerRunning(true);
+
+    timerRef.current = setInterval(() => {
+      setTimerValues((prev) => {
+        const current = prev[sessionId] !== undefined ? prev[sessionId] : durationMin * 60;
+        if (current <= 1) {
+          clearInterval(timerRef.current!);
+          setTimerRunning(false);
+          setActiveTimerId(null);
+          return { ...prev, [sessionId]: 0 };
+        }
+        return { ...prev, [sessionId]: current - 1 };
+      });
+    }, 1000);
+  };
+
+  const pauseTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setTimerRunning(false);
+  };
+
+  const stopTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setTimerRunning(false);
+    setActiveTimerId(null);
+  };
+
+  const resetTimer = (sessionId: string, durationMin: number) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setTimerRunning(false);
+    setActiveTimerId(null);
+    setTimerValues((prev) => ({ ...prev, [sessionId]: durationMin * 60 }));
+  };
+
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  // ── 날짜 ──
   const navigateDate = (delta: number) => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + delta);
@@ -126,23 +196,21 @@ export default function PlannerPage() {
 
           {/* 헤더 */}
           <div className="px-4 py-4">
-            <div className="flex items-center gap-2">
-              <div>
-                <span className="text-xl font-black bg-yellow-200">PLANNER</span>
-                <div className="text-xs text-gray-400 mt-0.5">플래너</div>
-              </div>
+            <span className="text-xl font-black bg-yellow-200">PLANNER</span>
+            <div className="text-xs text-gray-400 mt-0.5">플래너</div>
+            <div className="flex gap-2 mt-3">
               <button
                 onClick={() => setType("daily")}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition active:scale-90 text-xs font-bold ${
-                  type === "daily" ? "bg-sky-200 text-white" : "bg-sky-50 hover:bg-sky-100 text-sky-600"
+                className={`px-4 py-1.5 rounded-xl text-xs font-black transition active:scale-90 ${
+                  type === "daily" ? "bg-sky-200 text-white" : "bg-sky-50 text-sky-600"
                 }`}
               >
                 daily
               </button>
               <button
                 onClick={() => setType("study")}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition active:scale-90 text-xs font-bold ${
-                  type === "study" ? "bg-yellow-300 text-white" : "bg-yellow-50 hover:bg-yellow-100 text-yellow-600"
+                className={`px-4 py-1.5 rounded-xl text-xs font-black transition active:scale-90 ${
+                  type === "study" ? "bg-yellow-300 text-white" : "bg-yellow-50 text-yellow-600"
                 }`}
               >
                 study
@@ -233,24 +301,31 @@ export default function PlannerPage() {
             {/* ── STUDY ── */}
             {type === "study" && (
               <>
+                {/* 통계 */}
                 {sessions.length > 0 && (
-                  <div className="bg-white rounded-[18px] px-4 py-3">
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-2">
-                      <span>완료 세션</span>
-                      <span className="text-yellow-500">{doneSessions} / {sessions.length}</span>
+                  <div className="bg-white rounded-[18px] px-4 py-3 flex items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+                        <span>완료 세션</span>
+                        <span className="text-yellow-500">{doneSessions} / {sessions.length}</span>
+                      </div>
+                      <div className="w-full h-2 bg-yellow-50 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-yellow-300 rounded-full transition-all duration-500"
+                          style={{ width: `${sessions.length ? (doneSessions / sessions.length) * 100 : 0}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full h-2 bg-yellow-50 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-yellow-300 rounded-full transition-all duration-500"
-                        style={{ width: `${sessions.length ? (doneSessions / sessions.length) * 100 : 0}%` }}
-                      />
+                    <div className="text-center shrink-0">
+                      <p className="text-lg font-black text-yellow-500">{totalStudyMin}</p>
+                      <p className="text-[10px] text-gray-400 font-bold">분 완료</p>
                     </div>
-                    <p className="text-right text-[10px] text-yellow-500 font-bold mt-1.5">⏱ {totalStudyMin}분 완료</p>
                   </div>
                 )}
 
+                {/* 세션 추가 폼 */}
                 <div className="bg-white rounded-[18px] px-4 py-4 space-y-2">
-                  <p className="text-xs font-black text-gray-400 tracking-wider mb-1">새 스터디 세션</p>
+                  <p className="text-xs font-black text-gray-400 tracking-wider">새 스터디 세션</p>
                   <input
                     value={newSubject}
                     onChange={(e) => setNewSubject(e.target.value)}
@@ -277,40 +352,119 @@ export default function PlannerPage() {
                     <button
                       onClick={addSession}
                       disabled={!newSubject.trim()}
-                      className="px-4 bg-yellow-300 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
+                      className="px-5 bg-yellow-300 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
                     >
                       추가
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  {sessions.map((session) => (
-                    <div key={session.id} className={`bg-white rounded-[18px] p-4 transition-all ${session.done ? "opacity-60" : ""}`}>
-                      <div className="flex items-start gap-3">
-                        <button
-                          onClick={() => toggleSession(session.id)}
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90 ${
-                            session.done ? "bg-yellow-300 border-yellow-300" : "border-yellow-400"
-                          }`}
-                        >
-                          {session.done && <span className="text-white text-[10px] font-black">✓</span>}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-black text-sm text-slate-800 ${session.done ? "line-through text-gray-400" : ""}`}>
-                            {session.subject}
-                          </p>
-                          {session.goal && <p className="text-xs text-gray-500 mt-0.5">{session.goal}</p>}
-                          <span className="inline-block mt-1.5 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">
-                            ⏱ {session.duration}분
+                {/* 세션 카드 */}
+                <div className="space-y-3">
+                  {sessions.map((session) => {
+                    const isActive = activeTimerId === session.id;
+                    const secondsLeft = timerValues[session.id] !== undefined
+                      ? timerValues[session.id]
+                      : session.duration * 60;
+                    const isFinished = secondsLeft === 0;
+                    const progress = 1 - secondsLeft / (session.duration * 60);
+
+                    return (
+                      <div
+                        key={session.id}
+                        className={`bg-white rounded-[20px] p-4 transition-all ${session.done ? "opacity-60" : ""}`}
+                      >
+                        {/* 헤더 */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-black text-sm text-slate-800 ${session.done ? "line-through text-gray-400" : ""}`}>
+                              {session.subject}
+                            </p>
+                            {session.goal && (
+                              <p className="text-xs text-gray-500 mt-0.5">{session.goal}</p>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full ml-2 shrink-0">
+                            {session.duration}분
                           </span>
                         </div>
-                        <button onClick={() => deleteSession(session.id)} className="text-gray-300 hover:text-red-400 transition text-sm shrink-0">✕</button>
+
+                        {/* 타이머 디스플레이 */}
+                        <div className="text-center py-3 relative">
+                          {/* 원형 진행 표시 */}
+                          <svg className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="44" fill="none" stroke="#fef9c3" strokeWidth="6" />
+                            <circle
+                              cx="50" cy="50" r="44" fill="none"
+                              stroke={isFinished ? "#fbbf24" : isActive ? "#fde68a" : "#fef08a"}
+                              strokeWidth="6"
+                              strokeDasharray={`${2 * Math.PI * 44}`}
+                              strokeDashoffset={`${2 * Math.PI * 44 * (1 - progress)}`}
+                              strokeLinecap="round"
+                              className="transition-all duration-1000"
+                            />
+                          </svg>
+                          <div className="relative z-10 py-8">
+                            <p className={`text-3xl font-black tabular-nums tracking-tight ${
+                              isFinished ? "text-yellow-400" : "text-slate-800"
+                            }`}>
+                              {formatTimer(secondsLeft)}
+                            </p>
+                            {isFinished && (
+                              <p className="text-[10px] font-black text-yellow-400 mt-0.5">완료!</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 타이머 버튼 */}
+                        <div className="flex gap-2 justify-center mt-1 mb-3">
+                          {!isActive || !timerRunning ? (
+                            <button
+                              onClick={() => startTimer(session.id, session.duration)}
+                              disabled={session.done || isFinished}
+                              className="flex items-center gap-1 px-4 py-1.5 bg-yellow-300 text-white text-xs font-black rounded-xl active:scale-90 transition disabled:opacity-40"
+                            >
+                              ▶ {isActive ? "계속" : "시작"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={pauseTimer}
+                              className="flex items-center gap-1 px-4 py-1.5 bg-sky-200 text-white text-xs font-black rounded-xl active:scale-90 transition"
+                            >
+                              ⏸ 일시정지
+                            </button>
+                          )}
+                          <button
+                            onClick={() => resetTimer(session.id, session.duration)}
+                            disabled={session.done}
+                            className="px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-black rounded-xl active:scale-90 transition disabled:opacity-40"
+                          >
+                            ↺
+                          </button>
+                          <button
+                            onClick={() => deleteSession(session.id)}
+                            className="px-3 py-1.5 bg-red-50 text-red-300 text-xs font-bold rounded-xl active:scale-90 transition"
+                          >
+                            삭제
+                          </button>
+                        </div>
+
+                        {/* 완료 버튼 */}
+                        <button
+                          onClick={() => toggleSession(session.id)}
+                          className={`w-full py-2 rounded-[12px] text-xs font-black transition active:scale-95 ${
+                            session.done
+                              ? "bg-yellow-300 text-white"
+                              : "bg-yellow-50 text-yellow-600 border border-yellow-200"
+                          }`}
+                        >
+                          {session.done ? "✓ 완료됨" : "완료로 표시"}
+                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {sessions.length === 0 && (
-                    <div className="text-center text-gray-400 text-sm py-10">오늘 공부할 내용을 추가해봐요 📚</div>
+                    <div className="text-center text-gray-400 text-sm py-10">오늘 공부할 세션을 추가해봐요 📚</div>
                   )}
                 </div>
               </>
