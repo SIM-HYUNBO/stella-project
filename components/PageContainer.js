@@ -99,7 +99,7 @@ const PageContainer = ({ children }) => {
 
   return (
     <div
-      className="relative flex w-full min-h-screen overflow-x-hidden bg-gray-50 justify-center"
+      className="relative flex w-full min-h-screen bg-gray-50 justify-center [overflow-x:clip]"
       onClick={(e) =>
         createRipple(e.clientX, e.clientY)
       }
