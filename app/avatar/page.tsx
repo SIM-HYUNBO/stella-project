@@ -726,6 +726,8 @@ export default function Chat() {
           id: d.id,
           from: data.from,
           to: data.to,
+          fromUid: data.fromUid,
+          toUid: data.toUid,
           content: data.content,
           type: data.type || "text",
           createdAt: data.createdAt,
@@ -735,13 +737,13 @@ export default function Chat() {
           edited: data.edited || false,
         };
 
-        const isMyChat =
-          // UID 기반 (닉네임 변경에도 유지)
-          (m.fromUid === uid && m.toUid === currentChatUser.id) ||
-          (m.fromUid === currentChatUser.id && m.toUid === uid) ||
-          // 닉네임 기반 fallback (UID 없는 구 메시지)
-          (!m.fromUid && m.from === nickname && m.to === currentChatUser.nickname) ||
-          (!m.fromUid && m.from === currentChatUser.nickname && m.to === nickname);
+        // UID가 있으면 UID로, 없으면 닉네임으로 매칭 (어느 한쪽만 있어도 처리)
+        const senderIsMe = m.fromUid ? m.fromUid === uid : m.from === nickname;
+        const recipientIsPartner = m.toUid ? m.toUid === currentChatUser.id : m.to === currentChatUser.nickname;
+        const senderIsPartner = m.fromUid ? m.fromUid === currentChatUser.id : m.from === currentChatUser.nickname;
+        const recipientIsMe = m.toUid ? m.toUid === uid : m.to === nickname;
+
+        const isMyChat = (senderIsMe && recipientIsPartner) || (senderIsPartner && recipientIsMe);
 
         if (!isMyChat) continue;
 
@@ -778,7 +780,7 @@ export default function Chat() {
     });
 
     return () => unsub();
-  }, [currentChatUser, nickname]);
+  }, [currentChatUser, nickname, uid]);
 
   const updateTyping = useCallback(
     async (isTyping: boolean) => {

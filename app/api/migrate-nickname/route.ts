@@ -60,21 +60,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 1:1 messages: from/to 텍스트는 유지, UID 필드만 추가 (닉네임 변경 후에도 채팅 조회 가능)
+    // 1:1 messages: from/to 텍스트 업데이트 + UID 필드 추가
     const fromMsgs = await db.collection("messages").where("from", "==", from).get();
     for (const msgDoc of fromMsgs.docs) {
-      if (!msgDoc.data().fromUid) {
-        await msgDoc.ref.update({ fromUid: uid });
-        updated++;
+      const msgData = msgDoc.data();
+      const updates: Record<string, any> = { from: to };
+      if (!msgData.fromUid) updates.fromUid = uid;
+      const readBy: string[] = msgData.readBy || [];
+      if (readBy.includes(from)) {
+        updates.readBy = readBy.map((r) => (r === from ? to : r));
       }
+      await msgDoc.ref.update(updates);
+      updated++;
     }
 
     const toMsgs = await db.collection("messages").where("to", "==", from).get();
     for (const msgDoc of toMsgs.docs) {
-      if (!msgDoc.data().toUid) {
-        await msgDoc.ref.update({ toUid: uid });
-        updated++;
-      }
+      const msgData2 = msgDoc.data();
+      const updates2: Record<string, any> = { to: to };
+      if (!msgData2.toUid) updates2.toUid = uid;
+      await msgDoc.ref.update(updates2);
+      updated++;
     }
 
     return NextResponse.json({ ok: true, updated });
