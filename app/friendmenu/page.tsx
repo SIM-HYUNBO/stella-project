@@ -255,11 +255,13 @@ export default function FriendsPage() {
       <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
-        <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-white">
-          <span className="font-black text-slate-800 text-base">친구 🤝</span>
-          {requests.length > 0 && (
-            <span className="ml-2 w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
-          )}
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-2">
+            <div className="text-xl font-black bg-yellow-200">FRIENDS</div>
+            {requests.length > 0 && (
+              <span className="w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
+            )}
+          </div>
         </div>
 
         <div className="px-5 pt-4 pb-20 space-y-5">

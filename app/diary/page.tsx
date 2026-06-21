@@ -99,10 +99,8 @@ export default function DiaryPage() {
 
       <div className="relative z-10">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 flex items-center justify-between h-14 px-4 bg-white">
-          <div className="w-9" />
-          <span className="font-black text-slate-800 text-base">📔 미니 다이어리</span>
-          <div className="w-9" />
+        <div className="px-4 py-4">
+          <div className="text-xl font-black bg-yellow-200">DIARY</div>
         </div>
 
         {/* 탭 */}
