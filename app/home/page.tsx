@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { collection, doc, getDoc, getDocs, query, where, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, onSnapshot, setDoc, updateDoc, orderBy, serverTimestamp } from "firebase/firestore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import PageContainer from "@/components/PageContainer";
 import TextAvatar from "@/components/TextAvatar";
@@ -57,7 +57,10 @@ export default function HomePage() {
 
   // 어드민 상태
   const [adminMode, setAdminMode] = useState(false);
-  const [adminTab, setAdminTab] = useState<"stats" | "notice" | "users">("stats");
+  const [adminTab, setAdminTab] = useState<"stats" | "notice" | "users" | "qna">("stats");
+  const [qnaItems, setQnaItems] = useState<any[]>([]);
+  const [qnaAnswerInputs, setQnaAnswerInputs] = useState<Record<string, string>>({});
+  const [qnaAnsweringId, setQnaAnsweringId] = useState<string | null>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [broadcastTitle, setBroadcastTitle] = useState("");
@@ -86,6 +89,15 @@ export default function HomePage() {
   useEffect(() => {
     setAdminMode(localStorage.getItem("stellaAdminMode") === "true");
   }, []);
+
+  // Q&A 구독 (어드민)
+  useEffect(() => {
+    if (!adminMode || nickname !== "Stella") return;
+    const q = query(collection(db, "qna"), orderBy("createdAt", "asc"));
+    return onSnapshot(q, (snap) => {
+      setQnaItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+  }, [adminMode, nickname]);
 
   // 어드민 데이터 로딩
   useEffect(() => {
@@ -250,8 +262,8 @@ export default function HomePage() {
             </button>
           </div>
           <div className="flex border-t border-white/5">
-            {(["stats", "notice", "users"] as const).map((t) => {
-              const labels: Record<string, string> = { stats: "📊 통계", notice: "📢 공지", users: "👥 유저" };
+            {(["stats", "notice", "users", "qna"] as const).map((t) => {
+              const labels: Record<string, string> = { stats: "📊 통계", notice: "📢 공지", users: "👥 유저", qna: "💬 Q&A" };
               return (
                 <button
                   key={t}
@@ -427,6 +439,85 @@ export default function HomePage() {
                   ))
                 )}
               </div>
+            </div>
+          )}
+
+          {/* ── Q&A 탭 ── */}
+          {adminTab === "qna" && (
+            <div className="space-y-4">
+              {qnaItems.length === 0 && (
+                <div className="text-center py-16 text-white/30 text-sm">아직 질문이 없어요</div>
+              )}
+              {qnaItems.map((item) => {
+                const formatDate = (ts: any) => {
+                  if (!ts) return "";
+                  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+                  return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+                };
+                return (
+                  <div key={item.id} className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
+                    {/* 질문 */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-black text-purple-400">{item.askerName}</span>
+                        <span className="text-[10px] text-white/20">{formatDate(item.createdAt)}</span>
+                      </div>
+                      <p className="text-sm text-white leading-relaxed">Q. {item.question}</p>
+                    </div>
+
+                    {/* 답변 있을 때 */}
+                    {item.answer && (
+                      <div className="bg-white/5 rounded-xl p-3">
+                        <span className="text-[10px] font-black text-sky-400 block mb-1">A. Stella</span>
+                        <p className="text-sm text-white/80">{item.answer}</p>
+                      </div>
+                    )}
+
+                    {/* 미답변 */}
+                    {!item.answer && (
+                      qnaAnsweringId === item.id ? (
+                        <div className="flex gap-2">
+                          <input
+                            autoFocus
+                            className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-purple-500"
+                            placeholder="답변 입력..."
+                            value={qnaAnswerInputs[item.id] || ""}
+                            onChange={(e) => setQnaAnswerInputs((p) => ({ ...p, [item.id]: e.target.value }))}
+                            onKeyDown={async (e) => {
+                              if (e.key === "Enter") {
+                                const ans = qnaAnswerInputs[item.id]?.trim();
+                                if (!ans) return;
+                                await updateDoc(doc(db, "qna", item.id), { answer: ans, answeredAt: serverTimestamp() });
+                                setQnaAnswerInputs((p) => ({ ...p, [item.id]: "" }));
+                                setQnaAnsweringId(null);
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={async () => {
+                              const ans = qnaAnswerInputs[item.id]?.trim();
+                              if (!ans) return;
+                              await updateDoc(doc(db, "qna", item.id), { answer: ans, answeredAt: serverTimestamp() });
+                              setQnaAnswerInputs((p) => ({ ...p, [item.id]: "" }));
+                              setQnaAnsweringId(null);
+                            }}
+                            className="px-4 rounded-xl bg-purple-600 text-white text-xs font-black active:scale-95 transition"
+                          >등록</button>
+                          <button onClick={() => setQnaAnsweringId(null)}
+                            className="px-3 rounded-xl bg-white/10 text-white/50 text-xs">취소</button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setQnaAnsweringId(item.id)}
+                          className="text-xs font-black text-purple-400 border border-purple-500/30 bg-purple-500/10 rounded-full px-4 py-1.5 active:scale-95 transition"
+                        >
+                          + 답변하기
+                        </button>
+                      )
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
