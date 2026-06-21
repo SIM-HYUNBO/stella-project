@@ -205,7 +205,7 @@ function SwipeUserItem({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl mb-2">
+    <div className="relative overflow-hidden rounded-[18px] mb-2 border border-sky-200">
       {/* 왼쪽 패널 — 즐겨찾기 (왼→오 슬라이드) */}
       <div className="absolute left-0 top-0 h-full flex" style={{ width: LEFT_WIDTH }}>
         <button
@@ -285,8 +285,8 @@ function SwipeUserItem({
       </div>
 
       <div
-        className={`relative z-10 px-3 py-3 bg-white cursor-pointer transition ${
-          isActive ? "bg-yellow-200" : "hover:bg-gray-50"
+        className={`relative z-10 px-3 py-3 cursor-pointer transition ${
+          isActive ? "bg-sky-200" : "bg-white/80 hover:bg-sky-50"
         }`}
         style={{
           transform: `translateX(${offset}px)`,
