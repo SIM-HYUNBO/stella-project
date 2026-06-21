@@ -126,13 +126,13 @@ export default function RobotPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-[12px] bg-sky-100 flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="2" x2="12" y2="6"/>
-                <circle cx="12" cy="2" r="1.2" fill="#38bdf8" stroke="none"/>
-                <rect x="3" y="6" width="18" height="15" rx="6" fill="none"/>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="2" x2="12" y2="6" stroke="#94a3b8" strokeWidth="1.5"/>
+                <circle cx="12" cy="2" r="1.5" fill="#94a3b8" stroke="none"/>
+                <rect x="3" y="6" width="18" height="15" rx="5" fill="#2d3748" stroke="none"/>
                 <circle cx="9" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
                 <circle cx="15" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
-                <path d="M9 17 Q12 19.5 15 17" fill="none"/>
+                <path d="M9 17 Q12 19.5 15 17" stroke="#38bdf8" strokeWidth="1.5" fill="none"/>
               </svg>
             </div>
             <div>
@@ -152,13 +152,13 @@ export default function RobotPage() {
         <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="2" x2="12" y2="6"/>
-                <circle cx="12" cy="2" r="1.2" fill="#cbd5e1" stroke="none"/>
-                <rect x="3" y="6" width="18" height="15" rx="6" fill="none"/>
-                <circle cx="9" cy="12" r="1.8" fill="#cbd5e1" stroke="none"/>
-                <circle cx="15" cy="12" r="1.8" fill="#cbd5e1" stroke="none"/>
-                <path d="M9 17 Q12 19.5 15 17" fill="none"/>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="2" x2="12" y2="6" stroke="#cbd5e1" strokeWidth="1.5"/>
+                <circle cx="12" cy="2" r="1.5" fill="#cbd5e1" stroke="none"/>
+                <rect x="3" y="6" width="18" height="15" rx="5" fill="#e2e8f0" stroke="none"/>
+                <circle cx="9" cy="12" r="1.8" fill="#94a3b8" stroke="none"/>
+                <circle cx="15" cy="12" r="1.8" fill="#94a3b8" stroke="none"/>
+                <path d="M9 17 Q12 19.5 15 17" stroke="#94a3b8" strokeWidth="1.5" fill="none"/>
               </svg>
               <p className="text-sm">무엇이든 물어보세요!</p>
             </div>
@@ -171,13 +171,13 @@ export default function RobotPage() {
             >
               {msg.role === "assistant" && (
                 <div className="w-7 h-7 rounded-full bg-sky-100 flex items-center justify-center mr-2 mt-1 shrink-0">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="2" x2="12" y2="6"/>
-                    <circle cx="12" cy="2" r="1.2" fill="#38bdf8" stroke="none"/>
-                    <rect x="3" y="6" width="18" height="15" rx="6" fill="none"/>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="2" x2="12" y2="6" stroke="#94a3b8" strokeWidth="1.5"/>
+                    <circle cx="12" cy="2" r="1.5" fill="#94a3b8" stroke="none"/>
+                    <rect x="3" y="6" width="18" height="15" rx="5" fill="#2d3748" stroke="none"/>
                     <circle cx="9" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
                     <circle cx="15" cy="12" r="1.8" fill="#38bdf8" stroke="none"/>
-                    <path d="M9 17 Q12 19.5 15 17" fill="none"/>
+                    <path d="M9 17 Q12 19.5 15 17" stroke="#38bdf8" strokeWidth="1.5" fill="none"/>
                   </svg>
                 </div>
               )}
