@@ -77,17 +77,24 @@ export default function RobotPage() {
         body: JSON.stringify({ messages: history }),
       });
       const data = await res.json();
-      const reply = data.reply || "응답 없음";
 
+      if (!res.ok || data.error) {
+        await addDoc(collection(db, "robotChats", user.uid, "messages"), {
+          role: "assistant",
+          content: `오류: ${data.error || "알 수 없는 오류"}`,
+          createdAt: serverTimestamp(),
+        });
+      } else {
+        await addDoc(collection(db, "robotChats", user.uid, "messages"), {
+          role: "assistant",
+          content: data.reply,
+          createdAt: serverTimestamp(),
+        });
+      }
+    } catch (err: any) {
       await addDoc(collection(db, "robotChats", user.uid, "messages"), {
         role: "assistant",
-        content: reply,
-        createdAt: serverTimestamp(),
-      });
-    } catch {
-      await addDoc(collection(db, "robotChats", user.uid, "messages"), {
-        role: "assistant",
-        content: "오류가 발생했어요. 다시 시도해주세요.",
+        content: `오류: ${err?.message || "네트워크 오류"}`,
         createdAt: serverTimestamp(),
       });
     } finally {

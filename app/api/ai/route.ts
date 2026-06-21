@@ -43,14 +43,21 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
-    return NextResponse.json({
-      reply:
-        data?.choices?.[0]?.message?.content || "응답 실패",
-    });
+    if (!response.ok) {
+      const errMsg = data?.error?.message || `OpenAI 오류 (${response.status})`;
+      return NextResponse.json({ error: errMsg }, { status: response.status });
+    }
 
-  } catch (err) {
+    const reply = data?.choices?.[0]?.message?.content;
+    if (!reply) {
+      return NextResponse.json({ error: "OpenAI 응답 없음" }, { status: 500 });
+    }
+
+    return NextResponse.json({ reply });
+
+  } catch (err: any) {
     return NextResponse.json(
-      { error: "server error" },
+      { error: err?.message || "서버 오류" },
       { status: 500 }
     );
   }
