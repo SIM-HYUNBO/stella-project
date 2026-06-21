@@ -33,7 +33,7 @@ const Header = () => {
             </svg>
           </Link>
           <Link href="/tools"
-            className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
+            className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="#50caff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
