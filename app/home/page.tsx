@@ -439,12 +439,8 @@ export default function HomePage() {
     <PageContainer>
       <div className="relative min-h-screen overflow-hidden -m-4">
 
-        {/* ── 배경 오브 ── */}
-        <div className="fixed inset-0 -z-10" style={{ background: "linear-gradient(to right, #fef3c7, #bae6fd)" }} />
-        <div className="fixed top-[-160px] right-[-160px] w-[500px] h-[500px] rounded-full blur-[100px] -z-10 animate-[floatA_10s_ease-in-out_infinite_alternate] bg-[rgba(251,146,60,0.20)]" />
-        <div className="fixed bottom-[-200px] left-[-160px] w-[480px] h-[480px] rounded-full blur-[100px] -z-10 animate-[floatB_13s_ease-in-out_infinite_alternate] bg-[rgba(250,204,21,0.20)]" />
-        <div className="fixed top-[35%] left-[20%] w-[300px] h-[300px] rounded-full blur-[80px] -z-10 animate-[floatC_8s_ease-in-out_infinite_alternate] bg-[rgba(250,204,21,0.15)]" />
-        <div className="fixed top-[60%] right-[-60px] w-[260px] h-[260px] rounded-full blur-[80px] -z-10 animate-[floatD_11s_ease-in-out_infinite_alternate] bg-[rgba(186,230,253,0.20)]" />
+        {/* ── 배경 ── */}
+        <div className="fixed inset-0 -z-10" style={{ background: "linear-gradient(to right, #fefce8, #e0f2fe)" }} />
 
         {/* ── 떠다니는 파티클 ── */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
