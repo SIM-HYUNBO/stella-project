@@ -21,7 +21,7 @@ const Header = () => {
         </Link>
 
         <div className="flex items-center gap-2">
-          <button className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform" title="AI">
+          <Link href="/robot" className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform" title="AI">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="#50caff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="8" width="18" height="13" rx="2"/>
@@ -33,7 +33,7 @@ const Header = () => {
               <line x1="1" y1="12" x2="3" y2="12"/>
               <line x1="21" y1="12" x2="23" y2="12"/>
             </svg>
-          </button>
+          </Link>
           <Link href="/tools"
             className="w-9 h-9 rounded-[12px] bg-white/25 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
