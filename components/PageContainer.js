@@ -114,7 +114,7 @@ const PageContainer = ({ children }) => {
         );
       }}
     >
-      <div className="flex flex-col w-full max-w-4xl relative pb-12">
+      <div className="flex flex-col w-full max-w-4xl relative pb-12 pt-[60px]">
         <Header />
 
         <main className="w-full p-4 relative z-10">
