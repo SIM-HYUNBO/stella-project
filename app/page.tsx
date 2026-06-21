@@ -58,102 +58,34 @@ export default function RootPage() {
       </header>
 
       {/* ── 히어로 ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-16 pb-20 flex flex-col md:grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-
-        {/* 왼쪽 */}
-        <div>
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-200 text-yellow-800 text-xs font-bold mb-8">
-            ✦ 친구들과 매일 소통해요
-          </div>
-
-          <h1 className="text-5xl md:text-[56px] font-black text-slate-900 leading-[1.1] mb-6">
-            대화가<br />
-            <span className="text-sky-500">즐거워지는</span><br />
-            <span className="relative inline-block">
-              공간
-              <span className="absolute -bottom-1 left-0 w-full h-3 bg-yellow-300 -z-10 rounded" />
-            </span>
-          </h1>
-
-          <p className="text-slate-500 text-base leading-relaxed mb-10 max-w-sm">
-            1:1 채팅부터 단체방, 다이어리, 회의방까지.
-            <br />친구들과의 모든 순간을 담아요.
-          </p>
-
-          <div className="flex flex-wrap gap-3 mb-12">
-            <Link href="/signup"
-              className="px-7 py-3.5 rounded-2xl bg-sky-500 text-white font-black text-sm hover:bg-sky-600 transition shadow-lg shadow-sky-200 active:scale-95">
-              무료로 시작하기 →
-            </Link>
-            <Link href="/login"
-              className="px-7 py-3.5 rounded-2xl bg-yellow-300 text-yellow-900 font-black text-sm hover:bg-yellow-400 transition active:scale-95">
-              로그인
-            </Link>
-          </div>
-
+      <section className="max-w-3xl mx-auto px-6 pt-20 pb-20 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-200 text-yellow-800 text-xs font-bold mb-8">
+          ✦ 친구들과 매일 소통해요
         </div>
 
-        {/* 오른쪽: 폰 목업 */}
-        <div className="flex justify-center md:justify-end w-full">
-          <div className="relative w-[320px] md:w-[270px]">
-            <div className="absolute -inset-4 bg-yellow-200/60 blur-3xl rounded-full" />
-            <div className="absolute top-4 -right-6 w-24 h-24 rounded-full bg-sky-200/50 blur-2xl" />
+        <h1 className="text-5xl md:text-[64px] font-black text-slate-900 leading-[1.1] mb-6">
+          대화가<br />
+          <span className="text-sky-500">즐거워지는</span>{" "}
+          <span className="relative inline-block">
+            공간
+            <span className="absolute -bottom-1 left-0 w-full h-3 bg-yellow-300 -z-10 rounded" />
+          </span>
+        </h1>
 
-            <div className="relative bg-white rounded-[40px] shadow-2xl shadow-yellow-200/80 border-4 border-yellow-100 overflow-hidden">
-              <div className="h-6 bg-yellow-50 flex items-center justify-center">
-                <div className="w-14 h-3 rounded-full bg-yellow-100" />
-              </div>
+        <p className="text-slate-500 text-base leading-relaxed mb-10 max-w-md mx-auto">
+          1:1 채팅부터 단체방, 다이어리, 회의방까지.
+          <br />친구들과의 모든 순간을 담아요.
+        </p>
 
-              {/* 앱 헤더 */}
-              <div className="bg-sky-500 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <img src="/wag.png" alt="logo" className="w-4 h-4 object-contain brightness-0 invert" />
-                  <span className="text-white font-black text-sm tracking-widest">WAGIE</span>
-                </div>
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-yellow-300 animate-pulse" />
-                  <div className="w-2 h-2 rounded-full bg-white/40" />
-                </div>
-              </div>
-
-              {/* 채팅 목록 */}
-              <div className="bg-yellow-50 px-4 pt-3 pb-1">
-                <p className="text-[9px] font-black text-yellow-600 tracking-widest mb-2">채팅</p>
-              </div>
-              <div className="divide-y divide-slate-50">
-                {[
-                  { emoji: "💬", bg: "bg-sky-100",    name: "친구",      last: "오늘 뭐해?",         badge: 2, time: "방금" },
-                  { emoji: "👥", bg: "bg-yellow-100", name: "우리방",    last: "다들 어디야~~",       badge: 5, time: "1분" },
-                  { emoji: "📔", bg: "bg-sky-50",     name: "내 다이어리", last: "오늘 날씨가 너무 좋",  badge: 0, time: "오늘" },
-                  { emoji: "📋", bg: "bg-yellow-50",  name: "회의방",    last: "다음 주 일정 공유",   badge: 1, time: "어제" },
-                ].map(({ emoji, bg, name, last, badge, time }) => (
-                  <div key={name} className="flex items-center gap-3 px-4 py-2.5 bg-white">
-                    <div className={`w-9 h-9 rounded-full ${bg} flex items-center justify-center text-base shrink-0`}>{emoji}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800">{name}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{last}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <p className="text-[9px] text-slate-300">{time}</p>
-                      {badge > 0 && (
-                        <span className="min-w-[16px] h-4 rounded-full bg-sky-500 text-white text-[9px] font-black flex items-center justify-center px-1">{badge}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 폰 하단 nav */}
-              <div className="px-4 py-2 border-t border-yellow-100 bg-yellow-50 flex justify-around">
-                {["🏠","💬","👥","📔","⚙️"].map((icon, i) => (
-                  <div key={i} className={`text-sm p-1 rounded-lg ${i === 0 ? "bg-sky-100" : ""}`}>{icon}</div>
-                ))}
-              </div>
-              <div className="h-4 bg-white flex items-center justify-center">
-                <div className="w-16 h-0.5 rounded-full bg-slate-200" />
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/signup"
+            className="px-7 py-3.5 rounded-2xl bg-sky-500 text-white font-black text-sm hover:bg-sky-600 transition shadow-lg shadow-sky-200 active:scale-95">
+            무료로 시작하기 →
+          </Link>
+          <Link href="/login"
+            className="px-7 py-3.5 rounded-2xl bg-yellow-300 text-yellow-900 font-black text-sm hover:bg-yellow-400 transition active:scale-95">
+            로그인
+          </Link>
         </div>
       </section>
 
