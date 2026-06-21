@@ -58,6 +58,8 @@ export default function HomePage() {
   // 어드민 상태
   const [adminMode, setAdminMode] = useState(false);
   const [adminTab, setAdminTab] = useState<"stats" | "notice" | "users" | "qna">("stats");
+  const [migrating, setMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<string | null>(null);
   const [qnaItems, setQnaItems] = useState<any[]>([]);
   const [qnaAnswerInputs, setQnaAnswerInputs] = useState<Record<string, string>>({});
   const [qnaAnsweringId, setQnaAnsweringId] = useState<string | null>(null);
@@ -173,6 +175,24 @@ export default function HomePage() {
   }, [adminMode, nickname]);
 
   // ── 어드민 핸들러 ──
+  const handleMigrate = async () => {
+    setMigrating(true);
+    setMigrateResult(null);
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) { setMigrateResult("❌ 로그인 필요"); return; }
+      const res = await fetch("/api/migrate-nickname", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, from: "관리자", to: "Stella" }),
+      });
+      const data = await res.json();
+      setMigrateResult(data.ok ? `✅ ${data.updated}개 완료` : `❌ ${data.error}`);
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   const handleBroadcast = async () => {
     if (!broadcastMsg.trim() || selectedRecipients.length === 0) return;
     setBroadcastSending(true);
@@ -254,12 +274,21 @@ export default function HomePage() {
               <p className="text-[10px] font-black text-purple-400 tracking-[0.2em] uppercase">Wagie Admin Console</p>
               <h1 className="text-xl font-black text-white mt-0.5">🔑 관리자</h1>
             </div>
-            <button
-              onClick={() => router.push("/tools")}
-              className="px-3 py-1.5 bg-white/10 rounded-xl text-xs font-bold text-white/70 hover:bg-white/20 active:bg-white/30 transition"
-            >
-              설정 →
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleMigrate}
+                disabled={migrating}
+                className="px-3 py-1.5 bg-orange-500/80 rounded-xl text-xs font-bold text-white hover:bg-orange-500 active:bg-orange-600 transition disabled:opacity-40"
+              >
+                {migrating ? "복구중..." : migrateResult ?? "닉네임 복구"}
+              </button>
+              <button
+                onClick={() => router.push("/tools")}
+                className="px-3 py-1.5 bg-white/10 rounded-xl text-xs font-bold text-white/70 hover:bg-white/20 active:bg-white/30 transition"
+              >
+                설정 →
+              </button>
+            </div>
           </div>
           <div className="flex border-t border-white/5">
             {(["stats", "notice", "users", "qna"] as const).map((t) => {
