@@ -17,6 +17,8 @@ export default function ProfilePage() {
   const [editStatus, setEditStatus] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [password, setPassword] = useState("");
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+  const originalNicknameRef = useRef<string>("");
   const profileRef = useRef<HTMLInputElement | null>(null);
   const coverRef = useRef<HTMLInputElement | null>(null);
 
@@ -28,6 +30,7 @@ export default function ProfilePage() {
       if (snap.exists()) {
         const data = snap.data();
         setNickname(data.nickname || "");
+        originalNicknameRef.current = data.nickname || "";
         setStatus(data.status || "");
         setProfileImage(data.profileImage || null);
         setCoverImage(data.coverImage || null);
@@ -62,9 +65,26 @@ export default function ProfilePage() {
 
   const saveNickname = async () => {
     if (!user) return;
-    await updateDoc(doc(db, "users", user.uid), { nickname });
-    await updateProfile(user, { displayName: nickname });
-    setEditNickname(false);
+    const oldNickname = originalNicknameRef.current;
+    const newNickname = nickname.trim();
+    if (!newNickname || newNickname === oldNickname) { setEditNickname(false); return; }
+    setNicknameSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), { nickname: newNickname });
+      await updateProfile(user, { displayName: newNickname });
+      if (oldNickname) {
+        const idToken = await user.getIdToken();
+        await fetch("/api/migrate-nickname", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken, from: oldNickname, to: newNickname }),
+        });
+      }
+      originalNicknameRef.current = newNickname;
+      setEditNickname(false);
+    } finally {
+      setNicknameSaving(false);
+    }
   };
 
   const saveStatus = async () => {
@@ -149,8 +169,10 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 <input value={nickname} onChange={(e) => setNickname(e.target.value)}
                   className="flex-1 bg-sky-50 rounded-[14px] px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-orange-300" />
-                <button onClick={saveNickname}
-                  className="px-4 py-2 bg-sky-200 text-white rounded-[14px] text-sm font-black">저장</button>
+                <button onClick={saveNickname} disabled={nicknameSaving}
+                  className="px-4 py-2 bg-sky-200 text-white rounded-[14px] text-sm font-black disabled:opacity-50">
+                  {nicknameSaving ? "저장중..." : "저장"}
+                </button>
               </div>
             ) : (
               <button onClick={() => setEditNickname(true)} className="flex items-center gap-2 group">

@@ -19,6 +19,8 @@ export default function AdminNoticePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [adding, setAdding] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<string | null>(null);
 
   useEffect(() => {
     setAdminModeOn(localStorage.getItem("stellaAdminMode") === "true");
@@ -54,6 +56,25 @@ export default function AdminNoticePage() {
     setAdding(false);
   };
 
+  const handleMigrate = async () => {
+    setMigrating(true);
+    setMigrateResult(null);
+    try {
+      const user = auth.currentUser;
+      if (!user) { setMigrateResult("❌ 로그인 필요"); return; }
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/migrate-nickname", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, from: "관리자", to: "Stella" }),
+      });
+      const data = await res.json();
+      setMigrateResult(data.ok ? `✅ 완료! ${data.updated}개 업데이트됨` : `❌ 실패: ${data.error}`);
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     await deleteDoc(doc(db, "announcements", id));
   };
@@ -83,6 +104,20 @@ export default function AdminNoticePage() {
       </div>
 
       <div className="px-5 pt-6 pb-20 space-y-5">
+        {/* 닉네임 마이그레이션 (임시) */}
+        <div className="rounded-[24px] bg-orange-50 border border-orange-200 p-5 space-y-3">
+          <p className="font-black text-orange-700 text-sm">⚠️ 닉네임 복구 (임시)</p>
+          <p className="text-xs text-orange-600">관리자 → Stella 채팅 데이터 마이그레이션</p>
+          <button
+            onClick={handleMigrate}
+            disabled={migrating}
+            className="w-full py-3 rounded-xl bg-orange-400 text-white font-black text-sm disabled:opacity-40"
+          >
+            {migrating ? "마이그레이션 중..." : "지금 복구하기"}
+          </button>
+          {migrateResult && <p className="text-sm font-bold text-center text-orange-700">{migrateResult}</p>}
+        </div>
+
         {/* 작성 폼 */}
         <div className="rounded-[24px] bg-white p-5 space-y-3">
           <p className="font-black text-slate-800 text-sm">새 공지 작성</p>
