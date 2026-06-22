@@ -45,12 +45,13 @@ export default function ProfilePage() {
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-          const w = Math.round(img.width * scale);
-          const h = Math.round(img.height * scale);
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2;
+          const sy = (img.height - side) / 2;
+          const size = Math.min(side, maxPx);
           const canvas = document.createElement("canvas");
-          canvas.width = w; canvas.height = h;
-          canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+          canvas.width = size; canvas.height = size;
+          canvas.getContext("2d")!.drawImage(img, sx, sy, side, side, 0, 0, size, size);
           resolve(canvas.toDataURL("image/jpeg", quality));
         };
         img.src = reader.result as string;
