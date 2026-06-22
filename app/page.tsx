@@ -60,7 +60,7 @@ export default function RootPage() {
       {/* ── 히어로 ── */}
       <section className="max-w-3xl mx-auto px-6 pt-20 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-200 text-yellow-800 text-xs font-bold mb-8">
-          ✦ 친구들과 매일 소통해요
+          ✦ v2026.6 AI 어시스턴트 출시
         </div>
 
         <h1 className="text-5xl md:text-[64px] font-black text-slate-900 leading-[1.1] mb-6">
@@ -100,13 +100,12 @@ export default function RootPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { icon: "💬", accent: "border-sky-300  bg-sky-50",  iconBg: "bg-sky-100",    title: "1:1 채팅",  desc: "친구와 나만의 실시간 대화" },
               { icon: "👥", accent: "border-yellow-300 bg-yellow-50", iconBg: "bg-yellow-100", title: "단체채팅",  desc: "여럿이 함께하는 그룹 채팅" },
               { icon: "📔", accent: "border-sky-200  bg-sky-50",  iconBg: "bg-sky-50",     title: "다이어리",  desc: "오늘 하루를 글로 기록해요" },
               { icon: "📋", accent: "border-yellow-200 bg-yellow-50", iconBg: "bg-yellow-50",  title: "회의방",    desc: "주제 고정 · 긴급회의 알림" },
-              { icon: "🤖", accent: "border-sky-400  bg-sky-50",  iconBg: "bg-sky-100",    title: "AI 어시스턴트", desc: "나만의 개인 AI와 대화해요" },
             ].map(({ icon, accent, iconBg, title, desc }) => (
               <div key={title} className={`border-2 ${accent} rounded-[20px] p-6 hover:shadow-md transition-all`}>
                 <div className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center text-2xl mb-4`}>{icon}</div>
