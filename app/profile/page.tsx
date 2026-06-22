@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db, storage } from "@/app/firebase";
+import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -40,14 +39,31 @@ export default function ProfilePage() {
     return () => unsub();
   }, []);
 
+  const compressImage = (file: File, maxPx: number, quality: number): Promise<string> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
   const changeProfileImage = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const ref = storageRef(storage, `profiles/${user.uid}/avatar`);
-    await uploadBytes(ref, file);
-    const url = await getDownloadURL(ref);
-    setProfileImage(url);
-    await updateDoc(doc(db, "users", user.uid), { profileImage: url });
+    const base64 = await compressImage(file, 300, 0.7);
+    setProfileImage(base64);
+    await updateDoc(doc(db, "users", user.uid), { profileImage: base64 });
   };
 
   const changeCoverImage = (e: any) => {
