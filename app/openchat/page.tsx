@@ -196,19 +196,16 @@ export default function OpenChatPage() {
   return (
     <PageContainer>
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <span className="text-xl font-black bg-yellow-200 px-1">OPEN CHAT</span>
-          <p className="text-xs text-gray-400 mt-0.5">누구나 자유롭게 참여</p>
-        </div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-400 hover:bg-sky-500 text-white text-xs font-black transition active:scale-95"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          새 방
+          <span className="text-xs font-bold text-sky-600">새 방</span>
         </button>
       </div>
 
@@ -216,7 +213,7 @@ export default function OpenChatPage() {
       {showCreate && (
         <div className="fixed inset-0 z-[200] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowCreate(false)} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-3xl p-5 pb-8 flex flex-col gap-4">
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl p-5 pb-24 flex flex-col gap-4">
             <div className="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-1" />
             <p className="font-black text-gray-800 text-base">새 오픈채팅 만들기</p>
 
