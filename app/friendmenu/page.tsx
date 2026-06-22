@@ -261,6 +261,26 @@ export default function FriendsPage() {
             {requests.length > 0 && (
               <span className="w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
             )}
+            <button
+              onClick={() => router.push("/friendmenu")}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span className="text-xs font-bold text-sky-600">친구</span>
+            </button>
+            <button
+              onClick={() => router.push("/diary")}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 transition active:scale-90"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+              <span className="text-xs font-bold text-orange-500">일기</span>
+            </button>
           </div>
           <div className="text-xs text-gray-400 mt-0.5">친구 목록</div>
         </div>
