@@ -39,16 +39,32 @@ export default function ProfilePage() {
     return () => unsub();
   }, []);
 
-  const changeProfileImage = (e: any) => {
+  const compressImage = (file: File, maxSize: number, quality: number): Promise<string> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  const changeProfileImage = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result as string;
-      setProfileImage(base64);
-      await updateDoc(doc(db, "users", user.uid), { profileImage: base64 });
-    };
-    reader.readAsDataURL(file);
+    const base64 = await compressImage(file, 300, 0.7);
+    setProfileImage(base64);
+    await updateDoc(doc(db, "users", user.uid), { profileImage: base64 });
   };
 
   const changeCoverImage = (e: any) => {
