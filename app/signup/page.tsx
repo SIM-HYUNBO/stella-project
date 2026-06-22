@@ -28,16 +28,20 @@ export default function SignupPage() {
   const nextStep = async () => {
     setError("");
     if (step === 1) {
-      if (nickname.trim().length < 2) return setError("닉네임은 2자 이상이어야 해요.");
-      if (!email) return setError("이메일을 입력해주세요.");
-      if (password.length < 6) return setError("비밀번호는 6자 이상이어야 해요.");
-      if (password !== confirmPassword) return setError("비밀번호가 일치하지 않아요.");
-      const nickSnap = await getDocs(query(collection(db, "users"), where("nickname", "==", nickname.trim())));
-      if (!nickSnap.empty) return setError("이미 사용 중인 닉네임이에요.");
+      if (nickname.trim().length < 2) { setError("닉네임은 2자 이상이어야 해요."); return; }
+      if (!email) { setError("이메일을 입력해주세요."); return; }
+      if (password.length < 6) { setError("비밀번호는 6자 이상이어야 해요."); return; }
+      if (password !== confirmPassword) { setError("비밀번호가 일치하지 않아요."); return; }
+      try {
+        const nickSnap = await getDocs(query(collection(db, "users"), where("nickname", "==", nickname.trim())));
+        if (!nickSnap.empty) { setError("이미 사용 중인 닉네임이에요."); return; }
+      } catch {
+        // 닉네임 중복 확인 실패 시 그냥 통과
+      }
     }
     if (step === 2) {
-      if (!birthdate) return setError("생년월일을 입력해주세요.");
-      if (phone.replace(/\D/g, "").length < 10) return setError("올바른 전화번호를 입력해주세요.");
+      if (!birthdate) { setError("생년월일을 입력해주세요."); return; }
+      if (phone.replace(/\D/g, "").length < 10) { setError("올바른 전화번호를 입력해주세요."); return; }
     }
     setStep((s) => s + 1);
   };
