@@ -197,9 +197,8 @@ export default function OpenChatPage() {
   // 방 목록 뷰
   return (
     <PageContainer>
-      <div className="-mx-4 -mt-4">
-        {/* 헤더 */}
-        <div className="px-4 py-4">
+      {/* 헤더 */}
+      <div className="px-4 py-4">
           <div className="flex items-center gap-2">
             <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
             <button
@@ -242,8 +241,8 @@ export default function OpenChatPage() {
           <div className="text-xs text-gray-400 mt-0.5">오픈채팅</div>
         </div>
 
-        {/* 새 방 버튼 */}
-        <div className="px-4 pb-3">
+      {/* 새 방 버튼 */}
+      <div className="px-4 pb-3">
           <button
             onClick={() => setShowCreate(true)}
             className="w-full py-2.5 rounded-2xl bg-sky-400 hover:bg-sky-500 text-white text-sm font-black transition active:scale-95 flex items-center justify-center gap-2"
@@ -309,8 +308,8 @@ export default function OpenChatPage() {
         </div>
       )}
 
-        {/* 주제 필터 탭 */}
-        <div className="px-4 flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+      {/* 주제 필터 탭 */}
+      <div className="px-4 flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
           {TOPICS.map((t) => (
             <button
               key={t}
@@ -326,8 +325,8 @@ export default function OpenChatPage() {
           ))}
         </div>
 
-        {/* 방 목록 */}
-        <div className="px-4 flex flex-col gap-2">
+      {/* 방 목록 */}
+      <div className="px-4 flex flex-col gap-2">
           {filteredRooms.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-300 gap-3">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -358,7 +357,6 @@ export default function OpenChatPage() {
               </svg>
             </button>
           ))}
-        </div>
       </div>
     </PageContainer>
   );
