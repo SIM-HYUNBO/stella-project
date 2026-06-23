@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import PageContainer from "@/components/PageContainer";
 import { db, auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -40,6 +41,7 @@ type Message = {
 };
 
 export default function OpenChatPage() {
+  const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedTopic, setSelectedTopic] = useState("전체");
@@ -196,18 +198,59 @@ export default function OpenChatPage() {
   return (
     <PageContainer>
       {/* 헤더 */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          <span className="text-xs font-bold text-sky-600">새 방</span>
-        </button>
+      <div className="px-0 pt-0 pb-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
+          <button
+            onClick={() => router.push("/groupchat")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span className="text-xs font-bold text-sky-600">일반</span>
+          </button>
+          <button
+            onClick={() => router.push("/meetingroom")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+              <line x1="7" y1="8" x2="17" y2="8" />
+              <line x1="7" y1="12" x2="13" y2="12" />
+            </svg>
+            <span className="text-xs font-bold text-red-500">회의</span>
+          </button>
+          <button
+            onClick={() => router.push("/openchat")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-yellow-100 transition active:scale-90"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <span className="text-xs font-bold text-yellow-600">오픈</span>
+          </button>
+        </div>
+        <div className="text-xs text-gray-400 mt-0.5">오픈채팅</div>
       </div>
+
+      {/* 새 방 버튼 */}
+      <button
+        onClick={() => setShowCreate(true)}
+        className="w-full mb-3 py-2.5 rounded-2xl bg-sky-400 hover:bg-sky-500 text-white text-sm font-black transition active:scale-95 flex items-center justify-center gap-2"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        새 오픈채팅 만들기
+      </button>
 
       {/* 방 만들기 모달 */}
       {showCreate && (
