@@ -198,7 +198,7 @@ export default function OpenChatPage() {
   return (
     <PageContainer>
       {/* 헤더 */}
-      <div className="px-0 pt-0 pb-1">
+      <div className="py-4 pb-2">
         <div className="flex items-center gap-2">
           <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
           <button
