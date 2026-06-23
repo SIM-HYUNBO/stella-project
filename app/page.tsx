@@ -43,7 +43,6 @@ export default function RootPage() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <a href="#features" className="hover:text-sky-500 transition">기능</a>
             <Link href="/login" className="hover:text-sky-500 transition">로그인</Link>
             <Link href="/signup"
               className="px-5 py-2 rounded-full bg-sky-500 text-white font-bold hover:bg-sky-600 transition shadow shadow-sky-200">
@@ -86,34 +85,6 @@ export default function RootPage() {
             className="px-7 py-3.5 rounded-2xl bg-yellow-300 text-yellow-900 font-black text-sm hover:bg-yellow-400 transition active:scale-95">
             로그인
           </Link>
-        </div>
-      </section>
-
-      {/* ── 기능 카드 ── */}
-      <section id="features" className="bg-white border-t-4 border-yellow-200 py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="w-2 h-8 rounded-full bg-sky-500" />
-            <div>
-              <p className="text-sky-500 font-bold text-xs tracking-widest">FEATURES</p>
-              <h2 className="text-2xl font-black text-slate-900">이런 기능이 있어요</h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: "💬", accent: "border-sky-300  bg-sky-50",  iconBg: "bg-sky-100",    title: "1:1 채팅",  desc: "친구와 나만의 실시간 대화" },
-              { icon: "👥", accent: "border-yellow-300 bg-yellow-50", iconBg: "bg-yellow-100", title: "단체채팅",  desc: "여럿이 함께하는 그룹 채팅" },
-              { icon: "📔", accent: "border-sky-200  bg-sky-50",  iconBg: "bg-sky-50",     title: "다이어리",  desc: "오늘 하루를 글로 기록해요" },
-              { icon: "📋", accent: "border-yellow-200 bg-yellow-50", iconBg: "bg-yellow-50",  title: "회의방",    desc: "주제 고정 · 긴급회의 알림" },
-            ].map(({ icon, accent, iconBg, title, desc }) => (
-              <div key={title} className={`border-2 ${accent} rounded-[20px] p-6 hover:shadow-md transition-all`}>
-                <div className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center text-2xl mb-4`}>{icon}</div>
-                <p className="font-black text-slate-800 text-sm mb-1.5">{title}</p>
-                <p className="text-slate-400 text-xs leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
