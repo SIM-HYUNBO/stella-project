@@ -37,6 +37,7 @@ export default function SettingsPage() {
   const [appLock, setAppLock] = useState(false);
   const [sound, setSound] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
+  const [autoReply, setAutoReply] = useState(false);
 
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [newPin, setNewPin] = useState("");
@@ -56,6 +57,7 @@ export default function SettingsPage() {
           email: firebaseUser.email || "",
         });
         setEditNickname(snap.data().nickname || "");
+        setAutoReply(snap.data().autoReply === true);
       }
     });
     return () => unsub();
@@ -81,6 +83,12 @@ export default function SettingsPage() {
   const handleAdminMode = (v: boolean) => {
     setAdminMode(v);
     localStorage.setItem("stellaAdminMode", String(v));
+  };
+
+  const handleAutoReply = async (v: boolean) => {
+    setAutoReply(v);
+    if (!uid) return;
+    await updateDoc(doc(db, "users", uid), { autoReply: v });
   };
 
   const handleAppLock = (v: boolean) => {
@@ -280,6 +288,23 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
+
+        {/* AI 설정 */}
+        <div className="bg-white rounded-[20px] overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-50">
+            <span className="text-xs font-black text-gray-400 uppercase tracking-wider">AI</span>
+          </div>
+          <div className="flex items-center justify-between px-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">🤖</div>
+              <div>
+                <span className="font-bold text-slate-800 text-sm block">AI 자동 답장</span>
+                <span className="text-xs text-gray-400">자리 비울 때 AI가 나 대신 답함</span>
+              </div>
+            </div>
+            <Toggle value={autoReply} onChange={handleAutoReply} />
+          </div>
+        </div>
 
         {/* 기능 버튼들 */}
         <div className="bg-white rounded-[20px] overflow-hidden">
