@@ -440,6 +440,13 @@ export default function MeetingRoomPage() {
       });
       setReplyTo(null);
       setInput("");
+      // 주가 업데이트 (fire-and-forget)
+      const prevPrice = (currentRoom as any).stockPrice || 1000;
+      const lastMs = (currentRoom as any).stockLastAt?.toMillis?.() ?? Date.now();
+      const decayed = Math.max(100, prevPrice * Math.pow(0.97, (Date.now() - lastMs) / 3600000));
+      const newPrice = Math.round(decayed + Math.floor(Math.random() * 16) + 5);
+      const newHistory = [...((currentRoom as any).priceHistory || []).slice(-9), { p: newPrice, t: Date.now() }];
+      updateDoc(doc(db, "meeting_rooms", currentRoom.id), { stockPrice: newPrice, priceHistory: newHistory, stockLastAt: serverTimestamp() }).catch(() => {});
     } catch {
       alert("메시지 전송에 실패했어요. 다시 시도해줘!");
     } finally {

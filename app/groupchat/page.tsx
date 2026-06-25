@@ -835,6 +835,13 @@ export default function GroupChat() {
       });
       setReplyTo(null);
       setInput("");
+      // 주가 업데이트 (fire-and-forget)
+      const prevPrice = (currentRoom as any).stockPrice || 1000;
+      const lastMs = (currentRoom as any).stockLastAt?.toMillis?.() ?? Date.now();
+      const decayed = Math.max(100, prevPrice * Math.pow(0.97, (Date.now() - lastMs) / 3600000));
+      const newPrice = Math.round(decayed + Math.floor(Math.random() * 16) + 5);
+      const newHistory = [...((currentRoom as any).priceHistory || []).slice(-9), { p: newPrice, t: Date.now() }];
+      updateDoc(doc(db, "group_rooms", currentRoom.id), { stockPrice: newPrice, priceHistory: newHistory, stockLastAt: serverTimestamp() }).catch(() => {});
       const targets = currentRoom.members.filter((m) => m !== nickname);
       if (targets.length > 0) {
         fetch("/api/fcm", {
