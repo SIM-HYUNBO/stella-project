@@ -163,6 +163,7 @@ export default function GroupChat() {
   >([]);
 
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
@@ -822,14 +823,19 @@ export default function GroupChat() {
       });
     }
 
-    await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
-      from: nickname,
-      content: text,
-      type: "text",
-      createdAt: serverTimestamp(),
-      readBy: [nickname],
-      ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
-    });
+    setIsSending(true);
+    try {
+      await addDoc(collection(db, "group_rooms", currentRoom.id, "messages"), {
+        from: nickname,
+        content: text,
+        type: "text",
+        createdAt: serverTimestamp(),
+        readBy: [nickname],
+        ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
+      });
+    } finally {
+      setIsSending(false);
+    }
     setReplyTo(null);
 
     const targets = currentRoom.members.filter((m) => m !== nickname);
@@ -1545,6 +1551,18 @@ export default function GroupChat() {
                 <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"200ms"}} />
                 <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"400ms"}} />
               </div>
+            </div>
+          </div>
+        )}
+
+        {isSending && (
+          <div className="flex justify-end">
+            <div className="bg-sky-400 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+              <span className="flex gap-1 items-center py-0.5">
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:0ms]"/>
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:150ms]"/>
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:300ms]"/>
+              </span>
             </div>
           </div>
         )}

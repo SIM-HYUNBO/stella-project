@@ -363,6 +363,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [hlColor, setHlColor] = useState("y");
   const [showHlPicker, setShowHlPicker] = useState(false);
@@ -1086,7 +1087,12 @@ export default function Chat() {
       msgData.replyTo = replyTo;
     }
 
-    await addDoc(collection(db, "messages"), msgData);
+    setIsSending(true);
+    try {
+      await addDoc(collection(db, "messages"), msgData);
+    } finally {
+      setIsSending(false);
+    }
 
     fetch("/api/fcm", {
       method: "POST",
@@ -1737,6 +1743,18 @@ export default function Chat() {
                 <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"200ms"}} />
                 <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"400ms"}} />
               </div>
+            </div>
+          </div>
+        )}
+
+        {isSending && (
+          <div className="flex justify-end">
+            <div className="bg-sky-400 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+              <span className="flex gap-1 items-center py-0.5">
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:0ms]"/>
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:150ms]"/>
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:300ms]"/>
+              </span>
             </div>
           </div>
         )}

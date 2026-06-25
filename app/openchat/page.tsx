@@ -48,6 +48,7 @@ export default function OpenChatPage() {
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomTopic, setNewRoomTopic] = useState("일상");
@@ -104,15 +105,20 @@ export default function OpenChatPage() {
     if (!input.trim() || !currentRoom || !nickname) return;
     const text = input.trim();
     setInput("");
-    await addDoc(collection(db, "openRooms", currentRoom.id, "messages"), {
-      from: nickname,
-      content: text,
-      createdAt: serverTimestamp(),
-    });
-    await updateDoc(doc(db, "openRooms", currentRoom.id), {
-      lastMessage: text,
-      lastAt: serverTimestamp(),
-    });
+    setIsSending(true);
+    try {
+      await addDoc(collection(db, "openRooms", currentRoom.id, "messages"), {
+        from: nickname,
+        content: text,
+        createdAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, "openRooms", currentRoom.id), {
+        lastMessage: text,
+        lastAt: serverTimestamp(),
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const formatTime = (ts: any) => {
@@ -170,6 +176,17 @@ export default function OpenChatPage() {
             </div>
           );
         })}
+        {isSending && (
+          <div className="flex justify-end px-4">
+            <div className="bg-yellow-400 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+              <span className="flex gap-1 items-center py-0.5">
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:0ms]"/>
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:150ms]"/>
+                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:300ms]"/>
+              </span>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
