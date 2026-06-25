@@ -426,7 +426,7 @@ export default function MeetingRoomPage() {
 
   const sendMessage = async (textOverride?: string) => {
     const rawInput = textOverride ?? input;
-    if (!rawInput.trim() || !nickname || !currentRoom) return;
+    if (!rawInput.trim() || !nickname || !currentRoom || isSending) return;
     const text = rawInput.trim();
     setIsSending(true);
     try {
@@ -438,11 +438,13 @@ export default function MeetingRoomPage() {
         readBy: [nickname],
         ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
       });
+      setReplyTo(null);
+      setInput("");
+    } catch {
+      alert("메시지 전송에 실패했어요. 다시 시도해줘!");
     } finally {
       setIsSending(false);
     }
-    setReplyTo(null);
-    setInput("");
   };
 
   const sendUrgent = async () => {

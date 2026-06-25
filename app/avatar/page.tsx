@@ -1012,7 +1012,7 @@ export default function Chat() {
 
   const sendMessage = async (textOverride?: string) => {
     const rawInput = textOverride ?? input;
-    if (!rawInput.trim() || !nickname || !currentChatUser)
+    if (!rawInput.trim() || !nickname || !currentChatUser || isSending)
       return;
 
     const text = rawInput.trim();
@@ -1090,23 +1090,23 @@ export default function Chat() {
     setIsSending(true);
     try {
       await addDoc(collection(db, "messages"), msgData);
+      setInput("");
+      setReplyTo(null);
+      fetch("/api/fcm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toNicknames: [currentChatUser.nickname],
+          fromNickname: nickname,
+          message: text.length > 60 ? text.slice(0, 60) + "…" : text,
+          url: `/avatar?open=${encodeURIComponent(nickname ?? "")}`,
+        }),
+      }).catch(() => {});
+    } catch {
+      alert("메시지 전송에 실패했어요. 다시 시도해줘!");
     } finally {
       setIsSending(false);
     }
-
-    fetch("/api/fcm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        toNicknames: [currentChatUser.nickname],
-        fromNickname: nickname,
-        message: text.length > 60 ? text.slice(0, 60) + "…" : text,
-        url: `/avatar?open=${encodeURIComponent(nickname ?? "")}`,
-      }),
-    }).catch(() => {});
-
-    setInput("");
-    setReplyTo(null);
   };
 
   const compressToBase64 = (

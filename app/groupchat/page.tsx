@@ -767,7 +767,7 @@ export default function GroupChat() {
 
   const sendMessage = async (textOverride?: string) => {
     const rawInput = textOverride ?? input;
-    if (!rawInput.trim() || !nickname || !currentRoom) return;
+    if (!rawInput.trim() || !nickname || !currentRoom || isSending) return;
 
     const text = rawInput.trim();
 
@@ -833,27 +833,27 @@ export default function GroupChat() {
         readBy: [nickname],
         ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
       });
+      setReplyTo(null);
+      setInput("");
+      const targets = currentRoom.members.filter((m) => m !== nickname);
+      if (targets.length > 0) {
+        fetch("/api/fcm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            toNicknames: targets,
+            fromNickname: nickname,
+            message: text.length > 60 ? text.slice(0, 60) + "…" : text,
+            roomName: currentRoom.name,
+            url: `/groupchat?room=${currentRoom.id}`,
+          }),
+        }).catch(() => {});
+      }
+    } catch {
+      alert("메시지 전송에 실패했어요. 다시 시도해줘!");
     } finally {
       setIsSending(false);
     }
-    setReplyTo(null);
-
-    const targets = currentRoom.members.filter((m) => m !== nickname);
-    if (targets.length > 0) {
-      fetch("/api/fcm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          toNicknames: targets,
-          fromNickname: nickname,
-          message: text.length > 60 ? text.slice(0, 60) + "…" : text,
-          roomName: currentRoom.name,
-          url: `/groupchat?room=${currentRoom.id}`,
-        }),
-      }).catch(() => {});
-    }
-
-    setInput("");
   };
 
   const openCtxMenu = (e: React.MouseEvent | React.TouchEvent, m: any, isMine: boolean) => {

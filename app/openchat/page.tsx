@@ -102,7 +102,7 @@ export default function OpenChatPage() {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || !currentRoom || !nickname) return;
+    if (!input.trim() || !currentRoom || !nickname || isSending) return;
     const text = input.trim();
     setInput("");
     setIsSending(true);
@@ -112,10 +112,18 @@ export default function OpenChatPage() {
         content: text,
         createdAt: serverTimestamp(),
       });
+    } catch {
+      alert("메시지 전송에 실패했어요. 다시 시도해줘!");
+      setIsSending(false);
+      return;
+    }
+    try {
       await updateDoc(doc(db, "openRooms", currentRoom.id), {
         lastMessage: text,
         lastAt: serverTimestamp(),
       });
+    } catch {
+      // 메시지는 저장됐으니 조용히 무시
     } finally {
       setIsSending(false);
     }
