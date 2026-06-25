@@ -2,13 +2,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { messages, memory } = await req.json();
+    const { messages, robotName } = await req.json();
 
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
     }
 
     const safeMessages = (messages || []).map((m: any) => ({
@@ -16,49 +13,40 @@ export async function POST(req: Request) {
       content: m.content,
     }));
 
-    const memoryContext = memory
-      ? `사용자 성격: ${memory.personality}\n요약: ${memory.summary}`
-      : "";
-
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `너는 개인 AI 비서야.\n${memoryContext}`,
-            },
-            ...safeMessages,
-          ],
-        }),
-      }
-    );
-
-    const data = await response.json();
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        stream: true,
+        messages: [
+          {
+            role: "system",
+            content: `너는 ${robotName || "AI"} 야. 친근하고 자연스럽게 대화해줘. 너무 길게 말하지 말고 간결하게.`,
+          },
+          ...safeMessages,
+        ],
+      }),
+    });
 
     if (!response.ok) {
+      const data = await response.json();
       const errMsg = data?.error?.message || `OpenAI 오류 (${response.status})`;
       return NextResponse.json({ error: errMsg }, { status: response.status });
     }
 
-    const reply = data?.choices?.[0]?.message?.content;
-    if (!reply) {
-      return NextResponse.json({ error: "OpenAI 응답 없음" }, { status: 500 });
-    }
-
-    return NextResponse.json({ reply });
+    return new Response(response.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
+    });
 
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message || "서버 오류" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err?.message || "서버 오류" }, { status: 500 });
   }
 }
