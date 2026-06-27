@@ -735,18 +735,6 @@ export default function HomePage() {
                 </div>
               </button>
 
-              <button onClick={() => router.push("/stock")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm border border-green-100 px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-2xl shadow">📈</div>
-                  <div className="text-left flex-1">
-                    <p className="text-slate-800 font-black text-base">채팅 주식</p>
-                    <p className="text-green-600 text-sm">채팅할수록 주가 상승 · 잠수하면 폭락</p>
-                  </div>
-                  <span className="text-green-300 text-2xl">›</span>
-                </div>
-              </button>
-
               <button onClick={() => router.push("/tools/contact")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm border px-6 py-4 flex items-center gap-4">

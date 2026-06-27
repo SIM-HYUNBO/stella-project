@@ -122,13 +122,6 @@ export default function OpenChatPage() {
         lastMessage: text,
         lastAt: serverTimestamp(),
       });
-      // 주가 업데이트 (fire-and-forget)
-      const prevPrice = (currentRoom as any).stockPrice || 1000;
-      const lastMs = (currentRoom as any).stockLastAt?.toMillis?.() ?? Date.now();
-      const decayed = Math.max(100, prevPrice * Math.pow(0.97, (Date.now() - lastMs) / 3600000));
-      const newPrice = Math.round(decayed + Math.floor(Math.random() * 16) + 5);
-      const newHistory = [...((currentRoom as any).priceHistory || []).slice(-9), { p: newPrice, t: Date.now() }];
-      updateDoc(doc(db, "openRooms", currentRoom.id), { stockPrice: newPrice, priceHistory: newHistory, stockLastAt: serverTimestamp() }).catch(() => {});
     } catch {
       // 메시지는 저장됐으니 조용히 무시
     } finally {
