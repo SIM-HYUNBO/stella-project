@@ -56,10 +56,10 @@ export async function POST(req: NextRequest) {
             android: {
               priority: "high",
               notification: {
-                sound: "default",
+                sound: "alert1",
                 priority: "max",
                 defaultVibrateTimings: true,
-                defaultSound: true,
+                defaultSound: false,
               },
             },
             apns: {
