@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import PageContainer from "@/components/PageContainer";
 import { db, auth } from "@/app/firebase";
@@ -566,7 +567,7 @@ export default function OpenChatPage() {
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { startDictation(); setShowPlusMenu(false); }}
                 className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="4" y1="12" x2="4" y2="12"/><line x1="8" y1="7" x2="8" y2="17"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="16" y1="7" x2="16" y2="17"/><line x1="20" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="9" x2="4" y2="15"/><line x1="8" y1="6" x2="8" y2="18"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="16" y1="6" x2="16" y2="18"/><line x1="20" y1="9" x2="20" y2="15"/>
                 </svg>
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
@@ -702,11 +703,12 @@ export default function OpenChatPage() {
       )}
 
       {/* 이미지 라이트박스 */}
-      {lightboxSrc && (
+      {lightboxSrc && createPortal(
         <div className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center" onClick={() => setLightboxSrc(null)}>
           <img src={lightboxSrc} alt="이미지" className="max-w-full max-h-full object-contain rounded-xl" onClick={(e) => e.stopPropagation()} />
           <button className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center" onClick={() => setLightboxSrc(null)}>✕</button>
-        </div>
+        </div>,
+        document.body
       )}
 
       <style>{`
