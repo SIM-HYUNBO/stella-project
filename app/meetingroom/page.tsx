@@ -820,7 +820,7 @@ export default function MeetingRoomPage() {
                   )}
                   <div className={`px-4 py-3 rounded-3xl text-sm ${
                     isMine
-                      ? "bg-sky-200 text-white rounded-br-md"
+                      ? "bg-sky-400 text-white rounded-br-md"
                       : "bg-white rounded-bl-md"
                   }`}
                     onContextMenu={(e) => openCtxMenu(e, m, isMine)}

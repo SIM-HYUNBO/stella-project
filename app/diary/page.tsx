@@ -34,6 +34,8 @@ const formatTime = (ts: number) => {
   return new Date(ts).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 };
 
+const formatDate = (date: string) => new Date(date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+
 const MiniAvatar = ({ nickname, profileImage }: { nickname: string; profileImage?: string }) =>
   profileImage ? (
     <img src={profileImage} className="w-6 h-6 rounded-full object-cover ring-1 ring-white shadow shrink-0" />
@@ -42,6 +44,209 @@ const MiniAvatar = ({ nickname, profileImage }: { nickname: string; profileImage
       {nickname[0]}
     </div>
   );
+
+type CommentItemProps = {
+  diaryId: string;
+  comment: Comment;
+  userId?: string;
+  openReplies: Set<string>;
+  repliesByComment: Record<string, Reply[]>;
+  replyInputs: Record<string, string>;
+  sendingReply: string | null;
+  onToggleCommentLike: (diaryId: string, commentId: string, likes: string[]) => void;
+  onToggleReplies: (diaryId: string, commentId: string) => void;
+  onSubmitReply: (diaryId: string, commentId: string) => void;
+  onChangeReplyInput: (commentId: string, value: string) => void;
+};
+
+function CommentItem({
+  diaryId, comment, userId, openReplies, repliesByComment,
+  replyInputs, sendingReply,
+  onToggleCommentLike, onToggleReplies, onSubmitReply, onChangeReplyInput,
+}: CommentItemProps) {
+  const liked = comment.likes?.includes(userId ?? "") ?? false;
+  const isOpen = openReplies.has(comment.id);
+  const replies = repliesByComment[comment.id] ?? [];
+
+  return (
+    <div>
+      <div className="flex items-start gap-2">
+        <MiniAvatar nickname={comment.nickname} profileImage={comment.profileImage} />
+        <div className="flex-1">
+          <div className="bg-white rounded-[14px] px-3 py-2">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[11px] font-black text-slate-700">{comment.nickname}</span>
+              <span className="text-[10px] text-gray-400">{formatTime(comment.createdAt)}</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">{comment.content}</p>
+          </div>
+          <div className="flex items-center gap-3 mt-1 pl-1">
+            <button
+              onClick={() => onToggleCommentLike(diaryId, comment.id, comment.likes || [])}
+              className={`flex items-center gap-0.5 text-[11px] font-bold transition-all active:scale-90 ${liked ? "text-red-400" : "text-gray-400"}`}
+            >
+              <span>{liked ? "❤️" : "🤍"}</span>
+              {comment.likes?.length > 0 && <span>{comment.likes.length}</span>}
+            </button>
+            <button
+              onClick={() => onToggleReplies(diaryId, comment.id)}
+              className="text-[11px] font-bold text-gray-400 active:scale-90 transition"
+            >
+              {isOpen ? "닫기" : `↩ 답글${replies.length > 0 ? ` ${replies.length}개` : ""}`}
+            </button>
+          </div>
+
+          {isOpen && (
+            <div className="mt-2 space-y-2 pl-2 border-l-2 border-sky-100">
+              {replies.map((r) => (
+                <div key={r.id} className="flex items-start gap-1.5">
+                  <MiniAvatar nickname={r.nickname} profileImage={r.profileImage} />
+                  <div className="flex-1 bg-white rounded-[12px] px-3 py-1.5">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="text-[11px] font-black text-slate-700">{r.nickname}</span>
+                      <span className="text-[10px] text-gray-400">{formatTime(r.createdAt)}</span>
+                    </div>
+                    <p className="text-xs text-slate-600">{r.content}</p>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex items-center gap-1.5 pt-1">
+                <input
+                  value={replyInputs[comment.id] || ""}
+                  onChange={(e) => onChangeReplyInput(comment.id, e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && onSubmitReply(diaryId, comment.id)}
+                  placeholder="답글 입력..."
+                  className="flex-1 h-8 rounded-[10px] bg-white border border-sky-100 px-2.5 text-xs outline-none focus:ring-1 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
+                />
+                <button
+                  onClick={() => onSubmitReply(diaryId, comment.id)}
+                  disabled={!replyInputs[comment.id]?.trim() || sendingReply === comment.id}
+                  className="h-8 px-2.5 rounded-[10px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
+                >
+                  전송
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type ReactionBarProps = {
+  diaryId: string;
+  userId?: string;
+  nickname: string;
+  profileImage: string | null;
+  reactionsByEntry: Record<string, Record<string, string[]>>;
+  commentsByEntry: Record<string, Comment[]>;
+  openComments: Set<string>;
+  commentInputs: Record<string, string>;
+  sendingComment: string | null;
+  openReplies: Set<string>;
+  repliesByComment: Record<string, Reply[]>;
+  replyInputs: Record<string, string>;
+  sendingReply: string | null;
+  onToggleReaction: (diaryId: string, emoji: string) => void;
+  onToggleComments: (diaryId: string) => void;
+  onSubmitComment: (diaryId: string) => void;
+  onChangeCommentInput: (diaryId: string, value: string) => void;
+  onToggleCommentLike: (diaryId: string, commentId: string, likes: string[]) => void;
+  onToggleReplies: (diaryId: string, commentId: string) => void;
+  onSubmitReply: (diaryId: string, commentId: string) => void;
+  onChangeReplyInput: (commentId: string, value: string) => void;
+};
+
+function ReactionBar({
+  diaryId, userId, nickname, profileImage,
+  reactionsByEntry, commentsByEntry, openComments,
+  commentInputs, sendingComment,
+  openReplies, repliesByComment, replyInputs, sendingReply,
+  onToggleReaction, onToggleComments, onSubmitComment, onChangeCommentInput,
+  onToggleCommentLike, onToggleReplies, onSubmitReply, onChangeReplyInput,
+}: ReactionBarProps) {
+  const entryReactions = reactionsByEntry[diaryId] || {};
+  const comments = commentsByEntry[diaryId];
+  const isOpen = openComments.has(diaryId);
+
+  return (
+    <div className="mt-3 pt-3 border-t border-sky-100">
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {REACTION_EMOJIS.map((emoji) => {
+          const uids = entryReactions[emoji] || [];
+          const reacted = uids.includes(userId ?? "");
+          return (
+            <button
+              key={emoji}
+              onClick={() => onToggleReaction(diaryId, emoji)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
+                reacted ? "bg-sky-200 text-sky-700" : "bg-white text-gray-500 border border-gray-100"
+              }`}
+            >
+              <span>{emoji}</span>
+              {uids.length > 0 && <span>{uids.length}</span>}
+            </button>
+          );
+        })}
+
+        <button
+          onClick={() => onToggleComments(diaryId)}
+          className={`ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
+            isOpen ? "bg-sky-100 text-sky-600" : "text-gray-400 border border-gray-100 bg-white"
+          }`}
+        >
+          <span>💬</span>
+          {comments && comments.length > 0 ? <span>{comments.length}</span> : <span>댓글</span>}
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="mt-3 space-y-3">
+          {(commentsByEntry[diaryId] ?? []).map((c) => (
+            <CommentItem
+              key={c.id}
+              diaryId={diaryId}
+              comment={c}
+              userId={userId}
+              openReplies={openReplies}
+              repliesByComment={repliesByComment}
+              replyInputs={replyInputs}
+              sendingReply={sendingReply}
+              onToggleCommentLike={onToggleCommentLike}
+              onToggleReplies={onToggleReplies}
+              onSubmitReply={onSubmitReply}
+              onChangeReplyInput={onChangeReplyInput}
+            />
+          ))}
+
+          {commentsByEntry[diaryId]?.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-1">첫 댓글을 남겨봐요 👀</p>
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <MiniAvatar nickname={nickname || "나"} profileImage={profileImage ?? undefined} />
+            <input
+              value={commentInputs[diaryId] || ""}
+              onChange={(e) => onChangeCommentInput(diaryId, e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onSubmitComment(diaryId)}
+              placeholder="댓글 입력..."
+              className="flex-1 h-9 rounded-[12px] bg-white border border-sky-100 px-3 text-xs outline-none focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
+            />
+            <button
+              onClick={() => onSubmitComment(diaryId)}
+              disabled={!commentInputs[diaryId]?.trim() || sendingComment === diaryId}
+              className="h-9 px-3 rounded-[12px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
+            >
+              전송
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DiaryPage() {
   const router = useRouter();
@@ -229,147 +434,35 @@ export default function DiaryPage() {
     finally { setSaving(false); }
   };
 
-  const formatDate = (date: string) => new Date(date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
-
-  const CommentItem = ({ diaryId, comment }: { diaryId: string; comment: Comment }) => {
-    const liked = comment.likes?.includes(user?.uid) ?? false;
-    const isOpen = openReplies.has(comment.id);
-    const replies = repliesByComment[comment.id] ?? [];
-
-    return (
-      <div>
-        <div className="flex items-start gap-2">
-          <MiniAvatar nickname={comment.nickname} profileImage={comment.profileImage} />
-          <div className="flex-1">
-            <div className="bg-white rounded-[14px] px-3 py-2">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[11px] font-black text-slate-700">{comment.nickname}</span>
-                <span className="text-[10px] text-gray-400">{formatTime(comment.createdAt)}</span>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed">{comment.content}</p>
-            </div>
-            <div className="flex items-center gap-3 mt-1 pl-1">
-              <button
-                onClick={() => toggleCommentLike(diaryId, comment.id, comment.likes || [])}
-                className={`flex items-center gap-0.5 text-[11px] font-bold transition-all active:scale-90 ${liked ? "text-red-400" : "text-gray-400"}`}
-              >
-                <span>{liked ? "❤️" : "🤍"}</span>
-                {comment.likes?.length > 0 && <span>{comment.likes.length}</span>}
-              </button>
-              <button
-                onClick={() => toggleReplies(diaryId, comment.id)}
-                className="text-[11px] font-bold text-gray-400 active:scale-90 transition"
-              >
-                {isOpen ? "닫기" : `↩ 답글${replies.length > 0 ? ` ${replies.length}개` : ""}`}
-              </button>
-            </div>
-
-            {isOpen && (
-              <div className="mt-2 space-y-2 pl-2 border-l-2 border-sky-100">
-                {replies.map((r) => (
-                  <div key={r.id} className="flex items-start gap-1.5">
-                    <MiniAvatar nickname={r.nickname} profileImage={r.profileImage} />
-                    <div className="flex-1 bg-white rounded-[12px] px-3 py-1.5">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[11px] font-black text-slate-700">{r.nickname}</span>
-                        <span className="text-[10px] text-gray-400">{formatTime(r.createdAt)}</span>
-                      </div>
-                      <p className="text-xs text-slate-600">{r.content}</p>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="flex items-center gap-1.5 pt-1">
-                  <input
-                    value={replyInputs[comment.id] || ""}
-                    onChange={(e) => setReplyInputs((prev) => ({ ...prev, [comment.id]: e.target.value }))}
-                    onKeyDown={(e) => e.key === "Enter" && submitReply(diaryId, comment.id)}
-                    placeholder="답글 입력..."
-                    className="flex-1 h-8 rounded-[10px] bg-white border border-sky-100 px-2.5 text-xs outline-none focus:ring-1 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
-                  />
-                  <button
-                    onClick={() => submitReply(diaryId, comment.id)}
-                    disabled={!replyInputs[comment.id]?.trim() || sendingReply === comment.id}
-                    className="h-8 px-2.5 rounded-[10px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
-                  >
-                    전송
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
+  const handleChangeCommentInput = (diaryId: string, value: string) => {
+    setCommentInputs((prev) => ({ ...prev, [diaryId]: value }));
   };
 
-  const ReactionBar = ({ diaryId }: { diaryId: string }) => {
-    const entryReactions = reactionsByEntry[diaryId] || {};
-    const comments = commentsByEntry[diaryId];
-    const isOpen = openComments.has(diaryId);
+  const handleChangeReplyInput = (commentId: string, value: string) => {
+    setReplyInputs((prev) => ({ ...prev, [commentId]: value }));
+  };
 
-    return (
-      <div className="mt-3 pt-3 border-t border-sky-100">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {REACTION_EMOJIS.map((emoji) => {
-            const uids = entryReactions[emoji] || [];
-            const reacted = uids.includes(user?.uid);
-            return (
-              <button
-                key={emoji}
-                onClick={() => toggleReaction(diaryId, emoji)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
-                  reacted ? "bg-sky-200 text-sky-700" : "bg-white text-gray-500 border border-gray-100"
-                }`}
-              >
-                <span>{emoji}</span>
-                {uids.length > 0 && <span>{uids.length}</span>}
-              </button>
-            );
-          })}
-
-          <button
-            onClick={() => toggleComments(diaryId)}
-            className={`ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-90 ${
-              isOpen ? "bg-sky-100 text-sky-600" : "text-gray-400 border border-gray-100 bg-white"
-            }`}
-          >
-            <span>💬</span>
-            {comments && comments.length > 0 ? <span>{comments.length}</span> : <span>댓글</span>}
-          </button>
-        </div>
-
-        {isOpen && (
-          <div className="mt-3 space-y-3">
-            {(commentsByEntry[diaryId] ?? []).map((c) => (
-              <CommentItem key={c.id} diaryId={diaryId} comment={c} />
-            ))}
-
-            {commentsByEntry[diaryId]?.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-1">첫 댓글을 남겨봐요 👀</p>
-            )}
-
-            <div className="flex items-center gap-2 pt-1">
-              <MiniAvatar nickname={nickname || "나"} profileImage={profileImage ?? undefined} />
-              <input
-                value={commentInputs[diaryId] || ""}
-                onChange={(e) => setCommentInputs((prev) => ({ ...prev, [diaryId]: e.target.value }))}
-                onKeyDown={(e) => e.key === "Enter" && submitComment(diaryId)}
-                placeholder="댓글 입력..."
-                className="flex-1 h-9 rounded-[12px] bg-white border border-sky-100 px-3 text-xs outline-none focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
-              />
-              <button
-                onClick={() => submitComment(diaryId)}
-                disabled={!commentInputs[diaryId]?.trim() || sendingComment === diaryId}
-                className="h-9 px-3 rounded-[12px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
-              >
-                전송
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const reactionBarProps = {
+    userId: user?.uid,
+    nickname,
+    profileImage,
+    reactionsByEntry,
+    commentsByEntry,
+    openComments,
+    commentInputs,
+    sendingComment,
+    openReplies,
+    repliesByComment,
+    replyInputs,
+    sendingReply,
+    onToggleReaction: toggleReaction,
+    onToggleComments: toggleComments,
+    onSubmitComment: submitComment,
+    onChangeCommentInput: handleChangeCommentInput,
+    onToggleCommentLike: toggleCommentLike,
+    onToggleReplies: toggleReplies,
+    onSubmitReply: submitReply,
+    onChangeReplyInput: handleChangeReplyInput,
   };
 
   return (
@@ -510,7 +603,7 @@ export default function DiaryPage() {
                     <span className="text-2xl">{entry.mood}</span>
                   </div>
                   <p className="text-slate-800 text-sm leading-relaxed">{entry.content}</p>
-                  <ReactionBar diaryId={entry.id} />
+                  <ReactionBar diaryId={entry.id} {...reactionBarProps} />
                 </div>
               ))}
               {friendEntries.length === 0 && (
