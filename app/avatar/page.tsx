@@ -364,6 +364,7 @@ export default function Chat() {
 
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [hlColor, setHlColor] = useState("y");
   const [showHlPicker, setShowHlPicker] = useState(false);
@@ -1402,7 +1403,7 @@ export default function Chat() {
           src={m.content}
           alt="이미지"
           className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
-          onClick={() => window.open(m.content, "_blank")}
+          onClick={() => setLightboxSrc(m.content)}
         />
       );
     }
@@ -2234,6 +2235,24 @@ export default function Chat() {
           to   { transform: scale(1) rotate(0deg); opacity: 1; }
         }
       `}</style>
+
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <img
+            src={lightboxSrc}
+            alt="이미지"
+            className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center"
+            onClick={() => setLightboxSrc(null)}
+          >✕</button>
+        </div>
+      )}
     </PageContainer>
   );
 }
