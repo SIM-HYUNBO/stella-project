@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { db, auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, query, orderBy, onSnapshot } from "firebase/firestore";
+import pkg from "@/package.json";
 
 type Notice = { id: string; title: string; content: string; createdAt?: any };
 
@@ -86,7 +87,7 @@ export default function AppInfoPage() {
                 <div className="w-10 h-10 rounded-xl bg-sky-200 flex items-center justify-center text-xl">📦</div>
                 <span className="font-semibold text-slate-800 text-sm">버전</span>
               </div>
-              <span className="text-sky-600 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full">v0.2.2</span>
+              <span className="text-sky-600 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full">v{pkg.version}</span>
             </div>
 
             <button onClick={() => router.push("/tools/contact")}
