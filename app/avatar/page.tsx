@@ -348,6 +348,16 @@ function SwipeUserItem({
   );
 }
 
+const CHAT_THEMES = [
+  { id: "default", name: "기본", bg: "#f9fafb" },
+  { id: "pink", name: "벚꽃", bg: "#fdf2f8" },
+  { id: "sky", name: "하늘", bg: "#f0f9ff" },
+  { id: "mint", name: "민트", bg: "#f0fdf4" },
+  { id: "lavender", name: "라벤더", bg: "#faf5ff" },
+  { id: "peach", name: "피치", bg: "#fff7ed" },
+  { id: "lemon", name: "레몬", bg: "#fefce8" },
+];
+
 export default function Chat() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -366,6 +376,8 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [activeTheme, setActiveTheme] = useState("default");
+  const [showThemePicker, setShowThemePicker] = useState(false);
   const [hlSel, setHlSel] = useState({ start: 0, end: 0 });
   const [hlColor, setHlColor] = useState("y");
   const [showHlPicker, setShowHlPicker] = useState(false);
@@ -445,6 +457,12 @@ export default function Chat() {
 
   const { isBlocked: pushBlocked } =
     usePushSubscription(nickname);
+
+  useEffect(() => {
+    if (!currentChatUser?.id) { setActiveTheme("default"); return; }
+    const saved = localStorage.getItem(`chatTheme_1on1_${currentChatUser.id}`);
+    setActiveTheme(saved || "default");
+  }, [currentChatUser?.id]);
 
   useEffect(() => {
     nicknameRef.current = nickname;
@@ -1478,6 +1496,19 @@ export default function Chat() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="relative">
+              <button onClick={() => setShowThemePicker(p => !p)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-base" title="테마">🎨</button>
+              {showThemePicker && (
+                <div className="absolute right-0 top-10 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 flex gap-2">
+                  {CHAT_THEMES.map(t => (
+                    <button key={t.id} onClick={() => { setActiveTheme(t.id); if (currentChatUser?.id) localStorage.setItem(`chatTheme_1on1_${currentChatUser.id}`, t.id); setShowThemePicker(false); }} title={t.name}
+                      className={`w-7 h-7 rounded-full border-2 transition-transform ${activeTheme === t.id ? "border-sky-400 scale-110" : "border-gray-200 hover:scale-105"}`}
+                      style={{ background: t.bg }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={() => {
                 setShowMsgSearch((p) => !p);
@@ -1597,7 +1628,8 @@ export default function Chat() {
 
       <div
         className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3"
-        onClick={() => setCtxMenu(null)}
+        style={{ background: CHAT_THEMES.find(t => t.id === activeTheme)?.bg || "#f9fafb" }}
+        onClick={() => { setCtxMenu(null); setShowThemePicker(false); }}
       >
         {displayedMessages.map((m, i) => {
           if (m.type === "system") return renderSystemMsg(m);

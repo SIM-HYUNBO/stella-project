@@ -150,6 +150,16 @@ type User = {
   nickname: string;
 };
 
+const CHAT_THEMES = [
+  { id: "default", name: "기본", bg: "#f9fafb" },
+  { id: "pink", name: "벚꽃", bg: "#fdf2f8" },
+  { id: "sky", name: "하늘", bg: "#f0f9ff" },
+  { id: "mint", name: "민트", bg: "#f0fdf4" },
+  { id: "lavender", name: "라벤더", bg: "#faf5ff" },
+  { id: "peach", name: "피치", bg: "#fff7ed" },
+  { id: "lemon", name: "레몬", bg: "#fefce8" },
+];
+
 export default function GroupChat() {
   const [nickname, setNickname] = useState<string | null>(null);
   const [memberTitles, setMemberTitles] = useState<Record<string, string>>({});
@@ -166,6 +176,8 @@ export default function GroupChat() {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [activeTheme, setActiveTheme] = useState("default");
+  const [showThemePicker, setShowThemePicker] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
@@ -255,6 +267,12 @@ export default function GroupChat() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!currentRoom?.id) { setActiveTheme("default"); return; }
+    const saved = localStorage.getItem(`chatTheme_group_${currentRoom.id}`);
+    setActiveTheme(saved || "default");
+  }, [currentRoom?.id]);
 
   useEffect(() => {
     const check = () =>
@@ -1332,6 +1350,19 @@ export default function GroupChat() {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="relative">
+            <button onClick={() => setShowThemePicker(p => !p)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-base" title="테마">🎨</button>
+            {showThemePicker && (
+              <div className="absolute right-0 top-10 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 flex gap-2">
+                {CHAT_THEMES.map(t => (
+                  <button key={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_group_${currentRoom.id}`, t.id); setShowThemePicker(false); }} title={t.name}
+                    className={`w-7 h-7 rounded-full border-2 transition-transform ${activeTheme === t.id ? "border-sky-400 scale-110" : "border-gray-200 hover:scale-105"}`}
+                    style={{ background: t.bg }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
           {currentRoom?.createdBy === nickname && (
             <button
               onClick={openRoomSettings}
@@ -1425,7 +1456,7 @@ export default function GroupChat() {
       )}
 
       {/* 메시지 */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3" style={{ background: CHAT_THEMES.find(t => t.id === activeTheme)?.bg || "#f9fafb" }} onClick={() => setShowThemePicker(false)}>
         {messages.map((m, i) => {
           if (m.type === "system") return (
             <div key={m.id} className="flex justify-center my-1">
