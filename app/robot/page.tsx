@@ -12,6 +12,16 @@ import {
 type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; };
 type Work = { id: string; genre: string; title: string; content: string; createdAt: any; };
 
+const CHAT_THEMES = [
+  { id: "default", name: "기본", bg: "#f9fafb" },
+  { id: "pink", name: "벚꽃", bg: "#fdf2f8" },
+  { id: "sky", name: "하늘", bg: "#f0f9ff" },
+  { id: "mint", name: "민트", bg: "#f0fdf4" },
+  { id: "lavender", name: "라벤더", bg: "#faf5ff" },
+  { id: "peach", name: "피치", bg: "#fff7ed" },
+  { id: "lemon", name: "레몬", bg: "#fefce8" },
+];
+
 const GENRES = [
   { id: "novel", label: "소설", icon: "📖" },
   { id: "poem", label: "시", icon: "🌸" },
@@ -48,6 +58,8 @@ export default function RobotPage() {
   const [namingStep, setNamingStep] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [editInput, setEditInput] = useState("");
+  const [activeTheme, setActiveTheme] = useState("default");
+  const [showThemePicker, setShowThemePicker] = useState(false);
 
   // 스튜디오 상태
   const [genre, setGenre] = useState("novel");
@@ -75,6 +87,8 @@ export default function RobotPage() {
       if (snap.exists() && snap.data().name) setRobotName(snap.data().name);
       else setNamingStep(true);
     });
+    const saved = localStorage.getItem(`chatTheme_robot_${user.uid}`);
+    if (saved) setActiveTheme(saved);
   }, [user]);
 
   useEffect(() => {
@@ -228,20 +242,16 @@ export default function RobotPage() {
       <div className="flex flex-col h-[calc(100vh-130px)]">
 
         {/* 모드 탭 */}
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-2xl mb-4 shrink-0">
+        <div className="flex gap-2 mb-4 shrink-0">
           <button onClick={() => setMode("personal")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-black transition-all ${mode === "personal" ? "bg-white shadow text-sky-500" : "text-gray-400 hover:text-gray-600"}`}>
-            <span className="flex items-center justify-center gap-1.5">
-              <RobotIcon size={15} color={mode === "personal" ? "#38bdf8" : "#9ca3af"}/>
-              개인
-            </span>
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition active:scale-90 ${mode === "personal" ? "bg-sky-100" : "bg-sky-50 hover:bg-sky-100"}`}>
+            <RobotIcon size={13} color="#0ea5e9"/>
+            <span className="text-xs font-bold text-sky-600">개인</span>
           </button>
           <button onClick={() => setMode("studio")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-black transition-all ${mode === "studio" ? "bg-white shadow text-purple-500" : "text-gray-400 hover:text-gray-600"}`}>
-            <span className="flex items-center justify-center gap-1.5">
-              <span className="text-base leading-none">{mode === "studio" ? "✨" : "🖊️"}</span>
-              스튜디오
-            </span>
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl transition active:scale-90 ${mode === "studio" ? "bg-purple-100" : "bg-purple-50 hover:bg-purple-100"}`}>
+            <span className="text-xs">✨</span>
+            <span className="text-xs font-bold text-purple-500">스튜디오</span>
           </button>
         </div>
 
@@ -278,10 +288,27 @@ export default function RobotPage() {
                   <p className="text-[11px] text-gray-400">나만의 AI · 항상 여기 있어요</p>
                 </div>
               </div>
-              <button onClick={clearHistory} className="text-xs text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-lg hover:bg-red-50">초기화</button>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <button onClick={() => setShowThemePicker(v => !v)}
+                    className="w-8 h-8 rounded-full border-2 border-gray-200 hover:scale-105 transition-transform"
+                    style={{ background: CHAT_THEMES.find(t => t.id === activeTheme)?.bg || "#f9fafb" }}
+                    title="테마"/>
+                  {showThemePicker && (
+                    <div className="absolute right-0 top-10 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 flex gap-2 z-50">
+                      {CHAT_THEMES.map(t => (
+                        <button key={t.id} onClick={() => { setActiveTheme(t.id); if (user?.uid) localStorage.setItem(`chatTheme_robot_${user.uid}`, t.id); setShowThemePicker(false); }} title={t.name}
+                          className={`w-7 h-7 rounded-full border-2 transition-transform ${activeTheme === t.id ? "border-sky-400 scale-110" : "border-gray-200 hover:scale-105"}`}
+                          style={{ background: t.bg }}/>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button onClick={clearHistory} className="text-xs text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-lg hover:bg-red-50">초기화</button>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto flex flex-col gap-4 pb-4">
+            <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-1 py-4 rounded-2xl -mx-1" style={{ background: CHAT_THEMES.find(t => t.id === activeTheme)?.bg || "#f9fafb" }} onClick={() => setShowThemePicker(false)}>
               {messages.length === 0 && !isStreaming && (
                 <div className="flex flex-col items-center justify-center h-full gap-4">
                   <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center">
@@ -294,26 +321,32 @@ export default function RobotPage() {
                 </div>
               )}
               {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} gap-2.5`}>
-                  {msg.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm shadow-sky-200">
-                      <RobotIcon size={16} color="white"/>
-                    </div>
-                  )}
-                  <div className={`max-w-[78%] ${msg.role === "user" ? "items-end" : "items-start"} flex flex-col`}>
-                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-gradient-to-br from-sky-400 to-sky-500 text-white rounded-tr-sm shadow-md shadow-sky-100" : "bg-white text-gray-800 rounded-tl-sm shadow-sm"}`}>
+                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className="max-w-[80%]">
+                    {msg.role === "assistant" && (
+                      <div className="flex items-center gap-1.5 mb-1 ml-1">
+                        <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
+                          <RobotIcon size={11} color="white"/>
+                        </div>
+                        <span className="text-xs text-gray-400">{robotName}</span>
+                      </div>
+                    )}
+                    <div className={`px-4 py-3 rounded-3xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-sky-400 text-white rounded-br-md" : "bg-white text-gray-800 rounded-bl-md"}`}>
                       {msg.content}
                     </div>
                   </div>
                 </div>
               ))}
               {isStreaming && (
-                <div className="flex justify-start gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm shadow-sky-200">
-                    <RobotIcon size={16} color="white"/>
-                  </div>
-                  <div className="max-w-[78%]">
-                    <div className="px-4 py-3 rounded-2xl rounded-tl-sm text-sm leading-relaxed whitespace-pre-wrap bg-white text-gray-800 shadow-sm">
+                <div className="flex justify-start">
+                  <div className="max-w-[80%]">
+                    <div className="flex items-center gap-1.5 mb-1 ml-1">
+                      <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
+                        <RobotIcon size={11} color="white"/>
+                      </div>
+                      <span className="text-xs text-gray-400">{robotName}</span>
+                    </div>
+                    <div className="px-4 py-3 rounded-3xl rounded-bl-md text-sm leading-relaxed whitespace-pre-wrap bg-white text-gray-800">
                       {streamingText ? <>{streamingText}<span className="inline-block w-0.5 h-4 bg-sky-400 ml-0.5 align-middle animate-pulse"/></> : (
                         <span className="flex gap-1 items-center py-0.5">
                           <span className="w-1.5 h-1.5 bg-sky-300 rounded-full animate-bounce [animation-delay:0ms]"/>
