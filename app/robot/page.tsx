@@ -74,6 +74,9 @@ export default function RobotPage() {
   const [savingWork, setSavingWork] = useState(false);
   const [refineInput, setRefineInput] = useState("");
   const [refining, setRefining] = useState(false);
+  const [createMode, setCreateMode] = useState<"craft" | "longstory">("craft");
+  const [longInput, setLongInput] = useState("");
+  const [worksSearch, setWorksSearch] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -173,6 +176,17 @@ export default function RobotPage() {
     setStudioStreaming(true); setStudioStreamingText(""); setStudioResult("");
     try {
       const full = await streamAI([{ role: "user", content: prompt }].map(m => ({ ...m })), (t) => setStudioStreamingText(t));
+      setStudioResult(full);
+    } catch (err: any) { setStudioResult(`오류: ${err?.message}`); }
+    finally { setStudioStreaming(false); setStudioStreamingText(""); }
+  };
+
+  const generateLong = async () => {
+    if (!longInput.trim() || studioStreaming) return;
+    const prompt = `다음 한 줄 요약을 바탕으로 매우 길고 상세하며 몰입감 있는 소설을 써줘. 배경 묘사, 인물의 감정과 행동, 대화, 사건 전개를 풍부하게 담아서 최소 2000자 이상 써줘. 서론 없이 바로 소설 본문부터 시작해.\n\n[요약]\n${longInput.trim()}`;
+    setStudioStreaming(true); setStudioStreamingText(""); setStudioResult("");
+    try {
+      const full = await streamAI([{ role: "user", content: prompt }], (t) => setStudioStreamingText(t));
       setStudioResult(full);
     } catch (err: any) { setStudioResult(`오류: ${err?.message}`); }
     finally { setStudioStreaming(false); setStudioStreamingText(""); }
@@ -399,6 +413,39 @@ export default function RobotPage() {
             {studioView === "create" && (
               <div className="flex-1 overflow-y-auto flex flex-col gap-4">
 
+                {/* 창작 모드 토글 */}
+                <div className="flex gap-2">
+                  <button onClick={() => { setCreateMode("craft"); setStudioResult(""); setStudioStreamingText(""); }}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold transition active:scale-90 ${createMode === "craft" ? "bg-purple-100 text-purple-600" : "bg-gray-50 text-gray-400 hover:bg-gray-100"}`}>
+                    ✏️ 창작
+                  </button>
+                  <button onClick={() => { setCreateMode("longstory"); setStudioResult(""); setStudioStreamingText(""); }}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold transition active:scale-90 ${createMode === "longstory" ? "bg-orange-100 text-orange-500" : "bg-gray-50 text-gray-400 hover:bg-gray-100"}`}>
+                    📜 긴 이야기
+                  </button>
+                </div>
+
+                {/* 긴 이야기 모드 */}
+                {createMode === "longstory" && (
+                  <div className="flex flex-col gap-3">
+                    <div className="bg-orange-50 border border-orange-100 rounded-2xl px-4 py-3">
+                      <p className="text-xs font-black text-orange-400 mb-1">📜 긴 이야기 생성</p>
+                      <p className="text-[11px] text-orange-300">한 줄 요약만 입력하면 AI가 길고 상세하게 써줘요</p>
+                    </div>
+                    <textarea value={longInput} onChange={(e) => setLongInput(e.target.value)}
+                      placeholder="예: 기억을 잃은 남자가 자신의 일기장을 발견하면서 과거의 비밀을 알게 되는 이야기"
+                      rows={3}
+                      className="w-full bg-gray-50 border-2 border-gray-100 focus:border-orange-200 rounded-2xl px-4 py-3 text-sm outline-none transition resize-none"/>
+                    <button onClick={generateLong} disabled={!longInput.trim() || studioStreaming}
+                      className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-400 to-amber-400 text-white text-sm font-black disabled:opacity-40 transition active:scale-[0.98] shadow-md shadow-orange-100">
+                      {studioStreaming ? "📜 이야기 쓰는 중..." : "📜 길게 써줘"}
+                    </button>
+                  </div>
+                )}
+
+                {/* 일반 창작 모드 */}
+                {createMode === "craft" && <>
+
                 {/* 장르 선택 */}
                 <div>
                   <p className="text-xs font-black text-gray-400 mb-2 tracking-wide">장르</p>
@@ -437,6 +484,8 @@ export default function RobotPage() {
                     {studioStreaming ? "✨ 창작 중..." : "✨ AI 창작 시작"}
                   </button>
                 </div>
+
+                </>}
 
                 {/* 결과 */}
                 {(studioStreaming || studioResult) && (
@@ -491,7 +540,7 @@ export default function RobotPage() {
 
             {/* 내 작품 뷰 */}
             {studioView === "works" && (
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto flex flex-col gap-3">
                 {selectedWork ? (
                   <div className="flex flex-col gap-3">
                     <button onClick={() => setSelectedWork(null)} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition">
@@ -505,25 +554,49 @@ export default function RobotPage() {
                     </div>
                     <button onClick={() => deleteWork(selectedWork.id)} className="text-xs text-red-400 hover:text-red-500 text-center py-1">삭제</button>
                   </div>
-                ) : works.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-                    <span className="text-5xl">📭</span>
-                    <p className="text-sm font-bold text-gray-300">아직 저장된 작품이 없어요</p>
-                    <button onClick={() => setStudioView("create")} className="text-xs text-purple-400 font-bold">창작하러 가기 →</button>
-                  </div>
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    {works.map(w => (
-                      <button key={w.id} onClick={() => setSelectedWork(w)}
-                        className="w-full bg-white rounded-2xl border border-gray-100 px-4 py-3.5 text-left hover:border-purple-100 transition active:scale-[0.99] shadow-sm">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[10px] font-black text-purple-400 bg-purple-50 px-2 py-0.5 rounded-lg">{w.genre}</span>
+                  <>
+                    {/* 검색창 */}
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      </svg>
+                      <input value={worksSearch} onChange={(e) => setWorksSearch(e.target.value)}
+                        placeholder="작품 검색..."
+                        className="w-full bg-gray-50 border border-gray-100 focus:border-purple-200 rounded-2xl pl-8 pr-4 py-2.5 text-sm outline-none transition"/>
+                      {worksSearch && (
+                        <button onClick={() => setWorksSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">✕</button>
+                      )}
+                    </div>
+
+                    {works.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center py-16">
+                        <span className="text-5xl">📭</span>
+                        <p className="text-sm font-bold text-gray-300">아직 저장된 작품이 없어요</p>
+                        <button onClick={() => setStudioView("create")} className="text-xs text-purple-400 font-bold">창작하러 가기 →</button>
+                      </div>
+                    ) : (() => {
+                      const filtered = works.filter(w =>
+                        w.title.includes(worksSearch) || w.content.includes(worksSearch) || w.genre.includes(worksSearch)
+                      );
+                      return filtered.length === 0 ? (
+                        <div className="text-center py-12 text-sm text-gray-300">"{worksSearch}" 검색 결과 없음</div>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          {filtered.map(w => (
+                            <button key={w.id} onClick={() => setSelectedWork(w)}
+                              className="w-full bg-white rounded-2xl border border-gray-100 px-4 py-3.5 text-left hover:border-purple-100 transition active:scale-[0.99] shadow-sm">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <span className="text-[10px] font-black text-purple-400 bg-purple-50 px-2 py-0.5 rounded-lg">{w.genre}</span>
+                              </div>
+                              <p className="text-sm font-bold text-gray-700 truncate">{w.title}</p>
+                              <p className="text-xs text-gray-300 mt-0.5 line-clamp-2">{w.content.slice(0, 80)}...</p>
+                            </button>
+                          ))}
                         </div>
-                        <p className="text-sm font-bold text-gray-700 truncate">{w.title}</p>
-                        <p className="text-xs text-gray-300 mt-0.5 line-clamp-2">{w.content.slice(0, 80)}...</p>
-                      </button>
-                    ))}
-                  </div>
+                      );
+                    })()}
+                  </>
                 )}
               </div>
             )}
