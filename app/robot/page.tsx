@@ -216,28 +216,29 @@ export default function RobotPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setShowThemePicker(v => !v)}
-                className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
-                style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
-              {showThemePicker && (
-                <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
-                  style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-                  {THEMES.map(t => {
-                    const a = ACCENT[t.id];
-                    return (
-                      <button key={t.id} title={t.label}
-                        onClick={() => { setActiveTheme(t.id); if (user?.uid) localStorage.setItem(`chatTheme_robot_${user.uid}`, t.id); setShowThemePicker(false); }}
-                        className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
-                        style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(v => !v); }}
+              className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+              style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
             <button onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">지우기</button>
           </div>
         </div>
+
+        {/* 테마 피커 — 헤더 stacking context 밖에 렌더링해야 말풍선에 안 가려짐 */}
+        {showThemePicker && (
+          <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
+            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
+            onClick={(e) => e.stopPropagation()}>
+            {THEMES.map(t => {
+              const a = ACCENT[t.id];
+              return (
+                <button key={t.id} title={t.label}
+                  onClick={() => { setActiveTheme(t.id); if (user?.uid) localStorage.setItem(`chatTheme_robot_${user.uid}`, t.id); setShowThemePicker(false); }}
+                  className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                  style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
+              );
+            })}
+          </div>
+        )}
 
         {/* 채팅 영역 */}
         <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-2 py-5 relative">

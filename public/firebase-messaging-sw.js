@@ -12,24 +12,9 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.data?.title ?? "새 메시지";
-  const body  = payload.data?.body  ?? "";
-  const url   = payload.data?.url   ?? "/home";
-
-  // 앱 아이콘 배지 표시 (백그라운드)
+  // webpush.notification이 FCM SDK에 의해 자동으로 알림을 표시하므로
+  // 여기서 showNotification을 호출하면 이중 알림이 발생 → 배지만 처리
   self.registration.setAppBadge?.().catch?.(() => {});
-
-  self.registration.showNotification(title, {
-    body,
-    icon:     "/wag.png",
-    badge:    "/wag.png",
-    vibrate:  [200, 80, 200, 80, 400],
-    tag:      `chat-${Date.now()}`,
-    renotify: true,
-    silent:   false,
-    requireInteraction: false,
-    data: { url },
-  });
 });
 
 self.addEventListener("notificationclick", (event) => {

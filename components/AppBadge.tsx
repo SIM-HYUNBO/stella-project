@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/firebase";
-import { collection, doc, getDoc, getDocs, query, where, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDoc, query, where, onSnapshot } from "firebase/firestore";
 
 export default function AppBadge() {
   useEffect(() => {
@@ -24,9 +24,14 @@ export default function AppBadge() {
       }
     };
 
+    let roomMsgUnsubs: (() => void)[] = [];
+    const countsPerRoom: Record<string, number> = {};
+
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (unsubDm) { unsubDm(); unsubDm = null; }
       if (unsubGroup) { unsubGroup(); unsubGroup = null; }
+      roomMsgUnsubs.forEach(u => u());
+      roomMsgUnsubs = [];
 
       if (!user) {
         dmCount = 0; groupCount = 0;
@@ -51,19 +56,37 @@ export default function AppBadge() {
         }
       );
 
+      // 방 목록 감지 → 각 방 메시지에 개별 onSnapshot 설정
       unsubGroup = onSnapshot(
         query(collection(db, "group_rooms"), where("members", "array-contains", nickname)),
-        async (s) => {
-          let total = 0;
-          for (const d of s.docs) {
-            const msgSnap = await getDocs(collection(db, "group_rooms", d.id, "messages"));
-            msgSnap.forEach((m) => {
-              const data = m.data();
-              if (data.from !== nickname && !data.readBy?.includes(nickname)) total++;
-            });
-          }
-          groupCount = total;
-          updateBadge();
+        (roomSnap) => {
+          // 기존 방 메시지 리스너 정리
+          roomMsgUnsubs.forEach(u => u());
+          roomMsgUnsubs = [];
+
+          const activeRoomIds = new Set(roomSnap.docs.map(d => d.id));
+          // 삭제된 방 카운트 제거
+          Object.keys(countsPerRoom).forEach(id => {
+            if (!activeRoomIds.has(id)) delete countsPerRoom[id];
+          });
+
+          roomSnap.docs.forEach(roomDoc => {
+            const roomId = roomDoc.id;
+            const unsub = onSnapshot(
+              collection(db, "group_rooms", roomId, "messages"),
+              (msgSnap) => {
+                let count = 0;
+                msgSnap.forEach(m => {
+                  const data = m.data();
+                  if (data.from !== nickname && !(data.readBy || []).includes(nickname)) count++;
+                });
+                countsPerRoom[roomId] = count;
+                groupCount = Object.values(countsPerRoom).reduce((a, b) => a + b, 0);
+                updateBadge();
+              }
+            );
+            roomMsgUnsubs.push(unsub);
+          });
         }
       );
     });
@@ -72,6 +95,7 @@ export default function AppBadge() {
       unsubAuth();
       if (unsubDm) unsubDm();
       if (unsubGroup) unsubGroup();
+      roomMsgUnsubs.forEach(u => u());
       (navigator as any).clearAppBadge?.().catch(() => {});
     };
   }, []);
