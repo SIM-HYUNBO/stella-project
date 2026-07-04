@@ -331,7 +331,6 @@ export default function RobotPage() {
           </div>
         </div>
 
-      </div>
     </div>
   );
 }
