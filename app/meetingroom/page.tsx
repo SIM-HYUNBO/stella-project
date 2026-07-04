@@ -983,6 +983,7 @@ export default function MeetingRoomPage() {
           }}
         />
 
+        <div className="flex-1 flex items-center rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 shadow-inner px-1.5 gap-1 relative overflow-visible">
         {/* + 버튼 */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -1057,7 +1058,7 @@ export default function MeetingRoomPage() {
 
         <input
           ref={msgInputRef}
-          className="flex-1 min-w-0 w-0 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 px-5 text-sm outline-none text-slate-800 placeholder:text-slate-400 shadow-inner"
+          className="flex-1 min-w-0 w-0 bg-transparent px-3 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder="메시지 입력"
           value={input}
           onChange={(e) => {
@@ -1087,6 +1088,7 @@ export default function MeetingRoomPage() {
             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
         </button>
+        </div>
       </div>
 
       {/* 주제 편집 모달 */}

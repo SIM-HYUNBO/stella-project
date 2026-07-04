@@ -1867,6 +1867,7 @@ export default function Chat() {
           }}
         />
 
+        <div className="flex-1 flex items-center rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 shadow-inner px-1.5 gap-1 relative overflow-visible">
         {/* + 버튼 (이미지/Aa/마이크 묶음) */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -1941,7 +1942,7 @@ export default function Chat() {
 
         <input
           ref={msgInputRef}
-          className="flex-1 min-w-0 w-0 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 px-5 text-sm outline-none text-slate-800 placeholder:text-slate-400 shadow-inner"
+          className="flex-1 min-w-0 w-0 bg-transparent px-3 text-sm outline-none text-slate-800 placeholder:text-slate-400"
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력"}
           value={input}
           onChange={handleInputChange}
@@ -1995,6 +1996,7 @@ export default function Chat() {
               </svg>
             ) : "#"}
           </button>
+        </div>
         </div>
       </div>
 

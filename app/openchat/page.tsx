@@ -575,6 +575,7 @@ export default function OpenChatPage() {
           onChange={(e) => { const f = e.target.files?.[0]; if (f) { const url = URL.createObjectURL(f); setPendingImage({ file: f, previewUrl: url }); } e.target.value = ""; }}
         />
 
+        <div className="flex-1 flex items-center rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 shadow-inner px-1.5 gap-1 relative overflow-visible">
         {/* + 버튼 */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -615,7 +616,7 @@ export default function OpenChatPage() {
           onChange={(e) => { setInput(e.target.value); if (e.target.value.trim()) setShowSpecialMenu(false); }}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력..."}
-          className="flex-1 bg-white/80 backdrop-blur-sm border border-sky-100 rounded-full px-5 py-2.5 text-sm outline-none focus:border-sky-200 transition shadow-inner"
+          className="flex-1 bg-transparent px-3 text-sm outline-none text-slate-800 placeholder:text-slate-400"
         />
 
         {/* 보내기 / # 버튼 */}
@@ -649,6 +650,7 @@ export default function OpenChatPage() {
               </svg>
             ) : "#"}
           </button>
+        </div>
         </div>
       </div>
 

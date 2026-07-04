@@ -178,6 +178,9 @@ export default function RobotPage() {
         {/* 헤더 */}
         <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
           <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/60 text-gray-500 hover:bg-white/90 transition active:scale-90">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
             <div className="relative">
               <div className="w-11 h-11 rounded-[14px] flex items-center justify-center shadow-lg"
                 style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 6px 20px ${accent.shadow}` }}>
@@ -269,6 +272,9 @@ export default function RobotPage() {
                 </div>
               )}
               <div className="max-w-[76%]">
+                {msg.role === "assistant" && (
+                  <p className="text-[10px] font-bold mb-1 ml-1" style={{ color: accent.from }}>{robotName}</p>
+                )}
                 <div className={`px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap font-medium ${
                   msg.role === "user"
                     ? "text-white rounded-[1.4rem] rounded-br-md"
@@ -291,7 +297,9 @@ export default function RobotPage() {
                   <RobotFace size={15} light="white"/>
                 </div>
               </div>
-              <div className="max-w-[76%] px-4 py-2.5 rounded-[1.4rem] rounded-bl-md text-sm leading-relaxed whitespace-pre-wrap font-medium bg-white/80 backdrop-blur-sm text-gray-800 shadow-sm">
+              <div className="max-w-[76%]">
+              <p className="text-[10px] font-bold mb-1 ml-1" style={{ color: accent.from }}>{robotName}</p>
+              <div className="px-4 py-2.5 rounded-[1.4rem] rounded-bl-md text-sm leading-relaxed whitespace-pre-wrap font-medium bg-white/80 backdrop-blur-sm text-gray-800 shadow-sm">
                 {streamingText
                   ? <>{streamingText}<span className="inline-block w-0.5 h-[1.1em] rounded-full ml-0.5 align-middle animate-pulse" style={{ background: accent.from }}/></>
                   : <span className="flex gap-1 items-center py-0.5">
@@ -301,13 +309,14 @@ export default function RobotPage() {
                     </span>
                 }
               </div>
+              </div>
             </div>
           )}
           <div ref={bottomRef} className="h-1"/>
         </div>
 
         {/* 젤리 입력창 */}
-        <div className="px-4 pb-5 pt-2.5 shrink-0 bg-white/60 backdrop-blur-xl border-t border-white/80">
+        <div className="px-4 pb-5 pt-2.5 shrink-0">
           <div className="flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all"
             style={{
               background: "rgba(255,255,255,0.72)",
