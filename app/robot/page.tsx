@@ -203,7 +203,7 @@ export default function RobotPage() {
                 className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
                 style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
               {showThemePicker && (
-                <div className="absolute right-0 top-10 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-50"
+                <div className="absolute right-0 top-10 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
                   style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
                   {THEMES.map(t => {
                     const a = ACCENT[t.id];
