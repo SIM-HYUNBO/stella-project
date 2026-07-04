@@ -1851,7 +1851,7 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="px-3 py-2 bg-white flex items-center gap-2 shrink-0">
+      <div className="px-4 pb-5 pt-2.5 shrink-0">
         <input
           type="file"
           ref={imageInputRef}
@@ -1867,7 +1867,8 @@ export default function Chat() {
           }}
         />
 
-        <div className="flex-1 flex items-center rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 shadow-inner px-1.5 gap-1 relative overflow-visible">
+        <div className="flex items-center gap-2 rounded-full px-3 py-2 transition-all relative overflow-visible"
+          style={{ background:"rgba(255,255,255,0.72)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:"0 4px 24px rgba(0,0,0,0.08),0 0 0 1px rgba(186,230,253,0.4)" }}>
         {/* + 버튼 (이미지/Aa/마이크 묶음) */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -1934,7 +1935,7 @@ export default function Chat() {
           )}
           <button
             onClick={() => setShowPlusMenu((p) => !p)}
-            className={`w-10 h-10 rounded-[12px] flex items-center justify-center transition shrink-0 text-xl font-black ${showPlusMenu ? "bg-sky-200 text-white" : "bg-sky-50 text-sky-500"}`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black ${showPlusMenu ? "bg-sky-400 text-white" : "text-sky-400"}`}
           >
             {showPlusMenu ? "✕" : "+"}
           </button>
@@ -1942,7 +1943,7 @@ export default function Chat() {
 
         <input
           ref={msgInputRef}
-          className="flex-1 min-w-0 w-0 bg-transparent px-3 text-sm outline-none text-slate-800 placeholder:text-slate-400"
+          className="flex-1 min-w-0 w-0 bg-transparent px-2 text-[13.5px] outline-none text-gray-700 placeholder:text-gray-400 font-medium"
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력"}
           value={input}
           onChange={handleInputChange}
@@ -1987,10 +1988,11 @@ export default function Chat() {
               if (input.trim()) { sendMessage(); }
               else { setShowSpecialMenu((p) => !p); }
             }}
-            className={`w-11 h-11 rounded-[14px] flex items-center justify-center font-black text-base transition shrink-0 ${input.trim() ? "bg-sky-400 text-white hover:scale-105 active:scale-95" : "bg-sky-100 text-sky-500 active:scale-95"}`}
+            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 font-black text-sm"
+            style={input.trim() ? { background:"linear-gradient(135deg,#38bdf8,#6366f1)", boxShadow:"0 4px 16px rgba(56,189,248,0.35)" } : { background:"rgba(186,230,253,0.35)", color:"#38bdf8" }}
           >
             {input.trim() ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"/>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
               </svg>
