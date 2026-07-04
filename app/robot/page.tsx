@@ -69,6 +69,7 @@ export default function RobotPage() {
     });
     const saved = localStorage.getItem(`chatTheme_robot_${user.uid}`);
     if (saved && THEMES.find(t => t.id === saved)) setActiveTheme(saved);
+    else { const g = localStorage.getItem("globalChatTheme"); if (g && THEMES.find(t => t.id === g)) setActiveTheme(g); }
   }, [user]);
 
   useEffect(() => {

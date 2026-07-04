@@ -186,9 +186,10 @@ export default function OpenChatPage() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   useEffect(() => {
-    if (!currentRoom?.id) { setActiveTheme("sky"); return; }
+    const globalTheme = localStorage.getItem("globalChatTheme") || "sky";
+    if (!currentRoom?.id) { setActiveTheme(globalTheme); return; }
     const saved = localStorage.getItem(`chatTheme_open_${currentRoom.id}`);
-    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : "sky");
+    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : globalTheme);
   }, [currentRoom?.id]);
 
   useEffect(() => {

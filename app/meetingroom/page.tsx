@@ -136,9 +136,10 @@ export default function MeetingRoomPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!currentRoom?.id) { setActiveTheme("sky"); return; }
+    const globalTheme = localStorage.getItem("globalChatTheme") || "sky";
+    if (!currentRoom?.id) { setActiveTheme(globalTheme); return; }
     const saved = localStorage.getItem(`chatTheme_meeting_${currentRoom.id}`);
-    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : "sky");
+    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : globalTheme);
   }, [currentRoom?.id]);
 
   useEffect(() => {

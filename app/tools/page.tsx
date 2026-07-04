@@ -13,6 +13,22 @@ type UserInfo = {
   email?: string;
 };
 
+const THEMES = [
+  { id: "sky",    label: "하늘" },
+  { id: "violet", label: "보라" },
+  { id: "pink",   label: "핑크" },
+  { id: "mint",   label: "민트" },
+  { id: "peach",  label: "피치" },
+];
+
+const ACCENT: Record<string, { from: string; to: string; ring: string }> = {
+  sky:    { from: "#38bdf8", to: "#818cf8", ring: "#38bdf880" },
+  violet: { from: "#a78bfa", to: "#f472b6", ring: "#a78bfa80" },
+  pink:   { from: "#f472b6", to: "#fb923c", ring: "#f472b680" },
+  mint:   { from: "#34d399", to: "#38bdf8", ring: "#34d39980" },
+  peach:  { from: "#fb923c", to: "#f472b6", ring: "#fb923c80" },
+};
+
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
@@ -38,6 +54,8 @@ export default function SettingsPage() {
   const [sound, setSound] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
 
+  const [chatTheme, setChatTheme] = useState("sky");
+
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -50,12 +68,16 @@ export default function SettingsPage() {
       setUid(firebaseUser.uid);
       const snap = await getDoc(doc(db, "users", firebaseUser.uid));
       if (snap.exists()) {
+        const data = snap.data();
         setUser({
-          nickname: snap.data().nickname || "유저",
-          profileImage: snap.data().profileImage || null,
+          nickname: data.nickname || "유저",
+          profileImage: data.profileImage || null,
           email: firebaseUser.email || "",
         });
-        setEditNickname(snap.data().nickname || "");
+        setEditNickname(data.nickname || "");
+        const savedTheme = data.chatTheme || localStorage.getItem("globalChatTheme") || "sky";
+        setChatTheme(savedTheme);
+        localStorage.setItem("globalChatTheme", savedTheme);
       }
     });
     return () => unsub();
@@ -81,6 +103,12 @@ export default function SettingsPage() {
   const handleAdminMode = (v: boolean) => {
     setAdminMode(v);
     localStorage.setItem("stellaAdminMode", String(v));
+  };
+
+  const saveTheme = async (themeId: string) => {
+    setChatTheme(themeId);
+    localStorage.setItem("globalChatTheme", themeId);
+    if (uid) await updateDoc(doc(db, "users", uid), { chatTheme: themeId });
   };
 
   const handleAppLock = (v: boolean) => {
@@ -169,17 +197,24 @@ export default function SettingsPage() {
   const pinKeys = ["1","2","3","4","5","6","7","8","9","","0","←"];
 
   return (
-    <main className="relative min-h-screen bg-gray-50">
+    <main className="relative min-h-screen" style={{ background: "#f0f9ff" }}>
+      {/* 배경 블롭 */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: "#bae6fd" }}/>
+        <div className="absolute top-1/3 -right-16 w-56 h-56 rounded-full blur-3xl opacity-30" style={{ background: "#e0f2fe" }}/>
+        <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-30" style={{ background: "#dbeafe" }}/>
+      </div>
+
       {/* 헤더 */}
-      <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+      <div className="flex items-center h-14 px-4 bg-white/70 backdrop-blur-xl border-b border-white/80 sticky top-0 z-20">
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 text-sky-600 font-bold text-lg mr-3 shadow-sm">←</button>
         <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
       </div>
 
-      <div className="px-5 pt-5 pb-20 space-y-4">
+      <div className="px-5 pt-5 pb-20 space-y-4 relative z-10">
 
         {/* 내 정보 */}
-        <div className="bg-white rounded-[20px] px-5 py-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">내 정보</span>
             <button
@@ -212,8 +247,32 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* 채팅 테마 */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4">
+          <span className="text-xs font-black text-gray-400 uppercase tracking-wider">채팅 테마</span>
+          <div className="flex gap-3 mt-3">
+            {THEMES.map(t => {
+              const a = ACCENT[t.id];
+              return (
+                <button
+                  key={t.id}
+                  title={t.label}
+                  onClick={() => saveTheme(t.id)}
+                  className={`w-10 h-10 rounded-full transition-all ${chatTheme === t.id ? "scale-110" : "hover:scale-105"}`}
+                  style={{
+                    background: `linear-gradient(135deg, ${a.from}, ${a.to})`,
+                    boxShadow: chatTheme === t.id
+                      ? `0 0 0 3px white, 0 0 0 5px ${a.from}`
+                      : "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+
         {/* 앱 설정 토글 */}
-        <div className="bg-white rounded-[20px] overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">앱 설정</span>
           </div>
@@ -240,7 +299,7 @@ export default function SettingsPage() {
 
         {/* 관리자 모드 (Stella 전용) */}
         {user?.nickname === "Stella" && (
-          <div className="bg-white rounded-[20px] overflow-hidden">
+          <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-50">
               <span className="text-xs font-black text-gray-400 uppercase tracking-wider">관리자</span>
             </div>
@@ -282,7 +341,7 @@ export default function SettingsPage() {
         )}
 
         {/* 기능 버튼들 */}
-        <div className="bg-white rounded-[20px] overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">기능</span>
           </div>

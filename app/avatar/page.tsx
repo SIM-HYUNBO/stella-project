@@ -464,9 +464,10 @@ export default function Chat() {
     usePushSubscription(nickname);
 
   useEffect(() => {
-    if (!currentChatUser?.id) { setActiveTheme("sky"); return; }
+    const globalTheme = localStorage.getItem("globalChatTheme") || "sky";
+    if (!currentChatUser?.id) { setActiveTheme(globalTheme); return; }
     const saved = localStorage.getItem(`chatTheme_1on1_${currentChatUser.id}`);
-    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : "sky");
+    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : globalTheme);
   }, [currentChatUser?.id]);
 
   useEffect(() => {
