@@ -67,15 +67,20 @@ type User = {
   nickname: string;
 };
 
-const CHAT_THEMES = [
-  { id: "default", name: "기본", bg: "#f9fafb" },
-  { id: "pink", name: "벚꽃", bg: "#fdf2f8" },
-  { id: "sky", name: "하늘", bg: "#f0f9ff" },
-  { id: "mint", name: "민트", bg: "#f0fdf4" },
-  { id: "lavender", name: "라벤더", bg: "#faf5ff" },
-  { id: "peach", name: "피치", bg: "#fff7ed" },
-  { id: "lemon", name: "레몬", bg: "#fefce8" },
+const THEMES = [
+  { id: "sky",    blob1: "#bae6fd", blob2: "#e0f2fe", blob3: "#dbeafe", bg: "#f0f9ff" },
+  { id: "violet", blob1: "#ddd6fe", blob2: "#ede9fe", blob3: "#fae8ff", bg: "#faf5ff" },
+  { id: "pink",   blob1: "#fbcfe8", blob2: "#fce7f3", blob3: "#fdf2f8", bg: "#fdf2f8" },
+  { id: "mint",   blob1: "#a7f3d0", blob2: "#d1fae5", blob3: "#ecfdf5", bg: "#f0fdf4" },
+  { id: "peach",  blob1: "#fed7aa", blob2: "#ffedd5", blob3: "#fff7ed", bg: "#fff7ed" },
 ];
+const ACCENT: Record<string, { from: string; to: string; shadow: string; ring: string }> = {
+  sky:    { from: "#38bdf8", to: "#6366f1", shadow: "rgba(56,189,248,0.35)",  ring: "#bae6fd" },
+  violet: { from: "#a78bfa", to: "#ec4899", shadow: "rgba(167,139,250,0.35)", ring: "#ddd6fe" },
+  pink:   { from: "#f472b6", to: "#fb923c", shadow: "rgba(244,114,182,0.35)", ring: "#fbcfe8" },
+  mint:   { from: "#34d399", to: "#06b6d4", shadow: "rgba(52,211,153,0.35)",  ring: "#a7f3d0" },
+  peach:  { from: "#fb923c", to: "#f43f5e", shadow: "rgba(251,146,60,0.35)",  ring: "#fed7aa" },
+};
 
 export default function MeetingRoomPage() {
   const [nickname, setNickname] = useState<string | null>(null);
@@ -86,7 +91,7 @@ export default function MeetingRoomPage() {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
-  const [activeTheme, setActiveTheme] = useState("default");
+  const [activeTheme, setActiveTheme] = useState("sky");
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -131,9 +136,9 @@ export default function MeetingRoomPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!currentRoom?.id) { setActiveTheme("default"); return; }
+    if (!currentRoom?.id) { setActiveTheme("sky"); return; }
     const saved = localStorage.getItem(`chatTheme_meeting_${currentRoom.id}`);
-    setActiveTheme(saved || "default");
+    setActiveTheme(THEMES.find(t => t.id === saved) ? saved! : "sky");
   }, [currentRoom?.id]);
 
   useEffect(() => {
@@ -662,11 +667,14 @@ export default function MeetingRoomPage() {
     );
   };
 
+  const theme = THEMES.find(t => t.id === activeTheme) || THEMES[0];
+  const accent = ACCENT[activeTheme] || ACCENT.sky;
+
   // 채팅
   const renderRoom = () => (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* 헤더 */}
-      <div className="px-4 py-3 bg-white flex items-center justify-between shrink-0">
+      <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
         <div className="flex items-center gap-3">
           <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
 
@@ -729,14 +737,19 @@ export default function MeetingRoomPage() {
 
         <div className="flex items-center gap-2">
           <div className="relative">
-            <button onClick={() => setShowThemePicker(p => !p)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-base" title="테마">🎨</button>
+            <button onClick={() => setShowThemePicker(p => !p)}
+              className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+              style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
             {showThemePicker && (
-              <div className="absolute right-0 top-10 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 flex gap-2">
-                {CHAT_THEMES.map(t => (
-                  <button key={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_meeting_${currentRoom.id}`, t.id); setShowThemePicker(false); }} title={t.name}
-                    className={`w-7 h-7 rounded-full border-2 transition-transform ${activeTheme === t.id ? "border-sky-400 scale-110" : "border-gray-200 hover:scale-105"}`}
-                    style={{ background: t.bg }}
-                  />
+              <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]" style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                {THEMES.map(t => {
+                  const a = ACCENT[t.id];
+                  return (
+                  <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_meeting_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
+                    className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                    style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
+                  );
+                })}
                 ))}
               </div>
             )}
@@ -794,7 +807,12 @@ export default function MeetingRoomPage() {
       </div>
 
       {/* 메시지 */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3" style={{ background: CHAT_THEMES.find(t => t.id === activeTheme)?.bg || "#f9fafb" }} onClick={() => setShowThemePicker(false)}>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" onClick={() => setShowThemePicker(false)}>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
+          <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
+          <div className="absolute -bottom-6 left-1/3 w-36 h-36 rounded-full blur-3xl opacity-40" style={{ background: theme.blob3 }}/>
+        </div>
         {messages.map((m, i) => {
           const isMine = m.from === nickname;
           const prev = messages[i - 1];
@@ -851,11 +869,12 @@ export default function MeetingRoomPage() {
                       <span className="text-xs text-gray-400">{m.from}</span>
                     </div>
                   )}
-                  <div className={`px-4 py-3 rounded-3xl text-sm ${
+                  <div className={`px-4 py-2.5 text-sm leading-relaxed font-medium ${
                     isMine
-                      ? "bg-sky-400 text-white rounded-br-md"
-                      : "bg-white rounded-bl-md"
+                      ? "text-white rounded-[1.4rem] rounded-br-md"
+                      : "bg-white/80 backdrop-blur-sm text-gray-800 rounded-[1.4rem] rounded-bl-md shadow-sm"
                   }`}
+                    style={isMine ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 20px ${accent.shadow}` } : {}}
                     onContextMenu={(e) => openCtxMenu(e, m, isMine)}
                     onTouchStart={(e) => handleTouchStart(e, m, isMine)}
                     onTouchEnd={handleTouchEnd}
@@ -1250,7 +1269,7 @@ export default function MeetingRoomPage() {
 
   if (currentRoom) {
     return (
-      <div className="fixed inset-0 z-40 flex flex-col bg-gray-50">
+      <div className="fixed inset-0 z-40 flex flex-col" style={{ background: theme.bg }}>
         {renderRoom()}
         {renderInviteModal()}
         {ctxMenu && (
