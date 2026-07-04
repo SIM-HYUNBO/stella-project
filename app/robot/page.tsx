@@ -580,7 +580,7 @@ export default function RobotPage() {
                         w.title.includes(worksSearch) || w.content.includes(worksSearch) || w.genre.includes(worksSearch)
                       );
                       return filtered.length === 0 ? (
-                        <div className="text-center py-12 text-sm text-gray-300">"{worksSearch}" 검색 결과 없음</div>
+                        <div className="text-center py-12 text-sm text-gray-300">&quot;{worksSearch}&quot; 검색 결과 없음</div>
                       ) : (
                         <div className="flex flex-col gap-2">
                           {filtered.map(w => (
