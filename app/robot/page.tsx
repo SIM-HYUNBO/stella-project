@@ -51,6 +51,7 @@ export default function RobotPage() {
   const [editInput, setEditInput] = useState("");
   const [activeTheme, setActiveTheme] = useState("sky");
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -115,6 +116,22 @@ export default function RobotPage() {
       }
     }
     return full;
+  };
+
+  const startVoice = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const recognition = new SR();
+    recognition.lang = "ko-KR";
+    recognition.interimResults = false;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (e: any) => {
+      const text = e.results[0][0].transcript;
+      setInput((prev) => (prev ? prev + " " + text : text));
+      inputRef.current?.focus();
+    };
+    recognition.start();
   };
 
   const send = async () => {
@@ -317,13 +334,30 @@ export default function RobotPage() {
               placeholder={isStreaming ? "응답 중이야..." : `${robotName}에게 말해봐...`}
               disabled={isStreaming}
               className="flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium"/>
-            <button onClick={send} disabled={isStreaming || !input.trim()}
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 disabled:opacity-30"
-              style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 16px ${accent.shadow}` }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
-            </button>
+            {input.trim() ? (
+              <button onClick={send} disabled={isStreaming}
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
+                style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 16px ${accent.shadow}` }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            ) : (
+              <button onClick={startVoice} disabled={isStreaming || isListening}
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
+                style={{
+                  background: isListening ? `linear-gradient(135deg, ${accent.from}, ${accent.to})` : "rgba(255,255,255,0.6)",
+                  boxShadow: isListening ? `0 4px 16px ${accent.shadow}` : "0 2px 8px rgba(0,0,0,0.08)",
+                }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke={isListening ? "white" : accent.from} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3"/>
+                  <path d="M5 10a7 7 0 0 0 14 0"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="9" y1="23" x2="15" y2="23"/>
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
