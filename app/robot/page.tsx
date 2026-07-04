@@ -181,34 +181,20 @@ export default function RobotPage() {
             <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/60 text-gray-500 hover:bg-white/90 transition active:scale-90">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div className="relative">
-              <div className="w-11 h-11 rounded-[14px] flex items-center justify-center shadow-lg"
-                style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 6px 20px ${accent.shadow}` }}>
-                <RobotFace size={24} light="white"/>
+            {editingName ? (
+              <div className="flex items-center gap-1.5">
+                <input autoFocus value={editInput} onChange={(e) => setEditInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") updateName(); if (e.key === "Escape") setEditingName(false); }}
+                  maxLength={12} className="text-sm font-black text-gray-800 border-b-2 border-sky-300 outline-none w-24 bg-transparent"/>
+                <button onClick={updateName} className="text-xs text-sky-500 font-bold">저장</button>
+                <button onClick={() => setEditingName(false)} className="text-xs text-gray-300">✕</button>
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white shadow-sm"/>
-            </div>
-            <div>
-              {editingName ? (
-                <div className="flex items-center gap-1.5">
-                  <input autoFocus value={editInput} onChange={(e) => setEditInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") updateName(); if (e.key === "Escape") setEditingName(false); }}
-                    maxLength={12} className="text-sm font-black text-gray-800 border-b-2 border-sky-300 outline-none w-24 bg-transparent"/>
-                  <button onClick={updateName} className="text-xs text-sky-500 font-bold">저장</button>
-                  <button onClick={() => setEditingName(false)} className="text-xs text-gray-300">✕</button>
-                </div>
-              ) : (
-                <button onClick={() => { setEditInput(robotName || ""); setEditingName(true); }}
-                  className="flex items-center gap-1.5 font-black text-gray-800 text-[15px] hover:opacity-70 transition group">
-                  {robotName}
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-              )}
-              <p className="text-[10px] text-gray-400 mt-0.5 tracking-wide">AI 친구 · 온라인</p>
-            </div>
+            ) : (
+              <button onClick={() => { setEditInput(robotName || ""); setEditingName(true); }}
+                className="font-black text-gray-800 text-[16px] hover:opacity-70 transition">
+                {robotName}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">
