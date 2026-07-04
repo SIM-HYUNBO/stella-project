@@ -11,24 +11,30 @@ import {
 
 type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; };
 
-const BG_THEMES = [
-  { id: "sky",      name: "하늘",   from: "#e0f2fe", to: "#bae6fd" },
-  { id: "purple",   name: "라벤더", from: "#f3e8ff", to: "#e9d5ff" },
-  { id: "pink",     name: "벚꽃",   from: "#fce7f3", to: "#fbcfe8" },
-  { id: "mint",     name: "민트",   from: "#d1fae5", to: "#a7f3d0" },
-  { id: "peach",    name: "피치",   from: "#ffedd5", to: "#fed7aa" },
-  { id: "lemon",    name: "레몬",   from: "#fef9c3", to: "#fef08a" },
-  { id: "default",  name: "화이트", from: "#f8fafc", to: "#f1f5f9" },
+const THEMES = [
+  { id: "sky",    label: "하늘",   blob1: "#bae6fd", blob2: "#e0f2fe", blob3: "#dbeafe", bg: "#f0f9ff" },
+  { id: "violet", label: "바이올렛", blob1: "#ddd6fe", blob2: "#ede9fe", blob3: "#fae8ff", bg: "#faf5ff" },
+  { id: "pink",   label: "로즈",   blob1: "#fecdd3", blob2: "#fce7f3", blob3: "#ffe4e6", bg: "#fff1f2" },
+  { id: "mint",   label: "민트",   blob1: "#a7f3d0", blob2: "#d1fae5", blob3: "#ccfbf1", bg: "#f0fdf4" },
+  { id: "peach",  label: "피치",   blob1: "#fed7aa", blob2: "#ffedd5", blob3: "#fef3c7", bg: "#fffbeb" },
 ];
 
-const RobotIcon = ({ size = 20, color = "#38bdf8" }: { size?: number; color?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="2" x2="12" y2="6" stroke={color} strokeWidth="1.5"/>
-    <circle cx="12" cy="2" r="1.5" fill={color} stroke="none"/>
-    <rect x="3" y="6" width="18" height="15" rx="5" fill="#1e293b" stroke="none"/>
-    <circle cx="9" cy="12" r="1.8" fill={color} stroke="none"/>
-    <circle cx="15" cy="12" r="1.8" fill={color} stroke="none"/>
-    <path d="M9 17 Q12 19.5 15 17" stroke={color} strokeWidth="1.5" fill="none"/>
+const ACCENT: Record<string, { from: string; to: string; shadow: string; ring: string }> = {
+  sky:    { from: "#38bdf8", to: "#6366f1", shadow: "rgba(56,189,248,0.35)", ring: "#bae6fd" },
+  violet: { from: "#a78bfa", to: "#ec4899", shadow: "rgba(167,139,250,0.35)", ring: "#ddd6fe" },
+  pink:   { from: "#f472b6", to: "#fb923c", shadow: "rgba(244,114,182,0.35)", ring: "#fecdd3" },
+  mint:   { from: "#34d399", to: "#06b6d4", shadow: "rgba(52,211,153,0.35)", ring: "#a7f3d0" },
+  peach:  { from: "#fb923c", to: "#f472b6", shadow: "rgba(251,146,60,0.35)", ring: "#fed7aa" },
+};
+
+const RobotFace = ({ size = 28, light = "#fff" }: { size?: number; light?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <rect x="4" y="8" width="24" height="18" rx="7" fill="#1e293b"/>
+    <circle cx="11.5" cy="16.5" r="2.5" fill={light}/>
+    <circle cx="20.5" cy="16.5" r="2.5" fill={light}/>
+    <path d="M11 22 Q16 25 21 22" stroke={light} strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+    <line x1="16" y1="2" x2="16" y2="8" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round"/>
+    <circle cx="16" cy="2" r="1.8" fill="#38bdf8"/>
   </svg>
 );
 
@@ -49,6 +55,9 @@ export default function RobotPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const theme = THEMES.find(t => t.id === activeTheme) || THEMES[0];
+  const accent = ACCENT[activeTheme] || ACCENT.sky;
+
   useEffect(() => { return watchAuthState(setUser); }, []);
 
   useEffect(() => {
@@ -58,7 +67,7 @@ export default function RobotPage() {
       else setNamingStep(true);
     });
     const saved = localStorage.getItem(`chatTheme_robot_${user.uid}`);
-    if (saved) setActiveTheme(saved);
+    if (saved && THEMES.find(t => t.id === saved)) setActiveTheme(saved);
   }, [user]);
 
   useEffect(() => {
@@ -70,8 +79,6 @@ export default function RobotPage() {
   }, [user]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText]);
-
-  const theme = BG_THEMES.find(t => t.id === activeTheme) || BG_THEMES[0];
 
   const saveName = async (name: string) => {
     if (!name.trim() || !user) return;
@@ -131,30 +138,36 @@ export default function RobotPage() {
 
   if (!user) return (
     <PageContainer>
-      <div className="flex items-center justify-center h-[60vh] text-gray-400">로그인이 필요해요.</div>
+      <div className="flex items-center justify-center h-[60vh] text-gray-400 text-sm">로그인이 필요해요.</div>
     </PageContainer>
   );
 
   if (namingStep) return (
     <PageContainer>
-      <div className="flex flex-col items-center justify-center h-[70vh] gap-6">
+      <div className="relative flex flex-col items-center justify-center h-[70vh] gap-8 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-10 left-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: accent.from }}/>
+          <div className="absolute bottom-20 right-8 w-32 h-32 rounded-full blur-3xl opacity-30" style={{ background: accent.to }}/>
+        </div>
         <div className="relative">
-          <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-2xl shadow-sky-200">
-            <RobotIcon size={58} color="white"/>
+          <div className="w-32 h-32 rounded-[2.5rem] flex items-center justify-center shadow-2xl"
+            style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 20px 60px ${accent.shadow}` }}>
+            <RobotFace size={60} light="white"/>
           </div>
-          <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-yellow-400 rounded-full flex items-center justify-center text-lg shadow-lg">✨</div>
+          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-yellow-400 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-yellow-200">✨</div>
         </div>
-        <div className="text-center">
-          <p className="font-black text-gray-800 text-2xl mb-2">나만의 AI야!</p>
-          <p className="text-gray-400 text-sm">이름을 지어줘 🤖</p>
+        <div className="text-center z-10">
+          <p className="font-black text-gray-800 text-2xl tracking-tight mb-1">나만의 AI 만들기</p>
+          <p className="text-gray-400 text-sm">이름을 지어줘봐 🌟</p>
         </div>
-        <div className="flex gap-2 w-full max-w-xs">
+        <div className="flex gap-2 w-full max-w-xs z-10">
           <input autoFocus type="text" value={nameInput} onChange={(e) => setNameInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") saveName(nameInput); }}
-            placeholder="AI 이름 입력..." maxLength={12}
-            className="flex-1 bg-white/80 backdrop-blur-sm border-2 border-sky-100 focus:border-sky-300 rounded-2xl px-4 py-3 text-sm outline-none transition"/>
+            placeholder="예: 루나, 별이, 챗봇..." maxLength={12}
+            className="flex-1 bg-white/80 backdrop-blur-sm border-2 border-gray-100 focus:border-sky-300 rounded-2xl px-4 py-3 text-sm outline-none transition-all shadow-sm"/>
           <button onClick={() => saveName(nameInput)} disabled={!nameInput.trim()}
-            className="px-5 py-3 rounded-2xl bg-sky-400 text-white text-sm font-bold disabled:opacity-40 transition">완료</button>
+            className="px-5 py-3 rounded-2xl text-white text-sm font-black disabled:opacity-30 transition-all active:scale-95 shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 8px 24px ${accent.shadow}` }}>완료</button>
         </div>
       </div>
     </PageContainer>
@@ -162,16 +175,17 @@ export default function RobotPage() {
 
   return (
     <PageContainer>
-      <div className="flex flex-col h-[calc(100vh-130px)]" onClick={() => setShowThemePicker(false)}>
+      <div className="flex flex-col h-[calc(100vh-130px)] relative" onClick={() => setShowThemePicker(false)}>
 
         {/* 헤더 */}
-        <div className="flex items-center justify-between mb-4 shrink-0">
+        <div className="flex items-center justify-between mb-3 shrink-0 px-1">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-200/60">
-                <RobotIcon size={24} color="white"/>
+              <div className="w-11 h-11 rounded-[14px] flex items-center justify-center shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 6px 20px ${accent.shadow}` }}>
+                <RobotFace size={24} light="white"/>
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-sm"/>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white shadow-sm"/>
             </div>
             <div>
               {editingName ? (
@@ -184,68 +198,88 @@ export default function RobotPage() {
                 </div>
               ) : (
                 <button onClick={() => { setEditInput(robotName || ""); setEditingName(true); }}
-                  className="flex items-center gap-1.5 font-black text-gray-800 text-[15px] hover:text-sky-500 transition group">
+                  className="flex items-center gap-1.5 font-black text-gray-800 text-[15px] hover:opacity-70 transition group">
                   {robotName}
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 group-hover:text-sky-400 transition">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
               )}
-              <p className="text-[11px] text-gray-400 mt-0.5">나만의 AI · 항상 여기 있어요</p>
+              <p className="text-[10px] text-gray-400 mt-0.5 tracking-wide">AI 친구 · 온라인</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1.5">
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setShowThemePicker(v => !v)}
-                className="w-8 h-8 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
-                style={{ background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }}/>
+                className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+                style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
               {showThemePicker && (
-                <div className="absolute right-0 top-11 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 p-3 flex gap-2 z-50">
-                  {BG_THEMES.map(t => (
-                    <button key={t.id} onClick={() => { setActiveTheme(t.id); if (user?.uid) localStorage.setItem(`chatTheme_robot_${user.uid}`, t.id); setShowThemePicker(false); }} title={t.name}
-                      className={`w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 ${activeTheme === t.id ? "border-sky-400 scale-110" : "border-white/60"}`}
-                      style={{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }}/>
-                  ))}
+                <div className="absolute right-0 top-10 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-50"
+                  style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                  {THEMES.map(t => {
+                    const a = ACCENT[t.id];
+                    return (
+                      <button key={t.id} title={t.label}
+                        onClick={() => { setActiveTheme(t.id); if (user?.uid) localStorage.setItem(`chatTheme_robot_${user.uid}`, t.id); setShowThemePicker(false); }}
+                        className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                        style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
+                    );
+                  })}
                 </div>
               )}
             </div>
-            <button onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">초기화</button>
+            <button onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">지우기</button>
           </div>
         </div>
 
-        {/* 메시지 영역 */}
-        <div className="flex-1 overflow-y-auto flex flex-col gap-4 px-1 py-5 rounded-3xl"
-          style={{ background: `linear-gradient(160deg, ${theme.from}, ${theme.to})` }}>
+        {/* 채팅 영역 */}
+        <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-2 py-5 rounded-3xl relative"
+          style={{ background: theme.bg }}>
+
+          {/* 배경 블롭 */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+            <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
+            <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
+            <div className="absolute -bottom-6 left-1/3 w-36 h-36 rounded-full blur-3xl opacity-40" style={{ background: theme.blob3 }}/>
+          </div>
 
           {messages.length === 0 && !isStreaming && (
-            <div className="flex flex-col items-center justify-center h-full gap-5">
-              <div className="w-24 h-24 rounded-3xl bg-white/50 backdrop-blur-sm flex items-center justify-center shadow-xl shadow-black/5">
-                <RobotIcon size={48} color="#7dd3fc"/>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 pointer-events-none">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-xl"
+                  style={{ background: `linear-gradient(135deg, ${accent.from}22, ${accent.to}22)`, border: `2px solid ${accent.ring}` }}>
+                  <RobotFace size={46} light={accent.from}/>
+                </div>
+                <div className="absolute -top-2 -right-2 text-xl animate-bounce">💬</div>
               </div>
               <div className="text-center">
                 <p className="text-sm font-black text-gray-500 mb-1">{robotName}에게 말을 걸어봐!</p>
-                <p className="text-xs text-gray-400">무엇이든 물어봐도 돼 😊</p>
+                <p className="text-xs text-gray-400">무엇이든 물어봐도 돼 ✨</p>
               </div>
             </div>
           )}
 
           {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} px-2`}>
-              <div className="max-w-[80%]">
-                {msg.role === "assistant" && (
-                  <div className="flex items-center gap-1.5 mb-1.5 ml-1">
-                    <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-sm">
-                      <RobotIcon size={11} color="white"/>
-                    </div>
-                    <span className="text-[11px] font-bold text-gray-400">{robotName}</span>
+            <div key={msg.id} className={`relative flex ${msg.role === "user" ? "justify-end" : "justify-start"} px-1`}>
+              {msg.role === "assistant" && (
+                <div className="mr-2 mt-auto shrink-0 mb-0.5">
+                  <div className="w-7 h-7 rounded-xl flex items-center justify-center shadow-md"
+                    style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}>
+                    <RobotFace size={15} light="white"/>
                   </div>
-                )}
-                <div className={`px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                </div>
+              )}
+              <div className="max-w-[76%]">
+                <div className={`px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap font-medium ${
                   msg.role === "user"
-                    ? "bg-sky-400/90 backdrop-blur-sm text-white rounded-3xl rounded-br-md shadow-md shadow-sky-200/50"
-                    : "bg-white/70 backdrop-blur-sm text-gray-800 rounded-3xl rounded-bl-md shadow-md shadow-black/5"
-                }`}>
+                    ? "text-white rounded-[1.4rem] rounded-br-md"
+                    : "text-gray-800 bg-white/80 backdrop-blur-sm rounded-[1.4rem] rounded-bl-md shadow-sm"
+                }`} style={msg.role === "user" ? {
+                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  boxShadow: `0 4px 20px ${accent.shadow}`,
+                } : {}}>
                   {msg.content}
                 </div>
               </div>
@@ -253,41 +287,47 @@ export default function RobotPage() {
           ))}
 
           {isStreaming && (
-            <div className="flex justify-start px-2">
-              <div className="max-w-[80%]">
-                <div className="flex items-center gap-1.5 mb-1.5 ml-1">
-                  <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-sm">
-                    <RobotIcon size={11} color="white"/>
-                  </div>
-                  <span className="text-[11px] font-bold text-gray-400">{robotName}</span>
+            <div className="flex justify-start px-1">
+              <div className="mr-2 mt-auto shrink-0 mb-0.5">
+                <div className="w-7 h-7 rounded-xl flex items-center justify-center shadow-md"
+                  style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}>
+                  <RobotFace size={15} light="white"/>
                 </div>
-                <div className="px-4 py-3 rounded-3xl rounded-bl-md text-sm leading-relaxed whitespace-pre-wrap bg-white/70 backdrop-blur-sm text-gray-800 shadow-md shadow-black/5">
-                  {streamingText
-                    ? <>{streamingText}<span className="inline-block w-0.5 h-4 bg-sky-400 ml-0.5 align-middle animate-pulse"/></>
-                    : <span className="flex gap-1 items-center py-0.5">
-                        <span className="w-2 h-2 bg-sky-300 rounded-full animate-bounce [animation-delay:0ms]"/>
-                        <span className="w-2 h-2 bg-sky-300 rounded-full animate-bounce [animation-delay:150ms]"/>
-                        <span className="w-2 h-2 bg-sky-300 rounded-full animate-bounce [animation-delay:300ms]"/>
-                      </span>
-                  }
-                </div>
+              </div>
+              <div className="max-w-[76%] px-4 py-2.5 rounded-[1.4rem] rounded-bl-md text-sm leading-relaxed whitespace-pre-wrap font-medium bg-white/80 backdrop-blur-sm text-gray-800 shadow-sm">
+                {streamingText
+                  ? <>{streamingText}<span className="inline-block w-0.5 h-[1.1em] rounded-full ml-0.5 align-middle animate-pulse" style={{ background: accent.from }}/></>
+                  : <span className="flex gap-1 items-center py-0.5">
+                      {[0, 150, 300].map((delay) => (
+                        <span key={delay} className="w-2 h-2 rounded-full animate-bounce" style={{ background: accent.from, animationDelay: `${delay}ms` }}/>
+                      ))}
+                    </span>
+                }
               </div>
             </div>
           )}
-          <div ref={bottomRef}/>
+          <div ref={bottomRef} className="h-1"/>
         </div>
 
-        {/* 반투명 젤리 입력창 */}
-        <div className="pt-3 shrink-0">
-          <div className="flex items-center gap-2 bg-white/60 backdrop-blur-xl border border-white/80 shadow-xl shadow-black/10 rounded-full px-4 py-2.5">
+        {/* 젤리 입력창 */}
+        <div className="pt-2.5 shrink-0">
+          <div className="flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all"
+            style={{
+              background: "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              border: `1.5px solid rgba(255,255,255,0.9)`,
+              boxShadow: `0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px ${accent.ring}55`,
+            }}>
             <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={isStreaming ? "응답 중..." : `${robotName}에게 메시지 보내기...`}
+              placeholder={isStreaming ? "응답 중이야..." : `${robotName}에게 말해봐...`}
               disabled={isStreaming}
-              className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50"/>
+              className="flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium"/>
             <button onClick={send} disabled={isStreaming || !input.trim()}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 disabled:opacity-30 transition-all active:scale-90 flex items-center justify-center shrink-0 shadow-md shadow-sky-200">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 disabled:opacity-30"
+              style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 16px ${accent.shadow}` }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
               </svg>
             </button>
