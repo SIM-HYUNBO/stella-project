@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: "회의 내용을 핵심안건, 결정사항, Action Item으로 요약해라." },
         { role: "user", content: `제목:${title}\n내용:${text}` },

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.3-70b-versatile",
         max_tokens: 300,
         messages: [{ role: "user", content: `다음 채팅 내용을 4~5문장으로 간결하게 한국어로 요약해줘.\n\n${chatText}` }],
       }),

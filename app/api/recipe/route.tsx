@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: `다음 재료로 만들 수 있는 요리 레시피를 상세하게 작성해줘: ${ingredients.join(", ")}` }],
     }),
   });
