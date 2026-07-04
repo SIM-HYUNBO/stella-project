@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
+import DrawingCanvas from "@/components/DrawingCanvas";
 import { db, storage } from "@/app/firebase";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { watchAuthState } from "../authService";
@@ -107,6 +108,7 @@ export default function MeetingRoomPage() {
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
+  const [showDrawCanvas, setShowDrawCanvas] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
@@ -545,6 +547,15 @@ export default function MeetingRoomPage() {
     });
   };
 
+  const sendDrawing = async (dataUrl: string) => {
+    setShowDrawCanvas(false);
+    if (!nickname || !currentRoom) return;
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], "drawing.png", { type: "image/png" });
+    await sendImage(file);
+  };
+
   const inviteUser = async (targetNickname: string) => {
     if (!currentRoom || inviting) return;
 
@@ -737,23 +748,9 @@ export default function MeetingRoomPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <button onClick={() => setShowThemePicker(p => !p)}
-              className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
-              style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
-            {showThemePicker && (
-              <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]" style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-                {THEMES.map(t => {
-                  const a = ACCENT[t.id];
-                  return (
-                  <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_meeting_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
-                    className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
-                    style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
+            className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+            style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
           <div className="relative">
             <button
               onClick={() => setShowHeaderMenu((p) => !p)}
@@ -786,6 +783,21 @@ export default function MeetingRoomPage() {
           </div>
         </div>
       </div>
+
+      {showThemePicker && (
+        <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
+          style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
+          onClick={(e) => e.stopPropagation()}>
+          {THEMES.map(t => {
+            const a = ACCENT[t.id];
+            return (
+              <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_meeting_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
+                className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
+            );
+          })}
+        </div>
+      )}
 
       {/* 고정 주제 바 */}
       <button
@@ -1066,6 +1078,16 @@ export default function MeetingRoomPage() {
                 </svg>
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { setShowDrawCanvas(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                <span className="text-[9px] font-bold text-sky-500">손글씨</span>
+              </button>
             </div>
           )}
           <button
@@ -1132,6 +1154,14 @@ export default function MeetingRoomPage() {
             </button>
           </div>
         </div>
+      )}
+      {showDrawCanvas && (
+        <DrawingCanvas
+          onSend={sendDrawing}
+          onClose={() => setShowDrawCanvas(false)}
+          accentFrom={accent.from}
+          accentTo={accent.to}
+        />
       )}
     </div>
   );

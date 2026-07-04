@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import PageContainer from "@/components/PageContainer";
+import DrawingCanvas from "@/components/DrawingCanvas";
 import { db, auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -134,6 +135,7 @@ export default function OpenChatPage() {
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: Message } | null>(null);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showSpecialMenu, setShowSpecialMenu] = useState(false);
+  const [showDrawCanvas, setShowDrawCanvas] = useState(false);
 
   const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
   const [sendingImage, setSendingImage] = useState(false);
@@ -294,6 +296,15 @@ export default function OpenChatPage() {
 
   const cancelPendingImage = () => { if (pendingImage) URL.revokeObjectURL(pendingImage.previewUrl); setPendingImage(null); };
 
+  const sendDrawing = async (dataUrl: string) => {
+    setShowDrawCanvas(false);
+    if (!nickname || !currentRoom) return;
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], "drawing.png", { type: "image/png" });
+    await sendImage(file);
+  };
+
   const toggleRecording = async () => {
     if (isRecording) { mediaRecorderRef.current?.stop(); if (recordTimerRef.current) clearTimeout(recordTimerRef.current); return; }
     try {
@@ -436,24 +447,26 @@ export default function OpenChatPage() {
             <p className="font-black text-gray-800">{currentRoom.name}</p>
           </div>
         </div>
-        <div className="relative" onClick={(e) => e.stopPropagation()}>
-          <button onClick={() => setShowThemePicker(p => !p)}
-            className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
-            style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
-          {showThemePicker && (
-            <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]" style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-              {THEMES.map(t => {
-                const a = ACCENT[t.id];
-                return (
-                <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_open_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
-                  className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
-                  style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
+          className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+          style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
       </div>
+
+      {/* 테마 피커 — 헤더 backdrop-blur stacking context 밖에 렌더링 */}
+      {showThemePicker && (
+        <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
+          style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
+          onClick={(e) => e.stopPropagation()}>
+          {THEMES.map(t => {
+            const a = ACCENT[t.id];
+            return (
+              <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_open_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
+                className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
+            );
+          })}
+        </div>
+      )}
 
       {/* 게임 상태 바 */}
       {wordGame?.active && (
@@ -626,6 +639,13 @@ export default function OpenChatPage() {
                 </svg>
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowDrawCanvas(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                <span className="text-[9px] font-bold text-sky-500">손글씨</span>
+              </button>
             </div>
           )}
           <button onClick={() => { setShowPlusMenu((p) => !p); setShowSpecialMenu(false); }}
@@ -774,6 +794,14 @@ export default function OpenChatPage() {
         @keyframes fortuneReveal { from { transform: scale(0.5) rotate(-15deg); opacity:0; } to { transform: scale(1) rotate(0deg); opacity:1; } }
         @keyframes typingDot { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
       `}</style>
+      {showDrawCanvas && (
+        <DrawingCanvas
+          onSend={sendDrawing}
+          onClose={() => setShowDrawCanvas(false)}
+          accentFrom={accent.from}
+          accentTo={accent.to}
+        />
+      )}
     </div>
   );
 
