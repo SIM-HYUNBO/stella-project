@@ -615,7 +615,7 @@ export default function OpenChatPage() {
           onChange={(e) => { setInput(e.target.value); if (e.target.value.trim()) setShowSpecialMenu(false); }}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력..."}
-          className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2.5 text-sm outline-none focus:border-sky-300 transition"
+          className="flex-1 bg-white/80 backdrop-blur-sm border border-sky-100 rounded-full px-5 py-2.5 text-sm outline-none focus:border-sky-200 transition shadow-inner"
         />
 
         {/* 보내기 / # 버튼 */}

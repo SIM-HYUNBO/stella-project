@@ -1734,7 +1734,7 @@ export default function GroupChat() {
 
         <input
           ref={msgInputRef}
-          className="flex-1 min-w-0 w-0 h-11 rounded-[16px] bg-white border border-sky-200 px-4 text-sm outline-none text-slate-800 placeholder:text-slate-400"
+          className="flex-1 min-w-0 w-0 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-sky-100 px-5 text-sm outline-none text-slate-800 placeholder:text-slate-400 shadow-inner"
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력"}
           value={input}
           onChange={(e) => {

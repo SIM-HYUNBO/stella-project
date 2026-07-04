@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import PageContainer from "../../components/PageContainer";
+import { useRouter } from "next/navigation";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
@@ -54,6 +54,7 @@ export default function RobotPage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const theme = THEMES.find(t => t.id === activeTheme) || THEMES[0];
   const accent = ACCENT[activeTheme] || ACCENT.sky;
@@ -137,14 +138,12 @@ export default function RobotPage() {
   };
 
   if (!user) return (
-    <PageContainer>
-      <div className="flex items-center justify-center h-[60vh] text-gray-400 text-sm">로그인이 필요해요.</div>
-    </PageContainer>
+    <div className="fixed inset-0 flex items-center justify-center text-gray-400 text-sm bg-gray-50">로그인이 필요해요.</div>
   );
 
   if (namingStep) return (
-    <PageContainer>
-      <div className="relative flex flex-col items-center justify-center h-[70vh] gap-8 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col" style={{ background: theme.bg }}>
+      <div className="relative flex flex-col items-center justify-center flex-1 gap-8 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-10 left-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: accent.from }}/>
           <div className="absolute bottom-20 right-8 w-32 h-32 rounded-full blur-3xl opacity-30" style={{ background: accent.to }}/>
@@ -170,15 +169,14 @@ export default function RobotPage() {
             style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 8px 24px ${accent.shadow}` }}>완료</button>
         </div>
       </div>
-    </PageContainer>
+    </div>
   );
 
   return (
-    <PageContainer>
-      <div className="flex flex-col h-[calc(100vh-130px)] relative" onClick={() => setShowThemePicker(false)}>
+    <div className="fixed inset-0 flex flex-col" style={{ background: theme.bg }} onClick={() => setShowThemePicker(false)}>
 
         {/* 헤더 */}
-        <div className="flex items-center justify-between mb-3 shrink-0 px-1">
+        <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-11 h-11 rounded-[14px] flex items-center justify-center shadow-lg"
@@ -235,11 +233,10 @@ export default function RobotPage() {
         </div>
 
         {/* 채팅 영역 */}
-        <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-2 py-5 rounded-3xl relative"
-          style={{ background: theme.bg }}>
+        <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-2 py-5 relative">
 
           {/* 배경 블롭 */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
             <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
             <div className="absolute -bottom-6 left-1/3 w-36 h-36 rounded-full blur-3xl opacity-40" style={{ background: theme.blob3 }}/>
@@ -310,7 +307,7 @@ export default function RobotPage() {
         </div>
 
         {/* 젤리 입력창 */}
-        <div className="pt-2.5 shrink-0">
+        <div className="px-4 pb-5 pt-2.5 shrink-0 bg-white/60 backdrop-blur-xl border-t border-white/80">
           <div className="flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all"
             style={{
               background: "rgba(255,255,255,0.72)",
@@ -335,6 +332,6 @@ export default function RobotPage() {
         </div>
 
       </div>
-    </PageContainer>
+    </div>
   );
 }
