@@ -3,9 +3,9 @@ import OpenAI from "openai";
 export const runtime = "nodejs";
 
 let openai: OpenAI | null = null;
-function getOpenAI() {
-  if (!process.env.OPENAI_API_KEY) return null;
-  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() {
+  if (!process.env.GROQ_API_KEY) return null;
+  if (!openai) openai = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: "https://api.groq.com/openai/v1" });
   return openai;
 }
 
@@ -29,18 +29,15 @@ export async function POST(req: Request) {
       },
     ];
 
-    const client = getOpenAI();
+    const client = getClient();
     if (!client) return Response.json({ text: "AI 기능이 설정되지 않았어요." }, { status: 503 });
 
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: prompt,
     });
 
-    return Response.json({
-      text: response.choices[0].message.content,
-      userWinCount,
-    });
+    return Response.json({ text: response.choices[0].message.content, userWinCount });
   } catch (err) {
     console.error(err);
     return Response.json({ text: "AI 친구 응답 실패" }, { status: 500 });
