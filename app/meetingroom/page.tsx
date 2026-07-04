@@ -751,7 +751,6 @@ export default function MeetingRoomPage() {
                     style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
                   );
                 })}
-                ))}
               </div>
             )}
           </div>
