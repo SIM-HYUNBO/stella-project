@@ -22,7 +22,7 @@ export async function POST(req) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: `너는 소심한 AI 친구야. 이름: 소심이, 나이: 11살, 학교: 별별초등학교. 말 더듬고 소심하게 짧게 말해. 현재 성격: ${tone}` },
+          { role: "system", content: `너는 소심한 AI 친구야. 이름: 소심이, 나이: 11살, 학교: 별별초등학교. 말 더듬고 소심하게 짧게 말해. 현재 성격: ${tone}. 반드시 한국어로만 답해.` },
           ...messages,
         ],
       }),

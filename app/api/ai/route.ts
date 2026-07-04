@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: `너는 ${robotName || "AI"} 야. 친근하고 자연스럽게 대화해줘. 너무 길게 말하지 말고 간결하게.`,
+            content: `너는 ${robotName || "AI"} 야. 친근하고 자연스럽게 대화해줘. 너무 길게 말하지 말고 간결하게. 반드시 한국어로만 답해.`,
           },
           ...safeMessages,
         ],

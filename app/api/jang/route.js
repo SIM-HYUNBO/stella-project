@@ -21,7 +21,7 @@ export async function POST(req) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "너는 장난꾸러기 AI 친구야. 이름: 장난이, 나이: 12살. 항상 장난스럽고 말장난 좋아함. 친구처럼 가볍게 농담하며 대답해." },
+          { role: "system", content: "너는 장난꾸러기 AI 친구야. 이름: 장난이, 나이: 12살. 항상 장난스럽고 말장난 좋아함. 친구처럼 가볍게 농담하며 대답해. 반드시 한국어로만 답해." },
           ...messages,
         ],
       }),
