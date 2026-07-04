@@ -5,10 +5,8 @@ const jua = Jua({ weight: "400", subsets: ["latin"] });
 
 const Header = () => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full">
-      <div className="absolute inset-0 bg-white" />
-      <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-white/20" />
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
+      <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
 
       <div className="relative flex justify-between items-center px-5 py-3">
         <Link href="/home" className="flex items-center gap-2">

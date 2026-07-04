@@ -101,7 +101,8 @@ const PageContainer = ({ children }) => {
 
   return (
     <div
-      className="relative flex w-full min-h-screen bg-gray-50 justify-center [overflow-x:clip]"
+      className="relative flex w-full min-h-screen justify-center [overflow-x:clip]"
+      style={{ background: "#f0f9ff" }}
       onClick={(e) =>
         createRipple(e.clientX, e.clientY)
       }
@@ -116,7 +117,14 @@ const PageContainer = ({ children }) => {
         );
       }}
     >
-      <div className="flex flex-col w-full max-w-4xl relative pb-12 pt-[60px]">
+      {/* 배경 블롭 */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: "#bae6fd" }}/>
+        <div className="absolute top-1/3 -right-16 w-56 h-56 rounded-full blur-3xl opacity-30" style={{ background: "#e0f2fe" }}/>
+        <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-30" style={{ background: "#dbeafe" }}/>
+      </div>
+
+      <div className="flex flex-col w-full max-w-4xl relative pb-12 pt-[60px] z-10">
         <Header />
 
         <main className="w-full p-4 relative z-10">
@@ -125,7 +133,7 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-sky-100 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.1)] flex justify-center">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-t border-white/80 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.08)] flex justify-center">
         <div className="flex items-center justify-around w-full max-w-4xl px-1">
           {NAV_ITEMS.map(({ label, path, icon }) => {
             const active = pathname === path || pathname?.startsWith(path + "/");
