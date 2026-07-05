@@ -48,10 +48,10 @@ export default function StudyAiPanel() {
       }),
     });
 
-    if (!res.ok || !res.body) {
-      const data = await res.json().catch(() => null);
-      throw new Error(data?.error || "학습용 AI 응답 실패");
-    }
+  if (!res.ok || !res.body) {
+  const text = await res.text().catch(() => "");
+  throw new Error(text || "학습용 AI 응답 실패");
+}
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
