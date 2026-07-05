@@ -4,16 +4,11 @@ import { useRef, useState } from "react";
 
 type StudyBlock =
   | { type: "paragraph"; text: string }
-  | { type: "checklist"; title: string; items: string[] }
-  | { type: "table"; title: string; headers: string[]; rows: string[][] }
-  | { type: "vocab"; title: string; words: { word: string; meaning: string }[] }
   | { type: "note"; title: string; content: string };
 
 export default function StudyAiPanel() {
   const [input, setInput] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const fileRef = useRef<HTMLInputElement | null>(null);
-
   const [blocks, setBlocks] = useState<StudyBlock[]>([
     {
       type: "paragraph",
@@ -21,59 +16,103 @@ export default function StudyAiPanel() {
     },
   ]);
 
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
   const uploadImages = (files: FileList | null) => {
     if (!files) return;
     const urls = Array.from(files).map((file) => URL.createObjectURL(file));
     setImages((prev) => [...prev, ...urls]);
   };
 
-  const makeStudyAnswer = () => {
-    if (!input.trim()) return;
+  const streamStudyAI = async (
+    userText: string,
+    onChunk: (text: string) => void
+  ) => {
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        mode: "study",
+        robotName: "학습용 AI",
+        messages: [
+          {
+            role: "user",
+            content: userText,
+          },
+        ],
+      }),
+    });
 
-    setBlocks((prev) => [
-      ...prev,
-      {
-        type: "paragraph",
-        text: `"${input}"에 대해 정리해 줄게. 먼저 [[핵심 개념]]을 잡고, 그다음 [[예시]], [[표 정리]], [[복습 체크]] 순서로 공부하면 좋아.`,
-      },
-      {
-        type: "checklist",
-        title: "공부 체크리스트",
-        items: [
-          "핵심 개념 표시하기",
-          "중요 단어 밑줄 긋기",
-          "예시 하나 만들기",
-          "마지막에 3줄 요약하기",
-        ],
-      },
-      {
-        type: "table",
-        title: "개념 정리표",
-        headers: ["구분", "내용", "중요도"],
-        rows: [
-          ["주제", input, "높음"],
-          ["이해 방법", "개념 → 예시 → 복습 순서로 보기", "높음"],
-          ["복습 방법", "체크리스트와 노트로 다시 보기", "중간"],
-        ],
-      },
-      {
-        type: "vocab",
-        title: "단어장",
-        words: [
-          { word: "핵심 개념", meaning: "내용을 이해하는 데 가장 중요한 생각" },
-          { word: "예시", meaning: "개념을 쉽게 이해하게 해 주는 상황" },
-          { word: "복습", meaning: "배운 내용을 다시 확인하는 것" },
-        ],
-      },
-      {
-        type: "note",
-        title: "노트",
-        content:
-          "학습용 AI는 개인 AI와 분리해서 사용하면 좋아. 공부 내용만 여기에 쌓이면 나중에 복습하기 편해.",
-      },
-    ]);
+    if (!res.ok || !res.body) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error || "학습용 AI 응답 실패");
+    }
 
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    let full = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
+
+        const raw = line.slice(6).trim();
+        if (raw === "[DONE]") break;
+
+        try {
+          const delta = JSON.parse(raw).choices?.[0]?.delta?.content;
+          if (delta) {
+            full += delta;
+            onChunk(full);
+          }
+        } catch {}
+      }
+    }
+
+    return full;
+  };
+
+  const makeStudyAnswer = async () => {
+    if (!input.trim() || isStreaming) return;
+
+    const userText = input.trim();
     setInput("");
+    setIsStreaming(true);
+    setStreamingText("");
+
+    try {
+      const full = await streamStudyAI(userText, setStreamingText);
+
+      setBlocks((prev) => [
+        ...prev,
+        {
+          type: "paragraph",
+          text: full || "응답이 비어 있어.",
+        },
+      ]);
+    } catch (err: any) {
+      setBlocks((prev) => [
+        ...prev,
+        {
+          type: "paragraph",
+          text: `오류: ${err?.message || "알 수 없는 오류"}`,
+        },
+      ]);
+    } finally {
+      setIsStreaming(false);
+      setStreamingText("");
+    }
   };
 
   return (
@@ -110,16 +149,31 @@ export default function StudyAiPanel() {
         {blocks.map((block, index) => (
           <StudyBlockRenderer key={index} block={block} />
         ))}
+
+        {isStreaming && (
+          <p className="paragraph streaming">
+            {renderHighlight(streamingText || "학습 정리 만드는 중...")}
+            <span className="cursor" />
+          </p>
+        )}
       </article>
 
       <div className="studyInput">
         <textarea
           value={input}
+          disabled={isStreaming}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.ctrlKey) {
+              makeStudyAnswer();
+            }
+          }}
           placeholder="공부할 내용을 입력해 줘. 예: 세포분열 정리해 줘"
         />
 
-        <button onClick={makeStudyAnswer}>학습 정리 만들기</button>
+        <button onClick={makeStudyAnswer} disabled={isStreaming}>
+          {isStreaming ? "정리 중..." : "학습 정리 만들기"}
+        </button>
       </div>
 
       <style jsx>{`
@@ -161,6 +215,11 @@ export default function StudyAiPanel() {
           cursor: pointer;
         }
 
+        button:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
         .imageGrid {
           max-width: 980px;
           margin: 0 auto 20px;
@@ -187,6 +246,7 @@ export default function StudyAiPanel() {
           border-radius: 28px;
           line-height: 1.85;
           box-shadow: 0 20px 60px rgba(120, 84, 20, 0.14);
+          white-space: pre-wrap;
         }
 
         .studyInput {
@@ -210,6 +270,30 @@ export default function StudyAiPanel() {
 
         .studyInput button {
           background: #ca8a04;
+        }
+
+        .streaming {
+          opacity: 0.9;
+        }
+
+        .cursor {
+          display: inline-block;
+          width: 3px;
+          height: 1em;
+          margin-left: 3px;
+          background: #ca8a04;
+          border-radius: 999px;
+          vertical-align: middle;
+          animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0;
+          }
         }
 
         @media (max-width: 720px) {
@@ -240,73 +324,10 @@ function StudyBlockRenderer({ block }: { block: StudyBlock }) {
     return <p className="paragraph">{renderHighlight(block.text)}</p>;
   }
 
-  if (block.type === "checklist") {
-    return (
-      <section className="block">
-        <h3>{block.title}</h3>
-        <ul>
-          {block.items.map((item, index) => (
-            <li key={index}>
-              <input type="checkbox" /> {item}
-            </li>
-          ))}
-        </ul>
-
-        <style jsx>{shared}</style>
-      </section>
-    );
-  }
-
-  if (block.type === "table") {
-    return (
-      <section className="block">
-        <h3>{block.title}</h3>
-        <table>
-          <thead>
-            <tr>
-              {block.headers.map((header) => (
-                <th key={header}>{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {block.rows.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {row.map((cell, cellIndex) => (
-                  <td key={cellIndex}>{cell}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <style jsx>{shared}</style>
-      </section>
-    );
-  }
-
-  if (block.type === "vocab") {
-    return (
-      <section className="block">
-        <h3>{block.title}</h3>
-        <div className="vocab">
-          {block.words.map((item, index) => (
-            <div key={index} className="vocabCard">
-              <b>{item.word}</b>
-              <span>{item.meaning}</span>
-            </div>
-          ))}
-        </div>
-
-        <style jsx>{shared}</style>
-      </section>
-    );
-  }
-
   return (
     <section className="note">
       <h3>{block.title}</h3>
-      <p>{block.content}</p>
+      <p>{renderHighlight(block.content)}</p>
 
       <style jsx>{shared}</style>
     </section>
@@ -318,11 +339,7 @@ function renderHighlight(text: string) {
 
   return parts.map((part, index) => {
     if (part.startsWith("[[") && part.endsWith("]]")) {
-      return (
-        <mark key={index}>
-          {part.replace("[[", "").replace("]]", "")}
-        </mark>
-      );
+      return <mark key={index}>{part.replace("[[", "").replace("]]", "")}</mark>;
     }
 
     return part;
@@ -330,12 +347,11 @@ function renderHighlight(text: string) {
 }
 
 const shared = `
-  .block,
   .note {
     margin: 26px 0;
     padding: 20px;
     border-radius: 20px;
-    background: #fff8dc;
+    background: #fef3c7;
     border: 1px solid #f3d98b;
   }
 
@@ -343,65 +359,6 @@ const shared = `
     margin: 0 0 14px;
     font-size: 20px;
     color: #78350f;
-  }
-
-  ul {
-    padding-left: 0;
-    list-style: none;
-  }
-
-  li {
-    margin: 10px 0;
-  }
-
-  input {
-    margin-right: 8px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    overflow: hidden;
-    border-radius: 14px;
-  }
-
-  th,
-  td {
-    border: 1px solid #e8cf87;
-    padding: 12px;
-    text-align: left;
-  }
-
-  th {
-    background: #fde68a;
-  }
-
-  .vocab {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-  }
-
-  .vocabCard {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 14px;
-    border-radius: 16px;
-    background: white;
-    border: 1px solid #f3d98b;
-  }
-
-  .vocabCard b {
-    color: #92400e;
-  }
-
-  .vocabCard span {
-    color: #4b5563;
-  }
-
-  .note {
-    background: #fef3c7;
   }
 
   mark {
