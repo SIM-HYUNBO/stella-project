@@ -52,6 +52,7 @@ export default function RobotPage() {
   const [activeTheme, setActiveTheme] = useState("sky");
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -136,7 +137,7 @@ export default function RobotPage() {
 
   const send = async () => {
     if (!input.trim() || !user || isStreaming) return;
-    const userText = input.trim(); setInput("");
+    const userText = input.trim(); setInput(""); setErrorMsg(null);
     await addDoc(collection(db, "robotChats", user.uid, "messages"), { role: "user", content: userText, createdAt: serverTimestamp() });
     const history = messages.map((m) => ({ role: m.role, content: m.content }));
     history.push({ role: "user", content: userText });
@@ -145,7 +146,7 @@ export default function RobotPage() {
       const full = await streamAI(history, (t) => setStreamingText(t));
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { role: "assistant", content: full || "...", createdAt: serverTimestamp() });
     } catch (err: any) {
-      await addDoc(collection(db, "robotChats", user.uid, "messages"), { role: "assistant", content: `오류: ${err?.message}`, createdAt: serverTimestamp() });
+      setErrorMsg(err?.message || "알 수 없는 오류");
     } finally { setIsStreaming(false); setStreamingText(""); inputRef.current?.focus(); }
   };
 
@@ -332,6 +333,14 @@ export default function RobotPage() {
           )}
           <div ref={bottomRef} className="h-1"/>
         </div>
+
+        {/* 에러 메시지 */}
+        {errorMsg && (
+          <div className="mx-4 mb-2 px-4 py-2.5 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-between shrink-0">
+            <span className="text-xs text-red-600 leading-snug">⚠️ {errorMsg}</span>
+            <button onClick={() => setErrorMsg(null)} className="ml-2 text-red-300 text-sm font-bold shrink-0">✕</button>
+          </div>
+        )}
 
         {/* 젤리 입력창 */}
         <div className="px-4 pb-5 pt-2.5 shrink-0">
