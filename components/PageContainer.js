@@ -120,7 +120,7 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-t border-white/80 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.08)] flex justify-center">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.08)] flex justify-center">
         <div className="flex items-center justify-around w-full max-w-4xl px-1">
           {NAV_ITEMS.map(({ label, path, icon }) => {
             const active = pathname === path || pathname?.startsWith(path + "/");
