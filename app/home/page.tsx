@@ -644,7 +644,7 @@ export default function HomePage() {
                       <div className="relative mx-auto w-14 h-14">
                         <div className="absolute inset-0 rounded-full bg- blur-[6px] opacity-50" />
                         <div className="relative w-14 h-14 rounded-full overflow-hidden ring-[3px] ring-orange-200">
-                          <TextAvatar nickname={f.nickname} size={56} profileImage={f.profileImage} />
+                          <TextAvatar nickname={f.nickname} profileImage={f.profileImage} fill />
                         </div>
                         <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white" />
                         {unread > 0 && (
