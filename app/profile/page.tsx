@@ -230,7 +230,7 @@ export default function ProfilePage() {
 
       {/* 프로필 카드 */}
       <div className="relative z-10 -mt-16 px-5">
-        <div className="rounded-[28px] bg-white/90 backdrop-blur-md px-6 pt-6 pb-7">
+        <div className="rounded-[28px] bg-white px-6 pt-6 pb-7" style={{ boxShadow: "0 -4px 30px rgba(0,0,0,0.08)" }}>
 
           {/* 프로필 이미지 */}
           <div className="flex items-end gap-4 -mt-16 mb-5">
