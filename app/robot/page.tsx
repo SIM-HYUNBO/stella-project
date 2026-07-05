@@ -228,6 +228,16 @@ export default function RobotPage() {
           <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
             style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
             onClick={(e) => e.stopPropagation()}>
+              <button
+  onClick={() => router.push("/studyai")}
+  className="px-3 py-1.5 rounded-xl text-[11px] font-black text-white active:scale-95 transition"
+  style={{
+    background: "linear-gradient(135deg, #f59e0b, #84cc16)",
+    boxShadow: "0 4px 14px rgba(245,158,11,0.25)",
+  }}
+>
+  학습용 AI
+</button>
             {THEMES.map(t => {
               const a = ACCENT[t.id];
               return (
