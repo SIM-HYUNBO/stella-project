@@ -38,6 +38,26 @@ const RobotFace = ({ size = 28, light = "#fff" }: { size?: number; light?: strin
   </svg>
 );
 
+function friendlyError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("rate limit") || m.includes("tpd") || m.includes("tokens per day") || m.includes("try again in")) {
+    const minMatch = msg.match(/try again in (\d+)m/i);
+    return minMatch
+      ? `오늘 AI 사용량이 꽉 찼어. 약 ${minMatch[1]}분 후에 다시 해봐 🕐`
+      : "오늘 AI 사용량이 꽉 찼어. 잠시 후에 다시 해봐 🕐";
+  }
+  if (m.includes("failed to fetch") || m.includes("networkerror") || m.includes("network")) {
+    return "인터넷 연결을 확인해봐 📶";
+  }
+  if (m.includes("서버 오류") || m.includes("500") || m.includes("server")) {
+    return "AI 서버가 잠시 불안정해. 다시 해봐 🔄";
+  }
+  if (m.includes("401") || m.includes("403") || m.includes("unauthorized") || m.includes("missing")) {
+    return "AI 연결 설정에 문제가 있어. 잠시 후 다시 해봐 🔧";
+  }
+  return "AI가 잠시 응답을 못 했어. 다시 해봐 🔄";
+}
+
 export default function RobotPage() {
   const [user, setUser] = useState<any>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -146,7 +166,7 @@ export default function RobotPage() {
       const full = await streamAI(history, (t) => setStreamingText(t));
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { role: "assistant", content: full || "...", createdAt: serverTimestamp() });
     } catch (err: any) {
-      setErrorMsg(err?.message || "알 수 없는 오류");
+      setErrorMsg(friendlyError(err?.message || ""));
     } finally { setIsStreaming(false); setStreamingText(""); inputRef.current?.focus(); }
   };
 
