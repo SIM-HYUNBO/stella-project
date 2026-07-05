@@ -216,28 +216,31 @@ export default function RobotPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
+
+  <button
+    onClick={() => router.push("/studyai")}
+    className="px-3 py-1 rounded-xl text-[11px] font-bold text-white transition hover:scale-105"
+    style={{
+      background: "linear-gradient(135deg,#f59e0b,#84cc16)",
+    }}
+  >
+   학습용 AI
+  </button>
             <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(v => !v); }}
               className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
               style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
             <button onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">지우기</button>
           </div>
         </div>
+        
 
         {/* 테마 피커 — 헤더 stacking context 밖에 렌더링해야 말풍선에 안 가려짐 */}
         {showThemePicker && (
           <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"
             style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
             onClick={(e) => e.stopPropagation()}>
-              <button
-  onClick={() => router.push("/studyai")}
-  className="px-3 py-1.5 rounded-xl text-[11px] font-black text-white active:scale-95 transition"
-  style={{
-    background: "linear-gradient(135deg, #f59e0b, #84cc16)",
-    boxShadow: "0 4px 14px rgba(245,158,11,0.25)",
-  }}
->
-  학습용 AI
-</button>
+              
+
             {THEMES.map(t => {
               const a = ACCENT[t.id];
               return (
