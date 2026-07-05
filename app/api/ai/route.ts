@@ -14,7 +14,15 @@ export async function POST(req: Request) {
     }));
 
     const systemPrompt =
-      mode === "study"
+      mode === "profile"
+        ? `너는 감성 프로필 디자이너야. 사용자가 원하는 분위기를 말하면 반드시 아래 형식으로만 답해. 다른 말 절대 하지 마.
+
+GRADIENT: linear-gradient(135deg, #hex색상1, #hex색상2)
+STATUS: 감성적인 한 줄 상태메시지 (이모지 1-2개 포함, 20자 이내)
+EMOJI: 분위기에 맞는 이모지 3개
+
+hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 맞게 예쁘고 세련되게 만들어줘.`
+        : mode === "study"
         ? `
 너는 학습용 AI야.
 

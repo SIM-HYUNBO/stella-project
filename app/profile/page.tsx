@@ -17,6 +17,11 @@ export default function ProfilePage() {
   const [editStatus, setEditStatus] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [password, setPassword] = useState("");
+  const [coverGradient, setCoverGradient] = useState<string | null>(null);
+  const [showAIGen, setShowAIGen] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState<{ gradient: string; status: string; emoji: string } | null>(null);
   const [nicknameSaving, setNicknameSaving] = useState(false);
   const originalNicknameRef = useRef<string>("");
   const profileRef = useRef<HTMLInputElement | null>(null);
@@ -34,6 +39,7 @@ export default function ProfilePage() {
         setStatus(data.status || "");
         setProfileImage(data.profileImage || null);
         setCoverImage(data.coverImage || null);
+        setCoverGradient(data.coverGradient || null);
       }
     });
     return () => unsub();
@@ -103,6 +109,66 @@ export default function ProfilePage() {
     }
   };
 
+  const generateAIProfile = async () => {
+    if (!aiInput.trim() || aiGenerating) return;
+    setAiGenerating(true);
+    setAiResult(null);
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "profile", messages: [{ role: "user", content: aiInput.trim() }] }),
+      });
+      if (!res.ok || !res.body) throw new Error("생성 실패");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let full = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (raw === "[DONE]") break;
+          try { const d = JSON.parse(raw).choices?.[0]?.delta?.content; if (d) full += d; } catch {}
+        }
+      }
+      let gradient = "", status = "", emoji = "";
+      for (const line of full.split("\n")) {
+        if (line.startsWith("GRADIENT:")) gradient = line.replace("GRADIENT:", "").trim();
+        if (line.startsWith("STATUS:")) status = line.replace("STATUS:", "").trim();
+        if (line.startsWith("EMOJI:")) emoji = line.replace("EMOJI:", "").trim();
+      }
+      if (gradient) setAiResult({ gradient, status, emoji });
+    } catch {}
+    finally { setAiGenerating(false); }
+  };
+
+  const applyGradient = async () => {
+    if (!aiResult || !user) return;
+    setCoverGradient(aiResult.gradient);
+    setCoverImage(null);
+    await updateDoc(doc(db, "users", user.uid), { coverGradient: aiResult.gradient, coverImage: null });
+    setShowAIGen(false);
+  };
+
+  const applyStatus = async () => {
+    if (!aiResult || !user) return;
+    setStatus(aiResult.status);
+    await updateDoc(doc(db, "users", user.uid), { status: aiResult.status });
+    setShowAIGen(false);
+  };
+
+  const applyBoth = async () => {
+    if (!aiResult || !user) return;
+    setCoverGradient(aiResult.gradient);
+    setCoverImage(null);
+    setStatus(aiResult.status);
+    await updateDoc(doc(db, "users", user.uid), { coverGradient: aiResult.gradient, coverImage: null, status: aiResult.status });
+    setShowAIGen(false);
+  };
+
   const saveStatus = async () => {
     if (!user) return;
     await updateDoc(doc(db, "users", user.uid), { status });
@@ -148,6 +214,8 @@ export default function ProfilePage() {
       <div onClick={() => coverRef.current?.click()} className="relative w-full h-72 cursor-pointer">
         {coverImage ? (
           <img src={coverImage} className="w-full h-full object-cover" />
+        ) : coverGradient ? (
+          <div className="w-full h-full" style={{ background: coverGradient }} />
         ) : (
           <div className="w-full h-full bg-sky-200 flex flex-col items-center justify-center gap-2">
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
@@ -218,6 +286,11 @@ export default function ProfilePage() {
 
           {/* 버튼들 */}
           <div className="space-y-3">
+            <button onClick={() => { setShowAIGen(true); setAiResult(null); setAiInput(""); }}
+              className="w-full h-12 rounded-[18px] text-white font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(135deg, #f59e0b, #a855f7)", boxShadow: "0 4px 20px rgba(168,85,247,0.3)" }}>
+              ✨ AI 프로필 생성기
+            </button>
             <button onClick={handleLogout}
               className="w-full h-12 rounded-[18px] bg-white text-sky-800 font-black text-sm active:scale-[0.98] transition-transform">
               로그아웃
@@ -248,6 +321,93 @@ export default function ProfilePage() {
               <button onClick={handleDelete}
                 className="flex-1 h-12 rounded-[16px] bg-red-500 text-white font-black text-sm">탈퇴</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI 프로필 생성기 모달 */}
+      {showAIGen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-lg rounded-t-[32px] bg-white px-6 pt-5 pb-10 space-y-4" style={{ boxShadow: "0 -8px 40px rgba(0,0,0,0.15)" }}>
+
+            {/* 헤더 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-black text-gray-800 text-lg">✨ AI 프로필 생성기</p>
+                <p className="text-xs text-gray-400 mt-0.5">원하는 분위기를 말해봐</p>
+              </div>
+              <button onClick={() => setShowAIGen(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold">✕</button>
+            </div>
+
+            {/* 예시 칩 */}
+            <div className="flex gap-2 flex-wrap">
+              {["귀여운 고양이 감성", "차가운 도시 느낌", "봄날 오후 햇살", "신비로운 우주", "레트로 필름"].map(ex => (
+                <button key={ex} onClick={() => setAiInput(ex)}
+                  className="px-3 py-1 rounded-full text-[11px] font-bold border border-purple-200 text-purple-600 bg-purple-50 active:scale-95 transition">
+                  {ex}
+                </button>
+              ))}
+            </div>
+
+            {/* 입력 */}
+            <div className="flex gap-2">
+              <input value={aiInput} onChange={e => setAiInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") generateAIProfile(); }}
+                placeholder="예: 따뜻한 오후 카페, 어두운 보라빛 밤..."
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm outline-none focus:border-purple-300 transition" />
+              <button onClick={generateAIProfile} disabled={aiGenerating || !aiInput.trim()}
+                className="px-4 py-3 rounded-2xl text-white text-sm font-black disabled:opacity-40 transition active:scale-95"
+                style={{ background: "linear-gradient(135deg, #f59e0b, #a855f7)" }}>
+                {aiGenerating ? "⏳" : "생성"}
+              </button>
+            </div>
+
+            {/* 생성 중 */}
+            {aiGenerating && (
+              <div className="flex items-center gap-2 py-2">
+                {[0, 150, 300].map(d => (
+                  <span key={d} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "#a855f7", animationDelay: `${d}ms` }} />
+                ))}
+                <span className="text-xs text-gray-400 ml-1">AI가 프로필 만드는 중...</span>
+              </div>
+            )}
+
+            {/* 결과 미리보기 */}
+            {aiResult && (
+              <div className="space-y-3">
+                <div className="rounded-2xl overflow-hidden h-36 flex items-end relative"
+                  style={{ background: aiResult.gradient }}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="relative z-10 px-4 pb-3">
+                    <p className="text-2xl mb-1">{aiResult.emoji}</p>
+                    <p className="text-white text-sm font-semibold">{aiResult.status}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={applyGradient}
+                    className="py-2.5 rounded-xl text-[11px] font-black text-white active:scale-95 transition"
+                    style={{ background: "linear-gradient(135deg, #f59e0b, #fb923c)" }}>
+                    커버만 적용
+                  </button>
+                  <button onClick={applyStatus}
+                    className="py-2.5 rounded-xl text-[11px] font-black text-white active:scale-95 transition"
+                    style={{ background: "linear-gradient(135deg, #a855f7, #6366f1)" }}>
+                    상태만 적용
+                  </button>
+                  <button onClick={applyBoth}
+                    className="py-2.5 rounded-xl text-[11px] font-black text-white active:scale-95 transition"
+                    style={{ background: "linear-gradient(135deg, #f59e0b, #a855f7)" }}>
+                    둘 다 적용
+                  </button>
+                </div>
+
+                <button onClick={() => { setAiResult(null); setAiInput(""); }}
+                  className="w-full py-2 rounded-xl text-xs text-gray-400 hover:text-gray-600 transition">
+                  다시 생성하기
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
