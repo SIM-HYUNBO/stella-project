@@ -2170,8 +2170,8 @@ export default function Chat() {
   );
 
   if (!authReady) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-sky-50">
+      <img src="/wag.png" alt="loading" className="w-16 h-16 animate-bounce" style={{ animationDuration: "0.9s" }} />
     </div>
   );
 
