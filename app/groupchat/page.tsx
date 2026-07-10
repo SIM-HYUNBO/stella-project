@@ -1385,32 +1385,32 @@ export default function GroupChat() {
               </svg>
             </button>
           )}
-          <div className="relative">
-            <button
-              onClick={() => setShowHeaderMenu((p) => !p)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-            </button>
-            {showHeaderMenu && (
-              <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36">
-                <button
-                  onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
-                  className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
-                >
-                  초대
-                </button>
-                <button
-                  onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
-                  className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
-                >
-                  나가기
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </button>
         </div>
       </div>
+
+      {showHeaderMenu && (
+        <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36"
+          onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
+            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            초대
+          </button>
+          <button
+            onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
+            className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+          >
+            나가기
+          </button>
+        </div>
+      )}
 
       {/* 테마 피커 — 헤더 backdrop-blur stacking context 밖에 렌더링 */}
       {showThemePicker && (

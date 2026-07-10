@@ -751,38 +751,38 @@ export default function MeetingRoomPage() {
           <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
             className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
             style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
-          <div className="relative">
-            <button
-              onClick={() => setShowHeaderMenu((p) => !p)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-            </button>
-            {showHeaderMenu && (
-              <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36">
-                <button
-                  onClick={() => { setShowHeaderMenu(false); sendUrgent(); }}
-                  className="w-full px-4 py-3 text-left text-sm text-red-600 font-bold hover:bg-red-50 transition"
-                >
-                  🚨 긴급
-                </button>
-                <button
-                  onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
-                  className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
-                >
-                  초대
-                </button>
-                <button
-                  onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
-                  className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
-                >
-                  나가기
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </button>
         </div>
       </div>
+
+      {showHeaderMenu && (
+        <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36"
+          onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => { setShowHeaderMenu(false); sendUrgent(); }}
+            className="w-full px-4 py-3 text-left text-sm text-red-600 font-bold hover:bg-red-50 transition"
+          >
+            🚨 긴급
+          </button>
+          <button
+            onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
+            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            초대
+          </button>
+          <button
+            onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
+            className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+          >
+            나가기
+          </button>
+        </div>
+      )}
 
       {showThemePicker && (
         <div className="fixed top-[56px] right-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/80 p-2.5 flex gap-2 z-[9999]"

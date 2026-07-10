@@ -1529,45 +1529,45 @@ export default function Chat() {
               🔍
             </button>
 
-            <div className="relative">
-              <button
-                onClick={() => setShowHeaderMenu((p) => !p)}
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-              </button>
-              {showHeaderMenu && (
-                <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36">
-                  <button
-                    onClick={async () => {
-                      setShowHeaderMenu(false);
-                      if (!nickname || !currentChatUser) return;
-                      if (!confirm(`${currentChatUser.nickname}님과의 대화를 모두 삭제하고 나가시겠습니까?`)) return;
-                      const { getDocs: _getDocs, query: _query, collection: _col, where: _where, deleteDoc: _del, doc: _doc } = await import("firebase/firestore");
-                      const snap = await _getDocs(_query(_col(db, "messages"),
-                        _where("from", "in", [nickname, currentChatUser.nickname]),
-                      ));
-                      await Promise.all(
-                        snap.docs
-                          .filter(d => {
-                            const data = d.data();
-                            return (
-                              (data.from === nickname && data.to === currentChatUser.nickname) ||
-                              (data.from === currentChatUser.nickname && data.to === nickname)
-                            );
-                          })
-                          .map(d => _del(_doc(db, "messages", d.id)))
-                      );
-                      setCurrentChatUser(null);
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
-                  >
-                    나가기
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            </button>
           </div>
+        </div>
+      )}
+
+      {showHeaderMenu && currentChatUser && (
+        <div className="fixed top-[56px] right-3 z-[9999] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-36"
+          onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={async () => {
+              setShowHeaderMenu(false);
+              if (!nickname || !currentChatUser) return;
+              if (!confirm(`${currentChatUser.nickname}님과의 대화를 모두 삭제하고 나가시겠습니까?`)) return;
+              const { getDocs: _getDocs, query: _query, collection: _col, where: _where, deleteDoc: _del, doc: _doc } = await import("firebase/firestore");
+              const snap = await _getDocs(_query(_col(db, "messages"),
+                _where("from", "in", [nickname, currentChatUser.nickname]),
+              ));
+              await Promise.all(
+                snap.docs
+                  .filter(d => {
+                    const data = d.data();
+                    return (
+                      (data.from === nickname && data.to === currentChatUser.nickname) ||
+                      (data.from === currentChatUser.nickname && data.to === nickname)
+                    );
+                  })
+                  .map(d => _del(_doc(db, "messages", d.id)))
+              );
+              setCurrentChatUser(null);
+            }}
+            className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+          >
+            나가기
+          </button>
         </div>
       )}
 
