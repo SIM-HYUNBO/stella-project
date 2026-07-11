@@ -364,33 +364,54 @@ export default function RobotPage() {
 
         {/* 젤리 입력창 */}
         <div className="px-4 pb-5 pt-2.5 shrink-0">
-          <div className="flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all"
+          <div className="relative flex items-center gap-2.5 rounded-full px-5 py-3 transition-all overflow-hidden"
             style={{
-              background: "rgba(255,255,255,0.72)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              border: `1.5px solid rgba(255,255,255,0.9)`,
-              boxShadow: `0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px ${accent.ring}55`,
+              background: `linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.58) 100%)`,
+              backdropFilter: "blur(32px)",
+              WebkitBackdropFilter: "blur(32px)",
+              border: `1.5px solid rgba(255,255,255,0.95)`,
+              boxShadow: `
+                0 12px 36px rgba(0,0,0,0.10),
+                0 4px 12px rgba(0,0,0,0.06),
+                0 0 0 1px ${accent.ring}44,
+                inset 0 1.5px 0 rgba(255,255,255,0.95),
+                inset 0 -1px 0 rgba(0,0,0,0.04),
+                0 0 32px ${accent.ring}22
+              `.replace(/\s+/g, " "),
             }}>
+            {/* 상단 광택 */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: "52%",
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.60), rgba(255,255,255,0))",
+              borderRadius: "999px 999px 0 0",
+              pointerEvents: "none",
+            }} />
             <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder={isStreaming ? "응답 중이야..." : `${robotName}에게 말해봐...`}
               disabled={isStreaming}
-              className="flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium"/>
+              className="relative flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium z-10"/>
             {input.trim() ? (
               <button onClick={send} disabled={isStreaming}
-                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
-                style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 16px ${accent.shadow}` }}>
+                className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
+                style={{
+                  background: `linear-gradient(145deg, ${accent.from}, ${accent.to})`,
+                  boxShadow: `0 6px 20px ${accent.shadow}, inset 0 1px 0 rgba(255,255,255,0.4)`,
+                }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
               </button>
             ) : (
               <button onClick={startVoice} disabled={isStreaming || isListening}
-                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
+                className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
                 style={{
-                  background: isListening ? `linear-gradient(135deg, ${accent.from}, ${accent.to})` : "rgba(255,255,255,0.6)",
-                  boxShadow: isListening ? `0 4px 16px ${accent.shadow}` : "0 2px 8px rgba(0,0,0,0.08)",
+                  background: isListening
+                    ? `linear-gradient(145deg, ${accent.from}, ${accent.to})`
+                    : "linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6))",
+                  boxShadow: isListening
+                    ? `0 6px 20px ${accent.shadow}, inset 0 1px 0 rgba(255,255,255,0.4)`
+                    : "0 3px 10px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
                 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke={isListening ? "white" : accent.from} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
