@@ -311,7 +311,7 @@ export default function FriendsPage() {
                     <div key={u.uid} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
-                          <TextAvatar nickname={u.nickname} size={44} profileImage={u.profileImage ?? null} />
+                          <TextAvatar nickname={u.nickname} fill profileImage={u.profileImage ?? null} />
                         </div>
                         <p className="font-black text-slate-800 text-sm">{u.nickname}</p>
                       </div>
@@ -343,7 +343,7 @@ export default function FriendsPage() {
                   <div key={r.id} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
-                        <TextAvatar nickname={r.fromNickname || r.from} size={44} profileImage={null} />
+                        <TextAvatar nickname={r.fromNickname || r.from} fill profileImage={null} />
                       </div>
                       <div>
                         <p className="font-black text-slate-800 text-sm">{r.fromNickname || r.from}</p>
@@ -372,7 +372,7 @@ export default function FriendsPage() {
                   return (
                     <div key={f.uid} className="rounded-[20px] bg-yellow-50 border border-yellow-200 px-4 py-3.5 flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-yellow-300 shrink-0">
-                        <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
+                        <TextAvatar nickname={f.nickname} fill profileImage={f.profileImage ?? null} />
                       </div>
                       <div className="flex-1">
                         <p className="font-black text-slate-800 text-sm">{f.nickname}</p>
@@ -402,7 +402,7 @@ export default function FriendsPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-400 shrink-0">
-                          <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
+                          <TextAvatar nickname={f.nickname} fill profileImage={f.profileImage ?? null} />
                         </div>
                         <span className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
@@ -439,7 +439,7 @@ export default function FriendsPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
-                          <TextAvatar nickname={f.nickname} size={44} profileImage={f.profileImage ?? null} />
+                          <TextAvatar nickname={f.nickname} fill profileImage={f.profileImage ?? null} />
                         </div>
                         <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-white" />
                       </div>
@@ -490,7 +490,7 @@ export default function FriendsPage() {
               </button>
               {/* 프로필 이미지 */}
               <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full overflow-hidden">
-                <TextAvatar nickname={profileView.nickname} size={80} profileImage={profileView.profileImage} />
+                <TextAvatar nickname={profileView.nickname} fill profileImage={profileView.profileImage} />
               </div>
             </div>
 
@@ -577,7 +577,7 @@ export default function FriendsPage() {
             </div>
             <div className="px-5 py-3 flex items-center gap-3 border-b border-gray-50">
               <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
-                <TextAvatar nickname={actionSheet.nickname} size={40} profileImage={actionSheet.profileImage ?? null} />
+                <TextAvatar nickname={actionSheet.nickname} fill profileImage={actionSheet.profileImage ?? null} />
               </div>
               <p className="font-black text-slate-800">{actionSheet.nickname}</p>
             </div>
