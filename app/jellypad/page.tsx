@@ -2,39 +2,44 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const CANDY: Record<string, { bg: string; glow: string }> = {
-  "1": { bg: "linear-gradient(145deg, #ff8fab, #e8005a)", glow: "rgba(232,0,90,0.28)" },
-  "2": { bg: "linear-gradient(145deg, #ffbf69, #e07000)", glow: "rgba(224,112,0,0.28)" },
-  "3": { bg: "linear-gradient(145deg, #ffe566, #e6b800)", glow: "rgba(230,184,0,0.28)" },
-  "4": { bg: "linear-gradient(145deg, #6bcb77, #1a8f28)", glow: "rgba(26,143,40,0.28)" },
-  "5": { bg: "linear-gradient(145deg, #4ecdc4, #009090)", glow: "rgba(0,144,144,0.28)" },
-  "6": { bg: "linear-gradient(145deg, #74b9ff, #0072e5)", glow: "rgba(0,114,229,0.28)" },
-  "7": { bg: "linear-gradient(145deg, #b39ddb, #5e35b1)", glow: "rgba(94,53,177,0.28)" },
-  "8": { bg: "linear-gradient(145deg, #f48fb1, #c2185b)", glow: "rgba(194,24,91,0.28)" },
-  "9": { bg: "linear-gradient(145deg, #80cbc4, #00796b)", glow: "rgba(0,121,107,0.28)" },
-  "0": { bg: "linear-gradient(145deg, #81d4fa, #0277bd)", glow: "rgba(2,119,189,0.28)" },
-  "⌫": { bg: "linear-gradient(145deg, #eceff1, #90a4ae)", glow: "rgba(144,164,174,0.22)" },
+const JELLY: Record<string, { tint: string; glow: string; color: string }> = {
+  "1": { tint: "rgba(255, 80, 130, 0.22)", glow: "rgba(255,80,130,0.30)", color: "#e8005a" },
+  "2": { tint: "rgba(255, 150, 50, 0.22)", glow: "rgba(255,150,50,0.30)", color: "#d46800" },
+  "3": { tint: "rgba(240, 200, 0, 0.22)", glow: "rgba(240,200,0,0.30)", color: "#b89000" },
+  "4": { tint: "rgba(40, 180, 80, 0.22)", glow: "rgba(40,180,80,0.30)", color: "#1a8f28" },
+  "5": { tint: "rgba(0, 190, 180, 0.22)", glow: "rgba(0,190,180,0.30)", color: "#009090" },
+  "6": { tint: "rgba(30, 140, 255, 0.22)", glow: "rgba(30,140,255,0.30)", color: "#0072e5" },
+  "7": { tint: "rgba(130, 80, 220, 0.22)", glow: "rgba(130,80,220,0.30)", color: "#5e35b1" },
+  "8": { tint: "rgba(220, 50, 130, 0.22)", glow: "rgba(220,50,130,0.30)", color: "#c2185b" },
+  "9": { tint: "rgba(0, 170, 150, 0.22)", glow: "rgba(0,170,150,0.30)", color: "#00796b" },
+  "0": { tint: "rgba(0, 140, 220, 0.22)", glow: "rgba(0,140,220,0.30)", color: "#0277bd" },
+  "⌫": { tint: "rgba(150, 160, 170, 0.18)", glow: "rgba(150,160,170,0.20)", color: "#78909c" },
 };
 
 function JellyBtn({
-  label, pressCount, onPress, wide,
+  label, pressCount, onPress,
 }: {
-  label: string; pressCount: number; onPress: () => void; wide?: boolean;
+  label: string; pressCount: number; onPress: () => void;
 }) {
-  const c = CANDY[label];
-  const size = wide ? 186 : 86;
-  const isDelete = label === "⌫";
+  const j = JELLY[label];
 
   return (
     <button
       onClick={onPress}
       style={{
-        width: size,
+        width: 86,
         height: 86,
         borderRadius: 26,
-        background: c.bg,
-        border: "none",
-        boxShadow: `0 10px 28px ${c.glow}, 0 3px 8px rgba(0,0,0,0.10), inset 0 1.5px 2px rgba(255,255,255,0.55)`,
+        background: `linear-gradient(160deg, rgba(255,255,255,0.78) 0%, ${j.tint} 100%)`,
+        backdropFilter: "blur(28px)",
+        WebkitBackdropFilter: "blur(28px)",
+        border: "1.5px solid rgba(255,255,255,0.92)",
+        boxShadow: `
+          0 12px 32px ${j.glow},
+          0 3px 10px rgba(0,0,0,0.07),
+          inset 0 1.5px 0 rgba(255,255,255,0.95),
+          inset 0 -1px 0 rgba(0,0,0,0.04)
+        `.replace(/\s+/g, " "),
         cursor: "pointer",
         position: "relative",
         overflow: "hidden",
@@ -43,31 +48,25 @@ function JellyBtn({
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      {/* 광택 */}
+      {/* 상단 광택 */}
       <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: "46%",
-        background: "linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0))",
+        position: "absolute", top: 0, left: 0, right: 0, height: "50%",
+        background: "linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(255,255,255,0))",
         borderRadius: "26px 26px 50% 50%",
         pointerEvents: "none",
       }} />
-      {/* 바닥 반사 */}
-      <div style={{
-        position: "absolute", bottom: 0, left: "10%", right: "10%", height: "20%",
-        background: "rgba(0,0,0,0.06)",
-        borderRadius: "0 0 20px 20px",
-        pointerEvents: "none",
-      }} />
+      {/* 텍스트 */}
       <div
         key={pressCount}
         className={pressCount > 0 ? "jelly-pop" : ""}
         style={{
           display: "flex", alignItems: "center", justifyContent: "center",
           width: "100%", height: "100%",
-          fontSize: isDelete ? 22 : 32,
-          fontWeight: 800,
-          color: isDelete ? "#546e7a" : "white",
-          textShadow: isDelete ? "none" : "0 1px 4px rgba(0,0,0,0.18)",
+          fontSize: label === "⌫" ? 22 : 32,
+          fontWeight: 900,
+          color: j.color,
           letterSpacing: "-0.01em",
+          position: "relative",
         }}
       >
         {label}
@@ -123,8 +122,10 @@ export default function JellyPad() {
         style={{
           position: "absolute", top: 20, left: 20,
           width: 42, height: 42, borderRadius: 14,
-          background: "rgba(255,255,255,0.85)",
-          border: "1.5px solid rgba(0,0,0,0.06)",
+          background: "rgba(255,255,255,0.75)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1.5px solid rgba(255,255,255,0.9)",
           boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer", fontSize: 18, color: "#636e72",
@@ -144,17 +145,26 @@ export default function JellyPad() {
       <div style={{
         width: "100%", maxWidth: 306,
         minHeight: 76,
-        background: "rgba(255,255,255,0.88)",
-        backdropFilter: "blur(20px)",
+        background: "linear-gradient(160deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.55) 100%)",
+        backdropFilter: "blur(32px)",
+        WebkitBackdropFilter: "blur(32px)",
         borderRadius: 24,
         border: "1.5px solid rgba(255,255,255,0.95)",
-        boxShadow: "0 4px 28px rgba(0,0,0,0.07), inset 0 1px 1px rgba(255,255,255,0.9)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.08), inset 0 1.5px 0 rgba(255,255,255,0.95)",
         display: "flex",
         alignItems: "center",
         justifyContent: value ? "flex-end" : "center",
         padding: "0 24px",
         marginBottom: 28,
+        position: "relative",
+        overflow: "hidden",
       }}>
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "50%",
+          background: "linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0))",
+          borderRadius: "24px 24px 50% 50%",
+          pointerEvents: "none",
+        }} />
         <span style={{
           fontSize: value.length > 8 ? 28 : value.length > 5 ? 36 : 44,
           fontWeight: 800,
@@ -162,6 +172,7 @@ export default function JellyPad() {
           letterSpacing: "0.04em",
           fontVariantNumeric: "tabular-nums",
           transition: "font-size 0.15s, color 0.15s",
+          position: "relative",
         }}>
           {value || "0"}
         </span>
