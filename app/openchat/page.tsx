@@ -808,6 +808,7 @@ export default function OpenChatPage() {
   // 방 목록 뷰
   return (
     <PageContainer>
+      <div className="-m-4 bg-gray-50 min-h-screen">
       <div className="px-4 py-4">
         <div className="flex items-center gap-2">
           <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
@@ -890,6 +891,7 @@ export default function OpenChatPage() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         ))}
+      </div>
       </div>
     </PageContainer>
   );
