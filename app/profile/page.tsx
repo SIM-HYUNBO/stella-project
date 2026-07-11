@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [password, setPassword] = useState("");
   const [coverGradient, setCoverGradient] = useState<string | null>(null);
+  const [isVIP, setIsVIP] = useState<boolean | null>(null);
   const [showAIGen, setShowAIGen] = useState(false);
   const [aiInput, setAiInput] = useState("");
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -40,6 +41,7 @@ export default function ProfilePage() {
         setProfileImage(data.profileImage || null);
         setCoverImage(data.coverImage || null);
         setCoverGradient(data.coverGradient || null);
+        setIsVIP(data.isVIP === true);
       }
     });
     return () => unsub();
@@ -286,11 +288,19 @@ export default function ProfilePage() {
 
           {/* 버튼들 */}
           <div className="space-y-3">
-            <button onClick={() => { setShowAIGen(true); setAiResult(null); setAiInput(""); }}
-              className="w-full h-12 rounded-[18px] text-white font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #f59e0b, #a855f7)", boxShadow: "0 4px 20px rgba(168,85,247,0.3)" }}>
-              ✨ AI 프로필 생성기
-            </button>
+            {isVIP ? (
+              <button onClick={() => { setShowAIGen(true); setAiResult(null); setAiInput(""); }}
+                className="w-full h-12 rounded-[18px] text-white font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(135deg, #f59e0b, #a855f7)", boxShadow: "0 4px 20px rgba(168,85,247,0.3)" }}>
+                ✨ AI 프로필 생성기
+              </button>
+            ) : (
+              <button onClick={() => router.push("/vip")}
+                className="w-full h-12 rounded-[18px] font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(135deg, #fff9e0, #fff3cc)", border: "2px solid #f5c842", color: "#b8860b", boxShadow: "0 4px 14px rgba(245,200,66,0.25)" }}>
+                🔒 AI 프로필 생성기 <span style={{ fontSize: 11, opacity: 0.7 }}>VIP 전용</span>
+              </button>
+            )}
             <button onClick={handleLogout}
               className="w-full h-12 rounded-[18px] bg-white text-sky-800 font-black text-sm active:scale-[0.98] transition-transform">
               로그아웃
