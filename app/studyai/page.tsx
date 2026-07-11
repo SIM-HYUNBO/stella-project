@@ -5,7 +5,7 @@ import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, getDocs, deleteDoc, doc, getDoc,
+  serverTimestamp, getDocs, deleteDoc,
 } from "firebase/firestore";
 
 type StudyMsg = { id: string; role: "user" | "ai"; content: string; createdAt: any; };
@@ -200,7 +200,6 @@ function RichContent({ text }: { text: string }) {
 
 export default function StudyAIPage() {
   const [user, setUser] = useState<any>(null);
-  const [isVIP, setIsVIP] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<StudyMsg[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -214,13 +213,6 @@ export default function StudyAIPage() {
   const router = useRouter();
 
   useEffect(() => { return watchAuthState(setUser); }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    getDoc(doc(db, "users", user.uid)).then(snap => {
-      setIsVIP(snap.data()?.isVIP === true);
-    });
-  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -307,44 +299,6 @@ export default function StudyAIPage() {
   if (!user) return (
     <div className="fixed inset-0 flex items-center justify-center text-gray-400 text-sm" style={{ background: "linear-gradient(160deg, #fffbeb 0%, #f0fdf4 100%)" }}>
       로그인이 필요해요.
-    </div>
-  );
-
-  if (isVIP === false) return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center px-6 gap-5" style={{ background: "linear-gradient(160deg, #fffbeb 0%, #f0fdf4 100%)" }}>
-      <button onClick={() => router.back()} style={{
-        position: "absolute", top: 20, left: 20,
-        width: 40, height: 40, borderRadius: 13,
-        background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(0,0,0,0.07)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer", fontSize: 18, color: "#636e72",
-      }}>←</button>
-      <div style={{
-        width: "100%", maxWidth: 340,
-        background: "#fff", borderRadius: 28,
-        border: "2px solid #f5c842",
-        boxShadow: "0 8px 40px rgba(245,200,66,0.18)",
-        padding: "36px 28px",
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
-        textAlign: "center",
-      }}>
-        <span style={{ fontSize: 52 }}>🔒</span>
-        <p style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", margin: 0 }}>학습용 AI는 VIP 전용이에요</p>
-        <p style={{ fontSize: 14, color: "#888", margin: 0, lineHeight: 1.6 }}>
-          VIP 구독 후 무제한으로<br />학습 AI를 사용할 수 있어요
-        </p>
-        <button
-          onClick={() => router.push("/vip")}
-          style={{
-            marginTop: 8, padding: "14px 32px",
-            background: "linear-gradient(135deg, #f5c842, #e8a000)",
-            border: "none", borderRadius: 16,
-            color: "#fff", fontWeight: 900, fontSize: 16,
-            cursor: "pointer", width: "100%",
-            boxShadow: "0 6px 20px rgba(245,200,66,0.35)",
-          }}
-        >👑 VIP 구독하기</button>
-      </div>
     </div>
   );
 
