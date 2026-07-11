@@ -808,7 +808,7 @@ export default function OpenChatPage() {
   // 방 목록 뷰
   return (
     <PageContainer>
-      <div className="-m-4 bg-gray-50 min-h-screen">
+      <div className="-m-4 bg-gray-50">
       <div className="px-4 py-4">
         <div className="flex items-center gap-2">
           <span className="text-xl font-black bg-yellow-200">OPEN CHAT</span>
