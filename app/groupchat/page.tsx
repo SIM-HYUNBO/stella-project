@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import DrawingCanvas from "@/components/DrawingCanvas";
-import { db, storage, auth } from "@/app/firebase";
+import { db, storage } from "@/app/firebase";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { watchAuthState } from "../authService";
 
@@ -25,7 +25,6 @@ import {
   where,
   getDocs,
   getDoc,
-  increment,
 } from "firebase/firestore";
 
 const TITLE_MAP: Record<string, { icon: string; name: string }> = {
@@ -862,8 +861,6 @@ export default function GroupChat() {
         readBy: [nickname],
         ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
       });
-      const cuid = auth.currentUser?.uid;
-      if (cuid) setDoc(doc(db, "chunsik", cuid), { happiness: increment(1), exp: increment(2) }, { merge: true }).catch(() => {});
       setReplyTo(null);
       setInput("");
       const targets = currentRoom.members.filter((m) => m !== nickname);

@@ -9,7 +9,7 @@ import { db, auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   collection, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, doc, getDoc, updateDoc, limit, deleteDoc, setDoc, increment,
+  serverTimestamp, doc, getDoc, updateDoc, limit, deleteDoc, setDoc,
 } from "firebase/firestore";
 
 const TOPICS = ["전체", "게임", "공부", "음악", "영화", "운동", "음식", "여행", "일상", "기타"];
@@ -277,8 +277,6 @@ export default function OpenChatPage() {
         from: nickname, content: text, type: "text", createdAt: serverTimestamp(),
         ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content, type: replyTo.type } } : {}),
       });
-      const cuid = auth.currentUser?.uid;
-      if (cuid) setDoc(doc(db, "chunsik", cuid), { happiness: increment(1), exp: increment(2) }, { merge: true }).catch(() => {});
       setReplyTo(null);
     } catch { alert("메시지 전송에 실패했어요. 다시 시도해줘!"); setIsSending(false); return; }
     try { await updateDoc(doc(db, "openRooms", currentRoom.id), { lastMessage: text, lastAt: serverTimestamp() }); } catch {}

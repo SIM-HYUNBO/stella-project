@@ -51,13 +51,6 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
-  {
-    label: "춘식이",
-    path: "/chunsik",
-    icon: (active) => (
-      <span style={{ fontSize: active ? 24 : 22, lineHeight: 1 }}>🐱</span>
-    ),
-  },
 ];
 
 const PageContainer = ({ children }) => {
