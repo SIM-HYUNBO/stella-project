@@ -864,11 +864,12 @@ export default function OpenChatPage() {
         </div>
       )}
 
-      <div className="px-4 flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+      <div className="pl-4 flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
         {TOPICS.map((t) => (
           <button key={t} onClick={() => setSelectedTopic(t)}
             className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition ${selectedTopic === t ? "bg-sky-400 text-white" : "bg-white text-gray-500 hover:bg-gray-100 shadow-sm"}`}>{t}</button>
         ))}
+        <div className="shrink-0 w-4" />
       </div>
 
       <div className="px-4 flex flex-col gap-2">
