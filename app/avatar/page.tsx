@@ -21,6 +21,7 @@ import {
   setDoc,
   deleteDoc,
   where,
+  increment,
 } from "firebase/firestore";
 import { usePushSubscription } from "@/app/hooks/usePushSubscription";
 
@@ -1118,6 +1119,7 @@ export default function Chat() {
     setIsSending(true);
     try {
       await addDoc(collection(db, "messages"), msgData);
+      if (uid) setDoc(doc(db, "chunsik", uid), { happiness: increment(1), exp: increment(2) }, { merge: true }).catch(() => {});
       setInput("");
       setReplyTo(null);
       fetch("/api/fcm", {

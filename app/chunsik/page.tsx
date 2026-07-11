@@ -75,7 +75,7 @@ export default function ChunPage() {
       if (!u) { router.replace("/login"); return; }
       setUid(u.uid);
       const snap = await getDoc(doc(db, "chunsik", u.uid));
-      const data = snap.exists() ? (snap.data() as Pet) : { ...DEFAULT, lastSaved: Date.now() };
+      const data = { ...DEFAULT, lastSaved: Date.now(), ...(snap.exists() ? snap.data() : {}) } as Pet;
       setPet(decay(data));
     });
     return () => unsub();
