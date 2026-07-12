@@ -1885,17 +1885,6 @@ export default function GroupChat() {
             </svg>
             <span className="text-xs font-bold text-red-500">회의</span>
           </button>
-          <button
-            onClick={() => router.push("/openchat")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-yellow-50 hover:bg-yellow-100 transition active:scale-90"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            <span className="text-xs font-bold text-yellow-600">오픈</span>
-          </button>
         </div>
         <div className="text-xs text-gray-400 mt-0.5">단체 채팅</div>
       </div>
