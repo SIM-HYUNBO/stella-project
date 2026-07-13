@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function ProfilePage() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiResult, setAiResult] = useState<{ gradient: string; status: string; emoji: string } | null>(null);
   const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const originalNicknameRef = useRef<string>("");
   const profileRef = useRef<HTMLInputElement | null>(null);
   const coverRef = useRef<HTMLInputElement | null>(null);
@@ -286,6 +288,10 @@ export default function ProfilePage() {
 
           {/* 버튼들 */}
           <div className="space-y-3">
+            <button onClick={() => setShowQR(true)}
+              className="w-full h-12 rounded-[18px] bg-white border border-sky-100 text-sky-700 font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+              📲 QR코드로 친구 추가
+            </button>
             <button onClick={() => { setShowAIGen(true); setAiResult(null); setAiInput(""); }}
               className="w-full h-12 rounded-[18px] text-white font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #f59e0b, #a855f7)", boxShadow: "0 4px 20px rgba(168,85,247,0.3)" }}>
@@ -302,6 +308,25 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* QR 모달 */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-5" onClick={() => setShowQR(false)}>
+          <div className="w-full max-w-xs rounded-[28px] bg-white p-7 flex flex-col items-center gap-5" onClick={(e) => e.stopPropagation()}>
+            <p className="font-black text-slate-800 text-lg">내 QR코드</p>
+            <div className="p-3 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <QRCodeSVG
+                value={`${typeof window !== "undefined" ? window.location.origin : ""}/add/${encodeURIComponent(nickname)}`}
+                size={200}
+                level="M"
+              />
+            </div>
+            <p className="text-sm text-gray-400 font-bold text-center">상대방이 이 QR을 스캔하면<br/>친구 요청을 보낼 수 있어요</p>
+            <button onClick={() => setShowQR(false)}
+              className="w-full h-12 rounded-[18px] bg-sky-50 text-sky-700 font-black text-sm">닫기</button>
+          </div>
+        </div>
+      )}
 
       {/* 탈퇴 모달 */}
       {confirmDelete && (
