@@ -88,7 +88,7 @@ export default function AddFriendPage() {
           <>
             <span style={{ fontSize: 56 }}>🔍</span>
             <p style={{ fontWeight: 900, fontSize: 18, color: "#0f172a", margin: 0 }}>유저를 찾을 수 없어요</p>
-            <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>"{targetNickname}" 닉네임의 유저가 없어요.</p>
+            <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>&quot;{targetNickname}&quot; 닉네임의 유저가 없어요.</p>
             <button onClick={() => router.replace("/home")} style={{
               width: "100%", height: 48, borderRadius: 18,
               background: "#0ea5e9", color: "#fff", fontWeight: 900, fontSize: 14,
