@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Header from "/components/Header";
 import AppLock from "@/components/AppLock";
+import { auth, db } from "@/app/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 const NAV_ITEMS = [
   {
@@ -56,8 +59,18 @@ const NAV_ITEMS = [
 const PageContainer = ({ children }) => {
   const [ripples, setRipples] = useState([]);
   const [locked, setLocked] = useState(false);
+  const [isWagi, setIsWagi] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (!u) return;
+      const snap = await getDoc(doc(db, "users", u.uid));
+      if (snap.exists()) setIsWagi(snap.data().isWagi === true);
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const enabled = localStorage.getItem("appLockEnabled") === "true";
@@ -134,6 +147,14 @@ const PageContainer = ({ children }) => {
               </button>
             );
           })}
+          {isWagi && (
+            <button
+              onClick={() => router.push("/wagi")}
+              className={`flex items-center justify-center flex-1 h-[58px] transition-all duration-150 ${pathname === "/wagi" ? "text-purple-500" : "text-purple-300 hover:text-purple-400"}`}
+            >
+              <span style={{ fontSize: pathname === "/wagi" ? 24 : 22, lineHeight: 1 }}>🔒</span>
+            </button>
+          )}
         </div>
       </nav>
 
