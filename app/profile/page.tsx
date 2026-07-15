@@ -111,6 +111,13 @@ export default function ProfilePage() {
     }
   };
 
+  const cancelWagi = async () => {
+    if (!user) return;
+    if (!confirm("와기 회원을 탈퇴할까요?")) return;
+    await updateDoc(doc(db, "users", user.uid), { isWagi: false });
+    setIsWagi(false);
+  };
+
   const startContract = () => {
     setShowContract(true);
     setContractStage(1);
@@ -242,16 +249,17 @@ export default function ProfilePage() {
 
           {/* 와기 계약 */}
           {isWagi ? (
-            <div className="mb-4 flex items-center justify-center gap-2 py-3 rounded-[18px]"
-              style={{ background: "linear-gradient(135deg, #1e0040, #3b0070)", boxShadow: "0 4px 20px rgba(139,92,246,0.35)" }}>
-              <span className="text-lg">⚜️</span>
-              <span className="font-black text-sm" style={{ color: "#c4b5fd" }}>와기 정식 회원</span>
-              <span className="text-lg">⚜️</span>
+            <div className="mb-4 flex items-center justify-between px-4 py-2.5 rounded-[14px]"
+              style={{ background: "rgba(109,40,217,0.07)", border: "1px solid rgba(109,40,217,0.15)" }}>
+              <span className="text-sm font-bold" style={{ color: "#9171c8" }}>⚜️ 와기 정식 회원</span>
+              <button onClick={cancelWagi}
+                className="text-xs font-bold"
+                style={{ color: "#94a3b8" }}>탈퇴</button>
             </div>
           ) : (
             <button onClick={startContract}
-              className="w-full h-12 rounded-[18px] font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2 mb-4"
-              style={{ background: "linear-gradient(135deg, #2d0060, #6d28d9)", color: "#e9d5ff", boxShadow: "0 4px 20px rgba(109,40,217,0.4)" }}>
+              className="w-full h-11 rounded-[14px] font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2 mb-4"
+              style={{ background: "rgba(109,40,217,0.12)", color: "#9171c8", border: "1px solid rgba(109,40,217,0.2)" }}>
               ⚜️ 와기 계약하기
             </button>
           )}
