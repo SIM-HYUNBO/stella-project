@@ -902,7 +902,7 @@ export default function MeetingRoomPage() {
                         src={m.content}
                         alt="이미지"
                         className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
-                        onClick={() => setLightboxSrc(m.content)}
+                        onClick={(e) => { e.stopPropagation(); setLightboxSrc(m.content); }}
                       />
                     ) : m.type === "audio" ? (
                       <audio src={m.content} controls className="max-w-[220px] rounded-xl" />
@@ -1092,7 +1092,8 @@ export default function MeetingRoomPage() {
           )}
           <button
             onClick={() => setShowPlusMenu((p) => !p)}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black ${showPlusMenu ? "bg-sky-400 text-white" : "text-sky-400"}`}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black"
+            style={showPlusMenu ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: "#fff" } : { color: accent.from }}
           >
             {showPlusMenu ? "✕" : "+"}
           </button>
@@ -1124,7 +1125,7 @@ export default function MeetingRoomPage() {
         <button
           onClick={() => sendMessage()}
           className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
-          style={{ background:"linear-gradient(135deg,#38bdf8,#6366f1)", boxShadow:"0 4px 16px rgba(56,189,248,0.35)" }}
+          style={input.trim() ? { background:`linear-gradient(135deg,${accent.from},${accent.to})`, boxShadow:`0 4px 16px ${accent.shadow}` } : { background:`${accent.ring}55`, color:accent.from }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/>
@@ -1324,7 +1325,7 @@ export default function MeetingRoomPage() {
 
       {lightboxSrc && createPortal(
         <div
-          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+          className="fixed inset-0 z-[999999] bg-black/90 flex items-center justify-center"
           onClick={() => setLightboxSrc(null)}
         >
           <img
