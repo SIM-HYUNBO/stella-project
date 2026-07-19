@@ -1302,6 +1302,24 @@ export default function MeetingRoomPage() {
             </div>
           </div>
         )}
+        {lightboxSrc && createPortal(
+          <div
+            className="fixed inset-0 z-[999999] bg-black/90 flex items-center justify-center"
+            onClick={() => setLightboxSrc(null)}
+          >
+            <img
+              src={lightboxSrc}
+              alt="이미지"
+              className="max-w-full max-h-full object-contain rounded-xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center"
+              onClick={() => setLightboxSrc(null)}
+            >✕</button>
+          </div>,
+          document.body
+        )}
       </div>
     );
   }
