@@ -575,9 +575,9 @@ export default function MeetingRoomPage() {
         status: "pending",
         createdAt: serverTimestamp(),
       });
-      fetch("/api/push", {
+      fetch("/api/fcm", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toNickname: targetNickname, fromNickname: nickname, message: `${currentRoom.name} 회의방에 초대되었어요! 📋` }),
+        body: JSON.stringify({ toNicknames: targetNickname, fromNickname: nickname, message: `${currentRoom.name} 회의방에 초대되었어요! 📋` }),
       }).catch(() => {});
       setShowInvite(false);
     } finally {

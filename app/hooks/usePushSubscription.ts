@@ -46,7 +46,12 @@ export function usePushSubscription(nickname: string | null) {
         if (!messaging) return;
         try {
           const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY });
-          setIsSubscribed(!!token);
+          if (token) {
+            await setDoc(doc(db, "fcm_tokens", nickname), { token, updatedAt: new Date() }, { merge: true });
+            setIsSubscribed(true);
+          } else {
+            setIsSubscribed(false);
+          }
         } catch {
           setIsSubscribed(false);
         }

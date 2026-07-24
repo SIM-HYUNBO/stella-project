@@ -137,9 +137,9 @@ export default function FriendsPage() {
       to: target.uid, toNickname: target.nickname,
       status: "pending", createdAt: Date.now(),
     });
-    fetch("/api/push", {
+    fetch("/api/fcm", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ toNickname: target.nickname, fromNickname: currentNickname, message: "친구 요청이 도착했어요! 👋" }),
+      body: JSON.stringify({ toNicknames: target.nickname, fromNickname: currentNickname, message: "친구 요청이 도착했어요! 👋" }),
     }).catch(() => {});
     alert(`${target.nickname}님에게 친구 요청을 보냈습니다.`);
   };
