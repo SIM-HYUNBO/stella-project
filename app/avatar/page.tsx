@@ -461,6 +461,8 @@ export default function Chat() {
   const [chosungAnswer, setChosungAnswer] = useState("");
   const [game369, setGame369] = useState<{ active: boolean; currentNumber: number; lastPlayer: string; startedBy: string } | null>(null);
   const [showFireworks, setShowFireworks] = useState(false);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   const { isBlocked: pushBlocked } =
     usePushSubscription(nickname);
@@ -1118,6 +1120,7 @@ export default function Chat() {
     setIsSending(true);
     try {
       await addDoc(collection(db, "messages"), msgData);
+      new Audio("/sounds/message.mp3").play().catch(() => {});
       setInput("");
       setReplyTo(null);
       fetch("/api/fcm", {
@@ -1246,17 +1249,22 @@ export default function Chat() {
     setCtxMenu(null);
   };
 
-  const editMessage = async (id: string) => {
-    const text = prompt("수정할 메시지");
+  const editMessage = (id: string) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg) return;
+    setEditingMsgId(id);
+    setEditingText(msg.content);
+    setCtxMenu(null);
+  };
 
-    if (!text) return;
-
-    await updateDoc(doc(db, "messages", id), {
-      content: text,
+  const saveEdit = async () => {
+    if (!editingMsgId || !editingText.trim()) return;
+    await updateDoc(doc(db, "messages", editingMsgId), {
+      content: editingText.trim(),
       edited: true,
     });
-
-    setCtxMenu(null);
+    setEditingMsgId(null);
+    setEditingText("");
   };
 
   const toggleReaction = async (
@@ -1433,6 +1441,24 @@ export default function Chat() {
   };
 
   const renderMsgContent = (m: Message) => {
+    if (editingMsgId === m.id) {
+      return (
+        <div className="flex flex-col gap-2 min-w-[180px]">
+          <textarea
+            autoFocus
+            value={editingText}
+            onChange={(e) => setEditingText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(); } if (e.key === "Escape") { setEditingMsgId(null); } }}
+            className="w-full rounded-xl bg-white/20 text-white placeholder:text-white/50 text-sm px-3 py-2 outline-none resize-none"
+            rows={2}
+          />
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setEditingMsgId(null)} className="text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition">취소</button>
+            <button onClick={saveEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
+          </div>
+        </div>
+      );
+    }
     if (m.type === "image") {
       return (
         <img
