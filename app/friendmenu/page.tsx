@@ -122,10 +122,24 @@ export default function FriendsPage() {
     for (const d of snap.docs) {
       const friendId = d.data().users.find((u: string) => u !== uid);
       const userSnap = await getDoc(doc(db, "users", friendId));
-      if (userSnap.exists()) list.push({ uid: friendId, ...userSnap.data() });
+      if (userSnap.exists()) list.push({ uid: friendId, friendSince: d.data().createdAt ?? null, ...userSnap.data() });
     }
     list.sort((a, b) => (a.nickname ?? "").localeCompare(b.nickname ?? "", "ko"));
     setFriends(list);
+  };
+
+  const getFriendDays = (friendSince: number | null) => {
+    if (!friendSince) return null;
+    return Math.floor((Date.now() - friendSince) / (1000 * 60 * 60 * 24));
+  };
+
+  const getIntimacy = (days: number | null) => {
+    if (days === null) return 1;
+    if (days >= 180) return 5;
+    if (days >= 90) return 4;
+    if (days >= 30) return 3;
+    if (days >= 7) return 2;
+    return 1;
   };
 
   const sendFriendRequest = async (target: any) => {
@@ -397,7 +411,10 @@ export default function FriendsPage() {
                 즐겨찾는 친구 <span className="text-sky-600">{friends.filter((f) => favoriteDocs[f.uid]).length}</span>
               </p>
               <div className="space-y-2">
-                {friends.filter((f) => favoriteDocs[f.uid]).map((f) => (
+                {friends.filter((f) => favoriteDocs[f.uid]).map((f) => {
+                  const days = getFriendDays(f.friendSince);
+                  const intimacy = getIntimacy(days);
+                  return (
                   <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-sky-50 px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -412,6 +429,14 @@ export default function FriendsPage() {
                       </div>
                       <div>
                         <p className="font-black text-slate-800 text-sm">{f.nickname}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] tracking-tight">
+                            {Array.from({ length: 5 }, (_, i) => i < intimacy ? "💙" : "🤍").join("")}
+                          </span>
+                          {days !== null && (
+                            <span className="text-[10px] text-gray-400">친구된 지 {days}일</span>
+                          )}
+                        </div>
                         {mutedDocs[f.uid] && <span className="text-[10px] text-sky-600 bg-sky-50 rounded-full px-2 py-0.5">🔕 알림 꺼짐</span>}
                       </div>
                     </div>
@@ -424,7 +449,8 @@ export default function FriendsPage() {
                       </svg>
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -434,7 +460,10 @@ export default function FriendsPage() {
             <div>
               <p className="font-black text-slate-800 text-base mb-3 px-1">내 친구 👫 <span className="text-sky-600">{visibleFriends.length}</span></p>
               <div className="space-y-2">
-                {visibleFriends.map((f) => (
+                {visibleFriends.map((f) => {
+                  const days = getFriendDays(f.friendSince);
+                  const intimacy = getIntimacy(days);
+                  return (
                   <div key={f.uid} onClick={() => openProfile(f)} className="relative rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -445,9 +474,15 @@ export default function FriendsPage() {
                       </div>
                       <div>
                         <p className="font-black text-slate-800 text-sm">{f.nickname}</p>
-                        <div className="flex gap-1 mt-0.5">
-                          {mutedDocs[f.uid] && <span className="text-[10px] text-sky-600 bg-sky-50 rounded-full px-2 py-0.5">🔕 알림 꺼짐</span>}
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] tracking-tight">
+                            {Array.from({ length: 5 }, (_, i) => i < intimacy ? "💙" : "🤍").join("")}
+                          </span>
+                          {days !== null && (
+                            <span className="text-[10px] text-gray-400">친구된 지 {days}일</span>
+                          )}
                         </div>
+                        {mutedDocs[f.uid] && <span className="text-[10px] text-sky-600 bg-sky-50 rounded-full px-2 py-0.5">🔕 알림 꺼짐</span>}
                       </div>
                     </div>
                     <button
@@ -455,7 +490,8 @@ export default function FriendsPage() {
                       className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-sky-50 text-sky-600 font-black text-lg"
                     >···</button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
