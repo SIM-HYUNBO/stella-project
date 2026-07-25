@@ -1120,7 +1120,7 @@ export default function Chat() {
     setIsSending(true);
     try {
       await addDoc(collection(db, "messages"), msgData);
-      new Audio("/sounds/message.mp3").play().catch(() => {});
+      new Audio("/sounds/alert1.mp3").play().catch(() => {});
       setInput("");
       setReplyTo(null);
       fetch("/api/fcm", {
