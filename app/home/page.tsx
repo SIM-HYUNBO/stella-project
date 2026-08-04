@@ -625,6 +625,31 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* ── 공유 배너 ── */}
+          <div className="rounded-[20px] bg-gradient-to-r from-sky-100 to-blue-50 border border-sky-200 px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <p className="font-black text-slate-700 text-sm">WAGIE를 공유해 주세요 🙌</p>
+              <p className="text-xs text-slate-400 mt-0.5">친구에게 와기를 소개해봐요</p>
+            </div>
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: "WAGIE", text: "와기 - 친구들과 함께해요!", url: window.location.origin });
+                } else {
+                  navigator.clipboard.writeText(window.location.origin);
+                  alert("링크가 복사됐어요!");
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-sky-400 text-white text-xs font-black active:scale-95 transition shrink-0"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              공유
+            </button>
+          </div>
+
           {/* ── 친구 버블 ── */}
           {friends.length > 0 && (
             <div>
