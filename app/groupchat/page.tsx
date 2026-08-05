@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
+import LinkPreview, { extractFirstUrl } from "../../components/LinkPreview";
 import DrawingCanvas from "@/components/DrawingCanvas";
 import { db, storage } from "@/app/firebase";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -1618,6 +1619,11 @@ export default function GroupChat() {
                       </span>
                     )}
                   </div>
+
+                  {m.type !== "image" && m.type !== "audio" && (() => {
+                    const url = extractFirstUrl(m.content);
+                    return url ? <LinkPreview url={url} isMine={isMine} /> : null;
+                  })()}
 
                   <div
                     className={`mt-1 text-[10px] text-gray-400 flex items-center gap-1 ${

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
+import LinkPreview, { extractFirstUrl } from "../../components/LinkPreview";
 import DrawingCanvas from "@/components/DrawingCanvas";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
@@ -1798,6 +1799,11 @@ export default function Chat() {
                       ))}
                     </div>
                   )}
+
+                {m.type !== "image" && m.type !== "audio" && (() => {
+                  const url = extractFirstUrl(m.content);
+                  return url ? <LinkPreview url={url} isMine={isMine} /> : null;
+                })()}
 
                 <div
                   className={`mt-1 text-[10px] text-gray-400 flex items-center gap-1 ${
