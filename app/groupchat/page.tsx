@@ -215,6 +215,8 @@ export default function GroupChat() {
   const [chosungAnswer, setChosungAnswer] = useState("");
   const [game369, setGame369] = useState<{ active: boolean; currentNumber: number; lastPlayer: string; startedBy: string } | null>(null);
   const [showFireworks, setShowFireworks] = useState(false);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
@@ -863,6 +865,7 @@ export default function GroupChat() {
       });
       setReplyTo(null);
       setInput("");
+      new Audio("/sounds/alert1.mp3").play().catch(() => {});
       const targets = currentRoom.members.filter((m) => m !== nickname);
       if (targets.length > 0) {
         fetch("/api/fcm", {
@@ -905,6 +908,24 @@ export default function GroupChat() {
     if (!currentRoom) return;
     await deleteDoc(doc(db, "group_rooms", currentRoom.id, "messages", msgId));
     setCtxMenu(null);
+  };
+
+  const editGroupMsg = (msgId: string) => {
+    const msg = messages.find((m) => m.id === msgId);
+    if (!msg) return;
+    setEditingMsgId(msgId);
+    setEditingText(msg.content);
+    setCtxMenu(null);
+  };
+
+  const saveGroupEdit = async () => {
+    if (!editingMsgId || !editingText.trim() || !currentRoom) return;
+    await updateDoc(doc(db, "group_rooms", currentRoom.id, "messages", editingMsgId), {
+      content: editingText.trim(),
+      edited: true,
+    });
+    setEditingMsgId(null);
+    setEditingText("");
   };
 
   const compressToBase64 = (
@@ -1567,7 +1588,22 @@ export default function GroupChat() {
                         <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}
                       </div>
                     )}
-                    {m.type === "image" ? (
+                    {editingMsgId === m.id ? (
+                      <div className="flex flex-col gap-2 min-w-[180px]">
+                        <textarea
+                          autoFocus
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveGroupEdit(); } if (e.key === "Escape") setEditingMsgId(null); }}
+                          className="w-full rounded-xl bg-white/20 text-white placeholder:text-white/50 text-sm px-3 py-2 outline-none resize-none"
+                          rows={2}
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <button onClick={() => setEditingMsgId(null)} className="text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition">취소</button>
+                          <button onClick={saveGroupEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
+                        </div>
+                      </div>
+                    ) : m.type === "image" ? (
                       <img
                         src={m.content}
                         alt="이미지"
@@ -2120,7 +2156,10 @@ export default function GroupChat() {
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
               <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type }); setCtxMenu(null); }}>↩ 답장</button>
               {ctxMenu.isMine && (
-                <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteGroupMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
+                <>
+                  <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editGroupMsg(ctxMenu.msgId)}>✏️ 수정</button>
+                  <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteGroupMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
+                </>
               )}
             </div>
           </div>

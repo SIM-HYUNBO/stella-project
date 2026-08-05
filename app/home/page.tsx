@@ -626,7 +626,7 @@ export default function HomePage() {
           </div>
 
           {/* ── 공유 배너 ── */}
-          <div className="rounded-[20px] bg-gradient-to-r from-sky-100 to-blue-50 border border-sky-200 px-4 py-3.5 flex items-center justify-between">
+          <div className="rounded-[20px] bg-gradient-to-r from-sky-100 to-yellow-50 border border-sky-100 px-4 py-3.5 flex items-center justify-between">
             <div>
               <p className="font-black text-slate-700 text-sm">WAGIE를 공유해 주세요 🙌</p>
               <p className="text-xs text-slate-400 mt-0.5">친구에게 와기를 소개해봐요</p>
