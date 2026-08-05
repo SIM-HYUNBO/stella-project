@@ -747,7 +747,7 @@ export default function HomePage() {
 
               <button onClick={() => router.push("/meetingroom")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm border border-red-100 px-6 py-4 flex items-center gap-4">
+                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📋</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">회의방</p>
@@ -759,7 +759,7 @@ export default function HomePage() {
 
               <button onClick={() => router.push("/tools/contact")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm border px-6 py-4 flex items-center gap-4">
+                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🎧</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">Q&A방</p>
