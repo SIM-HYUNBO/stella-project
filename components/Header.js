@@ -16,6 +16,9 @@ const Header = () => {
           <span className={`${jua.className} text-[28px] text-sky-400 drop-tracking-wide`}>
             WAGIE
           </span>
+          <span className="text-[11px] text-gray-400 font-medium animate-[fadeInSlow_1.2s_ease_0.8s_both]">
+            wagging duck
+          </span>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -45,6 +48,10 @@ const Header = () => {
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(200%); }
+        }
+        @keyframes fadeInSlow {
+          0% { opacity: 0; transform: translateY(3px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </header>
