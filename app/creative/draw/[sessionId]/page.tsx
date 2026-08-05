@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../../firebase";
-import { doc, getDoc, collection, query, where, getDocs, onSnapshot, setDoc, orderBy, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot, setDoc, updateDoc, orderBy, serverTimestamp } from "firebase/firestore";
 
 const COLORS = ["#1a1a1a", "#ef4444", "#3b82f6", "#22c55e", "#a855f7", "#f97316", "#ec4899", "#fbbf24"];
 const SIZES = [{ label: "S", px: 3 }, { label: "M", px: 7 }, { label: "L", px: 16 }];
@@ -21,6 +21,7 @@ export default function DrawSessionPage() {
 
   const [nickname, setNickname] = useState<string | null>(null);
   const [partner, setPartner] = useState<string | null>(null);
+  const [requestDocId, setRequestDocId] = useState<string | null>(null);
   const [color, setColor] = useState("#1a1a1a");
   const [sizeIdx, setSizeIdx] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
@@ -58,6 +59,7 @@ export default function DrawSessionPage() {
       if (!snap.empty) {
         const data = snap.docs[0].data();
         setPartner(data.from === nickname ? data.to : data.from);
+        setRequestDocId(snap.docs[0].id);
       }
     })();
   }, [nickname, sessionId]);
@@ -275,7 +277,12 @@ export default function DrawSessionPage() {
                 className="flex-1 py-3 rounded-2xl bg-white/10 text-white/70 font-bold text-sm active:scale-95 transition">
                 취소
               </button>
-              <button onClick={() => router.push("/creative")}
+              <button onClick={async () => {
+                if (requestDocId) {
+                  await updateDoc(doc(db, "draw_requests", requestDocId), { status: "ended" });
+                }
+                router.push("/creative");
+              }}
                 className="flex-1 py-3 rounded-2xl font-bold text-sm text-white active:scale-95 transition"
                 style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }}>
                 나가기

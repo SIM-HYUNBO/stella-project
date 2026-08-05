@@ -55,7 +55,7 @@ export default function DrawLobbyPage() {
   // 보낸 요청 구독 (수락 감지 포함)
   useEffect(() => {
     if (!nickname) return;
-    const q = query(collection(db, "draw_requests"), where("from", "==", nickname));
+    const q = query(collection(db, "draw_requests"), where("from", "==", nickname), where("status", "in", ["pending", "accepted"]));
     return onSnapshot(q, (snap) => {
       const pending = snap.docs.find(d => d.data().status === "pending");
       const accepted = snap.docs.find(d => d.data().status === "accepted");
