@@ -16,7 +16,7 @@ const Header = () => {
           <span className={`${jua.className} text-[28px] text-sky-400 drop-tracking-wide`}>
             WAGIE
           </span>
-          <span className="text-[11px] text-gray-400 font-medium animate-[fadeInSlow_1.2s_ease_0.8s_both]">
+          <span className="text-[14px] text-gray-400 font-light ml-2 animate-[fadeInSlow_1.2s_ease_0.8s_both]">
             wagging duck
           </span>
         </Link>
