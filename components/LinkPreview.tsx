@@ -31,9 +31,7 @@ export default function LinkPreview({ url, isMine }: { url: string; isMine: bool
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`mt-1.5 block rounded-2xl overflow-hidden border text-left no-underline active:opacity-80 transition-opacity ${
-        isMine ? "border-white/20 bg-white/15" : "border-slate-200 bg-white shadow-sm"
-      }`}
+      className="mt-1.5 block rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm text-left no-underline active:opacity-80 transition-opacity"
       onClick={(e) => e.stopPropagation()}
     >
       {og.image && (
@@ -41,19 +39,13 @@ export default function LinkPreview({ url, isMine }: { url: string; isMine: bool
       )}
       <div className="px-3 py-2">
         {og.siteName && (
-          <p className={`text-[10px] font-bold mb-0.5 ${isMine ? "text-white/60" : "text-sky-500"}`}>
-            {og.siteName}
-          </p>
+          <p className="text-[10px] font-bold mb-0.5 text-sky-500">{og.siteName}</p>
         )}
         {og.title && (
-          <p className={`text-xs font-bold leading-snug line-clamp-2 ${isMine ? "text-white" : "text-slate-800"}`}>
-            {og.title}
-          </p>
+          <p className="text-xs font-bold leading-snug line-clamp-2 text-slate-800">{og.title}</p>
         )}
         {og.description && (
-          <p className={`text-[10px] mt-0.5 line-clamp-2 ${isMine ? "text-white/70" : "text-slate-500"}`}>
-            {og.description}
-          </p>
+          <p className="text-[10px] mt-0.5 line-clamp-2 text-slate-500">{og.description}</p>
         )}
       </div>
     </a>
