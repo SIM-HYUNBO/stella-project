@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [keepLogin, setKeepLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [section, setSection] = useState<"chat" | "creative">("chat");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
       if (userDoc.exists()) alert(`${userDoc.data().nickname}님 환영합니다!`);
-      router.push("/home");
+      router.push(section === "creative" ? "/creative" : "/home");
     } catch {
       setError("이메일 또는 비밀번호가 올바르지 않아요.");
     } finally {
@@ -45,6 +46,26 @@ export default function LoginPage() {
           </div>
           <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
           <p className="text-sky-700 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
+        </div>
+
+        {/* 섹션 선택 */}
+        <div className="flex rounded-2xl bg-white border border-gray-200 p-1 mb-4">
+          <button
+            onClick={() => setSection("chat")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              section === "chat" ? "bg-sky-400 text-white shadow-sm" : "text-slate-400"
+            }`}
+          >
+            💬 채팅
+          </button>
+          <button
+            onClick={() => setSection("creative")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              section === "creative" ? "bg-purple-400 text-white shadow-sm" : "text-slate-400"
+            }`}
+          >
+            🎨 창작
+          </button>
         </div>
 
         {/* 폼 카드 */}
@@ -81,10 +102,10 @@ export default function LoginPage() {
 
             <button type="submit" disabled={loading}
               className="group relative w-full h-14 rounded-[18px] overflow-hidden active:scale-[0.98] transition-transform disabled:opacity-70">
-              <div className="absolute inset-0 bg-sky-400" />
+              <div className={`absolute inset-0 ${section === "creative" ? "bg-purple-400" : "bg-sky-400"} transition-colors`} />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
-                {loading ? "로그인 중..." : "로그인 💭"}
+                {loading ? "로그인 중..." : section === "creative" ? "창작 공간으로 💭" : "채팅 공간으로 💭"}
               </span>
             </button>
           </form>
