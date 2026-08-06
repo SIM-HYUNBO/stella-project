@@ -36,7 +36,9 @@ export default function CreativePage() {
   }, [menuOpen]);
 
   const MENU_ITEMS = [
-    { icon: "🖌️", label: "단체 협업 그림", path: "/creative/draw", badge: "NEW" },
+    { icon: "🖌️", label: "단체 협업 그림", path: "/creative/draw", sub: "함께 그림을 그려요", badge: "NEW" },
+    { icon: "✍️", label: "스토리 이어쓰기", path: "/creative/story", sub: "번갈아가며 이야기를 써요", badge: "NEW" },
+    { icon: "📷", label: "사진에 그림 그리기", path: "/creative/photo-draw", sub: "사진 위에 그림을 덧입혀요", badge: null },
   ];
 
   return (
@@ -108,7 +110,7 @@ export default function CreativePage() {
                 </div>
                 <div className="text-left flex-1">
                   <p className="text-slate-800 font-black text-base">{item.label}</p>
-                  <p className="text-purple-400 text-xs mt-0.5">함께 그림을 그려요</p>
+                  <p className="text-purple-400 text-xs mt-0.5">{item.sub}</p>
                 </div>
                 {item.badge && (
                   <span className="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{item.badge}</span>
@@ -154,16 +156,11 @@ export default function CreativePage() {
           {/* 메뉴 아이템 */}
           <div className="space-y-2 flex-1">
             {MENU_ITEMS.map((item) => (
-              <button
-                key={item.path}
-                onClick={() => { setMenuOpen(false); router.push(item.path); }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/60 border border-purple-100 active:scale-[0.98] transition-transform text-left"
-              >
+              <button key={item.path} onClick={() => { setMenuOpen(false); router.push(item.path); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/60 border border-purple-100 active:scale-[0.98] transition-transform text-left">
                 <span className="text-xl">{item.icon}</span>
                 <span className="font-bold text-slate-700 text-sm flex-1">{item.label}</span>
-                {item.badge && (
-                  <span className="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{item.badge}</span>
-                )}
+                {item.badge && <span className="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{item.badge}</span>}
               </button>
             ))}
           </div>
