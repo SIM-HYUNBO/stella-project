@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [keepLogin, setKeepLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [section, setSection] = useState<"chat" | "creative">("chat");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +24,7 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
       if (userDoc.exists()) alert(`${userDoc.data().nickname}님 환영합니다!`);
-      router.push(section === "creative" ? "/creative" : "/home");
+      router.push("/home");
     } catch {
       setError("이메일 또는 비밀번호가 올바르지 않아요.");
     } finally {
@@ -39,7 +38,6 @@ export default function LoginPage() {
 
       <div className="relative z-10 min-h-screen flex flex-col justify-center px-5 py-10">
 
-        {/* 브랜드 */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100 mb-4">
             <img src="/wag.png" alt="logo" className="w-12 h-12 object-contain" />
@@ -48,27 +46,6 @@ export default function LoginPage() {
           <p className="text-sky-700 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
         </div>
 
-        {/* 섹션 선택 */}
-        <div className="flex rounded-2xl bg-white border border-gray-200 p-1 mb-4">
-          <button
-            onClick={() => setSection("chat")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              section === "chat" ? "bg-sky-400 text-white shadow-sm" : "text-slate-400"
-            }`}
-          >
-            💬 채팅
-          </button>
-          <button
-            onClick={() => setSection("creative")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              section === "creative" ? "bg-purple-400 text-white shadow-sm" : "text-slate-400"
-            }`}
-          >
-            🎨 창작
-          </button>
-        </div>
-
-        {/* 폼 카드 */}
         <div className="rounded-[28px] bg-white/80 backdrop-blur-md px-6 py-7 space-y-4">
           <p className="font-black text-slate-800 text-xl mb-1">로그인</p>
 
@@ -102,16 +79,15 @@ export default function LoginPage() {
 
             <button type="submit" disabled={loading}
               className="group relative w-full h-14 rounded-[18px] overflow-hidden active:scale-[0.98] transition-transform disabled:opacity-70">
-              <div className={`absolute inset-0 ${section === "creative" ? "bg-purple-400" : "bg-sky-400"} transition-colors`} />
+              <div className="absolute inset-0 bg-sky-400" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
-                {loading ? "로그인 중..." : section === "creative" ? "창작 공간으로 💭" : "채팅 공간으로 💭"}
+                {loading ? "로그인 중..." : "로그인 💭"}
               </span>
             </button>
           </form>
         </div>
 
-        {/* 회원가입 링크 */}
         <div className="mt-6 text-center">
           <p className="text-sm text-slate-500">
             아직 계정이 없어요?{" "}

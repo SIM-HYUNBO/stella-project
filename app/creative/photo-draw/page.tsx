@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#a855f7", "#f97316", "#ec4899", "#fbbf24", "#1a1a1a"];
@@ -8,46 +8,59 @@ const SIZES = [{ label: "S", px: 3 }, { label: "M", px: 7 }, { label: "L", px: 1
 
 export default function PhotoDrawPage() {
   const router = useRouter();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const photoCanvasRef = useRef<HTMLCanvasElement>(null);
+  const drawCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
   const [color, setColor] = useState("#ef4444");
   const [sizeIdx, setSizeIdx] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
   const [hasPhoto, setHasPhoto] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
+
   const drawing = useRef(false);
-  const currentPoints = useRef<{ x: number; y: number }[]>([]);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
 
-  const CANVAS_W = 1200;
-  const CANVAS_H = 800;
-
-  // 흰 배경 초기화
+  // 컨테이너 크기로 캔버스 크기 설정
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "#f8f8f8";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    const el = containerRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    const w = Math.floor(width);
+    const h = Math.floor(height);
+    setCanvasSize({ w, h });
+    [photoCanvasRef, drawCanvasRef].forEach(ref => {
+      if (!ref.current) return;
+      ref.current.width = w;
+      ref.current.height = h;
+    });
+    const ctx = photoCanvasRef.current?.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#2a2a3e";
+      ctx.fillRect(0, 0, w, h);
+    }
   }, []);
 
   const loadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const canvas = canvasRef.current;
+    const canvas = photoCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const img = new Image();
     img.onload = () => {
+      const { w, h } = canvasSize;
+      // cover: 캔버스 꽉 채우기
+      const scale = Math.max(w / img.width, h / img.height);
+      const sw = img.width * scale;
+      const sh = img.height * scale;
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-      // 비율 맞춰 중앙에 그리기
-      const scale = Math.min(CANVAS_W / img.width, CANVAS_H / img.height);
-      const w = img.width * scale;
-      const h = img.height * scale;
-      const x = (CANVAS_W - w) / 2;
-      const y = (CANVAS_H - h) / 2;
-      ctx.drawImage(img, x, y, w, h);
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, (w - sw) / 2, (h - sh) / 2, sw, sh);
+      const drawCtx = drawCanvasRef.current?.getContext("2d");
+      if (drawCtx) drawCtx.clearRect(0, 0, w, h);
       setHasPhoto(true);
       URL.revokeObjectURL(img.src);
     };
@@ -56,31 +69,35 @@ export default function PhotoDrawPage() {
   };
 
   const getPos = (e: React.TouchEvent | React.MouseEvent) => {
-    const canvas = canvasRef.current!;
+    const canvas = drawCanvasRef.current!;
     const rect = canvas.getBoundingClientRect();
-    const sx = CANVAS_W / rect.width;
-    const sy = CANVAS_H / rect.height;
     if ("touches" in e) {
       const t = (e as React.TouchEvent).touches[0];
-      return { x: (t.clientX - rect.left) * sx, y: (t.clientY - rect.top) * sy };
+      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
     }
     const me = e as React.MouseEvent;
-    return { x: (me.clientX - rect.left) * sx, y: (me.clientY - rect.top) * sy };
+    return { x: me.clientX - rect.left, y: me.clientY - rect.top };
   };
 
-  const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
+  const getDrawCtx = () => drawCanvasRef.current?.getContext("2d") ?? null;
 
   const startDraw = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    const ctx = getCtx();
+    const ctx = getDrawCtx();
     if (!ctx) return;
     drawing.current = true;
     const pos = getPos(e);
-    currentPoints.current = [pos];
-    ctx.strokeStyle = isEraser ? "#ffffff" : color;
-    ctx.lineWidth = isEraser ? SIZES[sizeIdx].px * 4 : SIZES[sizeIdx].px;
+    lastPos.current = pos;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+    ctx.lineWidth = isEraser ? SIZES[sizeIdx].px * 4 : SIZES[sizeIdx].px;
+    if (isEraser) {
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+    } else {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   };
@@ -88,13 +105,11 @@ export default function PhotoDrawPage() {
   const moveDraw = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
     if (!drawing.current) return;
-    const ctx = getCtx();
+    const ctx = getDrawCtx();
     if (!ctx) return;
     const pos = getPos(e);
-    // 이전 점과 너무 멀면 무시 (튀는 선 방지)
-    const last = currentPoints.current[currentPoints.current.length - 1];
-    if (last && Math.hypot(pos.x - last.x, pos.y - last.y) > 80) return;
-    currentPoints.current.push(pos);
+    if (lastPos.current && Math.hypot(pos.x - lastPos.current.x, pos.y - lastPos.current.y) > 60) return;
+    lastPos.current = pos;
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     ctx.beginPath();
@@ -102,23 +117,33 @@ export default function PhotoDrawPage() {
   };
 
   const endDraw = () => {
+    if (!drawing.current) return;
     drawing.current = false;
-    currentPoints.current = [];
+    lastPos.current = null;
+    const ctx = getDrawCtx();
+    if (ctx) ctx.globalCompositeOperation = "source-over";
+  };
+
+  const getMergedCanvas = () => {
+    const temp = document.createElement("canvas");
+    temp.width = canvasSize.w;
+    temp.height = canvasSize.h;
+    const ctx = temp.getContext("2d")!;
+    if (photoCanvasRef.current) ctx.drawImage(photoCanvasRef.current, 0, 0);
+    if (drawCanvasRef.current) ctx.drawImage(drawCanvasRef.current, 0, 0);
+    return temp;
   };
 
   const handleSave = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const temp = getMergedCanvas();
     const link = document.createElement("a");
     link.download = "wagie-photo-draw.png";
-    link.href = canvas.toDataURL("image/png");
+    link.href = temp.toDataURL("image/png");
     link.click();
   };
 
   const handleShare = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.toBlob(async (blob) => {
+    getMergedCanvas().toBlob(async (blob) => {
       if (!blob) return;
       const file = new File([blob], "wagie-photo-draw.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
@@ -142,9 +167,7 @@ export default function PhotoDrawPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => fileRef.current?.click()} className="px-4 py-2 rounded-xl text-xs font-black text-white active:scale-95 transition bg-white/15">
-            📷 사진
-          </button>
+          <button onClick={() => fileRef.current?.click()} className="px-4 py-2 rounded-xl text-xs font-black text-white active:scale-95 transition bg-white/15">📷 사진</button>
           <button onClick={handleSave} className="px-4 py-2 rounded-xl text-xs font-black text-white active:scale-95 transition" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }}>저장</button>
           <button onClick={handleShare} className="px-4 py-2 rounded-xl text-xs font-black text-white active:scale-95 transition bg-white/15">공유</button>
         </div>
@@ -152,20 +175,21 @@ export default function PhotoDrawPage() {
 
       <input ref={fileRef} type="file" accept="image/*" onChange={loadPhoto} className="hidden" />
 
-      {/* 캔버스 */}
-      <div className="flex-1 overflow-hidden p-2">
+      {/* 캔버스 영역 */}
+      <div ref={containerRef} className="flex-1 overflow-hidden p-2 relative">
         {!hasPhoto && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none z-10">
             <p className="text-4xl opacity-40">📷</p>
             <p className="text-white/30 text-sm">위에서 사진을 불러오세요</p>
           </div>
         )}
+        {/* 사진 레이어 */}
+        <canvas ref={photoCanvasRef} className="rounded-2xl absolute inset-2" style={{ width: "calc(100% - 16px)", height: "calc(100% - 16px)" }} />
+        {/* 그림 레이어 */}
         <canvas
-          ref={canvasRef}
-          width={CANVAS_W}
-          height={CANVAS_H}
-          className="rounded-2xl touch-none"
-          style={{ width: "100%", height: "100%", display: "block", cursor: isEraser ? "cell" : "crosshair" }}
+          ref={drawCanvasRef}
+          className="rounded-2xl absolute inset-2 touch-none"
+          style={{ width: "calc(100% - 16px)", height: "calc(100% - 16px)", cursor: isEraser ? "cell" : "crosshair" }}
           onMouseDown={startDraw}
           onMouseMove={moveDraw}
           onMouseUp={endDraw}

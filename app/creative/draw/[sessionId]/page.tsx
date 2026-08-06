@@ -137,10 +137,12 @@ export default function DrawSessionPage() {
     const ctx = getCtx();
     if (!ctx) return;
     const pos = getPos(e);
+    // 이전 점과 너무 멀면 무시 (튀는 선 방지)
+    const last = currentPoints.current[currentPoints.current.length - 1];
+    if (last && Math.hypot(pos.x - last.x, pos.y - last.y) > 80) return;
     currentPoints.current.push(pos);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
-    // 다음 세그먼트를 위해 현재 위치에서 새 path 시작
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   };
@@ -229,6 +231,7 @@ export default function DrawSessionPage() {
           onTouchStart={startDraw}
           onTouchMove={moveDraw}
           onTouchEnd={endDraw}
+          onTouchCancel={endDraw}
         />
       </div>
 
