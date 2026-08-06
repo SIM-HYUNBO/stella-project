@@ -8,7 +8,7 @@ import { auth, db } from "../firebase";
 import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
 import { saveFCMToken } from "../hooks/usePushSubscription";
 
-const STEPS = ["섹션 선택", "기본 정보", "연락처", "약관"];
+const STEPS = ["기본 정보", "연락처", "약관"];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,11 +27,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const nextStep = async () => {
-    setError("");
+   
     if (step === 1) {
-      if (!section) { setError("섹션을 선택해주세요."); return; }
-    }
-    if (step === 2) {
       if (nickname.trim().length < 2) { setError("닉네임은 2자 이상이어야 해요."); return; }
       if (!email) { setError("이메일을 입력해주세요."); return; }
       if (password.length < 6) { setError("비밀번호는 6자 이상이어야 해요."); return; }
@@ -41,7 +38,7 @@ export default function SignupPage() {
         if (!nickSnap.empty) { setError("이미 사용 중인 닉네임이에요."); return; }
       } catch {}
     }
-    if (step === 3) {
+    if (step === 2) {
       if (!birthdate) { setError("생년월일을 입력해주세요."); return; }
       if (phone.replace(/\D/g, "").length < 10) { setError("올바른 전화번호를 입력해주세요."); return; }
     }
@@ -60,7 +57,6 @@ export default function SignupPage() {
         nickname: nickname.trim(),
         birthdate,
         phone: phone.replace(/\D/g, ""),
-        section: section ?? "chat",
         createdAt: serverTimestamp(),
       });
       try {
@@ -69,7 +65,6 @@ export default function SignupPage() {
           if (permission === "granted") await saveFCMToken(nickname.trim());
         }
       } catch {}
-      router.push(section === "creative" ? "/creative" : "/home");
     } catch (err: any) {
       if (err.code === "auth/email-already-in-use") setError("이미 사용 중인 이메일이에요.");
       else if (err.code === "auth/invalid-email") setError("올바른 이메일 형식이 아니에요.");
@@ -123,55 +118,9 @@ export default function SignupPage() {
         {/* 카드 */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
 
-          {/* Step 1 - 섹션 선택 */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <p className="text-slate-500 text-sm mb-6">WAGIE에서 어떤 활동을 주로 하실 건가요?<br/>나중에 언제든 전환할 수 있어요.</p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setSection("chat")}
-                  className={`rounded-2xl border-2 p-6 flex flex-col items-center gap-3 transition-all active:scale-95 ${
-                    section === "chat" ? "border-sky-400 bg-sky-50" : "border-gray-200 bg-white hover:border-sky-200"
-                  }`}
-                >
-                  <span className="text-4xl">💬</span>
-                  <div className="text-center">
-                    <p className="font-black text-slate-800">채팅</p>
-                    <p className="text-xs text-slate-400 mt-1">친구, 단체채팅, 회의방</p>
-                  </div>
-                  {section === "chat" && (
-                    <div className="w-5 h-5 rounded-full bg-sky-400 flex items-center justify-center">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    </div>
-                  )}
-                </button>
-                <button
-                  onClick={() => setSection("creative")}
-                  className={`rounded-2xl border-2 p-6 flex flex-col items-center gap-3 transition-all active:scale-95 ${
-                    section === "creative" ? "border-purple-400 bg-purple-50" : "border-gray-200 bg-white hover:border-purple-200"
-                  }`}
-                >
-                  <span className="text-4xl">🎨</span>
-                  <div className="text-center">
-                    <p className="font-black text-slate-800">창작</p>
-                    <p className="text-xs text-slate-400 mt-1">글, 그림, 일기</p>
-                  </div>
-                  {section === "creative" && (
-                    <div className="w-5 h-5 rounded-full bg-purple-400 flex items-center justify-center">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
+        
           {/* Step 2 - 기본 정보 */}
-          {step === 2 && (
+          {step === 1 && (
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-1.5">닉네임</label>
@@ -201,7 +150,7 @@ export default function SignupPage() {
           )}
 
           {/* Step 3 - 연락처 */}
-          {step === 3 && (
+          {step === 2 && (
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-1.5">생년월일</label>
@@ -219,7 +168,7 @@ export default function SignupPage() {
           )}
 
           {/* Step 4 - 약관 */}
-          {step === 4 && (
+          {step === 3 && (
             <div className="space-y-5">
               <div className="bg-gray-50 rounded-xl p-5">
                 <p className="font-bold text-slate-800 mb-1.5">모든 기능 무료 제공</p>

@@ -225,13 +225,9 @@ export default function ProfilePage() {
           {/* 버튼들 */}
           <div className="space-y-3">
             <div className="flex gap-2">
-              <button onClick={() => router.push("/home")}
-                className="flex-1 h-12 rounded-[18px] bg-sky-50 border border-sky-200 text-sky-600 font-black text-sm active:scale-[0.98] transition-transform">
-                💬 채팅
-              </button>
               <button onClick={() => router.push("/creative")}
                 className="flex-1 h-12 rounded-[18px] bg-purple-50 border border-purple-200 text-purple-600 font-black text-sm active:scale-[0.98] transition-transform">
-                🎨 창작
+                🎨 창작 공간으로
               </button>
             </div>
             <button onClick={() => setShowQR(true)}
