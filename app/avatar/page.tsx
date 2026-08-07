@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
 import LinkPreview, { extractFirstUrl } from "../../components/LinkPreview";
+import LoadingScreen from "../../components/LoadingScreen";
 import DrawingCanvas from "@/components/DrawingCanvas";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
@@ -2203,9 +2204,9 @@ export default function Chat() {
   );
 
   if (!authReady) return (
-    <div className="min-h-screen flex items-center justify-center bg-sky-50">
-      <img src="/wag.png" alt="loading" className="w-16 h-16 animate-bounce" style={{ animationDuration: "0.9s" }} />
-    </div>
+    <PageContainer>
+      <LoadingScreen />
+    </PageContainer>
   );
 
   const pendingRequest = friendRequests[0] ?? null;

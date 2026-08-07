@@ -8,6 +8,7 @@ import { collection, doc, getDoc, getDocs, query, where, onSnapshot, setDoc, upd
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import PageContainer from "@/components/PageContainer";
 import TextAvatar from "@/components/TextAvatar";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const TITLE_MAP: Record<string, { icon: string; name: string }> = {
   newcomer:    { icon: "🌱", name: "새싹" },
@@ -247,9 +248,9 @@ export default function HomePage() {
 
   if (!nickname) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-sky-50">
-        <img src="/wag.png" alt="loading" className="w-16 h-16 animate-bounce" style={{ animationDuration: "0.9s" }} />
-      </div>
+      <PageContainer>
+        <LoadingScreen />
+      </PageContainer>
     );
   }
 

@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import {
   collection, query, where, getDocs, addDoc, doc, getDoc,
 } from "firebase/firestore";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export default function AddFriendPage() {
   const params = useParams();
@@ -64,12 +65,7 @@ export default function AddFriendPage() {
     setStatus("done");
   };
 
-  if (loading) return (
-    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f9ff" }}>
-      <img src="/wag.png" alt="loading" style={{ width: 52, height: 52, animation: "bounce 0.9s infinite" }} />
-      <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}`}</style>
-    </div>
-  );
+  if (loading) return <LoadingScreen />;
 
   return (
     <div style={{

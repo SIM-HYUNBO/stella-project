@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function RootPage() {
   const router = useRouter();
@@ -19,11 +20,7 @@ export default function RootPage() {
   }, [router]);
 
   if (!ready) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-sky-50">
-        <img src="/wag.png" alt="loading" className="w-16 h-16 animate-bounce" style={{ animationDuration: "0.9s" }} />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
