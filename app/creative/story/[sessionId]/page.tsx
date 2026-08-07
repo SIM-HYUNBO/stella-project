@@ -46,12 +46,15 @@ export default function StorySessionPage() {
   }, [nickname, sessionId]);
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !nickname) return;
     const q = query(collection(db, "story_sessions", sessionId, "lines"), orderBy("createdAt", "asc"));
-    return onSnapshot(q, (snap) => {
-      setLines(snap.docs.map(d => ({ id: d.id, ...d.data() } as Line)));
-    });
-  }, [sessionId]);
+    return onSnapshot(q,
+      (snap) => {
+        setLines(snap.docs.map(d => ({ id: d.id, ...d.data() } as Line)));
+      },
+      (err) => console.error("story lines error:", err)
+    );
+  }, [sessionId, nickname]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

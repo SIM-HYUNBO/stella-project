@@ -66,18 +66,21 @@ export default function DrawSessionPage() {
 
   // 스트로크 구독 (상대방 그림 실시간 수신)
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !nickname) return;
     const q = query(collection(db, "draw_sessions", sessionId, "strokes"), orderBy("createdAt", "asc"));
-    return onSnapshot(q, (snap) => {
-      snap.docChanges().forEach((change) => {
-        if (change.type !== "added") return;
-        const id = change.doc.id;
-        if (localStrokeIds.current.has(id)) return;
-        const stroke = { id, ...change.doc.data() } as Stroke;
-        renderStroke(stroke);
-      });
-    });
-  }, [sessionId]);
+    return onSnapshot(q,
+      (snap) => {
+        snap.docChanges().forEach((change) => {
+          if (change.type !== "added") return;
+          const id = change.doc.id;
+          if (localStrokeIds.current.has(id)) return;
+          const stroke = { id, ...change.doc.data() } as Stroke;
+          renderStroke(stroke);
+        });
+      },
+      (err) => console.error("draw strokes error:", err)
+    );
+  }, [sessionId, nickname]);
 
   const renderStroke = (stroke: Stroke) => {
     const canvas = canvasRef.current;

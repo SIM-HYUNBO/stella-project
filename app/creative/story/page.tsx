@@ -70,6 +70,16 @@ export default function StoryLobbyPage() {
       from: nickname, to: friend.nickname,
       status: "pending", sessionId, createdAt: serverTimestamp(),
     });
+    fetch("/api/fcm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        toNicknames: [friend.nickname],
+        fromNickname: nickname,
+        message: `${nickname}님이 스토리 이어쓰기를 요청했어요 ✍️`,
+        url: "/creative/story",
+      }),
+    }).catch(() => {});
     setRequesting(null);
   };
 

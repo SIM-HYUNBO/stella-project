@@ -78,6 +78,16 @@ export default function DrawLobbyPage() {
       sessionId,
       createdAt: serverTimestamp(),
     });
+    fetch("/api/fcm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        toNicknames: [friend.nickname],
+        fromNickname: nickname,
+        message: `${nickname}님이 협업 그림 요청을 보냈어요 🖌️`,
+        url: "/creative/draw",
+      }),
+    }).catch(() => {});
     setRequesting(null);
   };
 
