@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PageContainer from "@/components/PageContainer";
+import LoadingScreen from "@/components/LoadingScreen";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -464,6 +465,8 @@ export default function DiaryPage() {
     onSubmitReply: submitReply,
     onChangeReplyInput: handleChangeReplyInput,
   };
+
+  if (!user) return <PageContainer><LoadingScreen /></PageContainer>;
 
   return (
     <PageContainer>

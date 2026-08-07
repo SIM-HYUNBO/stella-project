@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "../../components/PageContainer";
+import LoadingScreen from "../../components/LoadingScreen";
 import LinkPreview, { extractFirstUrl } from "../../components/LinkPreview";
 import DrawingCanvas from "@/components/DrawingCanvas";
 import { db, storage } from "@/app/firebase";
@@ -630,7 +631,11 @@ export default function MeetingRoomPage() {
   };
 
   if (!nickname) {
-    return <div className="h-screen flex items-center justify-center">로딩중...</div>;
+    return (
+      <PageContainer>
+        <LoadingScreen />
+      </PageContainer>
+    );
   }
 
   const HL_CLS: Record<string, string> = {

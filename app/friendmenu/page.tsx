@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import PageContainer from "@/components/PageContainer";
+import LoadingScreen from "@/components/LoadingScreen";
 import { auth, db } from "@/app/firebase";
 import {
   collection, doc, getDocs, getDoc, setDoc, deleteDoc, addDoc,
@@ -262,6 +263,8 @@ export default function FriendsPage() {
   const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
   // 숨긴 친구는 목록에서 제외
   const visibleFriends = friends.filter((f) => !hiddenDocs[f.uid]);
+
+  if (!currentUser) return <PageContainer><LoadingScreen /></PageContainer>;
 
   return (
     <PageContainer>

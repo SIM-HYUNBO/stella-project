@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import PageContainer from "@/components/PageContainer";
+import LoadingScreen from "@/components/LoadingScreen";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -187,6 +188,8 @@ export default function PlannerPage() {
   const doneTasks = tasks.filter((t) => t.done).length;
   const doneSessions = sessions.filter((s) => s.done).length;
   const totalStudyMin = sessions.reduce((acc, s) => acc + (s.done ? s.duration : 0), 0);
+
+  if (!user) return <PageContainer><LoadingScreen /></PageContainer>;
 
   return (
     <PageContainer>

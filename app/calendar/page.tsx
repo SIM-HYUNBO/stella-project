@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PageContainer from "@/components/PageContainer";
+import LoadingScreen from "@/components/LoadingScreen";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
@@ -198,6 +199,8 @@ export default function CalendarPage() {
   // 시간별 이벤트 (allDay 제외)
   const timedEvents = selectedEvents.filter((e) => !e.allDay && e.startTime);
   const allDayEvents = selectedEvents.filter((e) => e.allDay || !e.startTime);
+
+  if (!uid) return <PageContainer><LoadingScreen /></PageContainer>;
 
   return (
     <PageContainer>

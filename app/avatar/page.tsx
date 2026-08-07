@@ -1407,9 +1407,9 @@ export default function Chat() {
 
   if (!nickname) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        로딩중...
-      </div>
+      <PageContainer>
+        <LoadingScreen />
+      </PageContainer>
     );
   }
 

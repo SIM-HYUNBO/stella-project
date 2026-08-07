@@ -7,9 +7,9 @@ export default function LoadingScreen() {
       style={{
         paddingTop: "60px",
         paddingBottom: "58px",
-        background: "rgba(224, 242, 254, 0.72)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+        background: "rgba(255, 255, 255, 0.55)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
       }}
     >
       <img
