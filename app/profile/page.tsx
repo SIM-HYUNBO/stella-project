@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, orderBy, where, getDocs, Timestamp } from "firebase/firestore";
 import { QRCodeSVG } from "qrcode.react";
 
 export default function ProfilePage() {
@@ -21,6 +21,8 @@ export default function ProfilePage() {
   const [coverGradient, setCoverGradient] = useState<string | null>(null);
   const [nicknameSaving, setNicknameSaving] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const originalNicknameRef = useRef<string>("");
   const profileRef = useRef<HTMLInputElement | null>(null);
   const coverRef = useRef<HTMLInputElement | null>(null);
@@ -32,12 +34,23 @@ export default function ProfilePage() {
       const snap = await getDoc(doc(db, "users", u.uid));
       if (snap.exists()) {
         const data = snap.data();
-        setNickname(data.nickname || "");
-        originalNicknameRef.current = data.nickname || "";
+        const nick = data.nickname || "";
+        setNickname(nick);
+        originalNicknameRef.current = nick;
         setStatus(data.status || "");
         setProfileImage(data.profileImage || null);
         setCoverImage(data.coverImage || null);
         setCoverGradient(data.coverGradient || null);
+        // 알림 로드
+        try {
+          const monthAgo = Timestamp.fromMillis(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          const nSnap = await getDocs(
+            query(collection(db, "notifications", nick, "items"),
+              where("createdAt", ">=", monthAgo),
+              orderBy("createdAt", "desc"))
+          );
+          setNotifications(nSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch {}
       }
     });
     return () => unsub();
@@ -242,6 +255,56 @@ export default function ProfilePage() {
               className="w-full h-12 rounded-[18px] bg-red-50 border border-red-100 text-red-500 font-black text-sm active:scale-[0.98] transition-transform">
               계정 탈퇴
             </button>
+          </div>
+
+          {/* 알림 센터 */}
+          <div className="mt-6">
+            <button onClick={() => setShowNotifications(v => !v)}
+              className="w-full flex items-center justify-between px-1 py-2 active:opacity-70 transition">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🔔</span>
+                <span className="font-black text-slate-700 text-sm">최근 알림</span>
+                {notifications.length > 0 && (
+                  <span className="bg-sky-400 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                    {notifications.length}
+                  </span>
+                )}
+              </div>
+              <span className="text-slate-400 text-sm transition-transform duration-200" style={{ display: "inline-block", transform: showNotifications ? "rotate(180deg)" : "rotate(0deg)" }}>
+                ▾
+              </span>
+            </button>
+
+            {showNotifications && (
+              <div className="mt-2 space-y-2">
+                {notifications.length === 0 ? (
+                  <div className="rounded-[16px] bg-sky-50 px-4 py-5 text-center">
+                    <p className="text-slate-400 text-sm">최근 한 달 알림이 없어요</p>
+                  </div>
+                ) : notifications.map((n) => {
+                  const ts = n.createdAt?.seconds
+                    ? new Date(n.createdAt.seconds * 1000)
+                    : null;
+                  const timeStr = ts
+                    ? ts.toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) + " " +
+                      ts.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                    : "";
+                  return (
+                    <button key={n.id}
+                      onClick={() => { if (n.url) router.push(n.url); }}
+                      className="w-full rounded-[16px] bg-sky-50 border border-sky-100 px-4 py-3 text-left active:scale-[0.98] transition-transform">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-[11px] font-black text-sky-500 mb-0.5">{n.from}</p>
+                          <p className="text-slate-700 text-sm leading-snug">{n.message}</p>
+                        </div>
+                        <span className="text-[10px] text-slate-400 shrink-0 mt-0.5">{timeStr}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

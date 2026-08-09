@@ -39,6 +39,7 @@ export default function CreativePage() {
     { icon: "🖌️", label: "단체 협업 그림", path: "/creative/draw", sub: "함께 그림을 그려요", badge: "NEW" },
     { icon: "✍️", label: "스토리 이어쓰기", path: "/creative/story", sub: "번갈아가며 이야기를 써요", badge: "NEW" },
     { icon: "📷", label: "사진에 그림 그리기", path: "/creative/photo-draw", sub: "사진 위에 그림을 덧입혀요", badge: null },
+    { icon: "🗂️", label: "창작 갤러리", path: "/creative/gallery", sub: "완성된 작품을 모아봐요", badge: null },
   ];
 
   return (

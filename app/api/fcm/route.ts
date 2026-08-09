@@ -68,6 +68,17 @@ export async function POST(req: NextRequest) {
             },
           });
           details.push({ nickname, status: "sent" });
+          // 알림 기록 저장
+          try {
+            await firestore.collection("notifications").doc(nickname).collection("items").add({
+              from: fromNickname || "",
+              message,
+              url: url || "/home",
+              title,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              read: false,
+            });
+          } catch {}
         } catch (sendErr: any) {
           details.push({ nickname, status: "send_failed", error: sendErr?.message });
           console.error("[FCM] send error for", nickname, sendErr?.message);
