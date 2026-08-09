@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, Timestamp, orderBy } from "firebase/firestore";
 import { auth, db } from "@/app/firebase";
 import TextAvatar from "@/components/TextAvatar";
 
@@ -55,6 +55,8 @@ export default function SettingsPage() {
   const [adminMode, setAdminMode] = useState(false);
 
   const [chatTheme, setChatTheme] = useState("sky");
+  const [notifItems, setNotifItems] = useState<any[]>([]);
+  const [showNotifCenter, setShowNotifCenter] = useState(false);
 
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [newPin, setNewPin] = useState("");
@@ -78,6 +80,14 @@ export default function SettingsPage() {
         const savedTheme = data.chatTheme || localStorage.getItem("globalChatTheme") || "sky";
         setChatTheme(savedTheme);
         localStorage.setItem("globalChatTheme", savedTheme);
+
+        const nick = data.nickname || "유저";
+        const monthAgo = Timestamp.fromMillis(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const nSnap = await getDocs(
+          query(collection(db, "notifications", nick, "items"),
+            where("createdAt", ">=", monthAgo), orderBy("createdAt", "desc"))
+        );
+        setNotifItems(nSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
     });
     return () => unsub();
@@ -358,6 +368,59 @@ export default function SettingsPage() {
               <span className="text-orange-300 text-lg font-bold">›</span>
             </button>
           ))}
+        </div>
+
+        {/* 최근 알림 */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
+          <button
+            onClick={() => setShowNotifCenter(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">🔔</div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-800 text-sm">최근 알림</span>
+                {notifItems.length > 0 && (
+                  <span className="bg-sky-400 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                    {notifItems.length}
+                  </span>
+                )}
+              </div>
+            </div>
+            <span className="text-orange-300 text-lg font-bold transition-transform"
+              style={{ display: "inline-block", transform: showNotifCenter ? "rotate(90deg)" : "rotate(0deg)" }}>
+              ›
+            </span>
+          </button>
+
+          {showNotifCenter && (
+            <div className="border-t border-gray-50 px-4 py-3 space-y-2">
+              {notifItems.length === 0 ? (
+                <div className="py-4 text-center">
+                  <p className="text-sm text-gray-400">최근 한 달 알림이 없어요</p>
+                </div>
+              ) : notifItems.map((n) => {
+                const ts = n.createdAt?.seconds ? new Date(n.createdAt.seconds * 1000) : null;
+                const timeStr = ts
+                  ? ts.toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) + " " +
+                    ts.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                  : "";
+                return (
+                  <button key={n.id}
+                    onClick={() => { if (n.url) router.push(n.url); }}
+                    className="w-full rounded-[14px] bg-sky-50 border border-sky-100 px-4 py-3 text-left active:scale-[0.98] transition-transform">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-[11px] font-black text-sky-500 mb-0.5">{n.from}</p>
+                        <p className="text-slate-700 text-sm leading-snug">{n.message}</p>
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0 mt-0.5">{timeStr}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>

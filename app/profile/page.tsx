@@ -153,7 +153,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden">
+    <div className="relative w-full min-h-screen overflow-x-hidden">
 
       {/* 뒤로가기 */}
       <button onClick={() => router.back()}
@@ -180,7 +180,7 @@ export default function ProfilePage() {
       <input type="file" ref={coverRef} onChange={changeCoverImage} className="hidden" />
 
       {/* 프로필 카드 */}
-      <div className="relative z-10 -mt-16 px-5">
+      <div className="relative z-10 -mt-16 px-5 pb-24">
         <div className="rounded-[28px] bg-white px-6 pt-6 pb-7" style={{ boxShadow: "0 -4px 30px rgba(0,0,0,0.08)" }}>
 
           {/* 프로필 이미지 */}
