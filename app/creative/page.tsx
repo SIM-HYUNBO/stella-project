@@ -56,13 +56,8 @@ export default function CreativePage() {
     try { await updateDoc(doc(db, "users", uid), { creativeDecor: next }); } catch {}
   };
 
-  const handlePageTap = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!decorMode) return;
-    const target = e.target as HTMLElement;
-    if (target.closest("[data-ui]")) return;
+  const handleOverlayTap = (e: React.MouseEvent | React.TouchEvent) => {
     if (decor.length >= 20) return;
-
-    const rect = pageRef.current!.getBoundingClientRect();
     let cx: number, cy: number;
     if ("touches" in e) {
       cx = (e as React.TouchEvent).touches[0].clientX;
@@ -71,8 +66,8 @@ export default function CreativePage() {
       cx = (e as React.MouseEvent).clientX;
       cy = (e as React.MouseEvent).clientY;
     }
-    const x = ((cx - rect.left) / rect.width) * 100;
-    const y = ((cy - rect.top) / rect.height) * 100;
+    const x = (cx / window.innerWidth) * 100;
+    const y = (cy / window.innerHeight) * 100;
     const next = [...decor, { id: `${Date.now()}`, emoji: selectedEmoji, x, y }];
     setDecor(next);
     saveDecor(next);
@@ -96,8 +91,6 @@ export default function CreativePage() {
       ref={pageRef}
       className="min-h-screen relative overflow-hidden"
       style={{ background: "linear-gradient(160deg, #fdf4ff 0%, #fef9ec 50%, #f0f9ff 100%)" }}
-      onClick={handlePageTap}
-      onTouchStart={handlePageTap}
     >
       {/* 배경 블롭 */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -110,13 +103,12 @@ export default function CreativePage() {
       {decor.map((d) => (
         <div
           key={d.id}
-          className="absolute select-none z-[5] pointer-events-none"
+          className="fixed select-none z-[8] pointer-events-none"
           style={{ left: `${d.x}%`, top: `${d.y}%`, transform: "translate(-50%, -50%)", fontSize: 28 }}
         >
           {d.emoji}
           {decorMode && (
             <button
-              data-ui
               className="absolute -top-2 -right-2 w-4 h-4 bg-red-400 rounded-full text-white text-[9px] flex items-center justify-center pointer-events-auto active:scale-90 transition-transform z-10"
               onClick={(e) => { e.stopPropagation(); removeDecor(d.id); }}
             >
@@ -204,6 +196,16 @@ export default function CreativePage() {
         >
           🪄
         </button>
+      )}
+
+      {/* 꾸미기 편집 오버레이 - 화면 탭 감지 */}
+      {decorMode && (
+        <div
+          className="fixed z-[10]"
+          style={{ top: 0, left: 0, right: 0, bottom: "160px" }}
+          onClick={handleOverlayTap}
+          onTouchStart={handleOverlayTap}
+        />
       )}
 
       {/* 꾸미기 편집 모드 패널 */}
