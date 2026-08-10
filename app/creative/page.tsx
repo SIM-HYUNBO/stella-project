@@ -103,7 +103,7 @@ export default function CreativePage() {
       {decor.map((d) => (
         <div
           key={d.id}
-          className="fixed select-none z-[8] pointer-events-none"
+          className="fixed select-none z-[12] pointer-events-none"
           style={{ left: `${d.x}%`, top: `${d.y}%`, transform: "translate(-50%, -50%)", fontSize: 28 }}
         >
           {d.emoji}
