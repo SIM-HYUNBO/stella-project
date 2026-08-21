@@ -73,7 +73,7 @@ export default function EmojiFacePage() {
 
             if (det) {
               setHasFace(true);
-              const exps = det.expressions as Record<string, number>;
+              const exps = det.expressions as unknown as Record<string, number>;
               const dominant = (Object.entries(exps) as [string, number][])
                 .sort(([, a], [, b]) => b - a)[0][0];
               const info = EXPR_EMOJI[dominant] ?? EXPR_EMOJI.neutral;
