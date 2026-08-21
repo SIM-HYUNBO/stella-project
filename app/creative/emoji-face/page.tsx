@@ -24,8 +24,8 @@ type FaceState = {
 export default function EmojiFacePage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const rafRef = useRef<number>();
-  const streamRef = useRef<MediaStream>();
+  const rafRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [loadMsg, setLoadMsg] = useState("AI 모델 불러오는 중...");

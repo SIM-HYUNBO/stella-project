@@ -216,8 +216,8 @@ export default function MemojiPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number>();
-  const streamRef = useRef<MediaStream>();
+  const rafRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const paramsRef = useRef<Params>({
     mouthOpen: 0, smile: 0.3,
     eyeOpenL: 1, eyeOpenR: 1,
