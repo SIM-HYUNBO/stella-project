@@ -38,10 +38,10 @@ export default function EmojiFacePage() {
     const init = async () => {
       try {
         setLoadMsg("face-api 로딩 중...");
-        const faceapi = await import("face-api.js");
+        const faceapi = await import("@vladmandic/face-api");
 
         setLoadMsg("AI 모델 다운로드 중... (처음엔 좀 걸려요)");
-        const MODEL_URL = "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
+        const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
         await Promise.all([
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
           faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),

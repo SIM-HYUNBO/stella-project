@@ -1,6 +1,6 @@
 {
   "name": "stella-project",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -18,9 +18,9 @@
     "@ffmpeg/util": "^0.12.2",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@vladmandic/face-api": "^1.7.15",
     "antd": "^5.27.6",
     "express": "^5.2.1",
-    "face-api.js": "^0.22.2",
     "firebase": "^12.9.0",
     "firebase-admin": "^13.10.0",
     "framer-motion": "^12.33.0",

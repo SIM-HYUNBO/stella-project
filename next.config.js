@@ -10,13 +10,5 @@ const withPWA = require("next-pwa")({
 module.exports = withPWA({
   reactStrictMode: true,
   swcMinify: true,
-  webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      path: false,
-      crypto: false,
-    };
-    return config;
-  },
+  transpilePackages: ["@vladmandic/face-api"],
 });
