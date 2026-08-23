@@ -85,7 +85,6 @@ export default function CreativePage() {
     { icon: "📷", label: "사진에 그림 그리기", path: "/creative/photo-draw", sub: "사진 위에 그림을 덧입혀요", badge: null },
     { icon: "🗂️", label: "창작 갤러리", path: "/creative/gallery", sub: "완성된 작품을 모아봐요", badge: null },
     { icon: "🫠", label: "이모지 얼굴 인식", path: "/creative/emoji-face", sub: "표정 따라 이모지가 바뀌어요", badge: null },
-    { icon: "🪞", label: "미모지", path: "/creative/memoji", sub: "내 표정 그대로 아바타가 따라해요", badge: "NEW" },
   ];
 
   return (
