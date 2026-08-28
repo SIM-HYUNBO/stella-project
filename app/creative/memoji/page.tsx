@@ -1,23 +1,30 @@
 /// <reference types="@react-three/fiber" />
 "use client";
 
-import { useEffect, useRef, useState, Suspense } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, OrbitControls, Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 
-// MediaPipe blendshapes → RPM avatar morph targets (ARKit 표준으로 이름이 동일)
-const TRACKED_SHAPES = [
-  "jawOpen","mouthSmileLeft","mouthSmileRight","mouthFrownLeft","mouthFrownRight",
-  "eyeBlinkLeft","eyeBlinkRight","eyeSquintLeft","eyeSquintRight",
-  "eyeWideLeft","eyeWideRight","browDownLeft","browDownRight",
-  "browInnerUp","browOuterUpLeft","browOuterUpRight",
-  "cheekPuff","mouthPucker","mouthRollLower","mouthRollUpper",
-  "noseSneerLeft","noseSneerRight","mouthUpperUpLeft","mouthUpperUpRight",
-];
-
 type Blendshape = { categoryName: string; score: number };
+
+// R3F 내부 GLB 로드 실패를 잡는 에러 바운더리
+class R3FErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError?: () => void },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(err: Error) {
+    console.error("[Memoji] 3D 모델 로드 실패:", err);
+    this.props.onError?.();
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 // ─── 3D 아바타 컴포넌트 ───────────────────────────────────────────
 function Avatar({
@@ -73,20 +80,24 @@ function Avatar({
 function AvatarScene({
   url,
   blendshapesRef,
+  onGlbError,
 }: {
   url: string;
   blendshapesRef: React.MutableRefObject<Blendshape[]>;
+  onGlbError: () => void;
 }) {
   return (
     <>
       <ambientLight intensity={0.6} />
       <directionalLight position={[2, 4, 3]} intensity={1.2} castShadow />
       <directionalLight position={[-2, 2, -2]} intensity={0.4} color="#a0c8ff" />
-      <Suspense fallback={null}>
-        <Avatar url={url} blendshapesRef={blendshapesRef} />
-        <ContactShadows position={[0, -1.8, 0]} opacity={0.4} blur={2} />
-        <Environment preset="city" />
-      </Suspense>
+      <R3FErrorBoundary onError={onGlbError}>
+        <Suspense fallback={null}>
+          <Avatar url={url} blendshapesRef={blendshapesRef} />
+          <ContactShadows position={[0, -1.8, 0]} opacity={0.4} blur={2} />
+          <Environment preset="city" />
+        </Suspense>
+      </R3FErrorBoundary>
       <OrbitControls
         enableZoom={false}
         enablePan={false}
@@ -103,7 +114,6 @@ const DEFAULT_AVATAR = "https://models.readyplayer.me/6449e6eadede63dbb3ad7c7f.g
 export default function MemojiPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const blendshapesRef = useRef<Blendshape[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const landmarkerRef = useRef<any>(null);
@@ -115,6 +125,7 @@ export default function MemojiPage() {
   const [inputUrl, setInputUrl] = useState("");
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [hasFace, setHasFace] = useState(false);
+  const [glbFailed, setGlbFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,7 +166,6 @@ export default function MemojiPage() {
 
         setStatus("ready");
 
-        // 검출 루프
         let lastTs = -1;
         const detect = () => {
           if (cancelled || !videoRef.current || !landmarkerRef.current) return;
@@ -199,6 +209,7 @@ export default function MemojiPage() {
     if (!url.includes("morphTargets=ARKit")) {
       url += (url.includes("?") ? "&" : "?") + "morphTargets=ARKit&textureAtlas=1024";
     }
+    setGlbFailed(false);
     setAvatarUrl(url);
     setShowUrlInput(false);
   };
@@ -254,13 +265,38 @@ export default function MemojiPage() {
       {/* 3D 캔버스 */}
       <div className="flex-1 relative">
         {status === "ready" && (
-          <Canvas
-            camera={{ position: [0, 0.2, 2.2], fov: 35 }}
-            gl={{ antialias: true, alpha: true }}
-            style={{ background: "transparent" }}
-          >
-            <AvatarScene url={avatarUrl} blendshapesRef={blendshapesRef} />
-          </Canvas>
+          <>
+            <Canvas
+              camera={{ position: [0, 0.2, 2.2], fov: 35 }}
+              gl={{ antialias: true, alpha: true }}
+              style={{ background: "transparent" }}
+            >
+              <AvatarScene
+                url={avatarUrl}
+                blendshapesRef={blendshapesRef}
+                onGlbError={() => setGlbFailed(true)}
+              />
+            </Canvas>
+
+            {/* GLB 로드 실패 시 안내 */}
+            {glbFailed && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-black/60 backdrop-blur-sm rounded-3xl px-6 py-5 text-center border border-white/10 mx-8">
+                  <div className="text-4xl mb-3">🪆</div>
+                  <p className="text-white font-black text-sm mb-1">아바타 로드 실패</p>
+                  <p className="text-white/40 text-xs mb-3">
+                    readyplayer.me에서 본인 아바타를 만들고<br />URL을 붙여넣어 주세요
+                  </p>
+                  <button
+                    className="pointer-events-auto px-5 py-2 rounded-2xl bg-purple-500 text-white text-xs font-black active:scale-95 transition-transform"
+                    onClick={() => setShowUrlInput(true)}
+                  >
+                    🔗 아바타 URL 입력
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {status === "loading" && (
@@ -292,7 +328,7 @@ export default function MemojiPage() {
       <video ref={videoRef} className="hidden" playsInline muted />
 
       {/* 하단 안내 */}
-      {status === "ready" && (
+      {status === "ready" && !glbFailed && (
         <div className="px-5 pb-10 pt-3 shrink-0">
           <div className="flex justify-center gap-5 flex-wrap">
             {[["😄","웃어봐"],["😮","입 벌려봐"],["😠","눈썹 찌푸려봐"],["😉","윙크해봐"]].map(([e,t]) => (
