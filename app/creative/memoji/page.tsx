@@ -1,392 +1,190 @@
-/// <reference types="@react-three/fiber" />
 "use client";
 
-import React, { useEffect, useRef, useState, Suspense } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, OrbitControls, Environment, ContactShadows } from "@react-three/drei";
+import { useGLTF, OrbitControls, Center } from "@react-three/drei";
 import * as THREE from "three";
-import { auth, db } from "../../firebase";
+import type { AvaturnSDK, ExportAvatarResult } from "@avaturn/sdk";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "../../firebase";
 
-type Blendshape = { categoryName: string; score: number };
+type Shape = { categoryName: string; score: number };
+const subdomain = process.env.NEXT_PUBLIC_AVATURN_SUBDOMAIN || "demo";
 
-// ─── ErrorBoundary ────────────────────────────────────────────────
-class R3FErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError?: () => void },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(err: Error) {
-    console.error("[Memoji] GLB 로드 실패:", err);
-    this.props.onError?.();
-  }
-  render() {
-    if (this.state.hasError) return null;
-    return this.props.children;
-  }
+class ViewerBoundary extends React.Component<{ children: React.ReactNode; onError: () => void }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch() { this.props.onError(); }
+  render() { return this.state.failed ? null : this.props.children; }
 }
 
-// ─── 3D 아바타 ────────────────────────────────────────────────────
-function Avatar({
-  url,
-  blendshapesRef,
-}: {
-  url: string;
-  blendshapesRef: React.MutableRefObject<Blendshape[]>;
-}) {
+function Avatar({ url, shapes }: { url: string; shapes: React.MutableRefObject<Shape[]> }) {
   const { scene } = useGLTF(url);
-  const meshRef = useRef<THREE.SkinnedMesh | null>(null);
-  const headRef = useRef<THREE.SkinnedMesh | null>(null);
-
+  const meshes = useRef<THREE.Mesh[]>([]);
   useEffect(() => {
-    scene.traverse((obj) => {
-      const mesh = obj as THREE.SkinnedMesh;
-      if (mesh.isSkinnedMesh && mesh.morphTargetDictionary) {
-        const name = obj.name.toLowerCase();
-        if (name.includes("head") || name.includes("wolf3d_head")) {
-          headRef.current = mesh;
-        }
-        if (!meshRef.current) meshRef.current = mesh;
-      }
+    meshes.current = [];
+    scene.traverse(obj => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.isMesh && mesh.morphTargetDictionary && mesh.morphTargetInfluences) meshes.current.push(mesh);
     });
   }, [scene]);
-
   useFrame(() => {
-    const shapes = blendshapesRef.current;
-    if (!shapes.length) return;
-    const target = headRef.current ?? meshRef.current;
-    if (!target?.morphTargetDictionary || !target.morphTargetInfluences) return;
-    shapes.forEach(({ categoryName, score }) => {
-      const idx = target.morphTargetDictionary![categoryName];
-      if (idx !== undefined) {
-        target.morphTargetInfluences![idx] = THREE.MathUtils.lerp(
-          target.morphTargetInfluences![idx], score, 0.3
-        );
-      }
+    const values = new Map(shapes.current.map(s => [s.categoryName.toLowerCase(), s.score]));
+    meshes.current.forEach(mesh => {
+      Object.entries(mesh.morphTargetDictionary!).forEach(([name, index]) => {
+        mesh.morphTargetInfluences![index] = THREE.MathUtils.lerp(mesh.morphTargetInfluences![index], values.get(name.toLowerCase()) || 0, 0.3);
+      });
     });
   });
-
-  return <primitive object={scene} scale={1.6} position={[0, -1.55, 0]} />;
+  return <Center><primitive object={scene} /></Center>;
 }
 
-function AvatarScene({
-  url,
-  blendshapesRef,
-  onGlbError,
-}: {
-  url: string;
-  blendshapesRef: React.MutableRefObject<Blendshape[]>;
-  onGlbError: () => void;
-}) {
-  return (
-    <>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[2, 4, 3]} intensity={1.2} castShadow />
-      <directionalLight position={[-2, 2, -2]} intensity={0.4} color="#a0c8ff" />
-      <R3FErrorBoundary onError={onGlbError}>
-        <Suspense fallback={null}>
-          <Avatar url={url} blendshapesRef={blendshapesRef} />
-          <ContactShadows position={[0, -1.8, 0]} opacity={0.4} blur={2} />
-          <Environment preset="city" />
-        </Suspense>
-      </R3FErrorBoundary>
-      <OrbitControls
-        enableZoom={false}
-        enablePan={false}
-        minPolarAngle={Math.PI / 4}
-        maxPolarAngle={Math.PI / 1.8}
-      />
-    </>
-  );
-}
-
-// ─── RPM 커스터마이저 iframe ───────────────────────────────────────
-function RpmCreator({ onExport }: { onExport: (url: string) => void }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
+function Creator({ onExport }: { onExport: (data: ExportAvatarResult) => void }) {
+  const container = useRef<HTMLDivElement>(null);
+  const callback = useRef(onExport);
+  callback.current = onExport;
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
+    let cancelled = false;
+    let sdk: AvaturnSDK | undefined;
+    setError("");
+    const timer = window.setTimeout(() => { if (!cancelled) setError("꾸미기 화면을 불러오는 데 시간이 걸려. 연결을 확인하고 다시 시도해 줘."); }, 45000);
+    void (async () => {
       try {
-        const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-        if (data?.source !== "readyplayerme") return;
-
-        if (data.eventName === "v1.frame.ready") {
-          // 구독 요청
-          iframeRef.current?.contentWindow?.postMessage(
-            JSON.stringify({ target: "readyplayerme", type: "subscribe", eventName: "v1.**" }),
-            "*"
-          );
-        }
-        if (data.eventName === "v1.avatar.exported") {
-          let url: string = data.data?.url ?? "";
-          if (!url.includes("morphTargets=ARKit")) {
-            url += (url.includes("?") ? "&" : "?") + "morphTargets=ARKit&textureAtlas=1024";
-          }
-          onExport(url);
-        }
-      } catch {}
-    };
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, [onExport]);
-
-  return (
-    <iframe
-      ref={iframeRef}
-      src="https://readyplayer.me/avatar?frameApi"
-      allow="camera *; microphone *"
-      className="w-full h-full border-0"
-      title="Ready Player Me 아바타 커스터마이저"
-    />
-  );
+        if (!/^[a-z0-9-]+$/.test(subdomain)) throw new Error("Invalid subdomain");
+        const { AvaturnSDK } = await import("@avaturn/sdk");
+        if (cancelled) return;
+        sdk = new AvaturnSDK();
+        await sdk.init(container.current, { url: `https://${subdomain}.avaturn.dev` });
+        if (cancelled) return;
+        window.clearTimeout(timer);
+        setError("");
+        sdk.on("export", data => { if (!cancelled) callback.current(data); });
+      } catch { if (!cancelled) setError("아바타 꾸미기를 불러오지 못했어. 잠시 후 다시 시도해 줘."); }
+    })();
+    return () => { cancelled = true; window.clearTimeout(timer); sdk?.destroy(); };
+  }, [attempt]);
+  return <div className="relative h-full">
+    <div ref={container} className="h-full w-full" />
+    {error && <div role="alert" className="absolute inset-x-4 top-4 rounded-2xl bg-white p-4 text-sm text-slate-800 shadow-xl">{error}<button onClick={() => setAttempt(n => n + 1)} className="ml-3 text-violet-600">다시 시도</button></div>}
+  </div>;
 }
 
-// ─── 메인 페이지 ──────────────────────────────────────────────────
 export default function MemojiPage() {
   const router = useRouter();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const blendshapesRef = useRef<Blendshape[]>([]);
-  const streamRef = useRef<MediaStream | null>(null);
-  const landmarkerRef = useRef<any>(null);
-  const rafRef = useRef<number | null>(null);
-
   const [uid, setUid] = useState<string | null>(null);
-  // "creator" = RPM 커스터마이즈, "avatar" = 3D + 표정인식
   const [mode, setMode] = useState<"creator" | "avatar">("creator");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [trackStatus, setTrackStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [loadMsg, setLoadMsg] = useState("");
-  const [hasFace, setHasFace] = useState(false);
-  const [glbFailed, setGlbFailed] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [supportsFace, setSupportsFace] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [viewerError, setViewerError] = useState(false);
+  const [tracking, setTracking] = useState(false);
+  const [trackMessage, setTrackMessage] = useState("");
+  const video = useRef<HTMLVideoElement>(null);
+  const shapes = useRef<Shape[]>([]);
+  const currentUid = useRef<string | null>(null);
 
-  // 유저 저장된 아바타 URL 불러오기
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) { router.replace("/login"); return; }
-      setUid(user.uid);
-      const snap = await getDoc(doc(db, "users", user.uid));
-      const saved: string | undefined = snap.data()?.memojiAvatarUrl;
-      if (saved) {
-        setAvatarUrl(saved);
+  useEffect(() => onAuthStateChanged(auth, user => {
+    currentUid.current = user?.uid || null;
+    setUid(user?.uid || null);
+    setAvatarUrl(""); setMode("creator"); setTracking(false);
+    if (!user) { router.replace("/login"); return; }
+    void getDoc(doc(db, "users", user.uid)).then(snap => {
+      if (currentUid.current !== user.uid) return;
+      const data = snap.data();
+      // Old RPM URLs remain stored, but the retired service is never loaded.
+      if (data?.memojiProvider === "avaturn" && typeof data.memojiAvatarUrl === "string" && data.memojiAvatarUrl.startsWith("https://")) {
+        setAvatarUrl(data.memojiAvatarUrl);
+        setSupportsFace(data.memojiSupportsFace === true);
         setMode("avatar");
       }
-    });
-    return () => unsub();
-  }, []);
+    }).catch(() => setNotice("저장한 아바타를 불러오지 못했어. 새로 꾸미기는 사용할 수 있어."));
+  }), [router]);
 
-  // 아바타 URL 확정 → Firestore 저장 + 모드 전환
-  const handleExport = async (url: string) => {
-    setAvatarUrl(url);
-    setGlbFailed(false);
-    setMode("avatar");
-    if (uid) {
-      try { await updateDoc(doc(db, "users", uid), { memojiAvatarUrl: url }); } catch {}
+  const handleExport = async (data: ExportAvatarResult) => {
+    if (!uid || currentUid.current !== uid) return;
+    if (!(data.urlType === "httpURL" && data.url.startsWith("https://")) && !(data.urlType === "dataURL" && data.url.startsWith("data:"))) {
+      setNotice("아바타 파일 주소가 올바르지 않아. 다시 내보내 줘."); return;
     }
+    setAvatarUrl(data.url); setSupportsFace(data.avatarSupportsFaceAnimations);
+    setViewerError(false); setTracking(false); setMode("avatar"); setNotice("");
+    if (data.urlType === "dataURL") {
+      setNotice("이 아바타는 이번 화면에서만 볼 수 있어. 다시 방문해도 불러오려면 Avaturn 프로젝트의 내보내기를 HTTP URL로 설정해야 해.");
+      return;
+    }
+    try {
+      await updateDoc(doc(db, "users", uid), { memojiProvider: "avaturn", memojiAvatarUrl: data.url, memojiAvatarId: data.avatarId, memojiSupportsFace: data.avatarSupportsFaceAnimations });
+    } catch { setNotice("아바타는 만들었지만 계정에 저장하지 못했어. 아래 저장 버튼으로 다시 시도해 줘."); }
   };
 
-  // avatar 모드 진입 시 MediaPipe 초기화
   useEffect(() => {
-    if (mode !== "avatar" || !avatarUrl) return;
+    if (!tracking || mode !== "avatar" || !supportsFace) return;
     let cancelled = false;
-
-    const init = async () => {
-      setTrackStatus("loading");
+    let frame = 0;
+    let stream: MediaStream | undefined;
+    let landmarker: import("@mediapipe/tasks-vision").FaceLandmarker | undefined;
+    setTrackMessage("표정 인식을 준비하고 있어…");
+    void (async () => {
       try {
-        setLoadMsg("MediaPipe 로딩 중...");
         const { FaceLandmarker, FilesetResolver } = await import("@mediapipe/tasks-vision");
-        const vision = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-        );
-        setLoadMsg("얼굴 인식 AI 준비 중...");
-        const landmarker = await FaceLandmarker.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-            delegate: "GPU",
-          },
-          outputFaceBlendshapes: true,
-          runningMode: "VIDEO",
-          numFaces: 1,
+        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm");
+        if (cancelled) return;
+        landmarker = await FaceLandmarker.createFromOptions(vision, {
+          baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task" },
+          outputFaceBlendshapes: true, runningMode: "VIDEO", numFaces: 1,
         });
-        landmarkerRef.current = landmarker;
-
-        setLoadMsg("카메라 연결 중...");
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-        });
-        streamRef.current = stream;
+        if (cancelled) { landmarker.close(); return; }
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-        setTrackStatus("ready");
-
-        let lastTs = -1;
+        if (!video.current) throw new Error("No video");
+        video.current.srcObject = stream;
+        await video.current.play();
+        if (cancelled) return;
+        let previous = -1;
         const detect = () => {
-          if (cancelled || !videoRef.current || !landmarkerRef.current) return;
-          const now = performance.now();
-          if (now !== lastTs) {
-            lastTs = now;
-            try {
-              const res = landmarkerRef.current.detectForVideo(videoRef.current, now);
-              if (res.faceBlendshapes?.[0]?.categories?.length) {
-                setHasFace(true);
-                blendshapesRef.current = res.faceBlendshapes[0].categories.map(
-                  (c: any) => ({ categoryName: c.categoryName, score: c.score })
-                );
-              } else {
-                setHasFace(false);
-                blendshapesRef.current = [];
-              }
-            } catch {}
-          }
-          rafRef.current = requestAnimationFrame(detect);
+          if (cancelled || !video.current || !landmarker) return;
+          try {
+            if (video.current.readyState >= 2 && previous !== video.current.currentTime) {
+              previous = video.current.currentTime;
+              shapes.current = landmarker.detectForVideo(video.current, performance.now()).faceBlendshapes[0]?.categories || [];
+              setTrackMessage(shapes.current.length ? "표정을 따라 하고 있어" : "카메라에 얼굴을 보여 줘");
+            }
+            frame = requestAnimationFrame(detect);
+          } catch { setTrackMessage("표정 인식이 중단됐어. 껐다가 다시 켜 줘."); stream?.getTracks().forEach(t => t.stop()); }
         };
         detect();
-      } catch (e) {
-        if (!cancelled) { console.error(e); setTrackStatus("error"); }
+      } catch {
+        stream?.getTracks().forEach(t => t.stop());
+        if (!cancelled) setTrackMessage("표정 인식을 시작하지 못했어. 카메라 권한과 인터넷 연결을 확인해 줘.");
       }
-    };
+    })();
+    return () => { cancelled = true; cancelAnimationFrame(frame); stream?.getTracks().forEach(t => t.stop()); landmarker?.close(); shapes.current = []; };
+  }, [tracking, mode, supportsFace]);
 
-    init();
-    return () => {
-      cancelled = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      landmarkerRef.current?.close();
-      landmarkerRef.current = null;
-    };
-  }, [mode, avatarUrl]);
-
-  // ─── UI ─────────────────────────────────────────────────────────
-  return (
-    <div className="fixed inset-0 flex flex-col" style={{ background: "linear-gradient(160deg,#0d1117,#1a0a2e)" }}>
-      {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 pt-10 pb-3 shrink-0 z-10">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white text-xl active:scale-90 transition-transform"
-          >
-            ‹
-          </button>
-          <div>
-            <p className="text-white font-black text-base">3D 미모지 ✨</p>
-            <p className="text-white/40 text-xs">
-              {mode === "creator"
-                ? "아바타를 만들어봐요"
-                : trackStatus === "loading"
-                ? loadMsg
-                : hasFace
-                ? "얼굴 인식됨 🟢"
-                : "얼굴을 보여주세요"}
-            </p>
-          </div>
+  return <div className="fixed inset-0 flex flex-col bg-slate-950 text-white">
+    <header className="flex items-center justify-between gap-3 px-4 py-4">
+      <button onClick={() => router.push("/creative")} aria-label="창작 홈으로" className="rounded-full bg-white/10 px-3 py-2">←</button>
+      <div className="flex-1"><h1 className="font-bold">내 3D 아바타</h1><p className="text-xs text-white/60">Avaturn · 머리와 옷을 골라 꾸며 봐</p></div>
+      {mode === "avatar" && <button onClick={() => { setTracking(false); setMode("creator"); }} className="rounded-xl bg-white/10 px-3 py-2 text-sm">다시 꾸미기</button>}
+    </header>
+    {subdomain === "demo" && <p className="bg-amber-100 px-4 py-2 text-xs text-amber-900">공식 데모로 연결 중이야. 데모에는 일부 기능 제한이 있어.</p>}
+    {notice && <p role="status" className="bg-white/10 px-4 py-3 text-sm">{notice}</p>}
+    <main className="relative min-h-0 flex-1">
+      {mode === "creator" ? (uid ? <Creator onExport={handleExport} /> : <p className="p-6">계정을 확인하고 있어…</p>) : <>
+        <ViewerBoundary key={avatarUrl} onError={() => setViewerError(true)}>
+          <Canvas camera={{ position: [0, 0, 3], fov: 45 }}><ambientLight intensity={1.5} /><directionalLight position={[3, 4, 5]} intensity={2} /><Suspense fallback={null}><Avatar url={avatarUrl} shapes={shapes} /></Suspense><OrbitControls enablePan={false} minDistance={1} maxDistance={5} /></Canvas>
+        </ViewerBoundary>
+        {viewerError && <p role="alert" className="absolute inset-x-4 top-4 rounded-2xl bg-red-950 p-4">3D 모델을 불러오지 못했어. 다시 꾸미기를 눌러 내보내 줘.</p>}
+        <div className="absolute inset-x-4 bottom-4 flex flex-col items-center gap-2 rounded-2xl bg-slate-900/90 p-3">
+          {supportsFace && !viewerError ? <button onClick={() => setTracking(v => !v)} className="rounded-full bg-violet-500 px-5 py-2">{tracking ? "표정 인식 끄기" : "카메라로 표정 따라 하기"}</button> : <p className="text-sm">이 모델은 표정 인식을 지원하지 않을 수 있어.</p>}
+          {tracking && <p className="text-xs">{trackMessage}</p>}
+          {avatarUrl.startsWith("https://") && <button className="text-xs text-violet-200" onClick={() => void handleExport({ url: avatarUrl, urlType: "httpURL", avatarSupportsFaceAnimations: supportsFace, avatarId: "", bodyId: "", sessionId: "", gender: "male" })}>계정에 다시 저장</button>}
         </div>
-        {mode === "avatar" && (
-          <button
-            onClick={() => setMode("creator")}
-            className="px-3 py-1.5 rounded-xl bg-white/10 text-white/70 text-xs font-bold active:scale-95 transition-transform"
-          >
-            🪄 다시 꾸미기
-          </button>
-        )}
-      </div>
-
-      {/* ── 크리에이터 모드: RPM iframe ─────────────────────────── */}
-      {mode === "creator" && (
-        <div className="flex-1 relative overflow-hidden rounded-t-[24px]">
-          {/* 안내 배너 */}
-          <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-3 pb-2 pointer-events-none"
-            style={{ background: "linear-gradient(to bottom, rgba(13,17,23,0.85), transparent)" }}>
-            <p className="text-white/60 text-[11px] text-center">
-              아바타를 꾸미고 오른쪽 아래 <span className="text-purple-300 font-black">Next →</span> 눌러서 저장해요
-            </p>
-          </div>
-          <RpmCreator onExport={handleExport} />
-        </div>
-      )}
-
-      {/* ── 아바타 모드: 3D + 표정 인식 ─────────────────────────── */}
-      {mode === "avatar" && (
-        <div className="flex-1 relative">
-          {avatarUrl && (
-            <Canvas
-              camera={{ position: [0, 0.2, 2.2], fov: 35 }}
-              gl={{ antialias: true, alpha: true }}
-              style={{ background: "transparent" }}
-            >
-              <AvatarScene
-                url={avatarUrl}
-                blendshapesRef={blendshapesRef}
-                onGlbError={() => setGlbFailed(true)}
-              />
-            </Canvas>
-          )}
-
-          {/* GLB 로드 실패 */}
-          {glbFailed && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-black/60 backdrop-blur-sm rounded-3xl px-6 py-5 text-center border border-white/10 mx-8 pointer-events-auto">
-                <div className="text-4xl mb-3">⚠️</div>
-                <p className="text-white font-black text-sm mb-1">아바타 로드 실패</p>
-                <p className="text-white/40 text-xs mb-3">다시 만들어줘</p>
-                <button
-                  className="px-5 py-2 rounded-2xl bg-purple-500 text-white text-xs font-black active:scale-95 transition-transform"
-                  onClick={() => { setGlbFailed(false); setMode("creator"); }}
-                >
-                  다시 꾸미기
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MediaPipe 로딩 */}
-          {trackStatus === "loading" && (
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
-              <div className="bg-black/60 backdrop-blur-sm rounded-2xl px-5 py-3 flex items-center gap-2 border border-white/10">
-                <div className="text-xl" style={{ animation: "spin 1s linear infinite" }}>⚙️</div>
-                <p className="text-white text-xs font-bold">{loadMsg}</p>
-              </div>
-            </div>
-          )}
-
-          {/* MediaPipe 에러 */}
-          {trackStatus === "error" && (
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center">
-              <div className="bg-red-900/60 backdrop-blur-sm rounded-2xl px-5 py-3 border border-red-500/30">
-                <p className="text-white text-xs font-bold">⚠️ 카메라 권한 또는 인터넷 필요</p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 숨겨진 카메라 */}
-      <video ref={videoRef} className="hidden" playsInline muted />
-
-      {/* 하단 표정 힌트 */}
-      {mode === "avatar" && trackStatus === "ready" && !glbFailed && (
-        <div className="px-5 pb-8 pt-3 shrink-0">
-          <div className="flex justify-center gap-4 flex-wrap">
-            {[["😄","웃어봐"],["😮","입 벌려봐"],["😠","눈썹 찌푸려봐"],["😉","윙크해봐"]].map(([e,t]) => (
-              <div key={t} className="flex items-center gap-1.5 bg-white/6 rounded-xl px-3 py-1.5">
-                <span className="text-lg">{e}</span>
-                <span className="text-white/40 text-xs">{t}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
-    </div>
-  );
+      </>}
+    </main>
+    <video ref={video} className="pointer-events-none absolute h-px w-px opacity-0" playsInline muted />
+  </div>;
 }
