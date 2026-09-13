@@ -1,127 +1,63 @@
 "use client";
 
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, OrbitControls, Center } from "@react-three/drei";
-import * as THREE from "three";
-import type { AvaturnSDK, ExportAvatarResult } from "@avaturn/sdk";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import { DEFAULT_LOOK, type Look, type Shape } from "@/components/MemojiCharacter";
+const Character = dynamic(() => import("@/components/MemojiCharacter"), { ssr: false, loading: () => <div className="grid h-full place-items-center text-sm text-violet-500">캐릭터 준비 중…</div> });
 
-type Shape = { categoryName: string; score: number };
-const subdomain = process.env.NEXT_PUBLIC_AVATURN_SUBDOMAIN || "demo";
-
-class ViewerBoundary extends React.Component<{ children: React.ReactNode; onError: () => void }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch() { this.props.onError(); }
-  render() { return this.state.failed ? null : this.props.children; }
+const SKINS = ["#f5c9aa", "#ffe1c7", "#e5ad88", "#b97d5c", "#82533e"];
+const COLORS = ["#3f2930", "#825238", "#dbb586", "#e7b1c6", "#aaa1d8", "#ededed"];
+const OUTFITS = ["#b9a7ed", "#9ccfdf", "#f2b4c8", "#abcbb4", "#edcb8f", "#4d526d"];
+const OPTIONS: Record<string, string[]> = { skin: SKINS, hair: ["none", "short", "bob", "buns"], hairColor: COLORS, eyes: ["round", "soft"], outfit: OUTFITS, accessory: ["none", "glasses", "bow"] };
+const LABELS: Record<string, string> = { none: "없음", short: "짧은 머리", bob: "단발", buns: "양갈래 번", round: "동그란 눈", soft: "순한 눈", glasses: "동그란 안경", bow: "리본" };
+const TABS: [keyof Look, string][] = [["skin", "피부"], ["hair", "머리"], ["eyes", "눈"], ["outfit", "옷"], ["accessory", "소품"]];
+class PreviewBoundary extends React.Component<{children: React.ReactNode}, {failed: boolean}> {
+  state = {failed:false};
+  static getDerivedStateFromError() { return {failed:true}; }
+  render() { return this.state.failed ? <p className="p-8 text-center text-sm">3D 화면을 열지 못했어. WebGL을 지원하는 브라우저에서 다시 열어 줘.</p> : this.props.children; }
 }
-
-function Avatar({ url, shapes }: { url: string; shapes: React.MutableRefObject<Shape[]> }) {
-  const { scene } = useGLTF(url);
-  const meshes = useRef<THREE.Mesh[]>([]);
-  useEffect(() => {
-    meshes.current = [];
-    scene.traverse(obj => {
-      const mesh = obj as THREE.Mesh;
-      if (mesh.isMesh && mesh.morphTargetDictionary && mesh.morphTargetInfluences) meshes.current.push(mesh);
-    });
-  }, [scene]);
-  useFrame(() => {
-    const values = new Map(shapes.current.map(s => [s.categoryName.toLowerCase(), s.score]));
-    meshes.current.forEach(mesh => {
-      Object.entries(mesh.morphTargetDictionary!).forEach(([name, index]) => {
-        mesh.morphTargetInfluences![index] = THREE.MathUtils.lerp(mesh.morphTargetInfluences![index], values.get(name.toLowerCase()) || 0, 0.3);
-      });
-    });
-  });
-  return <Center><primitive object={scene} /></Center>;
-}
-
-function Creator({ onExport }: { onExport: (data: ExportAvatarResult) => void }) {
-  const container = useRef<HTMLDivElement>(null);
-  const callback = useRef(onExport);
-  callback.current = onExport;
-  const [error, setError] = useState("");
-  const [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    let cancelled = false;
-    let sdk: AvaturnSDK | undefined;
-    setError("");
-    const timer = window.setTimeout(() => { if (!cancelled) setError("꾸미기 화면을 불러오는 데 시간이 걸려. 연결을 확인하고 다시 시도해 줘."); }, 45000);
-    void (async () => {
-      try {
-        if (!/^[a-z0-9-]+$/.test(subdomain)) throw new Error("Invalid subdomain");
-        const { AvaturnSDK } = await import("@avaturn/sdk");
-        if (cancelled) return;
-        sdk = new AvaturnSDK();
-        await sdk.init(container.current, { url: `https://${subdomain}.avaturn.dev` });
-        if (cancelled) return;
-        window.clearTimeout(timer);
-        setError("");
-        sdk.on("export", data => { if (!cancelled) callback.current(data); });
-      } catch { if (!cancelled) setError("아바타 꾸미기를 불러오지 못했어. 잠시 후 다시 시도해 줘."); }
-    })();
-    return () => { cancelled = true; window.clearTimeout(timer); sdk?.destroy(); };
-  }, [attempt]);
-  return <div className="relative h-full">
-    <div ref={container} className="h-full w-full" />
-    {error && <div role="alert" className="absolute inset-x-4 top-4 rounded-2xl bg-white p-4 text-sm text-slate-800 shadow-xl">{error}<button onClick={() => setAttempt(n => n + 1)} className="ml-3 text-violet-600">다시 시도</button></div>}
-  </div>;
-}
-
 export default function MemojiPage() {
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
-  const [mode, setMode] = useState<"creator" | "avatar">("creator");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [supportsFace, setSupportsFace] = useState(false);
+  const [look, setLook] = useState<Look>(DEFAULT_LOOK);
+  const [tab, setTab] = useState<keyof Look>("hair");
+  const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
-  const [viewerError, setViewerError] = useState(false);
   const [tracking, setTracking] = useState(false);
   const [trackMessage, setTrackMessage] = useState("");
   const video = useRef<HTMLVideoElement>(null);
   const shapes = useRef<Shape[]>([]);
   const currentUid = useRef<string | null>(null);
-
-  useEffect(() => onAuthStateChanged(auth, user => {
-    currentUid.current = user?.uid || null;
-    setUid(user?.uid || null);
-    setAvatarUrl(""); setMode("creator"); setTracking(false);
-    if (!user) { router.replace("/login"); return; }
-    void getDoc(doc(db, "users", user.uid)).then(snap => {
-      if (currentUid.current !== user.uid) return;
-      const data = snap.data();
-      // Old RPM URLs remain stored, but the retired service is never loaded.
-      if (data?.memojiProvider === "avaturn" && typeof data.memojiAvatarUrl === "string" && data.memojiAvatarUrl.startsWith("https://")) {
-        setAvatarUrl(data.memojiAvatarUrl);
-        setSupportsFace(data.memojiSupportsFace === true);
-        setMode("avatar");
-      }
-    }).catch(() => setNotice("저장한 아바타를 불러오지 못했어. 새로 꾸미기는 사용할 수 있어."));
-  }), [router]);
-
-  const handleExport = async (data: ExportAvatarResult) => {
-    if (!uid || currentUid.current !== uid) return;
-    if (!(data.urlType === "httpURL" && data.url.startsWith("https://")) && !(data.urlType === "dataURL" && data.url.startsWith("data:"))) {
-      setNotice("아바타 파일 주소가 올바르지 않아. 다시 내보내 줘."); return;
-    }
-    setAvatarUrl(data.url); setSupportsFace(data.avatarSupportsFaceAnimations);
-    setViewerError(false); setTracking(false); setMode("avatar"); setNotice("");
-    if (data.urlType === "dataURL") {
-      setNotice("이 아바타는 이번 화면에서만 볼 수 있어. 다시 방문해도 불러오려면 Avaturn 프로젝트의 내보내기를 HTTP URL로 설정해야 해.");
-      return;
-    }
-    try {
-      await updateDoc(doc(db, "users", uid), { memojiProvider: "avaturn", memojiAvatarUrl: data.url, memojiAvatarId: data.avatarId, memojiSupportsFace: data.avatarSupportsFaceAnimations });
-    } catch { setNotice("아바타는 만들었지만 계정에 저장하지 못했어. 아래 저장 버튼으로 다시 시도해 줘."); }
-  };
-
   useEffect(() => {
-    if (!tracking || mode !== "avatar" || !supportsFace) return;
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      currentUid.current = user?.uid || null;
+      setUid(user?.uid || null); setReady(false); setLook(DEFAULT_LOOK); setTracking(false);
+      if (!user) { router.replace("/login"); return; }
+      void getDoc(doc(db, "users", user.uid)).then(snap => {
+        if (currentUid.current !== user.uid) return;
+        const stored = snap.data()?.memojiLook;
+        const next = {...DEFAULT_LOOK};
+        (Object.keys(next) as (keyof Look)[]).forEach(key => { if (OPTIONS[key].includes(stored?.[key])) next[key] = stored[key]; });
+        setLook(next); setReady(true);
+      }).catch(() => { if (currentUid.current === user.uid) { setNotice("이전 꾸미기를 불러오지 못했어. 다시 들어와 줘."); } });
+    });
+    return () => { currentUid.current = null; unsubscribe(); };
+  }, [router]);
+  const choose = (key: keyof Look, value: string) => { setLook(old => ({...old, [key]:value})); setNotice(""); };
+  const save = async () => {
+    if (!uid || !ready || saving) return;
+    setSaving(true);
+    try { await setDoc(doc(db, "users", uid), { memojiLook: look, memojiProvider: "wagie" }, {merge:true}); if (currentUid.current === uid) setNotice("저장했어! 다음에도 이 모습으로 만날게."); }
+    catch { setNotice("저장하지 못했어. 연결을 확인하고 다시 눌러 줘."); }
+    finally { setSaving(false); }
+  };
+  useEffect(() => {
+    if (!tracking) return;
     let cancelled = false;
     let frame = 0;
     let stream: MediaStream | undefined;
@@ -162,29 +98,30 @@ export default function MemojiPage() {
       }
     })();
     return () => { cancelled = true; cancelAnimationFrame(frame); stream?.getTracks().forEach(t => t.stop()); landmarker?.close(); shapes.current = []; };
-  }, [tracking, mode, supportsFace]);
+  }, [tracking]);
 
-  return <div className="fixed inset-0 flex flex-col bg-slate-950 text-white">
-    <header className="flex items-center justify-between gap-3 px-4 py-4">
-      <button onClick={() => router.push("/creative")} aria-label="창작 홈으로" className="rounded-full bg-white/10 px-3 py-2">←</button>
-      <div className="flex-1"><h1 className="font-bold">내 3D 아바타</h1><p className="text-xs text-white/60">Avaturn · 머리와 옷을 골라 꾸며 봐</p></div>
-      {mode === "avatar" && <button onClick={() => { setTracking(false); setMode("creator"); }} className="rounded-xl bg-white/10 px-3 py-2 text-sm">다시 꾸미기</button>}
+  return <div className="fixed inset-0 flex flex-col text-slate-700" style={{background:"radial-gradient(ellipse at 25% 15%,#fff8ed,transparent 55%),linear-gradient(155deg,#f5efff,#f2f7ff)"}}>
+    <header className="flex shrink-0 items-center gap-3 px-5 py-4">
+      <button aria-label="창작 홈으로" onClick={() => router.push("/creative")} className="h-10 w-10 rounded-full border border-white bg-white/70 text-xl shadow-sm">←</button>
+      <div className="flex-1"><p className="text-[10px] font-bold tracking-[0.2em] text-violet-400">WAGIE LITTLE ME</p><h1 className="text-lg font-bold">나를 닮은 작은 친구</h1></div>
+      <button onClick={save} disabled={!ready || saving} className="rounded-full bg-violet-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-200 disabled:opacity-40">{saving ? "저장 중…" : "저장"}</button>
     </header>
-    {subdomain === "demo" && <p className="bg-amber-100 px-4 py-2 text-xs text-amber-900">공식 데모로 연결 중이야. 데모에는 일부 기능 제한이 있어.</p>}
-    {notice && <p role="status" className="bg-white/10 px-4 py-3 text-sm">{notice}</p>}
-    <main className="relative min-h-0 flex-1">
-      {mode === "creator" ? (uid ? <Creator onExport={handleExport} /> : <p className="p-6">계정을 확인하고 있어…</p>) : <>
-        <ViewerBoundary key={avatarUrl} onError={() => setViewerError(true)}>
-          <Canvas camera={{ position: [0, 0, 3], fov: 45 }}><ambientLight intensity={1.5} /><directionalLight position={[3, 4, 5]} intensity={2} /><Suspense fallback={null}><Avatar url={avatarUrl} shapes={shapes} /></Suspense><OrbitControls enablePan={false} minDistance={1} maxDistance={5} /></Canvas>
-        </ViewerBoundary>
-        {viewerError && <p role="alert" className="absolute inset-x-4 top-4 rounded-2xl bg-red-950 p-4">3D 모델을 불러오지 못했어. 다시 꾸미기를 눌러 내보내 줘.</p>}
-        <div className="absolute inset-x-4 bottom-4 flex flex-col items-center gap-2 rounded-2xl bg-slate-900/90 p-3">
-          {supportsFace && !viewerError ? <button onClick={() => setTracking(v => !v)} className="rounded-full bg-violet-500 px-5 py-2">{tracking ? "표정 인식 끄기" : "카메라로 표정 따라 하기"}</button> : <p className="text-sm">이 모델은 표정 인식을 지원하지 않을 수 있어.</p>}
-          {tracking && <p className="text-xs">{trackMessage}</p>}
-          {avatarUrl.startsWith("https://") && <button className="text-xs text-violet-200" onClick={() => void handleExport({ url: avatarUrl, urlType: "httpURL", avatarSupportsFaceAnimations: supportsFace, avatarId: "", bodyId: "", sessionId: "", gender: "male" })}>계정에 다시 저장</button>}
-        </div>
-      </>}
+    <main className="relative min-h-[220px] flex-1">
+      <PreviewBoundary><Character look={look} shapes={shapes} /></PreviewBoundary>
+      <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-xs text-slate-400">손으로 돌려서 옆모습도 봐</span>
+      <button onClick={() => setTracking(v => !v)} aria-pressed={tracking} className="absolute right-4 top-2 rounded-full border border-white bg-white/80 px-4 py-2 text-xs shadow-sm">{tracking ? "표정 따라 하기 끄기" : "☺ 표정 따라 하기"}</button>
     </main>
+    <section className="max-h-[45dvh] shrink-0 overflow-y-auto rounded-t-[32px] border border-white bg-white/75 px-5 pb-5 pt-4 shadow-[0_-10px_45px_#b5a4d51a] backdrop-blur-xl" style={{paddingBottom:"max(20px,env(safe-area-inset-bottom))"}}>
+      <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-slate-200" />
+      <div className="mx-auto max-w-lg">
+        <div role="tablist" aria-label="꾸미기 종류" className="mb-4 flex gap-2">{TABS.map(([key,label]) => <button role="tab" aria-selected={tab===key} key={key} onClick={() => setTab(key)} className={`flex-1 rounded-2xl py-2.5 text-sm font-bold transition ${tab===key ? "bg-violet-100 text-violet-700" : "text-slate-400"}`}>{label}</button>)}</div>
+        <div role="tabpanel" aria-label={TABS.find(t=>t[0]===tab)?.[1]} className="flex flex-wrap gap-3">
+          {OPTIONS[tab].map(value => <button disabled={!ready || saving} key={value} onClick={() => choose(tab,value)} aria-pressed={look[tab]===value} aria-label={value.startsWith("#") ? `${tab=== "skin" ? "피부" : "옷"} 색상 ${OPTIONS[tab].indexOf(value)+1}` : LABELS[value]} className={`min-h-[52px] rounded-2xl border-2 p-3 text-xs font-semibold transition disabled:opacity-40 ${look[tab]===value ? "border-violet-400 bg-violet-50 shadow-sm" : "border-white bg-white"}`} style={value.startsWith("#") ? {background:value,width:52} : {minWidth:76}}>{!value.startsWith("#") ? LABELS[value] : look[tab]===value ? "✓" : ""}</button>)}
+        </div>
+        {tab==="hair" && <div className="mt-4 flex items-center gap-3"><span className="text-xs text-slate-400">머리색</span>{COLORS.map(color=><button key={color} disabled={!ready || saving} onClick={()=>choose("hairColor",color)} aria-label={`머리색 ${COLORS.indexOf(color)+1}`} aria-pressed={look.hairColor===color} className={`h-7 w-7 rounded-full border-2 ${look.hairColor===color ? "border-violet-400 ring-2 ring-violet-100" : "border-white"}`} style={{background:color}} />)}</div>}
+        <p role="status" className="mt-4 min-h-4 text-center text-xs text-violet-500">{notice || (tracking ? trackMessage : "원하는 모습을 골라 줘. 바로 바뀔 거야.")}</p>
+      </div>
+    </section>
     <video ref={video} className="pointer-events-none absolute h-px w-px opacity-0" playsInline muted />
   </div>;
 }
