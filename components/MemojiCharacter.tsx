@@ -54,7 +54,15 @@ function Character({ look, shapes }: Props) {
     <Ball position={[0, 0.48, 0.66]} scale={[0.072, 0.083, 0.08]} color={look.skin} />
     <mesh ref={mouth} position={[0, 0.29, 0.598]} scale={[0.105, 0.038, 0.022]}><sphereGeometry args={[1, 32, 24]} /><meshStandardMaterial color="#9e4e59" /></mesh>
     {look.hair !== "none" && <>
-      <Ball position={[0, 1.14, -0.07]} scale={[0.68, 0.31, 0.57]} color={look.hairColor} />
+      {/* A continuous crown and rear shell cover the scalp without covering the face. */}
+      <mesh position={[0, 0.61, 0]} scale={[0.745, 0.81, 0.68]}>
+        <sphereGeometry args={[1, 48, 32, 0, Math.PI * 2, 0, 0.98]} />
+        <meshStandardMaterial color={look.hairColor} roughness={0.46} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0, 0.61, 0]} scale={[0.745, look.hair === "bob" ? 0.88 : 0.81, 0.68]}>
+        <sphereGeometry args={[1, 48, 40, Math.PI, Math.PI, 0, look.hair === "bob" ? 2.85 : 2.48]} />
+        <meshStandardMaterial color={look.hairColor} roughness={0.46} side={THREE.DoubleSide} />
+      </mesh>
       {[-0.42, -0.16, 0.13, 0.4].map((x, i) => <Ball key={x} position={[x, 1.08 + (i % 2) * 0.03, 0.4]} scale={[0.23, look.hair === "bob" ? 0.22 : 0.15, 0.21]} color={look.hairColor} />)}
       {look.hair === "bob" && [-1, 1].map(s => <Ball key={s} position={[s * 0.61, 0.69, -0.12]} scale={[0.2, 0.52, 0.4]} color={look.hairColor} />)}
       {look.hair === "buns" && [-1, 1].map(s => <Ball key={s} position={[s * 0.61, 1.24, -0.11]} scale={[0.27, 0.27, 0.26]} color={look.hairColor} />)}
