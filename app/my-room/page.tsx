@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import PageContainer from "@/components/PageContainer";
 import LoadingScreen from "@/components/LoadingScreen";
 import LetterComposer from "@/components/LetterComposer";
 import { EMPTY_ROOM, MAX_WALL_PINS, STICKERS, WALLS, nextLetterPosition, type Mail, type Room } from "@/lib/room";
 import MusicPlayer from "@/components/MusicPlayer";
+import ConstellationSky, { STARS, type StarLine } from "@/components/ConstellationSky";
 
 type Friend = { uid: string; nickname: string };
 async function request(body?: unknown) {
@@ -52,6 +54,8 @@ export default function MyRoom() {
   const [opened, setOpened] = useState<Mail | null>(null);
   const [opening, setOpening] = useState("");
   const [now, setNow] = useState(Date.now());
+  const [constellation, setConstellation] = useState<StarLine[]>([]);
+  const [showSky, setShowSky] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
   const mailbox = useRef<HTMLElement>(null);
   const drag = useRef<{ id: string; pointer: number; x: number; y: number; startX: number; startY: number } | null>(null);
@@ -59,7 +63,10 @@ export default function MyRoom() {
   const busyOpening = useRef(false);
   const refresh = useCallback(async (initial: boolean, expected: string) => {
     try {
-      const data = await request();
+      const [data, usnap] = await Promise.all([
+        request(),
+        initial ? getDoc(doc(db, "users", expected)) : Promise.resolve(null),
+      ]);
       if (currentUid.current !== expected) return;
       setNickname(data.nickname); setFriends(data.friends); setMail(data.mail); setError("");
       if (initial) {
@@ -69,6 +76,7 @@ export default function MyRoom() {
         }, []);
         const layout = { ...data.room, pins };
         setRoom(layout); saved.current = layout;
+        if (usnap) setConstellation((usnap.data() as any)?.constellation ?? []);
       }
       setReady(true);
     } catch (e) { if (currentUid.current === expected) setError(e instanceof Error ? e.message : "방을 불러오지 못했어."); }
@@ -153,6 +161,15 @@ export default function MyRoom() {
     if (room.pins.length + room.decorations.length >= 20) { setNotice("소품과 편지는 총 20개까지 놓을 수 있어."); return; }
     const id = crypto.randomUUID(); setRoom(r => ({ ...r, decorations: [...r.decorations, { id, emoji, x: 50, y: 48 }] })); setSelected(id);
   };
+  const h = new Date(now).getHours();
+  const isNight = h >= 19 || h < 5;
+
+  const saveSky = async (lines: StarLine[]) => {
+    setConstellation(lines);
+    if (!uid) return;
+    try { await updateDoc(doc(db, "users", uid), { constellation: lines }); } catch {}
+  };
+
   if (!ready && !error) return <PageContainer><LoadingScreen /></PageContainer>;
   return <PageContainer>
     <div className="mx-auto max-w-2xl pb-8 text-[#66544e]">
@@ -164,11 +181,40 @@ export default function MyRoom() {
       <div ref={stage} className="relative aspect-[5/4] overflow-hidden rounded-[28px] border-[6px] border-white shadow-[0_15px_45px_#8b70651a]" style={{ background: room.wall }}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="absolute inset-x-0 bottom-0 h-[27%] border-t-8 border-[#dac8b7]" style={{ background: "repeating-linear-gradient(90deg,#e3cfb8 0,#e3cfb8 70px,#d8bea2 71px,#e3cfb8 73px)" }} />
-          <div className="absolute left-[10%] top-[12%] h-[32%] w-[25%] rounded-t-[40px] border-[7px] border-white bg-gradient-to-b from-[#badcea] to-[#fff8dc] shadow-md"><div className="absolute left-1/2 h-full w-1 bg-white" /><div className="absolute top-1/2 h-1 w-full bg-white" /><div className="absolute right-2 top-3 h-8 w-8 rounded-full bg-[#ffedba]" /></div>
+          <div className="absolute left-[10%] top-[12%] h-[32%] w-[25%] rounded-t-[40px] border-[7px] border-white shadow-md overflow-hidden">
+            {isNight ? (
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a1a52, #050510)" }}>
+                {STARS.map(s => <circle key={s.id} cx={s.x} cy={s.y} r={1.2} fill="#c8d2ff" opacity={0.8} />)}
+                {constellation.map(([a, b]) => { const A = STARS[a], B = STARS[b]; return <line key={`${a}-${b}`} x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="rgba(180,200,255,0.7)" strokeWidth="0.6" strokeLinecap="round" />; })}
+              </svg>
+            ) : (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-b from-[#badcea] to-[#fff8dc]" />
+                <div className="absolute left-1/2 h-full w-1 bg-white" />
+                <div className="absolute top-1/2 h-1 w-full bg-white" />
+                <div className="absolute right-2 top-3 h-8 w-8 rounded-full bg-[#ffedba]" />
+              </>
+            )}
+          </div>
           <div className="absolute bottom-[15%] right-[8%] h-[21%] w-[42%] rounded-t-3xl rounded-b-lg border-b-[12px] border-[#a78e81] bg-[#c8b5c6] shadow-lg"><div className="absolute -top-6 left-2 h-12 w-[95%] rounded-t-2xl bg-[#ddc9da]" /><div className="absolute -top-3 right-3 h-10 w-12 rotate-6 rounded-xl bg-[#fff3df]" /></div>
           <div className="absolute bottom-[15%] left-[12%] h-[18%] w-[18%] rounded-t-full bg-[#a4b69b]" /><div className="absolute bottom-[13%] left-[15%] h-[10%] w-[12%] rounded-b-xl bg-[#c38f74]" />
           <div className="absolute left-[33%] bottom-[3%] h-[10%] w-[44%] rounded-[50%] bg-[#faf0df]/80" />
         </div>
+        {/* 밤에만 창문 클릭 가능 */}
+        {isNight && !editing && (
+          <button
+            onClick={() => setShowSky(true)}
+            className="absolute left-[10%] top-[12%] h-[32%] w-[25%] rounded-t-[40px] z-[5]"
+            aria-label="밤하늘 열기"
+            title="밤하늘 보기"
+          >
+            {!constellation.length && (
+              <span className="absolute bottom-2 left-0 right-0 text-center text-[7px] text-white/60 font-bold tracking-wider animate-pulse">
+                탭해봐 ✦
+              </span>
+            )}
+          </button>
+        )}
         {room.decorations.map(item => <button key={item.id} aria-label={`${item.emoji} 소품${editing ? " 이동" : ""}`} onPointerDown={e => startDrag(e, item)} onPointerMove={moveDrag} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }} onKeyDown={e => keyboardMove(e, item)} onClick={() => editing && setSelected(item.id)} className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl p-2 text-4xl sm:text-5xl ${editing ? "touch-none cursor-grab" : "cursor-default"} ${editing && selected === item.id ? "ring-2 ring-[#b97981] bg-white/40" : ""}`} style={{ left: `${item.x}%`, top: `${item.y}%` }}>{item.emoji}</button>)}
         {room.pins.map(item => {
           const letter = mail.find(m => m.id === item.id); if (!letter?.image) return null;
@@ -189,6 +235,14 @@ export default function MyRoom() {
         {!mail.length ? <div className="mt-4 rounded-2xl border border-dashed border-[#dac8b7] bg-white/60 p-8 text-center"><div className="mx-auto w-24"><Envelope /></div><p className="mt-3 text-sm">아직 도착한 편지가 없어.</p><p className="mt-1 text-xs text-[#a58d81]">먼저 친구에게 한 장 보내 볼까?</p></div> : <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{mail.map(m => <button disabled={Boolean(opening)} key={m.id} onClick={() => void openLetter(m)} className="relative rounded-2xl bg-white/80 p-4 text-left transition hover:-translate-y-1"><Envelope /><p className="mt-3 truncate text-sm font-bold">{m.fromName}에게서</p><p className="mt-1 text-[11px] text-[#a58d81]">{m.unlockAt > now ? `🔒 ${date(m.unlockAt)} 열림` : m.opened ? "다시 읽기" : "봉투를 눌러 열기"}</p>{!m.opened && <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[#c68289]" />}</button>)}</div>}
       </section>
     </div>
+    {showSky && createPortal(
+      <ConstellationSky
+        initialLines={constellation}
+        onSave={saveSky}
+        onBack={() => setShowSky(false)}
+      />,
+      document.body
+    )}
     {(composing || opened || opening) && createPortal(<div className="fixed inset-0 z-[10000] flex items-center justify-center bg-[#3e302b]/45 p-4 backdrop-blur-sm">
       <div data-room-dialog role="dialog" aria-modal="true" aria-label={composing ? "낙서 편지 쓰기" : "받은 편지"} className="w-full max-w-lg">
         {composing && <LetterComposer friends={friends} onClose={() => setComposing(false)} onSend={async draft => { await request({ action: "send", ...draft }); setComposing(false); setNotice("편지를 보냈어! 친구 우편함에 도착했어."); }} />}
