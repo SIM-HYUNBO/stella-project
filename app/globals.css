@@ -63,3 +63,4 @@ button {
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
   transform: scale(1.02);
 }
+@keyframes mp-spin { to { transform: rotate(360deg); } }
