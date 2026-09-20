@@ -51,6 +51,16 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    label: "내 방",
+    path: "/my-room",
+    icon: () => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 21V3h16v18M2 21h20M8 21V7h8v14" />
+        <circle cx="13" cy="14" r=".75" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
 ];
 
 const PageContainer = ({ children }) => {
@@ -127,6 +137,9 @@ const PageContainer = ({ children }) => {
             return (
               <button
                 key={path}
+                aria-label={label}
+                title={label}
+                aria-current={active ? "page" : undefined}
                 onClick={() => router.push(path)}
                 className={`flex items-center justify-center flex-1 h-[58px] transition-all duration-150 ${active ? "text-sky-500" : "text-gray-400 hover:text-gray-500"}`}
               >
