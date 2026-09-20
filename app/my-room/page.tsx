@@ -10,6 +10,7 @@ import PageContainer from "@/components/PageContainer";
 import LoadingScreen from "@/components/LoadingScreen";
 import LetterComposer from "@/components/LetterComposer";
 import { EMPTY_ROOM, MAX_WALL_PINS, STICKERS, WALLS, nextLetterPosition, type Mail, type Room } from "@/lib/room";
+import MusicPlayer from "@/components/MusicPlayer";
 
 type Friend = { uid: string; nickname: string };
 async function request(body?: unknown) {
@@ -183,6 +184,7 @@ export default function MyRoom() {
         </> : <div className="flex gap-3"><button disabled={!ready} onClick={() => { setEditing(true); setNotice(""); }} className="flex-1 rounded-xl bg-[#f4e9e0] py-3 text-sm font-bold">✦ 방 꾸미기</button><button disabled={!ready} onClick={() => setComposing(true)} className="flex-1 rounded-xl bg-[#b97981] py-3 text-sm font-bold text-white">편지 쓰기</button></div>}
       </div>
       {notice && <p role="status" className="mt-3 text-center text-sm">{notice}</p>}
+      <MusicPlayer />
       <section ref={mailbox} className="mt-7 scroll-mt-20"><div className="flex items-center justify-between"><h2 className="text-lg font-bold">낙서 우편함</h2><button onClick={() => void refresh(false, uid)} className="text-xs text-[#a58d81]">새로고침</button></div><p className="mt-1 text-xs text-[#a58d81]">나에게 온 작은 마음들을 모아 둬.</p>
         {!mail.length ? <div className="mt-4 rounded-2xl border border-dashed border-[#dac8b7] bg-white/60 p-8 text-center"><div className="mx-auto w-24"><Envelope /></div><p className="mt-3 text-sm">아직 도착한 편지가 없어.</p><p className="mt-1 text-xs text-[#a58d81]">먼저 친구에게 한 장 보내 볼까?</p></div> : <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{mail.map(m => <button disabled={Boolean(opening)} key={m.id} onClick={() => void openLetter(m)} className="relative rounded-2xl bg-white/80 p-4 text-left transition hover:-translate-y-1"><Envelope /><p className="mt-3 truncate text-sm font-bold">{m.fromName}에게서</p><p className="mt-1 text-[11px] text-[#a58d81]">{m.unlockAt > now ? `🔒 ${date(m.unlockAt)} 열림` : m.opened ? "다시 읽기" : "봉투를 눌러 열기"}</p>{!m.opened && <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[#c68289]" />}</button>)}</div>}
       </section>
