@@ -4,6 +4,11 @@ export type Decoration = { id: string; emoji: string; x: number; y: number };
 export type PinnedLetter = { id: string; x: number; y: number };
 export type Room = { wall: string; decorations: Decoration[]; pins: PinnedLetter[] };
 export const EMPTY_ROOM: Room = { wall: WALLS[0], decorations: [], pins: [] };
+export const MAX_WALL_PINS = 2;
+export function nextLetterPosition(pins: PinnedLetter[]) {
+  const slots = [{ x: 58, y: 28 }, { x: 83, y: 28 }];
+  return slots.find(slot => pins.every(p => Math.abs(p.x - slot.x) >= 25 || Math.abs(p.y - slot.y) >= 20)) || slots[pins.length % slots.length];
+}
 export type Mail = { id: string; fromName: string; toName: string; createdAt: number; unlockAt: number; opened: boolean; image?: string; text?: string };
 export const validId = (value: unknown): value is string => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 export function letterAccess(letter: { toUid: string; unlockAt: number } | undefined, uid: string, now: number): "missing" | "locked" | "ready" {

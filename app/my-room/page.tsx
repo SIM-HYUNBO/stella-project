@@ -9,7 +9,7 @@ import { auth } from "../firebase";
 import PageContainer from "@/components/PageContainer";
 import LoadingScreen from "@/components/LoadingScreen";
 import LetterComposer from "@/components/LetterComposer";
-import { EMPTY_ROOM, STICKERS, WALLS, type Mail, type Room } from "@/lib/room";
+import { EMPTY_ROOM, MAX_WALL_PINS, STICKERS, WALLS, nextLetterPosition, type Mail, type Room } from "@/lib/room";
 
 type Friend = { uid: string; nickname: string };
 async function request(body?: unknown) {
@@ -61,7 +61,14 @@ export default function MyRoom() {
       const data = await request();
       if (currentUid.current !== expected) return;
       setNickname(data.nickname); setFriends(data.friends); setMail(data.mail); setError("");
-      if (initial) { setRoom(data.room); saved.current = data.room; }
+      if (initial) {
+        const pins = (data.room.pins as Room["pins"]).reduce<Room["pins"]>((placed, pin) => {
+          const overlaps = placed.some(p => p.x === pin.x && p.y === pin.y);
+          return [...placed, overlaps ? { ...pin, ...nextLetterPosition(placed) } : pin];
+        }, []);
+        const layout = { ...data.room, pins };
+        setRoom(layout); saved.current = layout;
+      }
       setReady(true);
     } catch (e) { if (currentUid.current === expected) setError(e instanceof Error ? e.message : "방을 불러오지 못했어."); }
   }, []);
@@ -137,8 +144,8 @@ export default function MyRoom() {
   };
   const pin = (m: Mail) => {
     if (room.pins.some(p => p.id === m.id)) { setOpened(null); return; }
-    if (room.pins.length + room.decorations.length >= 20) { setNotice("방에는 소품과 편지를 총 20개까지 놓을 수 있어."); setOpened(null); return; }
-    setRoom(r => ({ ...r, pins: [...r.pins, { id: m.id, x: 50, y: 28 }] }));
+    if (room.pins.length >= MAX_WALL_PINS) { setNotice(`벽에는 편지를 ${MAX_WALL_PINS}개까지 붙일 수 있어. 기존 편지를 치우고 다시 붙여 봐.`); setOpened(null); return; }
+    setRoom(r => ({ ...r, pins: [...r.pins, { id: m.id, ...nextLetterPosition(r.pins) }] }));
     setSelected(m.id); setEditing(true); setOpened(null); stage.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
   const addDecoration = (emoji: string) => {
@@ -166,7 +173,7 @@ export default function MyRoom() {
           const letter = mail.find(m => m.id === item.id); if (!letter?.image) return null;
           return <button key={item.id} aria-label={`${letter.fromName}의 편지${editing ? " 이동" : " 열기"}`} onPointerDown={e => startDrag(e, item)} onPointerMove={moveDrag} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }} onKeyDown={e => keyboardMove(e, item)} onClick={() => editing ? setSelected(item.id) : void openLetter(letter)} className={`absolute w-[23%] -translate-x-1/2 -translate-y-1/2 -rotate-3 bg-white p-1.5 pb-4 shadow-lg ${editing ? "touch-none cursor-grab" : ""} ${selected === item.id && editing ? "ring-2 ring-[#b97981]" : ""}`} style={{ left: `${item.x}%`, top: `${item.y}%` }}><span className="absolute -top-2 left-[30%] h-4 w-[40%] bg-[#e9bcab]/80" /><Image unoptimized width={800} height={600} src={letter.image} alt={`${letter.fromName}의 낙서`} className="aspect-[4/3] w-full object-contain" /><span className="block truncate pt-1 text-[10px]">from. {letter.fromName}</span></button>;
         })}
-        {!room.pins.length && <p className="pointer-events-none absolute right-[7%] top-[17%] w-[38%] text-center text-xs leading-relaxed text-[#a88d7e]">친구의 편지를<br />이 벽에 붙여 봐</p>}
+        {!room.pins.length && <p className="pointer-events-none absolute right-[7%] top-[17%] w-[38%] text-center text-xs leading-relaxed text-[#a88d7e]">친구의 편지를<br />최대 2개 붙여 봐</p>}
       </div>
       <div className="mt-4 rounded-2xl bg-white/90 p-4">
         {editing ? <>
