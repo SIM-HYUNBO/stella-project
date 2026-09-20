@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 const CHANNELS = [
-  { id: "jfKfPfyJRdk", name: "로파이", emoji: "🎵", bg: "#b97981" },
+  { id: "rUxyKA_-grg", name: "로파이", emoji: "🎵", bg: "#b97981" }, // Chillhop 컴필레이션
   { id: "Dx5qFachd3A", name: "재즈",   emoji: "🎷", bg: "#7981b9" },
   { id: "q76bMs-NwRk", name: "자연",   emoji: "🌿", bg: "#5a9e6f" },
-  { id: "5qap5aO4i9A", name: "공부",   emoji: "📚", bg: "#b9a179" },
+  { id: "lTRiuFIWV54", name: "공부",   emoji: "📚", bg: "#b9a179" }, // 집중 음악 컴필레이션
 ];
 
 export default function MusicPlayer() {
