@@ -162,7 +162,7 @@ export default function MyRoom() {
     const id = crypto.randomUUID(); setRoom(r => ({ ...r, decorations: [...r.decorations, { id, emoji, x: 50, y: 48 }] })); setSelected(id);
   };
   const h = new Date(now).getHours();
-  const isNight = h >= 19 || h < 5;
+  const isNight = true; // TODO: h >= 19 || h < 5 (테스트 중 항상 열림)
 
   const saveSky = async (lines: StarLine[]) => {
     setConstellation(lines);
