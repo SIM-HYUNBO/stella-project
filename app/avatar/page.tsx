@@ -8,6 +8,7 @@ import PageContainer from "../../components/PageContainer";
 import LinkPreview, { extractFirstUrl } from "../../components/LinkPreview";
 import LoadingScreen from "../../components/LoadingScreen";
 import DrawingCanvas from "@/components/DrawingCanvas";
+import PhoneCallButton from "@/components/PhoneCallButton";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
@@ -416,8 +417,6 @@ export default function Chat() {
 
   const [peerTyping, setPeerTyping] = useState(false);
 
-  const [msgSearch, setMsgSearch] = useState("");
-  const [showMsgSearch, setShowMsgSearch] = useState(false);
 
   const [imgUploading, setImgUploading] = useState(false);
   const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
@@ -1398,13 +1397,7 @@ export default function Chat() {
     }
   };
 
-  const displayedMessages = msgSearch.trim()
-    ? messages.filter((m) =>
-        m.content
-          .toLowerCase()
-          .includes(msgSearch.toLowerCase())
-      )
-    : messages;
+  const displayedMessages = messages;
 
   if (!nickname) {
     return (
@@ -1548,15 +1541,7 @@ export default function Chat() {
             <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
               className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
               style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
-            <button
-              onClick={() => {
-                setShowMsgSearch((p) => !p);
-                setMsgSearch("");
-              }}
-              className="text-xl"
-            >
-              🔍
-            </button>
+            <PhoneCallButton key={currentChatUser.id} userId={currentChatUser.id} nickname={currentChatUser.nickname} color={accent.from} />
 
             <button
               onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
@@ -1666,18 +1651,7 @@ export default function Chat() {
         </div>
       )}
 
-      {showMsgSearch && (
-        <div className="px-4 py-2 border-b bg-white">
-          <input
-            className="w-full px-4 py-2 rounded-2xl bg-white border border-gray-200 text-sm"
-            placeholder="메시지 검색..."
-            value={msgSearch}
-            onChange={(e) =>
-              setMsgSearch(e.target.value)
-            }
-          />
-        </div>
-      )}
+
 
 
       <div

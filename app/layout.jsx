@@ -31,6 +31,7 @@ import AppBadge from "@/components/AppBadge";
 import BirthdayNotification from "@/components/BirthdayNotification";
 import FriendRequestPopup from "@/components/FriendRequestPopup";
 import RoomInvitePopup from "@/components/RoomInvitePopup";
+import IncomingVideoCall from "@/components/IncomingVideoCall";
 
 import "./globals.css";
 
@@ -96,6 +97,7 @@ export default function RootLayout({ children }) {
 
             {/* 채팅방 초대 팝업 */}
             <RoomInvitePopup />
+            <IncomingVideoCall />
 
             {children}
 
