@@ -53,6 +53,7 @@ type Message = {
 type User = {
   id: string;
   nickname: string;
+  phone?: string;
   profileImage?: string | null;
   title?: string | null;
 };
@@ -533,6 +534,7 @@ export default function Chat() {
         list.push({
           id: d.id,
           nickname: data.nickname,
+          phone: typeof data.phone === "string" ? data.phone : undefined,
           profileImage: data.profileImage ?? null,
           title: data.title ?? null,
         });
@@ -1541,7 +1543,7 @@ export default function Chat() {
             <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
               className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
               style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
-            <PhoneCallButton key={currentChatUser.id} userId={currentChatUser.id} nickname={currentChatUser.nickname} color={accent.from} />
+            <PhoneCallButton key={currentChatUser.id} userId={currentChatUser.id} nickname={currentChatUser.nickname} color={accent.from} cachedPhone={currentChatUser.phone} />
 
             <button
               onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}

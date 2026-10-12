@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/firebase";
 import VideoCallButton from "@/components/VideoCallButton";
+import { normalizePhone, formatPhone } from "@/lib/phone-number";
 
 function PhoneIcon({ size = 20 }: { size?: number }) {
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -13,31 +14,41 @@ function PhoneIcon({ size = 20 }: { size?: number }) {
 }
 
 /** One header button: phone-app audio calls or in-app video calls. */
-export default function PhoneCallButton({ userId, nickname, color }: { userId: string; nickname: string; color: string }) {
+export default function PhoneCallButton({ userId, nickname, color, cachedPhone }: { userId: string; nickname: string; color: string; cachedPhone?: string }) {
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [retry, setRetry] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     if (!open) return;
     dialog.current?.showModal();
     let cancelled = false;
-    setLoading(true);
-    setPhone("");
+    const cached = normalizePhone(cachedPhone);
+    setLoading(!cached);
+    setPhone(cached);
     setMessage("");
+    // Firestore can wait indefinitely when offline. Always leave a retry path.
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      cancelled = true;
+      setLoading(false);
+      if (!cached) setMessage("전화번호 확인이 늦어지고 있어. 연결을 확인하고 다시 눌러 줘.");
+    }, 10000);
     getDoc(doc(db, "users", userId)).then(snapshot => {
       if (cancelled) return;
       const value = snapshot.data()?.phone;
-      const number = typeof value === "string" ? value.trim() : "";
-      if (/^\+?[\d\s()-]{3,30}$/.test(number)) setPhone(number);
-      else setMessage("등록된 전화번호가 없어.");
+      const number = normalizePhone(value);
+      setPhone(number);
+      if (!snapshot.exists()) setMessage("친구 정보를 찾지 못했어.");
+      else if (!number) setMessage(value ? "저장된 전화번호 형식을 확인해 줘." : "친구가 등록한 전화번호가 없어.");
     }).catch(() => {
       if (!cancelled) setMessage("전화번호를 불러오지 못했어. 잠시 후 다시 눌러 줘.");
-    }).finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [open, userId]);
+    }).finally(() => { clearTimeout(timer); if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [open, userId, cachedPhone, retry]);
 
   const close = () => { dialog.current?.close(); setOpen(false); };
   return <>
@@ -56,9 +67,9 @@ export default function PhoneCallButton({ userId, nickname, color }: { userId: s
             <p className="mt-1 text-sm text-gray-500">어떻게 통화할까?</p>
           </div>
           <div className="flex flex-col gap-3 w-full">
-            {phone ? <a href={`tel:${phone.replace(/[\s()-]/g, "")}`} onClick={close}
-              className="w-full rounded-[14px] bg-green-50 text-green-700 px-4 py-3 flex items-center gap-3"><PhoneIcon /><span className="text-left"><span className="block font-bold text-sm">음성통화</span><span className="block text-xs mt-1">{phone} · 전화 앱</span></span></a>
-              : <div className="rounded-[14px] bg-gray-50 px-4 py-3 text-sm text-gray-400"><span className="font-bold">음성통화</span><p className="mt-1 text-xs" role="status">{loading ? "전화번호 확인 중…" : message}</p></div>}
+            {phone ? <a href={`tel:${phone}`} onClick={close}
+              className="w-full rounded-[14px] bg-green-50 text-green-700 px-4 py-3 flex items-center gap-3"><PhoneIcon /><span className="text-left"><span className="block font-bold text-sm">음성통화</span><span className="block text-xs mt-1">{formatPhone(phone)} · 전화 앱</span></span></a>
+              : <div className="rounded-[14px] bg-gray-50 px-4 py-3 text-sm text-gray-400"><span className="font-bold">음성통화</span><p className="mt-1 text-xs" role="status">{loading ? "전화번호 확인 중…" : message}</p>{!loading && <button type="button" onClick={() => setRetry(n => n + 1)} className="mt-2 text-xs font-bold text-sky-600">다시 확인</button>}</div>}
             <VideoCallButton userId={userId} nickname={nickname} onStarted={close} />
             <button autoFocus type="button" onClick={close} className="w-full h-10 rounded-[14px] text-gray-500 font-bold text-sm">취소</button>
           </div>

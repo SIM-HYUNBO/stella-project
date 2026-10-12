@@ -1,4 +1,4 @@
-# 1:1 calls
+# Calls and group video
 
 The chat header has one phone button. Audio calls use the friend's registered
 number and the device's `tel:` handler, matching the existing friends page.
@@ -26,7 +26,7 @@ signaling and an explicit camera/microphone acceptance step for recipients.
   before TTL cleanup. Offer/answer data is cleared when ending a call.
 
 Incoming invitations are polled every five seconds while the app is visible;
-active calls poll every two seconds. Background push is best effort and requires
+active calls poll every two seconds. A joined participant can invite friends; each invited friend explicitly accepts before any media exchange. Each call supports up to four distinct participants (including declined/left invitations). Start a new call to re-invite someone who already left. Connections are a bounded peer-to-peer mesh; each pair exchanges only its own SDP through the API. Leaving a group removes only that member and their pair signals; at least two remaining members keep the call active. Older pre-group calls expire during this update. Background push is best effort and requires
 an existing FCM token/notification permission. Browsers cannot guarantee native
 phone-style ringing or continued calling while the OS suspends the app.
 Audio/video are not recorded or uploaded to Firestore.
@@ -43,5 +43,5 @@ Before production rollout, use two signed-in **friend** accounts and real device
 5. Refresh/open another tab; ensure it cannot steal the existing call.
 
 Mock tests cover authorization, participant roles, state transitions, expiration,
-busy reservations and retry idempotency. They do not verify real device media,
+busy reservations, guest acceptance/decline, group departure, the four-person limit and retry idempotency. Tapping a thumbnail changes a local React selection only; stable video elements keep audio playing once per peer. They do not verify real device media,
 FCM delivery, TURN reachability or deployed Firestore rules.

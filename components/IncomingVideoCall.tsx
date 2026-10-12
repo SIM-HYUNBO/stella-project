@@ -24,7 +24,7 @@ export default function IncomingVideoCall() {
       try {
         if (document.visibilityState === "visible") {
           const { call } = await callRequest();
-          if (!stopped) setIncoming(call?.status === "ringing" && call.toUid === uid ? call : null);
+          if (!stopped) setIncoming(call && call.status !== "ended" && call.fromUid !== uid && call.members?.some(m => m.uid === uid && m.state === "invited") ? call : null);
         }
       } catch { /* A missed poll retries; no repeated error banners across the app. */ }
       if (!stopped) timer = setTimeout(poll, 5000);
@@ -43,7 +43,7 @@ export default function IncomingVideoCall() {
   if (!incoming) return null;
   return createPortal(<dialog ref={dialog} aria-labelledby="incoming-video-title" onCancel={e => { e.preventDefault(); void decline(); }} className="m-auto w-80 max-w-[92vw] rounded-3xl p-6 bg-white text-center shadow-xl backdrop:bg-black/40">
     <div className="mx-auto mb-4 w-14 h-14 flex items-center justify-center rounded-full bg-sky-100 text-sky-500"><VideoIcon /></div>
-    <h2 id="incoming-video-title" className="text-lg font-bold text-gray-800">{incoming.fromName}</h2>
+    <h2 id="incoming-video-title" className="text-lg font-bold text-gray-800">{incoming.members.find(m => m.uid === uid)?.invitedBy || incoming.fromName}</h2>
     <p className="mt-2 mb-6 text-sm text-gray-500">영상통화가 왔어</p>
     {error && <p role="alert" className="mb-3 text-sm text-red-500">{error}</p>}
     <div className="flex justify-center gap-8"><CallActionButton action="decline" disabled={busy} onClick={decline} />

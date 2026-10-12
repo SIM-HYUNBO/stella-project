@@ -1,7 +1,7 @@
 import { auth } from "@/app/firebase";
 import type { VideoCall } from "@/lib/video-call";
 
-export type CallResponse = { call?: VideoCall | null; uid?: string; id?: string; iceServers?: RTCIceServer[]; relayConfigured?: boolean };
+export type CallResponse = { call?: VideoCall | null; uid?: string; id?: string; iceServers?: RTCIceServer[]; relayConfigured?: boolean; friends?: { uid: string; nickname: string }[] };
 export async function callRequest(query = "", body?: Record<string, unknown>, keepalive = false): Promise<CallResponse> {
   const user = auth.currentUser;
   if (!user) throw new Error("로그인이 필요해.");
