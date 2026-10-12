@@ -1,5 +1,6 @@
 "use client";
 
+import chatCharacterBackground from "@/components/ChatCharacterBackground";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/app/firebase";
@@ -275,7 +276,7 @@ export default function RobotPage() {
         )}
 
         {/* 채팅 영역 */}
-        <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-2 py-5 relative">
+        <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-2 py-5 relative" style={chatCharacterBackground(activeTheme, theme.bg)}>
 
           {/* 배경 블롭 */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">

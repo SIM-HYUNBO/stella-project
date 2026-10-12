@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import chatCharacterBackground from "@/components/ChatCharacterBackground";
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -846,7 +847,7 @@ export default function MeetingRoomPage() {
       </div>
 
       {/* 메시지 */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" onClick={() => setShowThemePicker(false)}>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)} onClick={() => setShowThemePicker(false)}>
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
           <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>

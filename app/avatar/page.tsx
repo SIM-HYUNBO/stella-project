@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import chatCharacterBackground from "@/components/ChatCharacterBackground";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -1680,7 +1681,7 @@ export default function Chat() {
 
 
       <div
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative"
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)}
         onClick={() => { setCtxMenu(null); setShowThemePicker(false); }}
       >
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
