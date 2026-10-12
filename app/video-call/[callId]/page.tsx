@@ -159,7 +159,7 @@ export default function VideoCallPage() {
   const status: Record<Phase, string> = { loading: "통화 확인 중…", incoming: "영상통화가 왔어", preparing: "카메라와 마이크 준비 중…", ringing: "상대가 받기를 기다리고 있어", connecting: "연결 중…", connected: `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`, ended: "통화 종료" };
   return <main className="fixed inset-0 z-[1000] flex flex-col bg-slate-950 text-white">
     <header className="relative z-10 flex items-center gap-4 px-5 py-4" style={{ paddingTop: "max(16px, env(safe-area-inset-top))" }}>
-      <button aria-label="통화 종료하고 돌아가기" onClick={() => { end.current(); router.push("/avatar"); }} className="h-10 w-10 rounded-full bg-white/10 text-xl">‹</button>
+      <CallActionButton action="back" aria-label="통화 종료하고 돌아가기" title="통화 종료하고 돌아가기" onClick={() => { end.current(); router.push("/avatar"); }} />
       <div><h1 className="font-bold">{partner}</h1><p className="text-xs text-slate-400" role="status">{status[phase]}</p></div>
     </header>
     <section className="relative flex-1 min-h-0 overflow-hidden mx-3 rounded-3xl bg-slate-900">
@@ -169,16 +169,16 @@ export default function VideoCallPage() {
         <video ref={localVideo} autoPlay muted playsInline aria-label="내 영상" className={`w-full h-full object-cover -scale-x-100 ${cameraOff ? "invisible" : ""}`} />
         {cameraOff && <span className="absolute inset-0 flex items-center justify-center text-xs text-slate-300">카메라 꺼짐</span>}
       </div>
-      {autoplayBlocked && <button onClick={() => { void remoteVideo.current?.play().then(() => setAutoplayBlocked(false)).catch(() => setMessage("소리를 재생하지 못했어. 브라우저의 소리 허용 설정을 확인해 줘.")); }} className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white px-5 py-3 text-sm text-slate-800">눌러서 상대 소리 켜기</button>}
+      {autoplayBlocked && <CallActionButton action="sound" onClick={() => { void remoteVideo.current?.play().then(() => setAutoplayBlocked(false)).catch(() => setMessage("소리를 재생하지 못했어. 브라우저의 소리 허용 설정을 확인해 줘.")); }} className="absolute bottom-4 left-1/2 -translate-x-1/2" />}
     </section>
     <footer className="shrink-0 px-5 pt-4 text-center" style={{ paddingBottom: "max(24px, env(safe-area-inset-bottom))" }}>
       {message && <p role="status" className="mb-4 text-sm text-amber-200">{message}</p>}
       {phase === "incoming" ? <div className="flex justify-center gap-8"><CallActionButton action="decline" onClick={() => end.current()} /><CallActionButton action="accept" aria-label="카메라 켜고 영상통화 받기" title="카메라 켜고 영상통화 받기" onClick={() => start.current()} /></div>
-        : phase === "ended" ? <button onClick={() => router.push("/avatar")} className="rounded-full bg-white/10 px-7 py-3">채팅으로 돌아가기</button>
+        : phase === "ended" ? <div className="flex justify-center"><CallActionButton action="back" onClick={() => router.push("/avatar")} /></div>
         : <div className="flex justify-center gap-3">
-          <button disabled={!stream.current} aria-pressed={muted} onClick={toggleMic} className="rounded-2xl bg-white/10 px-4 py-3 text-sm disabled:opacity-30">{muted ? "마이크 켜기" : "음소거"}</button>
-          <button onClick={() => end.current()} className="rounded-2xl bg-red-500 px-5 py-3 font-bold">끊기</button>
-          <button disabled={!stream.current} aria-pressed={cameraOff} onClick={toggleCamera} className="rounded-2xl bg-white/10 px-4 py-3 text-sm disabled:opacity-30">{cameraOff ? "카메라 켜기" : "카메라 끄기"}</button>
+          <CallActionButton action="microphone" off={muted} disabled={!stream.current} onClick={toggleMic} />
+          <CallActionButton action="hangup" onClick={() => end.current()} />
+          <CallActionButton action="camera" off={cameraOff} disabled={!stream.current} onClick={toggleCamera} />
         </div>}
     </footer>
   </main>;
