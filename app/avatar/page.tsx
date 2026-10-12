@@ -417,6 +417,12 @@ export default function Chat() {
     const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
 
   const [peerTyping, setPeerTyping] = useState(false);
+  const [showMsgSearch, setShowMsgSearch] = useState(false);
+  const [msgSearch, setMsgSearch] = useState("");
+  useEffect(() => {
+    setShowMsgSearch(false);
+    setMsgSearch("");
+  }, [currentChatUser?.id]);
 
 
   const [imgUploading, setImgUploading] = useState(false);
@@ -1399,7 +1405,10 @@ export default function Chat() {
     }
   };
 
-  const displayedMessages = messages;
+  const searchTerm = msgSearch.trim().normalize("NFKC").toLocaleLowerCase();
+  const displayedMessages = searchTerm
+    ? messages.filter(m => m.type !== "image" && m.type !== "audio" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
+    : messages;
 
   if (!nickname) {
     return (
@@ -1492,15 +1501,15 @@ export default function Chat() {
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentChatUser && (
         <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 mr-2">
             <button
               onClick={() => setCurrentChatUser(null)}
-              className="text-gray-500 text-lg px-1"
+              className="shrink-0 text-gray-500 text-lg px-1"
             >
               ←
             </button>
 
-            <div className="relative">
+            <div className="relative shrink-0">
               {currentChatUser.profileImage ? (
                 <img
                   src={currentChatUser.profileImage}
@@ -1524,8 +1533,8 @@ export default function Chat() {
               />
             </div>
 
-            <div>
-              <div className="font-bold text-gray-800">
+            <div className="min-w-0">
+              <div className="truncate font-bold text-gray-800">
                 {currentChatUser.nickname}
               </div>
 
@@ -1539,11 +1548,16 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5">
             <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
               className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
               style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
             <PhoneCallButton key={currentChatUser.id} userId={currentChatUser.id} nickname={currentChatUser.nickname} color={accent.from} cachedPhone={currentChatUser.phone} />
+            <button type="button" aria-label="메시지 검색" title="메시지 검색" aria-expanded={showMsgSearch} aria-controls="chat-message-search"
+              onClick={() => { setShowMsgSearch(p => !p); setMsgSearch(""); }}
+              className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl bg-white/70 hover:bg-white active:scale-95 transition" style={{ color: accent.from }}>
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+            </button>
 
             <button
               onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
@@ -1656,6 +1670,21 @@ export default function Chat() {
 
 
 
+      {showMsgSearch && (
+        <div id="chat-message-search" role="search" aria-label="현재 채팅방 메시지 검색" className="shrink-0 px-4 py-2 bg-white/80 border-b border-white/80">
+          <div className="flex items-center gap-2">
+            <input autoFocus type="search" aria-label="메시지 검색어" placeholder="메시지 검색…" value={msgSearch}
+              onChange={e => setMsgSearch(e.target.value)}
+              onKeyDown={e => { if (e.key === "Escape") { setShowMsgSearch(false); setMsgSearch(""); } }}
+              className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm outline-none focus:border-sky-300" />
+            <button type="button" aria-label="검색 닫기" title="검색 닫기" onClick={() => { setShowMsgSearch(false); setMsgSearch(""); }} className="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>
+          </div>
+          {searchTerm && <p role="status" className="mt-1 px-2 text-xs text-gray-400">{displayedMessages.length}개 메시지</p>}
+        </div>
+      )}
+
       <div
         className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)}
         onClick={() => { setCtxMenu(null); setShowThemePicker(false); }}
@@ -1665,6 +1694,7 @@ export default function Chat() {
           <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
           <div className="absolute -bottom-6 left-1/3 w-36 h-36 rounded-full blur-3xl opacity-40" style={{ background: theme.blob3 }}/>
         </div>
+        {searchTerm && displayedMessages.length === 0 && <p role="status" className="relative text-center text-sm text-gray-500 py-8">검색한 메시지가 없어.</p>}
         {displayedMessages.map((m, i) => {
           if (m.type === "system") return renderSystemMsg(m);
 
