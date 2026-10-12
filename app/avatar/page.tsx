@@ -1555,7 +1555,7 @@ export default function Chat() {
             <PhoneCallButton key={currentChatUser.id} userId={currentChatUser.id} nickname={currentChatUser.nickname} color={accent.from} cachedPhone={currentChatUser.phone} />
             <button type="button" aria-label="메시지 검색" title="메시지 검색" aria-expanded={showMsgSearch} aria-controls="chat-message-search"
               onClick={() => { setShowMsgSearch(p => !p); setMsgSearch(""); }}
-              className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl bg-white/70 hover:bg-white active:scale-95 transition" style={{ color: accent.from }}>
+              className="-ml-1 w-9 h-9 shrink-0 flex items-center justify-center rounded-xl bg-white/70 hover:bg-white active:scale-95 transition" style={{ color: accent.from }}>
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
             </button>
 
