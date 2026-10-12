@@ -7,6 +7,7 @@ import { callRequest } from "@/lib/video-call-client";
 import type { VideoCall } from "@/lib/video-call";
 import { createPortal } from "react-dom";
 import { VideoIcon } from "@/components/VideoCallButton";
+import CallActionButton from "@/components/CallActionButton";
 
 export default function IncomingVideoCall() {
   const pathname = usePathname(), router = useRouter();
@@ -45,8 +46,8 @@ export default function IncomingVideoCall() {
     <h2 id="incoming-video-title" className="text-lg font-bold text-gray-800">{incoming.fromName}</h2>
     <p className="mt-2 mb-6 text-sm text-gray-500">영상통화가 왔어</p>
     {error && <p role="alert" className="mb-3 text-sm text-red-500">{error}</p>}
-    <div className="flex gap-3"><button disabled={busy} onClick={decline} className="flex-1 rounded-xl bg-gray-100 py-3 text-gray-600">거절</button>
-      <button disabled={busy} onClick={() => router.push(`/video-call/${incoming.id}`)} className="flex-1 rounded-xl bg-sky-500 py-3 font-bold text-white">받기</button></div>
+    <div className="flex justify-center gap-8"><CallActionButton action="decline" disabled={busy} onClick={decline} />
+      <CallActionButton action="accept" disabled={busy} onClick={() => router.push(`/video-call/${incoming.id}`)} /></div>
     <p className="mt-3 text-xs text-gray-400">다음 화면에서 카메라를 켜고 수락해 줘.</p>
   </dialog>, document.body);
 }

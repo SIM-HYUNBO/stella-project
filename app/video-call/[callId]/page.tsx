@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase";
 import { callRequest, mediaError, waitForIce } from "@/lib/video-call-client";
 import { validCallId, type VideoCall } from "@/lib/video-call";
+import CallActionButton from "@/components/CallActionButton";
 
 type Phase = "loading" | "incoming" | "preparing" | "ringing" | "connecting" | "connected" | "ended";
 export default function VideoCallPage() {
@@ -172,7 +173,7 @@ export default function VideoCallPage() {
     </section>
     <footer className="shrink-0 px-5 pt-4 text-center" style={{ paddingBottom: "max(24px, env(safe-area-inset-bottom))" }}>
       {message && <p role="status" className="mb-4 text-sm text-amber-200">{message}</p>}
-      {phase === "incoming" ? <div className="flex justify-center gap-4"><button onClick={() => end.current()} className="rounded-full bg-white/10 px-6 py-3">거절</button><button onClick={() => start.current()} className="rounded-full bg-sky-500 px-6 py-3 font-bold">카메라 켜고 수락</button></div>
+      {phase === "incoming" ? <div className="flex justify-center gap-8"><CallActionButton action="decline" onClick={() => end.current()} /><CallActionButton action="accept" aria-label="카메라 켜고 영상통화 받기" title="카메라 켜고 영상통화 받기" onClick={() => start.current()} /></div>
         : phase === "ended" ? <button onClick={() => router.push("/avatar")} className="rounded-full bg-white/10 px-7 py-3">채팅으로 돌아가기</button>
         : <div className="flex justify-center gap-3">
           <button disabled={!stream.current} aria-pressed={muted} onClick={toggleMic} className="rounded-2xl bg-white/10 px-4 py-3 text-sm disabled:opacity-30">{muted ? "마이크 켜기" : "음소거"}</button>
