@@ -58,7 +58,7 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: process.env.GROQ_CHAT_MODEL || "qwen/qwen3.8-27b",
         stream: true,
         messages: [
           {
