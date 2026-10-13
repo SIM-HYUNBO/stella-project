@@ -2,16 +2,16 @@
 
 import { readAIStream } from "@/lib/ai-stream";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, deleteDoc, getDocs, doc, getDoc, setDoc, updateDoc,
+  serverTimestamp, deleteDoc, doc, getDoc, setDoc, updateDoc,
 } from "firebase/firestore";
 
-type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; };
+type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; };
 
 const accent = { from: "#64748b", to: "#1e293b", shadow: "rgba(100,116,139,0.18)", ring: "#e2e8f0" };
 
@@ -40,7 +40,30 @@ function friendlyError(msg: string): string {
 
 export default function RobotPage() {
   const [user, setUser] = useState<any>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [allMessages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [historyReady, setHistoryReady] = useState(false);
+  const [historyError, setHistoryError] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const historyDialog = useRef<HTMLDialogElement>(null);
+  const sendingRef = useRef(false);
+  const messages = useMemo(() => allMessages.filter(m => (m.sessionId || "legacy") === sessionId), [allMessages, sessionId]);
+  const conversations = useMemo(() => {
+    const groups = new Map<string, { id: string; title: string; preview: string; time: number }>();
+    for (const message of allMessages) {
+      const id = message.sessionId || "legacy";
+      const time = message.createdAt?.toMillis?.() || Date.now();
+      const existing = groups.get(id);
+      if (!existing) groups.set(id, { id, title: message.content.slice(0, 32), preview: message.content, time });
+      else { existing.preview = message.content; existing.time = Math.max(existing.time, time); }
+    }
+    return Array.from(groups.values()).sort((a, b) => b.time - a.time);
+  }, [allMessages]);
+  useEffect(() => { if (showHistory) historyDialog.current?.showModal(); else historyDialog.current?.close(); }, [showHistory]);
+  const openConversation = (id: string | null) => {
+    if (sendingRef.current) return;
+    setSessionId(id); setInput(""); setErrorMsg(null); setStreamingText(""); setShowHistory(false);
+  };
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
@@ -69,11 +92,13 @@ export default function RobotPage() {
   }, [user]);
 
   useEffect(() => {
+    setMessages([]); setSessionId(null); setHistoryReady(false); setHistoryError(false);
     if (!user) return;
     const q = query(collection(db, "robotChats", user.uid, "messages"), orderBy("createdAt", "asc"));
     return onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ChatMessage)));
-    });
+      setHistoryReady(true); setHistoryError(false);
+    }, () => { setHistoryError(true); setHistoryReady(false); });
   }, [user]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText]);
@@ -124,24 +149,29 @@ export default function RobotPage() {
   };
 
   const send = async () => {
-    if (!input.trim() || !user || isStreaming) return;
+    if (!input.trim() || !user || sendingRef.current || !historyReady) return;
+    sendingRef.current = true;
+    const targetSession = sessionId || crypto.randomUUID();
+    setSessionId(targetSession);
     const userText = input.trim(); setInput(""); setErrorMsg(null);
     const history = messages.map((m) => ({ role: m.role, content: m.content }));
     history.push({ role: "user", content: userText });
     setIsStreaming(true); setStreamingText("");
     try {
-      await addDoc(collection(db, "robotChats", user.uid, "messages"), { role: "user", content: userText, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "user", content: userText, createdAt: serverTimestamp() });
       const full = await streamAI(history, (t) => setStreamingText(t));
-      await addDoc(collection(db, "robotChats", user.uid, "messages"), { role: "assistant", content: full, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "assistant", content: full, createdAt: serverTimestamp() });
     } catch (err: any) {
       setErrorMsg(friendlyError(err?.message || ""));
-    } finally { setIsStreaming(false); setStreamingText(""); inputRef.current?.focus(); }
+    } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); inputRef.current?.focus(); }
   };
 
   const clearHistory = async () => {
-    if (!user || !confirm("대화 내역을 모두 삭제할까요?")) return;
-    const snap = await getDocs(collection(db, "robotChats", user.uid, "messages"));
-    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+    if (!user || sendingRef.current || !sessionId || !confirm("이 대화만 삭제할까? 다른 대화는 그대로 남아.")) return;
+    try {
+      await Promise.all(messages.map(m => deleteDoc(doc(db, "robotChats", user.uid, "messages", m.id))));
+      openConversation(null);
+    } catch { setErrorMsg("대화를 삭제하지 못했어. 다시 시도해 줘."); }
   };
 
   if (!user) return (
@@ -157,7 +187,7 @@ export default function RobotPage() {
         <span className="text-xs font-semibold tracking-[0.2em] text-slate-500">WAGIE AI</span>
       </header>
       <div className="mx-auto flex w-full max-w-md flex-col px-6 pb-10 pt-2 sm:pt-8">
-        <RobotWelcomeArt color={accent.from} />
+        <RobotWelcomeArt color="#38bdf8" />
         <div className="mb-8 mt-2 text-center">
           <p className="mb-3 text-xs font-medium tracking-widest text-slate-400">처음 만나는 너에게</p>
           <h1 className="text-[30px] font-semibold leading-[1.35] tracking-tight">안녕.<br /><span className="relative isolate inline-block"><span aria-hidden="true" className="absolute -bottom-0.5 left-0 right-0 -z-10 h-2 rounded-full bg-amber-100 blur-[3px] shadow-[0_0_14px_rgba(253,230,138,0.65)]" />무슨 얘기부터 할까?</span></h1>
@@ -187,9 +217,21 @@ export default function RobotPage() {
   return (
     <div className="fixed inset-0 flex flex-col bg-white">
 
+        <dialog ref={historyDialog} onCancel={() => setShowHistory(false)} onClose={() => setShowHistory(false)} className="m-0 h-dvh max-h-none w-[min(85vw,340px)] max-w-none border-0 bg-white p-5 shadow-2xl backdrop:bg-slate-900/25">
+          <div className="mb-6 flex items-center justify-between"><h2 className="font-semibold text-slate-800">최근 채팅</h2><button aria-label="목록 닫기" onClick={() => setShowHistory(false)} className="h-10 w-10 text-slate-500">✕</button></div>
+          <button disabled={isStreaming || !historyReady} onClick={() => openConversation(null)} className="mb-5 w-full rounded-2xl bg-slate-100 px-4 py-3 text-left text-sm font-medium disabled:opacity-40">＋ 새 채팅</button>
+          {historyError ? <p role="alert" className="text-sm text-red-500">대화 목록을 불러오지 못했어. 페이지를 새로고침해 줘.</p> : !historyReady ? <p className="text-sm text-slate-400">대화를 불러오는 중…</p> : conversations.length === 0 ? <p className="text-sm text-slate-400">첫 이야기를 시작해 봐.</p> : conversations.map(chat => (
+            <button key={chat.id} disabled={isStreaming || !historyReady} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className={`mb-2 w-full rounded-2xl p-3 text-left transition hover:bg-slate-50 disabled:opacity-40 ${chat.id === sessionId ? "bg-slate-100" : "bg-white"}`}>
+              <span className="block truncate text-sm font-medium text-slate-800">{chat.title || "이전 대화"}</span>
+              <span className="mt-1 block truncate text-xs text-slate-400">{chat.preview}</span>
+              <span className="mt-2 block text-[10px] text-slate-400">{new Date(chat.time).toLocaleDateString("ko-KR")}</span>
+            </button>
+          ))}
+        </dialog>
         {/* 헤더 */}
         <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <button aria-label="최근 채팅 목록" onClick={() => setShowHistory(true)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M4 6h16M4 12h12M4 18h9" /></svg></button>
             <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/60 text-gray-500 hover:bg-white/90 transition active:scale-90">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
@@ -220,7 +262,8 @@ export default function RobotPage() {
   >
    학습용 AI
   </button>
-            <button onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">지우기</button>
+            <button aria-label="새 채팅" title="새 채팅" disabled={isStreaming || !historyReady} onClick={() => openConversation(null)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5H5v14h14v-7M15 4l5 5M10 14l2-5 6-6 4 4-6 6-6 1Z" /></svg></button>
+            <button disabled={isStreaming || !sessionId} onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">지우기</button>
           </div>
         </div>
         
@@ -229,7 +272,7 @@ export default function RobotPage() {
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-5 px-5 py-6 relative" style={{ background: "#fff" }}>
           {messages.length === 0 && !isStreaming && (
             <section className="relative m-auto w-full max-w-md px-5 py-6">
-              <RobotWelcomeArt color={accent.from} compact />
+              <RobotWelcomeArt color="#38bdf8" compact />
               <p className="mt-4 text-center text-xs font-medium text-slate-500">나는 {robotName || "너의 AI"}야</p>
               <h1 className="mt-3 text-center text-[28px] font-semibold leading-snug tracking-tight text-slate-800">왔네, 안녕!<br /><span className="relative isolate inline-block"><span aria-hidden="true" className="absolute -bottom-0.5 left-0 right-0 -z-10 h-2 rounded-full bg-amber-100 blur-[3px] shadow-[0_0_14px_rgba(253,230,138,0.65)]" />오늘 너는 어땠어?</span></h1>
               <p className="mb-6 mt-3 text-center text-sm leading-relaxed text-slate-500">엄청 특별한 얘기 아니어도 돼.<br />아래에서 골라도, 네 얘기부터 해도 좋아.</p>
@@ -307,10 +350,10 @@ export default function RobotPage() {
             <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
               placeholder={isStreaming ? "응답 중이야..." : `${robotName}에게 말해봐...`}
-              disabled={isStreaming}
+              disabled={isStreaming || !historyReady}
               className="relative flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium z-10"/>
             {input.trim() ? (
-              <button onClick={send} disabled={isStreaming}
+              <button onClick={send} disabled={isStreaming || !historyReady}
                 className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
                 style={{
                   background: `linear-gradient(145deg, ${accent.from}, ${accent.to})`,
