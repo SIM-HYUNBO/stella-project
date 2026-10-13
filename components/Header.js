@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Jua } from 'next/font/google';
+import localFont from "next/font/local";
 
-const jua = Jua({ weight: "400", subsets: ["latin"] });
+const jua = localFont({ src: "../app/fonts/google/Jua-Regular.ttf", weight: "400", display: "swap", preload: false });
 
 const Header = () => {
   return (

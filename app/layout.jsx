@@ -15,13 +15,6 @@ export const viewport = {
 };
 
 import localFont from "next/font/local";
-import {
-  Noto_Sans_KR,
-  JetBrains_Mono,
-  Do_Hyeon,
-  Nanum_Brush_Script,
-} from "next/font/google";
-
 import { ThemeProvider } from "next-themes";
 import { FontProvider } from "./FontContext";
 
@@ -40,28 +33,17 @@ const geist = localFont({
   variable: "--font-geist",
 });
 
-const noto = Noto_Sans_KR({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-  variable: "--font-noto",
+const noto = localFont({
+  src: "./fonts/google/NotoSansKR-Variable.ttf", weight: "100 900", display: "swap", preload: false, variable: "--font-noto",
 });
-
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-mono",
+const mono = localFont({
+  src: "./fonts/google/JetBrainsMono-Variable.ttf", weight: "100 800", display: "swap", preload: false, variable: "--font-mono",
 });
-
-const doHyeon = Do_Hyeon({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-dohyeon",
+const doHyeon = localFont({
+  src: "./fonts/google/DoHyeon-Regular.ttf", weight: "400", display: "swap", preload: false, variable: "--font-dohyeon",
 });
-
-const brush = Nanum_Brush_Script({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-brush",
+const brush = localFont({
+  src: "./fonts/google/NanumBrushScript-Regular.ttf", weight: "400", display: "swap", preload: false, variable: "--font-brush",
 });
 
 export default function RootLayout({ children }) {
