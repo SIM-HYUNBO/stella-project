@@ -188,14 +188,14 @@ function StudyTable({ lines }: { lines: string[] }) {
   const [header, ...body] = rows;
 
   return (
-    <div className="my-3 overflow-x-auto rounded-xl border border-amber-200 shadow-sm">
+    <div className="my-3 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
             {header.map((h, i) => (
               <th
                 key={i}
-                className="whitespace-nowrap border-b border-amber-200 bg-amber-50 px-3 py-2 text-left font-bold text-amber-800"
+                className="whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-2 text-left font-bold text-slate-700"
               >
                 <Hl text={h} />
               </th>
@@ -217,7 +217,7 @@ function StudyTable({ lines }: { lines: string[] }) {
               {row.map((cell, ci) => (
                 <td
                   key={ci}
-                  className="border-b border-amber-100 px-3 py-2 align-top text-gray-700"
+                  className="border-b border-slate-100 px-3 py-2 align-top text-gray-700"
                 >
                   <Hl text={cell} />
                 </td>
@@ -325,7 +325,7 @@ function RichContent({ text }: { text: string }) {
       nodes.push(
         <h3
           key={k++}
-          className="mb-1.5 mt-4 text-[15px] font-black text-gray-800"
+          className="mb-3 mt-7 text-base font-semibold text-slate-800"
         >
           <Hl text={trimmed.slice(3)} />
         </h3>
@@ -339,7 +339,7 @@ function RichContent({ text }: { text: string }) {
       nodes.push(
         <h2
           key={k++}
-          className="mb-2 mt-5 text-[17px] font-black text-amber-800"
+          className="mb-3 mt-8 text-lg font-semibold text-slate-800"
         >
           <Hl text={trimmed.slice(2)} />
         </h2>
@@ -417,9 +417,9 @@ function RichContent({ text }: { text: string }) {
           {items.map((item, j) => (
             <li
               key={j}
-              className="flex items-start gap-2 text-sm text-gray-700"
+              className="flex items-start gap-3 text-[15px] leading-7 text-slate-700"
             >
-              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+              <span className="mt-2.5 h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
 
               <Hl text={item} />
             </li>
@@ -437,7 +437,7 @@ function RichContent({ text }: { text: string }) {
     nodes.push(
       <p
         key={k++}
-        className="my-1.5 text-[13.5px] leading-[1.85] text-gray-700"
+        className="my-3 break-words text-[15px] leading-8 text-slate-700"
       >
         <Hl text={trimmed} />
       </p>
@@ -1026,7 +1026,7 @@ export default function StudyAIPage() {
           CHAT CONTENT
       ===================================================== */}
 
-      <div className="relative z-10 min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+      <div className="relative z-10 min-h-0 flex-1 space-y-7 overflow-y-auto px-5 py-6 sm:px-8">
         {/* EMPTY */}
 
         {!historyReady && !errorMsg && <p role="status" className="text-center text-sm text-slate-400">학습 내용을 불러오는 중…</p>}
@@ -1052,25 +1052,8 @@ export default function StudyAIPage() {
               {msg.role ===
               "user" ? (
                 <div className="flex justify-end">
-                  <div
-                    className="inline-flex max-w-[85%] items-start gap-1.5 rounded-2xl rounded-br-md px-4 py-2.5 text-sm font-semibold text-white"
-                    style={{
-                      background:
-                        "#334155",
-
-                      boxShadow:
-                        "none",
-                    }}
-                  >
-                    <span className="mt-0.5">
-                      🙋
-                    </span>
-
-                    <span>
-                      {
-                        msg.content
-                      }
-                    </span>
+                  <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[24px] rounded-br-lg bg-slate-100 px-5 py-3 text-[15px] font-normal leading-7 text-slate-700">
+                    {msg.content}
                   </div>
                 </div>
               ) : (
@@ -1081,13 +1064,7 @@ export default function StudyAIPage() {
                       "none",
                   }}
                 >
-                  <div className="mb-3 flex items-center gap-1 text-[10px] font-bold text-amber-500">
-                    <span>
-                      📚
-                    </span>
-
-                    학습용 AI
-                  </div>
+                  <div className="mb-4 flex items-center gap-2 text-xs font-medium text-slate-400"><span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-sky-300" />학습용 AI</div>
 
                   <RichContent
                     text={
@@ -1110,13 +1087,7 @@ export default function StudyAIPage() {
                 "none",
             }}
           >
-            <div className="mb-3 flex items-center gap-1 text-[10px] font-bold text-amber-500">
-              <span>
-                📚
-              </span>
-
-              학습용 AI
-            </div>
+            <div className="mb-4 flex items-center gap-2 text-xs font-medium text-slate-400"><span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-sky-300" />학습용 AI</div>
 
             {streamingText ? (
               <>
@@ -1130,7 +1101,7 @@ export default function StudyAIPage() {
                   className="ml-0.5 inline-block h-4 w-0.5 animate-pulse rounded-full align-middle"
                   style={{
                     background:
-                      "#f59e0b",
+                      "#64748b",
                   }}
                 />
               </>
@@ -1146,7 +1117,7 @@ export default function StudyAIPage() {
                     className="h-2 w-2 animate-bounce rounded-full"
                     style={{
                       background:
-                        "#fcd34d",
+                        "#94a3b8",
 
                       animationDelay: `${d}ms`,
                     }}
@@ -1200,7 +1171,7 @@ export default function StudyAIPage() {
                 <img
                   src={src}
                   alt=""
-                  className="h-14 w-14 rounded-xl border-2 border-amber-200 object-cover"
+                  className="h-14 w-14 rounded-xl border-2 border-slate-200 object-cover"
                 />
 
                 <button
