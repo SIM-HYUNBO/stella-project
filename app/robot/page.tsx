@@ -1,6 +1,7 @@
 "use client";
 
 import { readAIStream } from "@/lib/ai-stream";
+import AITextLinks from "@/components/AITextLinks";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,7 @@ function friendlyError(msg: string): string {
 }
 
 export default function RobotPage() {
+  const [webSearch, setWebSearch] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [allMessages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -122,7 +124,7 @@ export default function RobotPage() {
   const streamAI = async (msgs: any[], onChunk: (t: string) => void): Promise<string> => {
     const res = await fetch("/api/ai", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs, robotName }),
+      body: JSON.stringify({ messages: msgs, robotName, webSearch }),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
@@ -293,11 +295,11 @@ export default function RobotPage() {
           {messages.map(msg => (
             <div key={msg.id} className="relative mx-auto w-full max-w-2xl">
               {msg.role === "user" ? (
-                <div className="ml-auto w-fit max-w-[85%] rounded-[1.4rem] rounded-br-md bg-slate-100 px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-slate-800">{msg.content}</div>
+                <div className="ml-auto w-fit max-w-[85%] rounded-[1.4rem] rounded-br-md bg-sky-100 px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-sky-950">{msg.content}</div>
               ) : (
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
                   <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
-                  <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                  <div className="whitespace-pre-wrap break-words"><AITextLinks text={msg.content} /></div>
                 </article>
               )}
             </div>
@@ -306,7 +308,7 @@ export default function RobotPage() {
             <article aria-busy="true" className="relative mx-auto w-full max-w-2xl py-3 text-[15px] leading-7 text-slate-800">
               <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
               <div className="whitespace-pre-wrap break-words">
-                {streamingText ? <>{streamingText}<span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
+                {streamingText ? <><AITextLinks text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
                   <span aria-label="답변 생각 중" className="flex gap-1 py-2">{[0,150,300].map(delay => <span key={delay} className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${delay}ms` }} />)}</span>
                 )}
               </div>
@@ -324,7 +326,12 @@ export default function RobotPage() {
         )}
 
         {/* 젤리 입력창 */}
-        <div className="px-4 pb-5 pt-2.5 shrink-0">
+        <div className="px-4 pb-5 pt-2.5 shrink-0"><div className="mx-auto mb-2 flex w-full max-w-2xl items-center gap-2">
+            <button type="button" aria-pressed={webSearch} disabled={isStreaming} onClick={() => setWebSearch(v => !v)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition disabled:opacity-50 ${webSearch ? "border-sky-200 bg-sky-50 text-sky-700" : "border-slate-100 bg-white text-slate-400"}`}>
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18" /></svg>웹 검색 {webSearch ? "켜짐" : ""}
+            </button>
+            {webSearch && <span className="text-[10px] text-slate-400">웹 정보를 참고해 답해요</span>}
+          </div>
           <div className="relative flex items-center gap-2.5 rounded-full px-5 py-3 transition-all overflow-hidden"
             style={{
               background: `linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.58) 100%)`,

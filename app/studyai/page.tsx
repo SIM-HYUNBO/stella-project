@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import AITextLinks from "@/components/AITextLinks";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { readAIStream } from "@/lib/ai-stream";
 import { db } from "@/app/firebase";
@@ -104,7 +105,7 @@ function Hl({ text }: { text: string }) {
             {p.slice(2, -2)}
           </mark>
         ) : (
-          <span key={i}>{p}</span>
+          <AITextLinks key={i} text={p} />
         )
       )}
     </>
@@ -629,6 +630,7 @@ function NoteDrawer({
 ========================================================= */
 
 export default function StudyAIPage() {
+  const [webSearch, setWebSearch] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [historyReady, setHistoryReady] = useState(false);
   const sendingRef = useRef(false);
@@ -787,7 +789,7 @@ export default function StudyAIPage() {
       history.push({ role: "user", content: userText });
       const res = await fetch("/api/ai", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }),
+        body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history, webSearch }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -1052,7 +1054,7 @@ export default function StudyAIPage() {
               {msg.role ===
               "user" ? (
                 <div className="flex justify-end">
-                  <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[24px] rounded-br-lg bg-slate-100 px-5 py-3 text-[15px] font-normal leading-7 text-slate-700">
+                  <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[24px] rounded-br-lg bg-sky-100 px-5 py-3 text-[15px] font-normal leading-7 text-sky-950">
                     {msg.content}
                   </div>
                 </div>
@@ -1194,7 +1196,12 @@ export default function StudyAIPage() {
           INPUT
       ===================================================== */}
 
-      <div className="z-10 shrink-0 px-4 pb-5 pt-1.5">
+      <div className="z-10 shrink-0 px-4 pb-5 pt-1.5"><div className="mx-auto mb-2 flex w-full max-w-2xl items-center gap-2">
+            <button type="button" aria-pressed={webSearch} disabled={isStreaming} onClick={() => setWebSearch(v => !v)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition disabled:opacity-50 ${webSearch ? "border-sky-200 bg-sky-50 text-sky-700" : "border-slate-100 bg-white text-slate-400"}`}>
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18" /></svg>웹 검색 {webSearch ? "켜짐" : ""}
+            </button>
+            {webSearch && <span className="text-[10px] text-slate-400">웹 정보를 참고해 답해요</span>}
+          </div>
         <div
           className="mx-auto max-w-2xl flex items-end gap-2.5 rounded-[28px] px-4 py-3 transition-all"
           style={{
