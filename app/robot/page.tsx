@@ -40,7 +40,6 @@ function friendlyError(msg: string): string {
 }
 
 export default function RobotPage() {
-  const [webSearch, setWebSearch] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [allMessages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -124,7 +123,7 @@ export default function RobotPage() {
   const streamAI = async (msgs: any[], onChunk: (t: string) => void): Promise<string> => {
     const res = await fetch("/api/ai", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs, robotName, webSearch }),
+      body: JSON.stringify({ messages: msgs, robotName }),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
@@ -326,12 +325,7 @@ export default function RobotPage() {
         )}
 
         {/* 젤리 입력창 */}
-        <div className="px-4 pb-5 pt-2.5 shrink-0"><div className="mx-auto mb-2 flex w-full max-w-2xl items-center gap-2">
-            <button type="button" aria-pressed={webSearch} disabled={isStreaming} onClick={() => setWebSearch(v => !v)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition disabled:opacity-50 ${webSearch ? "border-sky-200 bg-sky-50 text-sky-700" : "border-slate-100 bg-white text-slate-400"}`}>
-              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18" /></svg>웹 검색 {webSearch ? "켜짐" : ""}
-            </button>
-            {webSearch && <span className="text-[10px] text-slate-400">웹 정보를 참고해 답해요</span>}
-          </div>
+        <div className="px-4 pb-5 pt-2.5 shrink-0">
           <div className="relative flex items-center gap-2.5 rounded-full px-5 py-3 transition-all overflow-hidden"
             style={{
               background: `linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.58) 100%)`,
