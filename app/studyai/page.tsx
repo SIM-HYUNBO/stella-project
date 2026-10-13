@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import RobotWelcomeArt from "@/components/RobotWelcomeArt";
+import { readAIStream } from "@/lib/ai-stream";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 
@@ -483,6 +485,8 @@ function NoteDrawer({
     };
   }, [open, onClose]);
 
+  if (!open) return null;
+
   return (
     <>
       {/* =========================
@@ -625,6 +629,9 @@ function NoteDrawer({
 ========================================================= */
 
 export default function StudyAIPage() {
+  const [authReady, setAuthReady] = useState(false);
+  const [historyReady, setHistoryReady] = useState(false);
+  const sendingRef = useRef(false);
   const [user, setUser] =
     useState<any>(null);
 
@@ -678,7 +685,7 @@ export default function StudyAIPage() {
   ========================================================= */
 
   useEffect(() => {
-    return watchAuthState(setUser);
+    return watchAuthState(nextUser => { setUser(nextUser); setAuthReady(true); });
   }, []);
 
   /* =========================================================
@@ -686,6 +693,7 @@ export default function StudyAIPage() {
   ========================================================= */
 
   useEffect(() => {
+    setMessages([]); setHistoryReady(false);
     if (!user) return;
 
     const q = query(
@@ -704,6 +712,7 @@ export default function StudyAIPage() {
     return onSnapshot(
       q,
       (snap) => {
+        setHistoryReady(true);
         setMessages(
           snap.docs.map(
             (d) =>
@@ -713,7 +722,8 @@ export default function StudyAIPage() {
               } as StudyMsg)
           )
         );
-      }
+      },
+      () => { setErrorMsg("학습 대화를 불러오지 못했어. 연결을 확인하고 새로고침해 줘."); }
     );
   }, [user]);
 
@@ -767,182 +777,27 @@ export default function StudyAIPage() {
   ========================================================= */
 
   const send = async () => {
-    if (
-      !input.trim() ||
-      !user ||
-      isStreaming
-    )
-      return;
-
-    const userText =
-      input.trim();
-
-    setInput("");
-    setErrorMsg(null);
-    setPendingImages([]);
-
-    await addDoc(
-      collection(
-        db,
-        "studyChats",
-        user.uid,
-        "messages"
-      ),
-      {
-        role: "user",
-        content: userText,
-        createdAt:
-          serverTimestamp(),
-      }
-    );
-
-    const history =
-      messages.map((m) => ({
-        role:
-          m.role === "ai"
-            ? "assistant"
-            : "user",
-
-        content: m.content,
-      }));
-
-    history.push({
-      role: "user",
-      content: userText,
-    });
-
-    setIsStreaming(true);
-    setStreamingText("");
-
+    if (!input.trim() || !user || sendingRef.current || !historyReady) return;
+    sendingRef.current = true;
+    const userText = input.trim();
+    setInput(""); setErrorMsg(null); setIsStreaming(true); setStreamingText("");
     try {
-      const res =
-        await fetch(
-          "/api/ai",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              mode: "study",
-
-              robotName:
-                "학습용 AI",
-
-              messages:
-                history,
-            }),
-          }
-        );
-
-      if (
-        !res.ok ||
-        !res.body
-      ) {
-        const d =
-          await res
-            .json()
-            .catch(() => ({}));
-
-        throw new Error(
-          d.error ||
-            "응답 실패"
-        );
+      await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "user", content: userText, createdAt: serverTimestamp() });
+      const history = messages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.content }));
+      history.push({ role: "user", content: userText });
+      const res = await fetch("/api/ai", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `server ${res.status}`);
       }
-
-      const reader =
-        res.body.getReader();
-
-      const decoder =
-        new TextDecoder();
-
-      let full = "";
-
-      while (true) {
-        const {
-          done,
-          value,
-        } =
-          await reader.read();
-
-        if (done) break;
-
-        const chunk =
-          decoder.decode(
-            value,
-            {
-              stream: true,
-            }
-          );
-
-        for (const line of chunk.split(
-          "\n"
-        )) {
-          if (
-            !line.startsWith(
-              "data: "
-            )
-          )
-            continue;
-
-          const raw =
-            line
-              .slice(6)
-              .trim();
-
-          if (
-            raw === "[DONE]"
-          )
-            break;
-
-          try {
-            const delta =
-              JSON.parse(raw)
-                .choices?.[0]
-                ?.delta
-                ?.content;
-
-            if (delta) {
-              full += delta;
-
-              setStreamingText(
-                full
-              );
-            }
-          } catch {}
-        }
-      }
-
-      await addDoc(
-        collection(
-          db,
-          "studyChats",
-          user.uid,
-          "messages"
-        ),
-        {
-          role: "ai",
-
-          content:
-            full || "...",
-
-          createdAt:
-            serverTimestamp(),
-        }
-      );
-    } catch (err: any) {
-      setErrorMsg(
-        friendlyError(
-          err?.message || ""
-        )
-      );
-    } finally {
-      setIsStreaming(false);
-      setStreamingText("");
-    }
+      if (!res.body) throw new Error("empty response");
+      const full = await readAIStream(res.body, setStreamingText);
+      await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "ai", content: full, createdAt: serverTimestamp() });
+    } catch (err: any) { setErrorMsg(friendlyError(err?.message || "")); }
+    finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); }
   };
 
   /* =========================================================
@@ -980,18 +835,8 @@ export default function StudyAIPage() {
      LOGIN
   ========================================================= */
 
-  if (!user)
-    return (
-      <div
-        className="fixed inset-0 flex items-center justify-center text-sm text-gray-400"
-        style={{
-          background:
-            "linear-gradient(160deg, #fffbeb 0%, #f0fdf4 100%)",
-        }}
-      >
-        로그인이 필요해요.
-      </div>
-    );
+  if (!authReady) return <div role="status" className="fixed inset-0 flex flex-col items-center justify-center bg-white text-sm text-slate-400"><RobotWelcomeArt color="#38bdf8" compact /><p className="mt-5">로그인 정보를 확인하고 있어…</p></div>;
+  if (!user) return <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-white text-sm text-slate-500"><RobotWelcomeArt color="#38bdf8" compact /><p>공부 내용을 저장하려면 로그인해 줘.</p><button onClick={() => router.push("/login")} className="rounded-full bg-slate-800 px-6 py-3 text-white">로그인하기</button><button onClick={() => router.back()}>뒤로가기</button></div>;
 
   /* =========================================================
      UI
@@ -1002,7 +847,7 @@ export default function StudyAIPage() {
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{
         background:
-          "linear-gradient(160deg, #fffbeb 0%, #f0fdf4 100%)",
+          "#ffffff",
       }}
     >
       {/* =====================================================
@@ -1010,7 +855,7 @@ export default function StudyAIPage() {
       ===================================================== */}
 
       <div
-        className="relative z-20 flex shrink-0 items-center justify-between border-b border-amber-100/80 bg-white/70 px-3 py-3 backdrop-blur-xl sm:px-4"
+        className="relative z-20 flex shrink-0 items-center justify-between border-b border-slate-100 bg-white/70 px-3 py-3 backdrop-blur-xl sm:px-4"
         style={{
           boxShadow:
             "0 1px 12px rgba(0,0,0,0.06)",
@@ -1177,87 +1022,33 @@ export default function StudyAIPage() {
           BACKGROUND
       ===================================================== */}
 
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div
-          className="absolute -left-10 -top-10 h-48 w-48 rounded-full opacity-30 blur-3xl"
-          style={{
-            background:
-              "#fde68a",
-          }}
-        />
-
-        <div
-          className="absolute -right-12 top-1/2 h-40 w-40 rounded-full opacity-20 blur-3xl"
-          style={{
-            background:
-              "#a7f3d0",
-          }}
-        />
-
-        <div
-          className="absolute -bottom-8 left-1/4 h-36 w-36 rounded-full opacity-25 blur-3xl"
-          style={{
-            background:
-              "#fde68a",
-          }}
-        />
-      </div>
-
       {/* =====================================================
           CHAT CONTENT
       ===================================================== */}
 
-      <div className="relative z-10 flex-1 space-y-5 overflow-y-auto px-4 py-5">
+      <div className="relative z-10 min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
         {/* EMPTY */}
 
-        {messages.length ===
-          0 &&
-          !isStreaming && (
-            <div className="pointer-events-none flex h-full flex-col items-center justify-center gap-4 py-20 text-center">
-              <div
-                className="flex h-20 w-20 items-center justify-center rounded-[1.8rem] text-4xl shadow-xl"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fde68a, #a7f3d0)",
-
-                  boxShadow:
-                    "0 8px 30px rgba(251,191,36,0.28)",
-                }}
-              >
-                📚
-              </div>
-
-              <div>
-                <p className="text-base font-black text-gray-700">
-                  학습용 AI와 공부
-                  시작!
-                </p>
-
-                <p className="mt-1 text-xs text-gray-400">
-                  표 · 체크리스트
-                  · 단어장 ·
-                  노트로 정리해줄게
-                </p>
-
-                <button
-                  onClick={() =>
-                    setNoteOpen(
-                      true
-                    )
-                  }
-                  className="pointer-events-auto mt-5 rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-xs font-bold text-violet-600 transition hover:bg-violet-100 active:scale-95"
-                >
-                  📝 공부 노트 열기
-                </button>
-              </div>
-            </div>
-          )}
+        {!historyReady && !errorMsg && <p role="status" className="text-center text-sm text-slate-400">학습 내용을 불러오는 중…</p>}
+        {historyReady && messages.length === 0 && !isStreaming && (
+          <section className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-2 py-6">
+            <RobotWelcomeArt color="#38bdf8" compact />
+            <p className="mt-4 text-center text-xs text-slate-400">너의 공부 메이트</p>
+            <h1 className="mt-3 text-center text-[28px] font-semibold leading-snug tracking-tight text-slate-800">어디서 막혔어?<br /><span className="relative isolate inline-block"><span aria-hidden="true" className="absolute -bottom-0.5 inset-x-0 -z-10 h-2 rounded-full bg-amber-100 blur-[3px] shadow-[0_0_14px_rgba(253,230,138,0.65)]" />하나씩 같이 풀어보자.</span></h1>
+            <p className="mb-6 mt-3 text-center text-sm leading-relaxed text-slate-500">모르는 걸 잘 설명하지 못해도 괜찮아.<br />개념부터 차근차근 짚어 줄게.</p>
+            <div className="space-y-2.5">{[
+              { title: "이 개념, 쉽게 설명해 줘", sub: "어려운 말 대신 익숙한 예시로", prompt: "이해가 안 되는 개념이 있어. 어떤 개념인지 먼저 물어보고 쉬운 예시로 설명해 줘." },
+              { title: "시험 전에 핵심만 정리하자", sub: "비교표와 노트로 한눈에", prompt: "시험 공부를 도와줘. 먼저 과목과 범위를 물어보고 핵심 노트와 비교표로 정리해 줘." },
+              { title: "외웠는지 퀴즈 내 줘", sub: "한 문제씩 풀면서 확인하기", prompt: "공부한 내용을 퀴즈로 확인하고 싶어. 먼저 주제를 물어보고 한 문제씩 내 줘." },
+            ].map(item => <button key={item.title} onClick={() => { setInput(item.prompt); textareaRef.current?.focus(); }} className="w-full rounded-2xl border border-slate-100 bg-white px-4 py-3.5 text-left shadow-[0_3px_16px_-10px_rgba(51,65,85,0.2)] transition hover:bg-slate-50"><span className="block text-sm font-medium text-slate-700">{item.title}</span><span className="mt-1 block text-xs text-slate-400">{item.sub}</span></button>)}</div>
+          </section>
+        )}
 
         {/* MESSAGES */}
 
         {messages.map(
           (msg) => (
-            <div key={msg.id}>
+            <div key={msg.id} className="mx-auto w-full max-w-2xl">
               {msg.role ===
               "user" ? (
                 <div className="flex justify-end">
@@ -1265,10 +1056,10 @@ export default function StudyAIPage() {
                     className="inline-flex max-w-[85%] items-start gap-1.5 rounded-2xl rounded-br-md px-4 py-2.5 text-sm font-semibold text-white"
                     style={{
                       background:
-                        "linear-gradient(135deg, #f59e0b, #84cc16)",
+                        "#334155",
 
                       boxShadow:
-                        "0 4px 16px rgba(245,158,11,0.28)",
+                        "none",
                     }}
                   >
                     <span className="mt-0.5">
@@ -1284,10 +1075,10 @@ export default function StudyAIPage() {
                 </div>
               ) : (
                 <div
-                  className="rounded-2xl border border-amber-100 bg-white/90 px-5 py-4"
+                  className="mx-auto w-full max-w-2xl py-4"
                   style={{
                     boxShadow:
-                      "0 2px 16px rgba(120,84,20,0.07)",
+                      "none",
                   }}
                 >
                   <div className="mb-3 flex items-center gap-1 text-[10px] font-bold text-amber-500">
@@ -1313,10 +1104,10 @@ export default function StudyAIPage() {
 
         {isStreaming && (
           <div
-            className="rounded-2xl border border-amber-100 bg-white/90 px-5 py-4"
+            className="mx-auto w-full max-w-2xl py-4"
             style={{
               boxShadow:
-                "0 2px 16px rgba(120,84,20,0.07)",
+                "none",
             }}
           >
             <div className="mb-3 flex items-center gap-1 text-[10px] font-bold text-amber-500">
@@ -1434,7 +1225,7 @@ export default function StudyAIPage() {
 
       <div className="z-10 shrink-0 px-4 pb-5 pt-1.5">
         <div
-          className="flex items-end gap-2.5 rounded-3xl px-4 py-3 transition-all"
+          className="mx-auto max-w-2xl flex items-end gap-2.5 rounded-[28px] px-4 py-3 transition-all"
           style={{
             background:
               "rgba(255,255,255,0.82)",
@@ -1446,10 +1237,10 @@ export default function StudyAIPage() {
               "blur(24px)",
 
             border:
-              "1.5px solid rgba(251,191,36,0.45)",
+              "1.5px solid rgba(226,232,240,0.7)",
 
             boxShadow:
-              "0 4px 24px rgba(0,0,0,0.07), 0 0 0 1px rgba(251,191,36,0.2)",
+              "0 8px 32px rgba(0,0,0,0.07), inset 0 1px 0 white",
           }}
         >
           <textarea
@@ -1464,7 +1255,7 @@ export default function StudyAIPage() {
               if (
                 e.key ===
                   "Enter" &&
-                !e.shiftKey
+                !e.shiftKey && !e.nativeEvent.isComposing
               ) {
                 e.preventDefault();
                 send();
@@ -1485,16 +1276,16 @@ export default function StudyAIPage() {
           <button
             onClick={send}
             disabled={
-              isStreaming ||
+              isStreaming || !historyReady ||
               !input.trim()
             }
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 disabled:opacity-40"
             style={{
               background:
-                "linear-gradient(135deg, #f59e0b, #84cc16)",
+                "#334155",
 
               boxShadow:
-                "0 4px 16px rgba(245,158,11,0.35)",
+                "0 4px 16px rgba(51,65,85,0.15)",
             }}
           >
             <svg
