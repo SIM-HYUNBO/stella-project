@@ -1,6 +1,7 @@
 "use client";
 
 import chatCharacterBackground from "@/components/ChatCharacterBackground";
+import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/app/firebase";
@@ -68,6 +69,8 @@ export default function RobotPage() {
   const [robotName, setRobotName] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState("");
   const [namingStep, setNamingStep] = useState(false);
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState("");
   const [editingName, setEditingName] = useState(false);
   const [editInput, setEditInput] = useState("");
   const [activeTheme, setActiveTheme] = useState("sky");
@@ -106,9 +109,13 @@ export default function RobotPage() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText]);
 
   const saveName = async (name: string) => {
-    if (!name.trim() || !user) return;
-    await setDoc(doc(db, "robotSettings", user.uid), { name: name.trim() }, { merge: true });
-    setRobotName(name.trim()); setNamingStep(false);
+    if (!name.trim() || !user || savingName) return;
+    setSavingName(true); setNameError("");
+    try {
+      await setDoc(doc(db, "robotSettings", user.uid), { name: name.trim().slice(0, 12) }, { merge: true });
+      setRobotName(name.trim().slice(0, 12)); setNamingStep(false);
+    } catch { setNameError("이름을 저장하지 못했어. 연결을 확인하고 다시 눌러 줘."); }
+    finally { setSavingName(false); }
   };
 
   const updateName = async () => {
@@ -182,34 +189,39 @@ export default function RobotPage() {
   );
 
   if (namingStep) return (
-    <div className="fixed inset-0 flex flex-col" style={{ background: theme.bg }}>
-      <div className="relative flex flex-col items-center justify-center flex-1 gap-8 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-10 left-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: accent.from }}/>
-          <div className="absolute bottom-20 right-8 w-32 h-32 rounded-full blur-3xl opacity-30" style={{ background: accent.to }}/>
+    <main className="fixed inset-0 overflow-y-auto text-slate-800" style={{ background: `radial-gradient(ellipse at 50% 12%, ${accent.ring}90, transparent 65%), #fafcfd` }}>
+      <header className="flex items-center gap-3 px-5 py-5" style={{ paddingTop: "max(20px, env(safe-area-inset-top))" }}>
+        <button aria-label="뒤로가기" onClick={() => router.back()} className="flex h-10 w-10 items-center justify-center rounded-full border border-white bg-white/70 text-slate-500 transition hover:bg-white">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m14 6-6 6 6 6" /></svg>
+        </button>
+        <span className="text-xs font-semibold tracking-[0.2em] text-slate-500">WAGIE AI</span>
+      </header>
+      <div className="mx-auto flex w-full max-w-md flex-col px-6 pb-10 pt-2 sm:pt-8">
+        <RobotWelcomeArt color={accent.from} />
+        <div className="mb-8 mt-2 text-center">
+          <p className="mb-3 text-xs font-medium tracking-widest text-slate-400">처음 만나는 너에게</p>
+          <h1 className="text-[30px] font-semibold leading-[1.35] tracking-tight">안녕.<br />무슨 얘기부터 할까?</h1>
+          <p className="mt-4 text-sm leading-relaxed text-slate-500">그냥 심심해서 와도 좋아.<br />그 전에, 나를 뭐라고 부르고 싶어?</p>
         </div>
-        <div className="relative">
-          <div className="w-32 h-32 rounded-[2.5rem] flex items-center justify-center shadow-2xl"
-            style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 20px 60px ${accent.shadow}` }}>
-            <RobotFace size={60} light="white"/>
+        <form onSubmit={e => { e.preventDefault(); void saveName(nameInput); }} className="rounded-[28px] border border-white bg-white/80 p-5 shadow-[0_12px_48px_-20px_rgba(51,65,85,0.2)] backdrop-blur-xl">
+          <label htmlFor="robot-first-name" className="mb-3 block text-xs font-semibold text-slate-600">너만의 AI 이름</label>
+          <div className="flex items-center rounded-2xl border border-slate-200/70 bg-white px-4 focus-within:ring-2" style={{ borderColor: nameInput ? accent.ring : undefined }}>
+            <input id="robot-first-name" type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && e.nativeEvent.isComposing) e.preventDefault(); }}
+              placeholder="어떤 이름으로 부를까?" autoComplete="off" maxLength={12} disabled={savingName}
+              className="min-w-0 flex-1 bg-transparent py-4 text-base text-slate-800 outline-none placeholder:text-slate-300" />
+            <span className="ml-2 text-[10px] tabular-nums text-slate-400">{nameInput.length}/12</span>
           </div>
-          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-yellow-400 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-yellow-200">✨</div>
-        </div>
-        <div className="text-center z-10">
-          <p className="font-black text-gray-800 text-2xl tracking-tight mb-1">나만의 AI 만들기</p>
-          <p className="text-gray-400 text-sm">이름을 지어줘봐 🌟</p>
-        </div>
-        <div className="flex gap-2 w-full max-w-xs z-10">
-          <input autoFocus type="text" value={nameInput} onChange={(e) => setNameInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") saveName(nameInput); }}
-            placeholder="예: 루나, 별이, 챗봇..." maxLength={12}
-            className="flex-1 bg-white/80 backdrop-blur-sm border-2 border-gray-100 focus:border-sky-300 rounded-2xl px-4 py-3 text-sm outline-none transition-all shadow-sm"/>
-          <button onClick={() => saveName(nameInput)} disabled={!nameInput.trim()}
-            className="px-5 py-3 rounded-2xl text-white text-sm font-black disabled:opacity-30 transition-all active:scale-95 shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 8px 24px ${accent.shadow}` }}>완료</button>
-        </div>
+          <div className="mt-3 flex items-center gap-2 text-xs"><span className="mr-1 text-slate-400">이런 이름은?</span>{["루미", "모모", "구름"].map(name => <button key={name} type="button" disabled={savingName} onClick={() => setNameInput(name)} className="rounded-full bg-slate-50 px-3 py-1.5 text-slate-500 transition hover:bg-slate-100">{name}</button>)}</div>
+          {nameError && <p role="alert" className="mt-3 text-xs text-red-500">{nameError}</p>}
+          <button type="submit" disabled={!nameInput.trim() || savingName} className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-800 py-4 text-sm font-semibold text-white transition hover:bg-slate-700 active:scale-[0.98] disabled:opacity-30">
+            {savingName ? "이름 기억하는 중…" : "우리, 이야기 시작할까?"}
+            <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+          </button>
+        </form>
+        <p className="mt-5 text-center text-xs text-slate-400">이름은 나중에도 바꿀 수 있어.</p>
       </div>
-    </div>
+    </main>
   );
 
   return (
@@ -286,19 +298,23 @@ export default function RobotPage() {
           </div>
 
           {messages.length === 0 && !isStreaming && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 pointer-events-none">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-xl"
-                  style={{ background: `linear-gradient(135deg, ${accent.from}22, ${accent.to}22)`, border: `2px solid ${accent.ring}` }}>
-                  <RobotFace size={46} light={accent.from}/>
-                </div>
-                <div className="absolute -top-2 -right-2 text-xl animate-bounce">💬</div>
+            <section className="relative m-auto w-full max-w-md px-5 py-6">
+              <RobotWelcomeArt color={accent.from} compact />
+              <p className="mt-4 text-center text-xs font-medium text-slate-500">나는 {robotName || "너의 AI"}야</p>
+              <h1 className="mt-3 text-center text-[28px] font-semibold leading-snug tracking-tight text-slate-800">왔네, 안녕!<br />오늘 너는 어땠어?</h1>
+              <p className="mb-6 mt-3 text-center text-sm leading-relaxed text-slate-500">엄청 특별한 얘기 아니어도 돼.<br />아래에서 골라도, 네 얘기부터 해도 좋아.</p>
+              <div className="space-y-2.5">
+                {[
+                  { title: "그냥 심심해서 왔어", sub: "엉뚱한 질문 하나로 시작해 볼까?", prompt: "그냥 심심해서 왔어. 뻔하지 않은 질문 하나 해 줘!" },
+                  { title: "나 오늘 이런 일 있었잖아", sub: "좋았던 일도, 조금 짜증 난 일도", prompt: "나 오늘 있었던 일 얘기하고 싶어. 들어줄래?" },
+                  { title: "말로 하기 좀 애매한데…", sub: "잘 정리해서 말하지 않아도 괜찮아", prompt: "뭐라고 설명해야 할지 모르겠는데, 질문 하나씩 해줄래?" },
+                ].map(item => <button key={item.title} type="button" onClick={() => { setInput(item.prompt); inputRef.current?.focus(); }}
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-white/90 bg-white/75 px-4 py-3.5 text-left shadow-[0_3px_16px_-10px_rgba(51,65,85,0.2)] backdrop-blur-sm transition hover:bg-white active:scale-[0.99]">
+                  <span><span className="block text-sm font-medium text-slate-700">{item.title}</span><span className="mt-1 block text-xs text-slate-400">{item.sub}</span></span>
+                  <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-slate-300 transition group-hover:text-slate-600"><path d="m9 6 6 6-6 6" /></svg>
+                </button>)}
               </div>
-              <div className="text-center">
-                <p className="text-sm font-black text-gray-500 mb-1">{robotName}에게 말을 걸어봐!</p>
-                <p className="text-xs text-gray-400">무엇이든 물어봐도 돼 ✨</p>
-              </div>
-            </div>
+            </section>
           )}
 
           {messages.map((msg) => (
