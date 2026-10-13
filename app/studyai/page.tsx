@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AITextLinks from "@/components/AITextLinks";
+import AIUserMessage from "@/components/AIUserMessage";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { readAIStream } from "@/lib/ai-stream";
 import { db } from "@/app/firebase";
@@ -16,7 +17,7 @@ import {
   onSnapshot,
   serverTimestamp,
   getDocs,
-  deleteDoc,
+  deleteDoc, doc, updateDoc,
 } from "firebase/firestore";
 
 /* =========================================================
@@ -1055,11 +1056,7 @@ export default function StudyAIPage() {
             <div key={msg.id} className="mx-auto w-full max-w-2xl">
               {msg.role ===
               "user" ? (
-                <div className="flex justify-end">
-                  <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[24px] rounded-br-lg bg-sky-100 px-5 py-3 text-[15px] font-normal leading-7 text-sky-950">
-                    {msg.content}
-                  </div>
-                </div>
+                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={async text => { await updateDoc(doc(db, "studyChats", user.uid, "messages", msg.id), { content: text, edited: true }); }} onDelete={async () => { await deleteDoc(doc(db, "studyChats", user.uid, "messages", msg.id)); }} />
               ) : (
                 <div
                   className="mx-auto w-full max-w-2xl py-4"

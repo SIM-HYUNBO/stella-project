@@ -2,6 +2,7 @@
 
 import { readAIStream } from "@/lib/ai-stream";
 import AIResponse from "@/components/AIResponse";
+import AIUserMessage from "@/components/AIUserMessage";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -298,7 +299,8 @@ export default function RobotPage() {
           {messages.map(msg => (
             <div key={msg.id} className="relative mx-auto w-full max-w-2xl">
               {msg.role === "user" ? (
-                <div className="ml-auto w-fit max-w-[85%] rounded-[1.4rem] rounded-br-md bg-sky-100 px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-sky-950">{msg.content}</div>
+                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={async text => { await updateDoc(doc(db, "robotChats", user.uid, "messages", msg.id), { content: text, edited: true }); }} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
+
               ) : (
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
                   <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
