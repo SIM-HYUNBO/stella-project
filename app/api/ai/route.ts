@@ -64,14 +64,14 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
 `
         : `너는 ${robotName || "AI"} 야. 친근하고 자연스럽게 대화해줘. 너무 길게 말하지 말고 간결하게. 반드시 한국어로만 답해.`);
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const requestModel = (model: string) => fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: searchEnabled ? "openai/gpt-oss-120b" : process.env.GROQ_CHAT_MODEL || "qwen/qwen3.8-27b",
+        model,
         ...(searchEnabled ? { tools: [{ type: "browser_search" }] } : {}),
         stream: true,
         messages: [
@@ -84,10 +84,27 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
       }),
     });
 
+    let response = await requestModel(searchEnabled ? "openai/gpt-oss-120b" : process.env.GROQ_CHAT_MODEL || "qwen/qwen3.8-27b");
+    // One alternate model attempt, only for provider throttling. Both support search.
+    if (searchEnabled && response.status === 429) {
+      const original = response;
+      const alternate = await requestModel("openai/gpt-oss-20b");
+      if (alternate.status === 429) {
+        const firstWait = Number(original.headers.get("retry-after")) || Infinity;
+        const secondWait = Number(alternate.headers.get("retry-after")) || Infinity;
+        response = firstWait <= secondWait ? original : alternate;
+        await (response === original ? alternate : original).body?.cancel();
+      } else {
+        await original.body?.cancel();
+        response = alternate;
+      }
+    }
+
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       const errMsg = data?.error?.message || `오류 (${response.status})`;
-      return NextResponse.json({ error: errMsg }, { status: response.status });
+      const retry = response.headers.get("retry-after");
+      return NextResponse.json({ error: errMsg, retryAfterSeconds: retry ? Number(retry) : undefined }, { status: response.status, headers: retry ? { "Retry-After": retry } : undefined });
     }
 
     return new Response(response.body, {

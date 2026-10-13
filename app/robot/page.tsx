@@ -22,10 +22,14 @@ function friendlyError(msg: string): string {
   if (m.includes("permission") || m.includes("insufficient")) return "대화를 저장할 권한이 없어. 다시 로그인해 줘.";
   if (m.includes("empty response")) return "답변이 비어 있었어. 한 번 더 보내 줄래?";
   if (m.includes("rate limit") || m.includes("tpd") || m.includes("tokens per day") || m.includes("try again in")) {
-    const minMatch = msg.match(/try again in (\d+)m/i);
-    return minMatch
-      ? `오늘 AI 사용량이 꽉 찼어. 약 ${minMatch[1]}분 후에 다시 해봐 🕐`
-      : "오늘 AI 사용량이 꽉 찼어. 잠시 후에 다시 해봐 🕐";
+    const wait = msg.match(/try again in ([^.]+(?:\.\d+)?s?)/i)?.[1];
+    const minutes = Number(wait?.match(/(\d+)m/)?.[1] || 0);
+    const seconds = Number(wait?.match(/([\d.]+)s/)?.[1] || 0);
+    const hours = Number(wait?.match(/(\d+)h/)?.[1] || 0);
+    const totalMinutes = Math.ceil((hours * 3600 + minutes * 60 + seconds) / 60);
+    return totalMinutes > 0
+      ? `지금 AI 요청이 한도에 걸렸어. 약 ${totalMinutes}분 후에 다시 보내 줘.`
+      : "지금 AI 요청이 한도에 걸렸어. 잠시 후 다시 보내 줘.";
   }
   if (m.includes("failed to fetch") || m.includes("networkerror") || m.includes("network")) {
     return "인터넷 연결을 확인해봐 📶";

@@ -10,5 +10,13 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync('app/api/ai/route.ts','utf
  await run({webSearch:false});assert.equal(payload.tools[0].type,'browser_search');assert.equal(payload.model,'openai/gpt-oss-120b');
  await run({webSearch:'true'});assert.equal(payload.tools[0].type,'browser_search');
  await run({mode:'profile',webSearch:true});assert.equal(payload.tools,undefined);
- console.log('AI search routing: 5 checks passed');
+ const calls=[];
+ context.fetch=async(_,options)=>{calls.push(JSON.parse(options.body)); return calls.length===1 ? Response.json({error:{message:'rate limit'}},{status:429,headers:{'retry-after':'120'}}) : new Response('data: [DONE]\n');};
+ const recovered=await run({mode:'study'});assert.equal(recovered.status,200);assert.equal(calls.length,2);assert.equal(calls[1].model,'openai/gpt-oss-20b');assert.equal(calls[1].tools[0].type,'browser_search');
+ let attempts=0;
+ context.fetch=async()=>{attempts++;return Response.json({error:{message:'rate limit'}},{status:429,headers:{'retry-after':attempts===1?'60':'180'}});};
+ const limited=await run({});assert.equal(limited.status,429);assert.equal(attempts,2);assert.equal(limited.headers.get('retry-after'),'60');
+ attempts=0;context.fetch=async()=>{attempts++;return Response.json({error:{message:'unauthorized'}},{status:401});};
+ assert.equal((await run({})).status,401);assert.equal(attempts,1);
+ console.log('AI search routing: 8 checks passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
