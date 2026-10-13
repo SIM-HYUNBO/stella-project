@@ -1,7 +1,7 @@
 "use client";
 
 import { readAIStream } from "@/lib/ai-stream";
-import AITextLinks from "@/components/AITextLinks";
+import AIResponse from "@/components/AIResponse";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -298,7 +298,7 @@ export default function RobotPage() {
               ) : (
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
                   <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
-                  <div className="whitespace-pre-wrap break-words"><AITextLinks text={msg.content} /></div>
+                  <div className="whitespace-pre-wrap break-words"><AIResponse text={msg.content} /></div>
                 </article>
               )}
             </div>
@@ -307,7 +307,7 @@ export default function RobotPage() {
             <article aria-busy="true" className="relative mx-auto w-full max-w-2xl py-3 text-[15px] leading-7 text-slate-800">
               <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
               <div className="whitespace-pre-wrap break-words">
-                {streamingText ? <><AITextLinks text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
+                {streamingText ? <><AIResponse text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
                   <span aria-label="답변 생각 중" className="flex gap-1 py-2">{[0,150,300].map(delay => <span key={delay} className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${delay}ms` }} />)}</span>
                 )}
               </div>

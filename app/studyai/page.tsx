@@ -83,7 +83,7 @@ function friendlyError(msg: string): string {
 ========================================================= */
 
 function Hl({ text }: { text: string }) {
-  const parts = text.split(/(\[\[.*?\]\])/g);
+  const parts = text.replace(/\\([*~<>])/g, "$1").split(/(\[\[.*?\]\])/g);
 
   return (
     <>
@@ -105,7 +105,7 @@ function Hl({ text }: { text: string }) {
             {p.slice(2, -2)}
           </mark>
         ) : (
-          <AITextLinks key={i} text={p} />
+          <span key={i}>{p.split(/<br\s*\/?\s*>/i).map((part, j) => <span key={j}>{j > 0 && <br />}<AITextLinks text={part} /></span>)}</span>
         )
       )}
     </>
