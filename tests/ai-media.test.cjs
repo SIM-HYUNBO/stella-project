@@ -9,6 +9,11 @@ vm.runInNewContext(compile('app/api/ai/route.ts'),ctx);
 const run=media=>ctx.exports.POST({json:async()=>({messages:[{role:'user',content:'explain',media}]})});
 (async()=>{
  assert.equal((await run(image)).status,200);assert.equal(calls[0].model,'qwen/qwen3.8-27b');assert.equal(calls[0].messages[1].content[1].type,'image_url');assert.equal(calls[1].tools[0].type,'browser_search');assert.ok(calls[1].messages[1].content.includes('A red square.'));
+ calls=[];
+ assert.equal((await ctx.exports.POST({json:async()=>({messages:[{role:'user',content:'describe',media:image},{role:'assistant',content:'I cannot see images.'},{role:'user',content:'What color is it?'}]})})).status,200);
+ assert.ok(calls[0].messages[1].content[0].text.includes('What color is it?'));
+ assert.ok(calls[1].messages[0].content.includes('첨부 처리 상태'));
+ assert.ok(calls[1].messages[1].content.includes('A red square.'));
  calls=[];assert.equal((await run({...image,kind:'video',frames:Array(3).fill(image.frames[0]),duration:10})).status,200);assert.equal(calls[0].messages[1].content.length,4);
  calls=[];assert.equal((await run({...image,frames:['https://internal/secret']})).status,400);assert.equal(calls.length,0);
  assert.equal((await run({...image,frames:['data:image/jpeg;base64,'+'A'.repeat(220001)]})).status,400);
