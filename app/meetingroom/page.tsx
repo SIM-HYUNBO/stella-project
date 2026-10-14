@@ -1,5 +1,8 @@
 ﻿"use client";
 
+import useChatScroll from "@/app/hooks/useChatScroll";
+import ChatScrollButton from "@/components/ChatScrollButton";
+
 import { isEmojiOnly } from "@/lib/chat-emoji";
 
 import chatCharacterBackground from "@/components/ChatCharacterBackground";
@@ -133,6 +136,8 @@ export default function MeetingRoomPage() {
   const [topicInput, setTopicInput] = useState("");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
+  const chatScroll = useChatScroll(currentRoom?.id, messages, nickname);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const msgInputRef = useRef<HTMLInputElement>(null);
@@ -252,9 +257,6 @@ export default function MeetingRoomPage() {
         msgs.push(m);
       }
       setMessages(msgs);
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 50);
     });
     return () => unsub();
   }, [currentRoom?.id, nickname]);
@@ -849,7 +851,10 @@ export default function MeetingRoomPage() {
       </div>
 
       {/* 메시지 */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)} onClick={() => setShowThemePicker(false)}>
+      <div className="relative flex-1 min-h-0 flex flex-col">
+      <div ref={chatScroll.viewportRef} onScroll={chatScroll.onScroll}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)} onClick={() => setShowThemePicker(false)}>
+        <div ref={chatScroll.contentRef} className="relative flex flex-col gap-3">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
           <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
@@ -1009,6 +1014,9 @@ export default function MeetingRoomPage() {
         )}
 
         <div ref={messagesEndRef} />
+        </div>
+      </div>
+      {chatScroll.away && <ChatScrollButton count={chatScroll.newCount} onClick={chatScroll.goToLatest} color={accent.from} />}
       </div>
 
       {pendingAudio && (

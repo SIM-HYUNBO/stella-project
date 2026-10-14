@@ -1,5 +1,8 @@
 ﻿"use client";
 
+import useChatScroll from "@/app/hooks/useChatScroll";
+import ChatScrollButton from "@/components/ChatScrollButton";
+
 import { isEmojiOnly } from "@/lib/chat-emoji";
 
 import chatCharacterBackground from "@/components/ChatCharacterBackground";
@@ -811,12 +814,6 @@ export default function Chat() {
         ...prev,
         [currentChatUser.id]: lastMsg,
       }));
-
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({
-          behavior: "smooth",
-        });
-      }, 50);
     });
 
     return () => unsub();
@@ -1388,6 +1385,8 @@ export default function Chat() {
     setCtxMenu({ msgId: m.id, x, y, isMine, msg: m });
   };
 
+  const chatScroll = useChatScroll(currentChatUser?.id, messages, nickname, showMsgSearch);
+
   const searchTerm = msgSearch.trim().normalize("NFKC").toLocaleLowerCase();
   const displayedMessages = searchTerm
     ? messages.filter(m => m.type !== "image" && m.type !== "audio" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
@@ -1668,10 +1667,13 @@ export default function Chat() {
         </div>
       )}
 
+      <div className="relative flex-1 min-h-0 flex flex-col">
       <div
+        ref={chatScroll.viewportRef} onScroll={chatScroll.onScroll}
         className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)}
         onClick={() => { setCtxMenu(null); setShowThemePicker(false); }}
       >
+        <div ref={chatScroll.contentRef} className="relative flex flex-col gap-3">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
           <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
@@ -1844,6 +1846,9 @@ export default function Chat() {
         )}
 
         <div ref={messagesEndRef} />
+        </div>
+      </div>
+      {chatScroll.away && !showMsgSearch && <ChatScrollButton count={chatScroll.newCount} onClick={chatScroll.goToLatest} color={accent.from} />}
       </div>
 
       {replyTo && (
