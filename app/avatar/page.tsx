@@ -1,5 +1,9 @@
 ﻿"use client";
 
+import StickerStudio from "@/components/StickerStudio";
+import AnimatedSticker from "@/components/AnimatedSticker";
+import type { CustomSticker } from "@/lib/custom-stickers";
+
 import useChatScroll from "@/app/hooks/useChatScroll";
 import ChatScrollButton from "@/components/ChatScrollButton";
 
@@ -47,12 +51,14 @@ type Message = {
   fromUid?: string;
   toUid?: string;
   content: string;
-  type?: "text" | "image" | "audio" | "system";
+  type?: "text" | "image" | "sticker" | "audio" | "system";
   createdAt?: any;
   readBy?: string[];
   replyTo?: ReplyTo;
   reactions?: Record<string, string[]>;
   edited?: boolean;
+  stickerMotion?: string;
+  stickerName?: string;
 };
 
 type User = {
@@ -457,6 +463,7 @@ export default function Chat() {
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const [showDrawCanvas, setShowDrawCanvas] = useState(false);
+  const [showStickerStudio, setShowStickerStudio] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [showSpecialMenu, setShowSpecialMenu] = useState(false);
   const [wordGame, setWordGame] = useState<{ active: boolean; lastWord: string; lastChar: string; lastPlayer: string; startedBy: string } | null>(null);
@@ -773,6 +780,8 @@ export default function Chat() {
           toUid: data.toUid,
           content: data.content,
           type: data.type || "text",
+          stickerMotion: data.stickerMotion,
+          stickerName: data.stickerName,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
           replyTo: data.replyTo,
@@ -791,7 +800,7 @@ export default function Chat() {
         if (!isMyChat) continue;
 
         lastMsg =
-          m.type === "image" ? "📷 사진" :
+          m.type === "image" ? "📷 사진" : m.type === "sticker" ? "✨ 이모티콘" :
           m.content;
 
         if (
@@ -1208,6 +1217,32 @@ export default function Chat() {
     }).catch(() => {});
   };
 
+  const sendSticker = async (sticker: CustomSticker) => {
+    if (!nickname || !currentChatUser) throw Error("채팅방을 다시 열어 줘.");
+    const base64 = sticker.image;
+    await addDoc(collection(db, "messages"), {
+      from: nickname,
+      to: currentChatUser.nickname,
+      content: base64,
+      type: "sticker",
+      stickerMotion: sticker.motion,
+      stickerName: sticker.name,
+      createdAt: serverTimestamp(),
+      readBy: [nickname],
+    });
+    fetch("/api/fcm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        toNicknames: [currentChatUser.nickname],
+        fromNickname: nickname,
+        message: "✨ 움직이는 이모티콘을 보냈어요",
+        url: `/avatar?open=${encodeURIComponent(nickname ?? "")}`,
+      }),
+    }).catch(() => {});
+    setShowStickerStudio(false);
+  };
+
   const sendDrawing = async (dataUrl: string) => {
     setShowDrawCanvas(false);
     if (!nickname || !currentChatUser) return;
@@ -1257,7 +1292,7 @@ export default function Chat() {
 
   const editMessage = (id: string) => {
     const msg = messages.find((m) => m.id === id);
-    if (!msg) return;
+    if (!msg || msg.type === "sticker") return;
     setEditingMsgId(id);
     setEditingText(msg.content);
     setCtxMenu(null);
@@ -1389,7 +1424,7 @@ export default function Chat() {
 
   const searchTerm = msgSearch.trim().normalize("NFKC").toLocaleLowerCase();
   const displayedMessages = searchTerm
-    ? messages.filter(m => m.type !== "image" && m.type !== "audio" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
+    ? messages.filter(m => m.type !== "image" && m.type !== "audio" && m.type !== "sticker" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
     : messages;
 
   if (!nickname) {
@@ -1447,6 +1482,9 @@ export default function Chat() {
           </div>
         </div>
       );
+    }
+    if (m.type === "sticker") {
+      return <AnimatedSticker src={m.content} motion={m.stickerMotion} name={m.stickerName} />;
     }
     if (m.type === "image") {
       return (
@@ -1685,7 +1723,7 @@ export default function Chat() {
 
           const isMine = m.from === nickname;
           const emojiOnly = (m.type === "text" || !m.type) && isEmojiOnly(m.content);
-          const bareMessage = editingMsgId !== m.id && (m.type === "image" || emojiOnly);
+          const bareMessage = editingMsgId !== m.id && (m.type === "image" || m.type === "sticker" || emojiOnly);
           const currentDate = formatDateLabel(m.createdAt);
           const prevDate = i > 0 ? formatDateLabel(displayedMessages[i - 1].createdAt) : null;
           const showDate = currentDate && currentDate !== prevDate;
@@ -1738,7 +1776,7 @@ export default function Chat() {
                     <div className="truncate text-gray-500">
                       {m.replyTo.type === "image"
                         ? "📷 사진"
-                        : m.replyTo.content}
+                        : m.replyTo.content?.startsWith("data:image/") ? "✨ 이모티콘" : m.replyTo.content}
                     </div>
                   </div>
                 )}
@@ -1863,7 +1901,7 @@ export default function Chat() {
             <div className="text-xs text-gray-500 truncate">
               {replyTo.type === "image"
                 ? "📷 사진"
-                : replyTo.content}
+                : replyTo.content?.startsWith("data:image/") ? "✨ 이모티콘" : replyTo.content}
             </div>
           </div>
 
@@ -1927,7 +1965,7 @@ export default function Chat() {
         {/* + 버튼 (이미지/Aa/마이크 묶음) */}
         <div className="relative shrink-0">
           {showPlusMenu && (
-            <div className="absolute bottom-[52px] left-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+            <div className="absolute bottom-[52px] left-0 grid grid-cols-3 gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
@@ -1985,6 +2023,11 @@ export default function Chat() {
                   <line x1="4" y1="9" x2="4" y2="15"/><line x1="8" y1="6" x2="8" y2="18"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="16" y1="6" x2="16" y2="18"/><line x1="20" y1="9" x2="20" y2="15"/>
                 </svg>
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
+              </button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowStickerStudio(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 14c2 3 6 3 8 0"/><path d="M8 9h.01M16 9h.01"/></svg>
+                <span className="text-[9px] font-bold">내 이모티콘</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
@@ -2114,6 +2157,7 @@ export default function Chat() {
             {ctxMenu.isMine && (
               <>
                 <button
+                  hidden={ctxMenu.msg.type === "sticker"}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
                   onClick={() =>
                     editMessage(
@@ -2224,7 +2268,8 @@ export default function Chat() {
           </div>
         )}
         {renderChat()}
-        {showDrawCanvas && (
+        {showStickerStudio && <StickerStudio onClose={() => setShowStickerStudio(false)} onSend={sendSticker} />}
+      {showDrawCanvas && (
           <DrawingCanvas
             onSend={sendDrawing}
             onClose={() => setShowDrawCanvas(false)}

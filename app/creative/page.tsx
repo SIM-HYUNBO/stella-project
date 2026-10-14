@@ -80,6 +80,7 @@ export default function CreativePage() {
   };
 
   const MENU_ITEMS = [
+    { icon: "✨", label: "이모티콘 공방", path: "/creative/stickers", sub: "직접 그린 이모티콘을 움직여요", badge: "NEW" },
     { icon: "🖌️", label: "단체 협업 그림", path: "/creative/draw", sub: "함께 그림을 그려요", badge: "NEW" },
     { icon: "✍️", label: "스토리 이어쓰기", path: "/creative/story", sub: "번갈아가며 이야기를 써요", badge: "NEW" },
     { icon: "📷", label: "사진에 그림 그리기", path: "/creative/photo-draw", sub: "사진 위에 그림을 덧입혀요", badge: null },

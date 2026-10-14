@@ -1,5 +1,9 @@
 ﻿"use client";
 
+import StickerStudio from "@/components/StickerStudio";
+import AnimatedSticker from "@/components/AnimatedSticker";
+import type { CustomSticker } from "@/lib/custom-stickers";
+
 import useChatScroll from "@/app/hooks/useChatScroll";
 import ChatScrollButton from "@/components/ChatScrollButton";
 
@@ -65,10 +69,12 @@ type MeetingMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image" | "urgent" | "audio";
+  type?: "text" | "image" | "sticker" | "urgent" | "audio";
   createdAt?: any;
   readBy?: string[];
   replyTo?: { id: string; from: string; content: string };
+  stickerMotion?: string;
+  stickerName?: string;
 };
 
 type User = {
@@ -119,6 +125,7 @@ export default function MeetingRoomPage() {
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const [showDrawCanvas, setShowDrawCanvas] = useState(false);
+  const [showStickerStudio, setShowStickerStudio] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
@@ -245,6 +252,8 @@ export default function MeetingRoomPage() {
           from: data.from,
           content: data.content,
           type: data.type || "text",
+          stickerMotion: data.stickerMotion,
+          stickerName: data.stickerName,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
         };
@@ -575,6 +584,30 @@ export default function MeetingRoomPage() {
     });
   };
 
+  const sendSticker = async (sticker: CustomSticker) => {
+    if (!nickname || !currentRoom) throw Error("채팅방을 다시 열어 줘.");
+    const base64 = sticker.image;
+    await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
+      from: nickname,
+      content: base64,
+      type: "sticker",
+      stickerMotion: sticker.motion,
+      stickerName: sticker.name,
+      createdAt: serverTimestamp(),
+      readBy: [nickname],
+    });
+    const targets = currentRoom.members.filter(member => member !== nickname);
+    if (targets.length) {
+      fetch("/api/fcm", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toNicknames: targets, fromNickname: nickname,
+          message: "✨ 움직이는 이모티콘을 보냈어요", roomName: currentRoom.name,
+          url: `/meetingroom?room=${currentRoom.id}` }),
+      }).catch(() => {});
+    }
+    setShowStickerStudio(false);
+  };
+
   const sendDrawing = async (dataUrl: string) => {
     setShowDrawCanvas(false);
     if (!nickname || !currentRoom) return;
@@ -863,7 +896,7 @@ export default function MeetingRoomPage() {
         {messages.map((m, i) => {
           const isMine = m.from === nickname;
           const emojiOnly = (m.type === "text" || !m.type) && isEmojiOnly(m.content);
-          const bareMessage = editingMsgId !== m.id && (m.type === "image" || emojiOnly);
+          const bareMessage = editingMsgId !== m.id && (m.type === "image" || m.type === "sticker" || emojiOnly);
           const prev = messages[i - 1];
           const showUser = !prev || prev.from !== m.from;
           const currentDate = formatDateLabel(m.createdAt);
@@ -931,7 +964,7 @@ export default function MeetingRoomPage() {
                   >
                     {m.replyTo && (
                       <div className={`mb-2 px-2 py-1 rounded-xl border-l-4 text-xs opacity-70 ${isMine && !bareMessage ? "border-white/60 bg-white/20" : "border-sky-300 bg-sky-50 text-gray-700"}`}>
-                        <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}
+                        <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.content?.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : <>{m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}</>}
                       </div>
                     )}
                     {editingMsgId === m.id ? (
@@ -949,6 +982,8 @@ export default function MeetingRoomPage() {
                           <button onClick={saveMeetingEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
                         </div>
                       </div>
+                    ) : m.type === "sticker" ? (
+                      <AnimatedSticker src={m.content} motion={m.stickerMotion} name={m.stickerName} />
                     ) : m.type === "image" ? (
                       <img
                         src={m.content}
@@ -964,7 +999,7 @@ export default function MeetingRoomPage() {
                       <span className="break-words whitespace-pre-wrap">{renderHighlighted(m.content)}</span>
                     )}
                   </div>
-                  {m.type !== "image" && m.type !== "audio" && (() => {
+                  {m.type !== "image" && m.type !== "audio" && m.type !== "sticker" && (() => {
                     const url = extractFirstUrl(m.content);
                     return url ? <LinkPreview url={url} isMine={isMine} /> : null;
                   })()}
@@ -1054,7 +1089,7 @@ export default function MeetingRoomPage() {
         <div className="px-4 py-2 bg-sky-50 border-t border-sky-100 flex items-center gap-2 shrink-0">
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black text-sky-500">↩ {replyTo.from}에게 답장</p>
-            <p className="text-xs text-gray-500 truncate">{replyTo.content}</p>
+            <p className="text-xs text-gray-500 truncate">{replyTo.content.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : replyTo.content}</p>
           </div>
           <button onClick={() => setReplyTo(null)} className="text-gray-400 text-sm font-bold shrink-0">✕</button>
         </div>
@@ -1081,7 +1116,7 @@ export default function MeetingRoomPage() {
         {/* + 버튼 */}
         <div className="relative shrink-0">
           {showPlusMenu && (
-            <div className="absolute bottom-[52px] left-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+            <div className="absolute bottom-[52px] left-0 grid grid-cols-3 gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
@@ -1139,6 +1174,11 @@ export default function MeetingRoomPage() {
                   <line x1="4" y1="9" x2="4" y2="15"/><line x1="8" y1="6" x2="8" y2="18"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="16" y1="6" x2="16" y2="18"/><line x1="20" y1="9" x2="20" y2="15"/>
                 </svg>
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
+              </button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowStickerStudio(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 14c2 3 6 3 8 0"/><path d="M8 9h.01M16 9h.01"/></svg>
+                <span className="text-[9px] font-bold">내 이모티콘</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
@@ -1218,6 +1258,7 @@ export default function MeetingRoomPage() {
           </div>
         </div>
       )}
+      {showStickerStudio && <StickerStudio onClose={() => setShowStickerStudio(false)} onSend={sendSticker} />}
       {showDrawCanvas && (
         <DrawingCanvas
           onSend={sendDrawing}
@@ -1360,7 +1401,7 @@ export default function MeetingRoomPage() {
               <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type }); setCtxMenu(null); }}>↩ 답장</button>
               {ctxMenu.isMine && (
                 <>
-                  <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
+                  <button hidden={ctxMenu.msg.type === "sticker"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
                   <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteMeetingMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
                 </>
               )}
