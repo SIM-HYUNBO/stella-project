@@ -1365,6 +1365,7 @@ export default function Chat() {
     m: Message,
     isMine: boolean
   ) => {
+    e.stopPropagation();
     let x = 0;
     let y = 0;
 
