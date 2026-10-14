@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
-  collection, addDoc, query, orderBy, onSnapshot,
+  writeBatch, collection, addDoc, query, orderBy, onSnapshot,
   serverTimestamp, deleteDoc, doc, getDoc, setDoc, updateDoc,
 } from "firebase/firestore";
 
@@ -152,6 +152,27 @@ export default function RobotPage() {
       inputRef.current?.focus();
     };
     recognition.start();
+  };
+
+  const reviseMessage = async (id: string, text: string) => {
+    if (!user || sendingRef.current) throw new Error("busy");
+    const index = messages.findIndex(m => m.id === id && m.role === "user");
+    if (index < 0 || messages.length - index > 500) throw new Error("Cannot update this history");
+    sendingRef.current = true; setIsStreaming(true); setStreamingText(""); setErrorMsg(null);
+    let saved = false;
+    try {
+      const batch = writeBatch(db);
+      batch.update(doc(db, "robotChats", user.uid, "messages", id), { content: text, edited: true });
+      messages.slice(index + 1).forEach(m => batch.delete(doc(db, "robotChats", user.uid, "messages", m.id)));
+      await batch.commit(); saved = true;
+      const history = messages.slice(0, index).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
+      history.push({ role: "user", content: text });
+      const full = await streamAI(history, setStreamingText);
+      await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: sessionId || "legacy", role: "assistant", content: full, createdAt: serverTimestamp() });
+    } catch (err: any) {
+      if (!saved) throw err;
+      setErrorMsg(friendlyError(err?.message || ""));
+    } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); }
   };
 
   const send = async () => {
@@ -299,7 +320,7 @@ export default function RobotPage() {
           {messages.map(msg => (
             <div key={msg.id} className="relative mx-auto w-full max-w-2xl">
               {msg.role === "user" ? (
-                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={async text => { await updateDoc(doc(db, "robotChats", user.uid, "messages", msg.id), { content: text, edited: true }); }} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
+                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
 
               ) : (
                 <article className="py-3 text-[15px] leading-7 text-slate-800">

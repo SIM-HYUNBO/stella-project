@@ -10,14 +10,14 @@ import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 
 import {
-  collection,
+  writeBatch, collection,
   addDoc,
   query,
   orderBy,
   onSnapshot,
   serverTimestamp,
   getDocs,
-  deleteDoc, doc, updateDoc,
+  deleteDoc, doc,
 } from "firebase/firestore";
 
 /* =========================================================
@@ -781,6 +781,30 @@ export default function StudyAIPage() {
      SEND
   ========================================================= */
 
+  const reviseMessage = async (id: string, text: string) => {
+    if (!user || sendingRef.current) throw new Error("busy");
+    const index = messages.findIndex(m => m.id === id && m.role === "user");
+    if (index < 0 || messages.length - index > 500) throw new Error("Cannot update this history");
+    sendingRef.current = true; setIsStreaming(true); setStreamingText(""); setErrorMsg(null);
+    let saved = false;
+    try {
+      const batch = writeBatch(db);
+      batch.update(doc(db, "studyChats", user.uid, "messages", id), { content: text, edited: true });
+      messages.slice(index + 1).forEach(m => batch.delete(doc(db, "studyChats", user.uid, "messages", m.id)));
+      await batch.commit(); saved = true;
+      const history = messages.slice(0, index).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
+      history.push({ role: "user", content: text });
+      const res = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }) });
+      if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || `server ${res.status}`); }
+      if (!res.body) throw new Error("empty response");
+      const full = await readAIStream(res.body, setStreamingText);
+      await addDoc(collection(db, "studyChats", user.uid, "messages"), {  role: "ai", content: full, createdAt: serverTimestamp() });
+    } catch (err: any) {
+      if (!saved) throw err;
+      setErrorMsg(friendlyError(err?.message || ""));
+    } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); }
+  };
+
   const send = async () => {
     if (!input.trim() || !user || sendingRef.current || !historyReady) return;
     sendingRef.current = true;
@@ -1056,7 +1080,7 @@ export default function StudyAIPage() {
             <div key={msg.id} className="mx-auto w-full max-w-2xl">
               {msg.role ===
               "user" ? (
-                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={async text => { await updateDoc(doc(db, "studyChats", user.uid, "messages", msg.id), { content: text, edited: true }); }} onDelete={async () => { await deleteDoc(doc(db, "studyChats", user.uid, "messages", msg.id)); }} />
+                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "studyChats", user.uid, "messages", msg.id)); }} />
               ) : (
                 <div
                   className="mx-auto w-full max-w-2xl py-4"
