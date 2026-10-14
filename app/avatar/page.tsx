@@ -447,9 +447,6 @@ export default function Chat() {
     null
   );
 
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
 
   const nicknameRef = useRef<string | null>(null);
 
@@ -1390,23 +1387,6 @@ export default function Chat() {
     setCtxMenu({ msgId: m.id, x, y, isMine, msg: m });
   };
 
-  const handleTouchStart = (
-    e: React.TouchEvent,
-    m: Message,
-    isMine: boolean
-  ) => {
-    longPressTimer.current = setTimeout(() => {
-      openCtxMenu(e, m, isMine);
-    }, 500);
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-
   const searchTerm = msgSearch.trim().normalize("NFKC").toLocaleLowerCase();
   const displayedMessages = searchTerm
     ? messages.filter(m => m.type !== "image" && m.type !== "audio" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
@@ -1770,15 +1750,10 @@ export default function Chat() {
                   onContextMenu={(e) =>
                     openCtxMenu(e, m, isMine)
                   }
-                  onTouchStart={(e) =>
-                    handleTouchStart(
-                      e,
-                      m,
-                      isMine
-                    )
-                  }
-                  onTouchEnd={handleTouchEnd}
-                  onTouchMove={handleTouchEnd}
+                  onClick={(e) => {
+                    if (editingMsgId === m.id || (e.target as HTMLElement).closest("button, textarea, input, audio, a")) return;
+                    openCtxMenu(e, m, isMine);
+                  }}
                 >
                   {emojiOnly && editingMsgId !== m.id ? <span className="block text-[48px] leading-snug break-words whitespace-pre-wrap">{m.content}</span> : renderMsgContent(m)}
                 </div>
@@ -1841,15 +1816,15 @@ export default function Chat() {
         {/* 타이핑 인디케이터 */}
         {peerTyping && (
           <div className="flex items-end gap-2 animate-[fadeIn_0.2s_ease]">
-            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-500 shrink-0">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ background: `${accent.ring}55`, color: accent.from }}>
               {currentChatUser?.nickname?.[0] ?? "?"}
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] text-slate-400 px-1">{currentChatUser?.nickname}</span>
               <div className="bg-white rounded-[18px] rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"0ms"}} />
-                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"200ms"}} />
-                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"400ms"}} />
+                <span className="w-1.5 h-1.5 rounded-full motion-safe:animate-bounce" style={{ background: accent.from, animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full motion-safe:animate-bounce" style={{ background: accent.from, animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full motion-safe:animate-bounce" style={{ background: accent.from, animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -1857,11 +1832,11 @@ export default function Chat() {
 
         {isSending && (
           <div className="flex justify-end">
-            <div className="bg-sky-400 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+            <div className="rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm" style={{ background: `${accent.ring}88` }}>
               <span className="flex gap-1 items-center py-0.5">
-                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:0ms]"/>
-                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:150ms]"/>
-                <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:300ms]"/>
+                <span className="w-1.5 h-1.5 rounded-full motion-safe:animate-bounce" style={{ background: accent.from, animationDelay: "0ms" }}/>
+                <span className="w-1.5 h-1.5 rounded-full motion-safe:animate-bounce" style={{ background: accent.from, animationDelay: "150ms" }}/>
+                <span className="w-1.5 h-1.5 rounded-full motion-safe:animate-bounce" style={{ background: accent.from, animationDelay: "300ms" }}/>
               </span>
             </div>
           </div>
