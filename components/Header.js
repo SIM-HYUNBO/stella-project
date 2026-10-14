@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RobotWelcomeArt from "./RobotWelcomeArt";
 import localFont from "next/font/local";
 
 const jua = localFont({ src: "../app/fonts/google/Jua-Regular.ttf", weight: "400", display: "swap", preload: false });
@@ -22,16 +23,9 @@ const Header = () => {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href="/robot" className="relative w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform" title="AI">
+          <Link href="/robot" className="relative w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform" title="AI" aria-label="AI 채팅 열기">
             <span className="absolute -top-1 -right-1 bg-red-400 text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">NEW</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="2" x2="12" y2="6" stroke="#50caff" strokeWidth="1.5"/>
-              <circle cx="12" cy="2" r="1.5" fill="#50caff" stroke="none"/>
-              <rect x="3" y="6" width="18" height="15" rx="5" fill="#2d3748" stroke="none"/>
-              <circle cx="9" cy="12" r="1.8" fill="#50caff" stroke="none"/>
-              <circle cx="15" cy="12" r="1.8" fill="#50caff" stroke="none"/>
-              <path d="M9 17 Q12 19.5 15 17" stroke="#50caff" strokeWidth="1.5" fill="none"/>
-            </svg>
+            <RobotWelcomeArt color="#38bdf8" icon />
           </Link>
           <Link href="/tools"
             className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform">

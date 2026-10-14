@@ -1,8 +1,8 @@
 /** Small glass robot illustration shared by the two AI entry screens. */
-export default function RobotWelcomeArt({ color, compact = false }: { color: string; compact?: boolean }) {
-  return <div aria-hidden="true" className={`relative mx-auto ${compact ? "h-28 w-36" : "h-44 w-56"}`}>
-    <div className="absolute inset-x-5 bottom-3 h-8 rounded-[50%] blur-xl opacity-20" style={{ background: color }} />
-    <svg className="relative h-full w-full" viewBox="0 0 240 190" fill="none">
+export default function RobotWelcomeArt({ color, compact = false, icon = false }: { color: string; compact?: boolean; icon?: boolean }) {
+  return <div aria-hidden="true" className={`relative mx-auto ${icon ? "h-8 w-8" : compact ? "h-28 w-36" : "h-44 w-56"}`}>
+    {!icon && <div className="absolute inset-x-5 bottom-3 h-8 rounded-[50%] blur-xl opacity-20" style={{ background: color }} />}
+    <svg className="relative h-full w-full" viewBox={icon ? "25 10 190 160" : "0 0 240 190"} fill="none">
       <ellipse cx="120" cy="174" rx="55" ry="7" fill={color} opacity="0.1" />
       <circle cx="194" cy="40" r="5" fill={color} opacity="0.35" />
       <path d="M41 60v12M35 66h12" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.5" />
