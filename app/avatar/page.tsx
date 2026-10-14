@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import plusMenuStyles from "@/components/ChatPlusMenu.module.css";
+
 import StickerStudio from "@/components/StickerStudio";
 import AnimatedSticker from "@/components/AnimatedSticker";
 import type { CustomSticker } from "@/lib/custom-stickers";
@@ -1467,7 +1469,7 @@ export default function Chat() {
   const renderMsgContent = (m: Message) => {
     if (editingMsgId === m.id) {
       return (
-        <div className="flex flex-col gap-2 min-w-[180px]">
+        <div className="flex flex-col gap-2 w-[180px] max-w-full">
           <textarea
             autoFocus
             value={editingText}
@@ -1491,13 +1493,13 @@ export default function Chat() {
         <img
           src={m.content}
           alt="이미지"
-          className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
+          className="max-w-[min(220px,100%)] max-h-[220px] rounded-2xl object-cover cursor-pointer"
           onClick={(e) => { e.stopPropagation(); setLightboxSrc(m.content); }}
         />
       );
     }
     if (m.type === "audio") {
-      return <audio src={m.content} controls className="max-w-[220px] rounded-xl" />;
+      return <audio src={m.content} controls className="w-[220px] max-w-full rounded-xl" />;
     }
     return (
       <span className="break-words whitespace-pre-wrap">
@@ -1708,7 +1710,7 @@ export default function Chat() {
       <div className="relative flex-1 min-h-0 flex flex-col">
       <div
         ref={chatScroll.viewportRef} onScroll={chatScroll.onScroll}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)}
+        className="flex-1 min-h-0 min-w-0 overflow-x-hidden overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)}
         onClick={() => { setCtxMenu(null); setShowThemePicker(false); }}
       >
         <div ref={chatScroll.contentRef} className="relative flex flex-col gap-3">
@@ -1760,7 +1762,7 @@ export default function Chat() {
                   )}
                 </div>
               )}
-              <div className="max-w-[75%]">
+              <div className="min-w-0 max-w-[75%] [overflow-wrap:anywhere]">
                 {!isMine && (
                   <div className="flex items-center gap-1.5 mb-1 ml-1">
                     <span className="text-xs text-gray-400">{m.from}</span>
@@ -1965,7 +1967,7 @@ export default function Chat() {
         {/* + 버튼 (이미지/Aa/마이크 묶음) */}
         <div className="relative shrink-0">
           {showPlusMenu && (
-            <div className="absolute bottom-[52px] left-0 grid grid-cols-3 gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+            <div className={`${plusMenuStyles.menu} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
