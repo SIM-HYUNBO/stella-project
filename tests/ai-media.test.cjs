@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const compile=f=>ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+const mediaCtx={exports:{}};vm.runInNewContext(compile('lib/ai-media.ts'),mediaCtx);
+const image={kind:'image',name:'test.jpg',frames:['data:image/jpeg;base64,/9j/AA==']};
+const history=mediaCtx.exports.mediaHistory([{role:'user',content:'first',media:image},{role:'ai',content:'answer'},{role:'user',content:'second',media:image}]);
+assert.equal(history[0].media,undefined);assert.equal(history[1].role,'assistant');assert.equal(history[2].media,image);
+let calls=[];const ctx={exports:{},require:()=>({NextResponse:{json:(b,o)=>Response.json(b,o)}}),Response,AbortSignal,Date,process:{env:{GROQ_API_KEY:'test'}},fetch:async(_,options)=>{const body=JSON.parse(options.body);calls.push(body);return body.stream===false?Response.json({choices:[{message:{content:'A red square.'}}]}):new Response('data: [DONE]\n');}};
+vm.runInNewContext(compile('app/api/ai/route.ts'),ctx);
+const run=media=>ctx.exports.POST({json:async()=>({messages:[{role:'user',content:'explain',media}]})});
+(async()=>{
+ assert.equal((await run(image)).status,200);assert.equal(calls[0].model,'qwen/qwen3.8-27b');assert.equal(calls[0].messages[1].content[1].type,'image_url');assert.equal(calls[1].tools[0].type,'browser_search');assert.ok(calls[1].messages[1].content.includes('A red square.'));
+ calls=[];assert.equal((await run({...image,kind:'video',frames:Array(3).fill(image.frames[0]),duration:10})).status,200);assert.equal(calls[0].messages[1].content.length,4);
+ calls=[];assert.equal((await run({...image,frames:['https://internal/secret']})).status,400);assert.equal(calls.length,0);
+ assert.equal((await run({...image,frames:['data:image/jpeg;base64,'+'A'.repeat(220001)]})).status,400);
+ ctx.fetch=async()=>Response.json({error:{message:'rate limit'}},{status:429});assert.equal((await run(image)).status,429);
+ ctx.fetch=async()=>Response.json({choices:[{message:{content:''}}]});assert.equal((await run(image)).status,502);
+ console.log('AI media: history, image/video routing, search preservation, validation and failures passed');
+})().catch(e=>{console.error(e);process.exitCode=1;});

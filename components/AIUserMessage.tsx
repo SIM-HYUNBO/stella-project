@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { AIMedia } from "@/lib/ai-media";
+import { AIMediaPreview } from "./AIMediaPicker";
 
-export default function AIUserMessage({ content, disabled, onSave, onDelete }: {
-  content: string; disabled: boolean;
+export default function AIUserMessage({ content, media, disabled, onSave, onDelete }: {
+  content: string; media?: AIMedia; disabled: boolean;
   onSave: (text: string) => Promise<void>; onDelete: () => Promise<void>;
 }) {
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -21,6 +23,7 @@ export default function AIUserMessage({ content, disabled, onSave, onDelete }: {
   };
   return <div className={`group ml-auto max-w-[85%] ${editing ? "w-full" : "w-fit"}`}>
     <div className="rounded-[24px] rounded-br-lg bg-sky-100 px-4 py-3 text-[15px] leading-7 text-sky-950">
+      {media && <AIMediaPreview media={media} />}
       {editing ? <form onSubmit={e => { e.preventDefault(); if (draft.trim()) void act(() => onSave(draft.trim())); }}>
         <textarea autoFocus aria-label="메시지 수정" value={draft} disabled={busy || disabled} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Escape" && !busy) setEditing(false); }} rows={Math.min(8, Math.max(2, draft.split("\n").length))} className="block w-full resize-y bg-transparent text-[15px] leading-7 outline-none focus-visible:ring-1 focus-visible:ring-sky-300" />
         <p className="mt-2 text-[11px] leading-relaxed text-sky-700/70">수정하면 이 메시지 뒤 대화가 지워지고 AI가 다시 답해.</p>

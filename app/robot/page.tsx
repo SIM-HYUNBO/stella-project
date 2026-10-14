@@ -2,6 +2,8 @@
 
 import { readAIStream } from "@/lib/ai-stream";
 import AIResponse from "@/components/AIResponse";
+import AIMediaPicker, { AIMediaPreview } from "@/components/AIMediaPicker";
+import { AIMedia, mediaHistory } from "@/lib/ai-media";
 import AIUserMessage from "@/components/AIUserMessage";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { useEffect, useState, useRef, useMemo } from "react";
@@ -13,7 +15,7 @@ import {
   serverTimestamp, deleteDoc, doc, getDoc, setDoc, updateDoc,
 } from "firebase/firestore";
 
-type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; };
+type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; };
 
 const accent = { from: "#64748b", to: "#1e293b", shadow: "rgba(100,116,139,0.18)", ring: "#e2e8f0" };
 
@@ -45,6 +47,8 @@ function friendlyError(msg: string): string {
 }
 
 export default function RobotPage() {
+  const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
+  const [mediaBusy, setMediaBusy] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [allMessages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -67,8 +71,8 @@ export default function RobotPage() {
   }, [allMessages]);
   useEffect(() => { if (showHistory) historyDialog.current?.showModal(); else historyDialog.current?.close(); }, [showHistory]);
   const openConversation = (id: string | null) => {
-    if (sendingRef.current) return;
-    setSessionId(id); setInput(""); setErrorMsg(null); setStreamingText(""); setShowHistory(false);
+    if (sendingRef.current || mediaBusy) return;
+    setSessionId(id); setPendingMedia(null); setInput(""); setErrorMsg(null); setStreamingText(""); setShowHistory(false);
   };
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -165,8 +169,7 @@ export default function RobotPage() {
       batch.update(doc(db, "robotChats", user.uid, "messages", id), { content: text, edited: true });
       messages.slice(index + 1).forEach(m => batch.delete(doc(db, "robotChats", user.uid, "messages", m.id)));
       await batch.commit(); saved = true;
-      const history = messages.slice(0, index).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
-      history.push({ role: "user", content: text });
+      const history = mediaHistory([...messages.slice(0, index), { ...messages[index], content: text }]);
       const full = await streamAI(history, setStreamingText);
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: sessionId || "legacy", role: "assistant", content: full, createdAt: serverTimestamp() });
     } catch (err: any) {
@@ -176,19 +179,22 @@ export default function RobotPage() {
   };
 
   const send = async () => {
-    if (!input.trim() || !user || sendingRef.current || !historyReady) return;
+    if ((!input.trim() && !pendingMedia) || mediaBusy || !user || sendingRef.current || !historyReady) return;
     sendingRef.current = true;
     const targetSession = sessionId || crypto.randomUUID();
     setSessionId(targetSession);
-    const userText = input.trim(); setInput(""); setErrorMsg(null);
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
-    history.push({ role: "user", content: userText });
+    const attached = pendingMedia;
+    const userText = input.trim() || (attached?.kind === "video" ? "이 동영상의 대표 장면을 설명해 줘." : "이 사진을 설명해 줘."); setInput(""); setErrorMsg(null);
+    const history = mediaHistory([...messages, { role: "user", content: userText, ...(attached ? { media: attached } : {}) }]);
     setIsStreaming(true); setStreamingText("");
+    let userSaved = false;
     try {
-      await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "user", content: userText, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "user", content: userText, ...(attached ? { media: attached } : {}), createdAt: serverTimestamp() });
+      userSaved = true; setPendingMedia(null);
       const full = await streamAI(history, (t) => setStreamingText(t));
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "assistant", content: full, createdAt: serverTimestamp() });
     } catch (err: any) {
+      if (!userSaved) setInput(userText);
       setErrorMsg(friendlyError(err?.message || ""));
     } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); inputRef.current?.focus(); }
   };
@@ -246,9 +252,9 @@ export default function RobotPage() {
 
         <dialog ref={historyDialog} onCancel={() => setShowHistory(false)} onClose={() => setShowHistory(false)} className="m-0 h-dvh max-h-none w-[min(85vw,340px)] max-w-none border-0 bg-white p-5 shadow-2xl backdrop:bg-slate-900/25">
           <div className="mb-6 flex items-center justify-between"><h2 className="font-semibold text-slate-800">최근 채팅</h2><button aria-label="목록 닫기" onClick={() => setShowHistory(false)} className="h-10 w-10 text-slate-500">✕</button></div>
-          <button disabled={isStreaming || !historyReady} onClick={() => openConversation(null)} className="mb-5 w-full rounded-2xl bg-slate-100 px-4 py-3 text-left text-sm font-medium disabled:opacity-40">＋ 새 채팅</button>
+          <button disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(null)} className="mb-5 w-full rounded-2xl bg-slate-100 px-4 py-3 text-left text-sm font-medium disabled:opacity-40">＋ 새 채팅</button>
           {historyError ? <p role="alert" className="text-sm text-red-500">대화 목록을 불러오지 못했어. 페이지를 새로고침해 줘.</p> : !historyReady ? <p className="text-sm text-slate-400">대화를 불러오는 중…</p> : conversations.length === 0 ? <p className="text-sm text-slate-400">첫 이야기를 시작해 봐.</p> : conversations.map(chat => (
-            <button key={chat.id} disabled={isStreaming || !historyReady} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className={`mb-2 w-full rounded-2xl p-3 text-left transition hover:bg-slate-50 disabled:opacity-40 ${chat.id === sessionId ? "bg-slate-100" : "bg-white"}`}>
+            <button key={chat.id} disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className={`mb-2 w-full rounded-2xl p-3 text-left transition hover:bg-slate-50 disabled:opacity-40 ${chat.id === sessionId ? "bg-slate-100" : "bg-white"}`}>
               <span className="block truncate text-sm font-medium text-slate-800">{chat.title || "이전 대화"}</span>
               <span className="mt-1 block truncate text-xs text-slate-400">{chat.preview}</span>
               <span className="mt-2 block text-[10px] text-slate-400">{new Date(chat.time).toLocaleDateString("ko-KR")}</span>
@@ -289,7 +295,7 @@ export default function RobotPage() {
   >
    학습용 AI
   </button>
-            <button aria-label="새 채팅" title="새 채팅" disabled={isStreaming || !historyReady} onClick={() => openConversation(null)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5H5v14h14v-7M15 4l5 5M10 14l2-5 6-6 4 4-6 6-6 1Z" /></svg></button>
+            <button aria-label="새 채팅" title="새 채팅" disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(null)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5H5v14h14v-7M15 4l5 5M10 14l2-5 6-6 4 4-6 6-6 1Z" /></svg></button>
             <button disabled={isStreaming || !sessionId} onClick={clearHistory} className="text-[11px] text-gray-300 hover:text-red-400 transition px-2 py-1 rounded-xl hover:bg-red-50">지우기</button>
           </div>
         </div>
@@ -320,7 +326,7 @@ export default function RobotPage() {
           {messages.map(msg => (
             <div key={msg.id} className="relative mx-auto w-full max-w-2xl">
               {msg.role === "user" ? (
-                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
+                <AIUserMessage content={msg.content} media={msg.media} disabled={isStreaming || mediaBusy} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
 
               ) : (
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
@@ -351,9 +357,10 @@ export default function RobotPage() {
           </div>
         )}
 
+        <div className="mx-auto w-full max-w-2xl px-4">{pendingMedia && <AIMediaPreview media={pendingMedia} onRemove={isStreaming ? undefined : () => setPendingMedia(null)} />}{mediaBusy && <p role="status" className="pb-2 text-xs text-slate-400">첨부를 준비하고 있어…</p>}</div>
         {/* 젤리 입력창 */}
         <div className="px-4 pb-5 pt-2.5 shrink-0">
-          <div className="relative flex items-center gap-2.5 rounded-full px-5 py-3 transition-all overflow-hidden"
+          <div className="relative flex items-center gap-2.5 rounded-full px-5 py-3 transition-all overflow-visible"
             style={{
               background: `linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.58) 100%)`,
               backdropFilter: "blur(32px)",
@@ -375,13 +382,14 @@ export default function RobotPage() {
               borderRadius: "999px 999px 0 0",
               pointerEvents: "none",
             }} />
+            <AIMediaPicker disabled={isStreaming || mediaBusy || !historyReady} onChange={setPendingMedia} onBusy={setMediaBusy} onError={setErrorMsg} />
             <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
               placeholder={isStreaming ? "응답 중이야..." : `${robotName}에게 말해봐...`}
-              disabled={isStreaming || !historyReady}
-              className="relative flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium z-10"/>
-            {input.trim() ? (
-              <button onClick={send} disabled={isStreaming || !historyReady}
+              disabled={isStreaming || mediaBusy || !historyReady}
+              className="relative min-w-0 flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium z-10"/>
+            {input.trim() || pendingMedia ? (
+              <button onClick={send} disabled={isStreaming || mediaBusy || !historyReady}
                 className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
                 style={{
                   background: `linear-gradient(145deg, ${accent.from}, ${accent.to})`,

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AITextLinks from "@/components/AITextLinks";
+import AIMediaPicker, { AIMediaPreview } from "@/components/AIMediaPicker";
+import { AIMedia, mediaHistory } from "@/lib/ai-media";
 import AIUserMessage from "@/components/AIUserMessage";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { readAIStream } from "@/lib/ai-stream";
@@ -26,6 +28,7 @@ import {
 
 type StudyMsg = {
   id: string;
+  media?: AIMedia;
   role: "user" | "ai";
   content: string;
   createdAt: any;
@@ -634,6 +637,8 @@ function NoteDrawer({
 ========================================================= */
 
 export default function StudyAIPage() {
+  const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
+  const [mediaBusy, setMediaBusy] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [historyReady, setHistoryReady] = useState(false);
   const sendingRef = useRef(false);
@@ -663,11 +668,6 @@ export default function StudyAIPage() {
     string | null
   >(null);
 
-  const [
-    pendingImages,
-    setPendingImages,
-  ] = useState<string[]>([]);
-
   /* NOTE */
   const [
     noteOpen,
@@ -676,9 +676,6 @@ export default function StudyAIPage() {
 
   const bottomRef =
     useRef<HTMLDivElement>(null);
-
-  const fileRef =
-    useRef<HTMLInputElement>(null);
 
   const textareaRef =
     useRef<HTMLTextAreaElement>(null);
@@ -749,38 +746,6 @@ export default function StudyAIPage() {
      IMAGE
   ========================================================= */
 
-  const uploadImages = (
-    files: FileList | null
-  ) => {
-    if (!files) return;
-
-    setPendingImages(
-      (prev) => [
-        ...prev,
-        ...Array.from(
-          files
-        ).map((f) =>
-          URL.createObjectURL(f)
-        ),
-      ]
-    );
-  };
-
-  const removeImage = (
-    idx: number
-  ) => {
-    setPendingImages(
-      (prev) =>
-        prev.filter(
-          (_, i) => i !== idx
-        )
-    );
-  };
-
-  /* =========================================================
-     SEND
-  ========================================================= */
-
   const reviseMessage = async (id: string, text: string) => {
     if (!user || sendingRef.current) throw new Error("busy");
     const index = messages.findIndex(m => m.id === id && m.role === "user");
@@ -792,8 +757,7 @@ export default function StudyAIPage() {
       batch.update(doc(db, "studyChats", user.uid, "messages", id), { content: text, edited: true });
       messages.slice(index + 1).forEach(m => batch.delete(doc(db, "studyChats", user.uid, "messages", m.id)));
       await batch.commit(); saved = true;
-      const history = messages.slice(0, index).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
-      history.push({ role: "user", content: text });
+      const history = mediaHistory([...messages.slice(0, index), { ...messages[index], content: text }]);
       const res = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }) });
       if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || `server ${res.status}`); }
       if (!res.body) throw new Error("empty response");
@@ -806,14 +770,16 @@ export default function StudyAIPage() {
   };
 
   const send = async () => {
-    if (!input.trim() || !user || sendingRef.current || !historyReady) return;
+    if ((!input.trim() && !pendingMedia) || mediaBusy || !user || sendingRef.current || !historyReady) return;
     sendingRef.current = true;
-    const userText = input.trim();
+    const attached = pendingMedia;
+    const userText = input.trim() || (attached?.kind === "video" ? "이 동영상의 대표 장면을 설명해 줘." : "이 사진을 설명해 줘.");
     setInput(""); setErrorMsg(null); setIsStreaming(true); setStreamingText("");
+    let userSaved = false;
     try {
-      await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "user", content: userText, createdAt: serverTimestamp() });
-      const history = messages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.content }));
-      history.push({ role: "user", content: userText });
+      await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "user", content: userText, ...(attached ? { media: attached } : {}), createdAt: serverTimestamp() });
+      userSaved = true; setPendingMedia(null);
+      const history = mediaHistory([...messages, { role: "user", content: userText, ...(attached ? { media: attached } : {}) }]);
       const res = await fetch("/api/ai", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }),
@@ -825,7 +791,8 @@ export default function StudyAIPage() {
       if (!res.body) throw new Error("empty response");
       const full = await readAIStream(res.body, setStreamingText);
       await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "ai", content: full, createdAt: serverTimestamp() });
-    } catch (err: any) { setErrorMsg(friendlyError(err?.message || "")); }
+    } catch (err: any) {
+      if (!userSaved) setInput(userText); setErrorMsg(friendlyError(err?.message || "")); }
     finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); }
   };
 
@@ -978,62 +945,6 @@ export default function StudyAIPage() {
             노트
           </button>
 
-          {/* IMAGE */}
-
-          <button
-            onClick={() =>
-              fileRef.current?.click()
-            }
-            className="hidden items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] font-bold transition active:scale-95 min-[430px]:flex"
-            style={{
-              background:
-                "#fffbeb",
-
-              color:
-                "#b45309",
-
-              borderColor:
-                "#fcd34d80",
-            }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-
-              <polyline points="17 8 12 3 7 8" />
-
-              <line
-                x1="12"
-                y1="3"
-                x2="12"
-                y2="15"
-              />
-            </svg>
-
-            이미지
-          </button>
-
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={(e) =>
-              uploadImages(
-                e.target.files
-              )
-            }
-          />
-
           {/* CLEAR */}
 
           <button
@@ -1080,7 +991,7 @@ export default function StudyAIPage() {
             <div key={msg.id} className="mx-auto w-full max-w-2xl">
               {msg.role ===
               "user" ? (
-                <AIUserMessage content={msg.content} disabled={isStreaming} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "studyChats", user.uid, "messages", msg.id)); }} />
+                <AIUserMessage content={msg.content} media={msg.media} disabled={isStreaming || mediaBusy} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "studyChats", user.uid, "messages", msg.id)); }} />
               ) : (
                 <div
                   className="mx-auto w-full max-w-2xl py-4"
@@ -1184,37 +1095,7 @@ export default function StudyAIPage() {
           IMAGE PREVIEW
       ===================================================== */}
 
-      {pendingImages.length >
-        0 && (
-        <div className="z-10 flex shrink-0 gap-2 overflow-x-auto px-4 pb-1.5">
-          {pendingImages.map(
-            (src, i) => (
-              <div
-                key={i}
-                className="relative shrink-0"
-              >
-                <img
-                  src={src}
-                  alt=""
-                  className="h-14 w-14 rounded-xl border-2 border-slate-200 object-cover"
-                />
-
-                <button
-                  onClick={() =>
-                    removeImage(
-                      i
-                    )
-                  }
-                  className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-400 text-[10px] font-bold text-white"
-                >
-                  ✕
-                </button>
-              </div>
-            )
-          )}
-        </div>
-      )}
-
+      <div className="mx-auto w-full max-w-2xl px-4">{pendingMedia && <AIMediaPreview media={pendingMedia} onRemove={isStreaming ? undefined : () => setPendingMedia(null)} />}{mediaBusy && <p role="status" className="pb-2 text-xs text-slate-400">첨부를 준비하고 있어…</p>}</div>
       {/* =====================================================
           INPUT
       ===================================================== */}
@@ -1239,6 +1120,7 @@ export default function StudyAIPage() {
               "0 8px 32px rgba(0,0,0,0.07), inset 0 1px 0 white",
           }}
         >
+          <AIMediaPicker disabled={isStreaming || mediaBusy || !historyReady} onChange={setPendingMedia} onBusy={setMediaBusy} onError={setErrorMsg} />
           <textarea
             ref={textareaRef}
             value={input}
@@ -1266,14 +1148,14 @@ export default function StudyAIPage() {
               isStreaming
             }
             rows={2}
-            className="flex-1 resize-none bg-transparent text-[13.5px] font-medium leading-relaxed text-gray-700 outline-none placeholder:text-gray-400 disabled:opacity-50"
+            className="min-w-0 flex-1 resize-none bg-transparent text-[13.5px] font-medium leading-relaxed text-gray-700 outline-none placeholder:text-gray-400 disabled:opacity-50"
           />
 
           <button
             onClick={send}
             disabled={
-              isStreaming || !historyReady ||
-              !input.trim()
+              isStreaming || mediaBusy || !historyReady ||
+              (!input.trim() && !pendingMedia)
             }
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 disabled:opacity-40"
             style={{
