@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { isEmojiOnly } from "@/lib/chat-emoji";
+
 import chatCharacterBackground from "@/components/ChatCharacterBackground";
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -1523,6 +1525,8 @@ export default function GroupChat() {
 
           const isMine =
             m.from === nickname;
+          const emojiOnly = (m.type === "text" || !m.type) && isEmojiOnly(m.content);
+          const bareMessage = editingMsgId !== m.id && (m.type === "image" || emojiOnly);
 
           const prev = messages[i - 1];
 
@@ -1575,19 +1579,19 @@ export default function GroupChat() {
                     )}
 
                   <div
-                    className={`px-4 py-2.5 text-sm leading-relaxed font-medium ${
+                    className={`${bareMessage ? "p-0 text-gray-800" : "px-4 py-2.5 text-sm leading-relaxed font-medium"} ${bareMessage ? "" :
                       isMine
                         ? "text-white rounded-[1.4rem] rounded-br-md"
                         : "bg-white/80 backdrop-blur-sm text-gray-800 rounded-[1.4rem] rounded-bl-md shadow-sm"
                     }`}
-                    style={isMine ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 20px ${accent.shadow}` } : {}}
+                    style={!bareMessage && isMine ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 20px ${accent.shadow}` } : {}}
                     onContextMenu={(e) => openCtxMenu(e, m, isMine)}
                     onTouchStart={(e) => handleTouchStart(e, m, isMine)}
                     onTouchEnd={handleTouchEnd}
                     onTouchMove={handleTouchEnd}
                   >
                     {m.replyTo && (
-                      <div className={`mb-2 px-2 py-1 rounded-xl border-l-4 text-xs opacity-70 ${isMine ? "border-white/60 bg-white/20" : "border-sky-300 bg-sky-50"}`}>
+                      <div className={`mb-2 px-2 py-1 rounded-xl border-l-4 text-xs opacity-70 ${isMine && !bareMessage ? "border-white/60 bg-white/20" : "border-sky-300 bg-sky-50 text-gray-700"}`}>
                         <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}
                       </div>
                     )}
@@ -1613,6 +1617,8 @@ export default function GroupChat() {
                         className="max-w-[220px] max-h-[220px] rounded-2xl object-cover cursor-pointer"
                         onClick={(e) => { e.stopPropagation(); setLightboxSrc(m.content); }}
                       />
+                    ) : emojiOnly ? (
+                      <span className="block text-[48px] leading-snug break-words whitespace-pre-wrap">{m.content}</span>
                     ) : m.type === "audio" ? (
                       <audio src={m.content} controls className="max-w-[220px] rounded-xl" />
                     ) : (

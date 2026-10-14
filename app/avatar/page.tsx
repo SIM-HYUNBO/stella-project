@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { isEmojiOnly } from "@/lib/chat-emoji";
+
 import chatCharacterBackground from "@/components/ChatCharacterBackground";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -1699,6 +1701,8 @@ export default function Chat() {
           if (m.type === "system") return renderSystemMsg(m);
 
           const isMine = m.from === nickname;
+          const emojiOnly = (m.type === "text" || !m.type) && isEmojiOnly(m.content);
+          const bareMessage = editingMsgId !== m.id && (m.type === "image" || emojiOnly);
           const currentDate = formatDateLabel(m.createdAt);
           const prevDate = i > 0 ? formatDateLabel(displayedMessages[i - 1].createdAt) : null;
           const showDate = currentDate && currentDate !== prevDate;
@@ -1757,12 +1761,12 @@ export default function Chat() {
                 )}
 
                 <div
-                  className={`px-4 py-2.5 text-sm leading-relaxed font-medium ${
+                  className={`${bareMessage ? "p-0 text-gray-800" : "px-4 py-2.5 text-sm leading-relaxed font-medium"} ${bareMessage ? "" :
                     isMine
                       ? "text-white rounded-[1.4rem] rounded-br-md"
                       : "bg-white/80 backdrop-blur-sm text-gray-800 rounded-[1.4rem] rounded-bl-md shadow-sm"
                   }`}
-                  style={isMine ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 20px ${accent.shadow}` } : {}}
+                  style={!bareMessage && isMine ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 20px ${accent.shadow}` } : {}}
                   onContextMenu={(e) =>
                     openCtxMenu(e, m, isMine)
                   }
@@ -1776,7 +1780,7 @@ export default function Chat() {
                   onTouchEnd={handleTouchEnd}
                   onTouchMove={handleTouchEnd}
                 >
-                  {renderMsgContent(m)}
+                  {emojiOnly && editingMsgId !== m.id ? <span className="block text-[48px] leading-snug break-words whitespace-pre-wrap">{m.content}</span> : renderMsgContent(m)}
                 </div>
 
                 {m.reactions &&
