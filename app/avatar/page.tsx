@@ -1,5 +1,8 @@
 ﻿"use client";
 
+import styles from "./chat.module.css";
+import type { CSSProperties } from "react";
+
 import { isEmojiOnly } from "@/lib/chat-emoji";
 
 import chatCharacterBackground from "@/components/ChatCharacterBackground";
@@ -1458,12 +1461,12 @@ export default function Chat() {
             value={editingText}
             onChange={(e) => setEditingText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(); } if (e.key === "Escape") { setEditingMsgId(null); } }}
-            className="w-full rounded-xl bg-white/20 text-white placeholder:text-white/50 text-sm px-3 py-2 outline-none resize-none"
+            className="w-full rounded-xl bg-white/70 text-slate-700 placeholder:text-slate-400 text-sm px-3 py-2 outline-none resize-none"
             rows={2}
           />
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setEditingMsgId(null)} className="text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition">취소</button>
-            <button onClick={saveEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
+            <button onClick={() => setEditingMsgId(null)} className="text-xs text-slate-500 px-3 py-1 rounded-full bg-white/60 active:scale-95 transition">취소</button>
+            <button onClick={saveEdit} className="text-xs text-slate-700 font-semibold px-3 py-1 rounded-full bg-white/80 active:scale-95 transition">완료</button>
           </div>
         </div>
       );
@@ -1496,19 +1499,19 @@ export default function Chat() {
     </div>
   );
 
-  const theme = THEMES.find(t => t.id === activeTheme) || THEMES[0];
   const accent = ACCENT[activeTheme] || ACCENT.sky;
 
   const renderChat = () => (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentChatUser && (
-        <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
+        <div className={`${styles.header} flex items-center justify-between shrink-0`}>
           <div className="flex min-w-0 items-center gap-2 mr-2">
             <button
               onClick={() => setCurrentChatUser(null)}
-              className="shrink-0 text-gray-500 text-lg px-1"
+              aria-label="채팅 목록으로 돌아가기"
+              className={`${styles.back} shrink-0`}
             >
-              ←
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m14 6-6 6 6 6" /></svg>
             </button>
 
             <div className="relative shrink-0">
@@ -1516,10 +1519,10 @@ export default function Chat() {
                 <img
                   src={currentChatUser.profileImage}
                   alt={currentChatUser.nickname}
-                  className="w-11 h-11 rounded-full object-cover shadow"
+                  className="w-9 h-9 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
+                <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 text-sm font-semibold flex items-center justify-center">
                   {currentChatUser.nickname[0]}
                 </div>
               )}
@@ -1536,7 +1539,7 @@ export default function Chat() {
             </div>
 
             <div className="min-w-0">
-              <div className="truncate font-bold text-gray-800">
+              <div className="truncate font-semibold text-[15px] text-slate-800">
                 {currentChatUser.nickname}
               </div>
 
@@ -1550,9 +1553,10 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className={`${styles.toolbar} flex shrink-0 items-center`}>
             <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
-              className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+              aria-label="채팅 테마 선택"
+              className={`${styles.themeButton} rounded-full transition-transform`}
               style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
             <PhoneCallButton key={currentChatUser.id} userId={currentChatUser.id} nickname={currentChatUser.nickname} color={accent.from} cachedPhone={currentChatUser.phone} />
             <button type="button" aria-label="메시지 검색" title="메시지 검색" aria-expanded={showMsgSearch} aria-controls="chat-message-search"
@@ -1563,7 +1567,8 @@ export default function Chat() {
 
             <button
               onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+              aria-label="채팅방 메뉴"
+              className="w-9 h-9 flex items-center justify-center rounded-xl transition text-gray-500"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
             </button>
@@ -1688,14 +1693,10 @@ export default function Chat() {
       )}
 
       <div
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-5 flex flex-col gap-3 relative" style={chatCharacterBackground(activeTheme, theme.bg)}
+        className={`${styles.timeline} flex-1 min-h-0 overflow-y-auto flex flex-col relative`} style={chatCharacterBackground(activeTheme, "#fafbfd")}
         onClick={() => { setCtxMenu(null); setShowThemePicker(false); }}
       >
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-50" style={{ background: theme.blob1 }}/>
-          <div className="absolute top-1/3 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40" style={{ background: theme.blob2 }}/>
-          <div className="absolute -bottom-6 left-1/3 w-36 h-36 rounded-full blur-3xl opacity-40" style={{ background: theme.blob3 }}/>
-        </div>
+
         {searchTerm && displayedMessages.length === 0 && <p role="status" className="relative text-center text-sm text-gray-500 py-8">검색한 메시지가 없어.</p>}
         {displayedMessages.map((m, i) => {
           if (m.type === "system") return renderSystemMsg(m);
@@ -1710,11 +1711,7 @@ export default function Chat() {
           return (
             <div key={m.id}>
               {showDate && (
-                <div className="flex items-center gap-2 my-2">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400 shrink-0">{currentDate}</span>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
+                <div className={styles.date}>{currentDate}</div>
               )}
             <div
               key={m.id}
@@ -1730,10 +1727,10 @@ export default function Chat() {
                     <img
                       src={currentChatUser.profileImage}
                       alt={currentChatUser.nickname}
-                      className="w-8 h-8 rounded-full object-cover shadow"
+                      className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center text-xs font-bold text-white shadow">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-500">
                       {m.from[0]}
                     </div>
                   )}
@@ -1761,12 +1758,8 @@ export default function Chat() {
                 )}
 
                 <div
-                  className={`${bareMessage ? "p-0 text-gray-800" : "px-4 py-2.5 text-sm leading-relaxed font-medium"} ${bareMessage ? "" :
-                    isMine
-                      ? "text-white rounded-[1.4rem] rounded-br-md"
-                      : "bg-white/80 backdrop-blur-sm text-gray-800 rounded-[1.4rem] rounded-bl-md shadow-sm"
-                  }`}
-                  style={!bareMessage && isMine ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 4px 20px ${accent.shadow}` } : {}}
+                  className={bareMessage ? styles.bare : `${styles.bubble} ${isMine ? styles.own : styles.peer}`}
+                  style={!bareMessage && isMine ? { background: `${accent.ring}88` } : {}}
                   onContextMenu={(e) =>
                     openCtxMenu(e, m, isMine)
                   }
@@ -1847,7 +1840,7 @@ export default function Chat() {
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] text-slate-400 px-1">{currentChatUser?.nickname}</span>
               <div className="bg-white rounded-[18px] rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"0ms"}} />
+                <span className="w-2 h-2 rounded-full bg-sky-400" style={{background: accent.from, animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"0ms"}} />
                 <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"200ms"}} />
                 <span className="w-2 h-2 rounded-full bg-sky-400" style={{animation:"typingDot 1.2s ease-in-out infinite", animationDelay:"400ms"}} />
               </div>
@@ -1857,7 +1850,7 @@ export default function Chat() {
 
         {isSending && (
           <div className="flex justify-end">
-            <div className="bg-sky-400 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+            <div className="rounded-[19px] rounded-br-md px-4 py-3" style={{ background: accent.from }}>
               <span className="flex gap-1 items-center py-0.5">
                 <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:0ms]"/>
                 <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce [animation-delay:150ms]"/>
@@ -1925,7 +1918,7 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="px-4 pb-5 pt-2.5 shrink-0">
+      <div className={`${styles.composer} shrink-0`}>
         <input
           type="file"
           ref={imageInputRef}
@@ -1941,12 +1934,11 @@ export default function Chat() {
           }}
         />
 
-        <div className="flex items-center gap-2 rounded-full px-3 py-2 transition-all relative overflow-visible"
-          style={{ background:"rgba(255,255,255,0.72)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:"0 4px 24px rgba(0,0,0,0.08),0 0 0 1px rgba(186,230,253,0.4)" }}>
+        <div className={`${styles.pill} flex items-center relative overflow-visible`}>
         {/* + 버튼 (이미지/Aa/마이크 묶음) */}
         <div className="relative shrink-0">
           {showPlusMenu && (
-            <div className="absolute bottom-[52px] left-0 flex gap-2 z-50 animate-[fadeInUp_0.15s_ease]">
+            <div className={`${styles.attachments} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
@@ -2020,7 +2012,7 @@ export default function Chat() {
           <button
             onClick={() => setShowPlusMenu((p) => !p)}
             className="w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black"
-            style={showPlusMenu ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: "#fff" } : { color: accent.from }}
+            style={showPlusMenu ? { background: `${accent.ring}88`, color: accent.from } : { color: "#8995a5" }}
           >
             {showPlusMenu ? "✕" : "+"}
           </button>
@@ -2028,7 +2020,7 @@ export default function Chat() {
 
         <input
           ref={msgInputRef}
-          className="flex-1 min-w-0 w-0 bg-transparent px-2 text-[13.5px] outline-none text-gray-700 placeholder:text-gray-400 font-medium"
+          className={`${styles.input} flex-1 min-w-0 w-0 bg-transparent outline-none text-slate-700 placeholder:text-slate-400`}
           placeholder={wordGame?.active && wordGame.lastChar ? `'${wordGame.lastChar}'(으)로 시작하는 단어` : "메시지 입력"}
           value={input}
           onChange={handleInputChange}
@@ -2074,7 +2066,7 @@ export default function Chat() {
               else { setShowSpecialMenu((p) => !p); }
             }}
             className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 font-black text-sm"
-            style={input.trim() ? { background:`linear-gradient(135deg,${accent.from},${accent.to})`, boxShadow:`0 4px 16px ${accent.shadow}` } : { background:`${accent.ring}55`, color:accent.from }}
+            style={input.trim() ? { background: accent.from } : { background: "#f1f4f8", color: "#8995a5" }}
           >
             {input.trim() ? (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -2225,7 +2217,7 @@ export default function Chat() {
   // 채팅 중: 모바일·데스크탑 모두 fixed inset-0 (PageContainer p-4 오버플로우 문제 방지)
   if (currentChatUser) {
     return (
-      <div className="fixed inset-0 z-40 flex flex-col" style={{ background: theme.bg }}>
+      <div className={`${styles.chat} fixed inset-0 z-40 flex flex-col`} style={{ "--chat-accent": accent.from, "--chat-soft": `${accent.ring}55` } as CSSProperties}>
         {pendingRequest && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-2xl p-6 w-72 flex flex-col gap-4">

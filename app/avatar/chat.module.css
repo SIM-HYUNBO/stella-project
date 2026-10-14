@@ -1,0 +1,124 @@
+.chat {
+  background: #fafbfd;
+  color: #263244;
+}
+
+.header {
+  position: relative;
+  z-index: 20;
+  min-height: 76px;
+  padding: 14px max(16px, calc((100vw - 760px) / 2));
+  background: #fff;
+  border-bottom: 1px solid #edf0f4;
+  gap: 12px;
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 36px;
+  border-radius: 10px;
+  color: #667386;
+  transition: background 150ms;
+}
+
+.back:hover { background: #f3f5f8; }
+
+.toolbar { gap: 2px; }
+.toolbar > button {
+  width: 32px;
+  height: 34px;
+  margin-left: 0;
+  background: transparent;
+  color: #728094;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.toolbar > button:hover { background: #f4f6f9; }
+.toolbar > .themeButton {
+  width: 22px;
+  height: 22px;
+  margin: 0 8px 0 2px;
+  border: 3px solid #fff;
+  outline: 1px solid #e5e9ef;
+}
+
+.timeline {
+  padding: 24px max(20px, calc((100vw - 720px) / 2));
+  gap: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: #dce2e9 transparent;
+}
+
+.date {
+  width: fit-content;
+  margin: 8px auto 20px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ffffffb8;
+  color: #8994a3;
+  font-size: 11px;
+}
+
+.bubble {
+  padding: 11px 15px;
+  border-radius: 19px;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  color: #263244;
+}
+.own { border-bottom-right-radius: 6px; }
+.peer {
+  background: #fff;
+  border: 1px solid #e9edf2;
+  border-bottom-left-radius: 6px;
+}
+.bare { padding: 0; color: #263244; }
+
+.composer {
+  padding: 12px max(16px, calc((100vw - 760px) / 2)) max(18px, env(safe-area-inset-bottom));
+  background: #fafbfd;
+}
+.pill {
+  min-height: 54px;
+  padding: 7px 9px;
+  gap: 8px;
+  border-radius: 28px;
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  box-shadow: 0 3px 12px #26324405;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.pill:focus-within {
+  border-color: var(--chat-accent);
+  box-shadow: 0 0 0 3px var(--chat-soft);
+}
+.input { padding: 6px 2px; font-size: 14px; font-weight: 400; }
+.attachments {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 8px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  box-shadow: 0 8px 28px #26324412;
+}
+.attachments > button, .attachments > div > button {
+  width: 54px;
+  border-color: transparent;
+  box-shadow: none;
+  background: #f7f9fc;
+}
+
+@media (max-width: 380px) {
+  .header { padding: 12px; gap: 4px; min-height: 68px; }
+  .toolbar { gap: 0; }
+  .toolbar > button { width: 29px; }
+  .toolbar > .themeButton { margin-right: 5px; width: 20px; }
+  .timeline { padding-left: 14px; padding-right: 14px; }
+  .attachments { grid-template-columns: repeat(3, 1fr); }
+}
