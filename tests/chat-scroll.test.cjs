@@ -32,7 +32,10 @@ const context = {
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('app/hooks/useChatScroll.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText, context);
-const viewport = { scrollHeight: 1200, clientHeight: 400, scrollTop: 0 };
+let lastScroll;
+const viewport = { scrollHeight: 1200, clientHeight: 400, scrollTop: 0,
+  scrollTo(options) { lastScroll = options; },
+};
 let room = 'one', messages = [{ id: 'a', from: 'friend' }], paused = false, state;
 function render() {
   for (let n = 0; n < 10; n++) {
@@ -51,7 +54,11 @@ render(); assert.equal(viewport.scrollTop, 200); assert.equal(state.newCount, 1)
 messages = messages.map(m => ({ ...m })); render(); assert.equal(state.newCount, 1);
 resize(); render(); assert.equal(viewport.scrollTop, 200);
 messages = messages.filter(m => m.id !== 'b'); render(); assert.equal(state.newCount, 0);
-state.goToLatest(); render(); assert.equal(state.away, false); assert.equal(viewport.scrollTop, 1300);
+state.goToLatest(); render();
+assert.equal(lastScroll.behavior, 'smooth'); assert.equal(lastScroll.top, 1300);
+assert.equal(viewport.scrollTop, 200); resize(); render(); assert.equal(viewport.scrollTop, 200);
+viewport.scrollTop = viewport.scrollHeight - viewport.clientHeight;
+state.onScroll(); render(); assert.equal(state.away, false); assert.equal(state.newCount, 0);
 viewport.scrollTop = 200; state.onScroll(); render();
 messages = [...messages, { id: 'mine', from: 'me' }]; render(); assert.equal(state.away, false);
 viewport.scrollTop = 200; state.onScroll(); render(); paused = true; render();
