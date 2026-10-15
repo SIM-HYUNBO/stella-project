@@ -1,5 +1,10 @@
 ﻿"use client";
 
+import SpoilerMessage from "@/components/SpoilerMessage";
+import SpoilerComposerNotice from "@/components/SpoilerComposerNotice";
+import DrawingReplay from "@/components/DrawingReplay";
+import { validDrawing, type DrawingStroke } from "@/lib/drawing-replay";
+
 import plusMenuStyles from "@/components/ChatPlusMenu.module.css";
 
 import StickerStudio from "@/components/StickerStudio";
@@ -44,6 +49,7 @@ type ReplyTo = {
   from: string;
   content: string;
   type?: string;
+  spoiler?: boolean;
 };
 
 type Message = {
@@ -59,6 +65,8 @@ type Message = {
   replyTo?: ReplyTo;
   reactions?: Record<string, string[]>;
   edited?: boolean;
+  spoiler?: boolean;
+  drawingStrokes?: DrawingStroke[];
   stickerMotion?: string;
   stickerName?: string;
 };
@@ -466,6 +474,8 @@ export default function Chat() {
   const [isDictating, setIsDictating] = useState(false);
   const [showDrawCanvas, setShowDrawCanvas] = useState(false);
   const [showStickerStudio, setShowStickerStudio] = useState(false);
+  const [spoilerMode, setSpoilerMode] = useState(false);
+  useEffect(() => setSpoilerMode(false), [currentChatUser?.id]);
   const recognitionRef = useRef<any>(null);
   const [showSpecialMenu, setShowSpecialMenu] = useState(false);
   const [wordGame, setWordGame] = useState<{ active: boolean; lastWord: string; lastChar: string; lastPlayer: string; startedBy: string } | null>(null);
@@ -782,6 +792,8 @@ export default function Chat() {
           toUid: data.toUid,
           content: data.content,
           type: data.type || "text",
+          spoiler: data.spoiler === true,
+          drawingStrokes: data.drawingStrokes,
           stickerMotion: data.stickerMotion,
           stickerName: data.stickerName,
           createdAt: data.createdAt,
@@ -802,7 +814,7 @@ export default function Chat() {
         if (!isMyChat) continue;
 
         lastMsg =
-          m.type === "image" ? "📷 사진" : m.type === "sticker" ? "✨ 이모티콘" :
+          m.spoiler ? "🔒 스포일러 메시지" : m.type === "image" ? "📷 사진" : m.type === "sticker" ? "✨ 이모티콘" :
           m.content;
 
         if (
@@ -1063,6 +1075,7 @@ export default function Chat() {
       return;
 
     const text = rawInput.trim();
+    const isSpoiler = spoilerMode && textOverride === undefined;
 
     // 초성 퀴즈 정답 체크
     if (chosungGame?.active && !chosungGame.solved && wordGameKey) {
@@ -1126,6 +1139,7 @@ export default function Chat() {
       toUid: currentChatUser.id,
       content: text,
       type: "text",
+        ...(isSpoiler ? { spoiler: true } : {}),
       createdAt: serverTimestamp(),
       readBy: [nickname],
     };
@@ -1140,13 +1154,14 @@ export default function Chat() {
       new Audio("/sounds/alert1.mp3").play().catch(() => {});
       setInput("");
       setReplyTo(null);
+      setSpoilerMode(false);
       fetch("/api/fcm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           toNicknames: [currentChatUser.nickname],
           fromNickname: nickname,
-          message: text.length > 60 ? text.slice(0, 60) + "…" : text,
+          message: isSpoiler ? "🔒 스포일러 메시지가 왔어요" : text.length > 60 ? text.slice(0, 60) + "…" : text,
           url: `/avatar?open=${encodeURIComponent(nickname ?? "")}`,
         }),
       }).catch(() => {});
@@ -1196,7 +1211,7 @@ export default function Chat() {
       img.src = url;
     });
 
-  const sendImage = async (file: File) => {
+  const sendImage = async (file: File, drawingStrokes?: DrawingStroke[]) => {
     if (!nickname || !currentChatUser) return;
     const base64 = await compressToBase64(file);
     await addDoc(collection(db, "messages"), {
@@ -1204,6 +1219,7 @@ export default function Chat() {
       to: currentChatUser.nickname,
       content: base64,
       type: "image",
+      ...(validDrawing(drawingStrokes) ? { drawingStrokes } : {}),
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
@@ -1245,13 +1261,13 @@ export default function Chat() {
     setShowStickerStudio(false);
   };
 
-  const sendDrawing = async (dataUrl: string) => {
-    setShowDrawCanvas(false);
+  const sendDrawing = async (dataUrl: string, strokes?: DrawingStroke[]) => {
     if (!nickname || !currentChatUser) return;
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const file = new File([blob], "drawing.png", { type: "image/png" });
-    await sendImage(file);
+    await sendImage(file, strokes);
+    setShowDrawCanvas(false);
   };
 
   const cancelPendingImage = () => {
@@ -1426,7 +1442,7 @@ export default function Chat() {
 
   const searchTerm = msgSearch.trim().normalize("NFKC").toLocaleLowerCase();
   const displayedMessages = searchTerm
-    ? messages.filter(m => m.type !== "image" && m.type !== "audio" && m.type !== "sticker" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
+    ? messages.filter(m => !m.spoiler && m.type !== "image" && m.type !== "audio" && m.type !== "sticker" && m.content.normalize("NFKC").toLocaleLowerCase().includes(searchTerm))
     : messages;
 
   if (!nickname) {
@@ -1485,6 +1501,8 @@ export default function Chat() {
         </div>
       );
     }
+    if (m.spoiler) return <SpoilerMessage content={m.content}>{renderHighlighted(m.content)}</SpoilerMessage>;
+    if (m.type === "image" && validDrawing(m.drawingStrokes)) return <DrawingReplay src={m.content} strokes={m.drawingStrokes} onExpand={() => setLightboxSrc(m.content)} />;
     if (m.type === "sticker") {
       return <AnimatedSticker src={m.content} motion={m.stickerMotion} name={m.stickerName} />;
     }
@@ -1724,7 +1742,7 @@ export default function Chat() {
           if (m.type === "system") return renderSystemMsg(m);
 
           const isMine = m.from === nickname;
-          const emojiOnly = (m.type === "text" || !m.type) && isEmojiOnly(m.content);
+          const emojiOnly = !m.spoiler && (m.type === "text" || !m.type) && isEmojiOnly(m.content);
           const bareMessage = editingMsgId !== m.id && (m.type === "image" || m.type === "sticker" || emojiOnly);
           const currentDate = formatDateLabel(m.createdAt);
           const prevDate = i > 0 ? formatDateLabel(displayedMessages[i - 1].createdAt) : null;
@@ -1776,7 +1794,7 @@ export default function Chat() {
                     </div>
 
                     <div className="truncate text-gray-500">
-                      {m.replyTo.type === "image"
+                      {m.replyTo.spoiler ? "🔒 스포일러 메시지" : m.replyTo.type === "image"
                         ? "📷 사진"
                         : m.replyTo.content?.startsWith("data:image/") ? "✨ 이모티콘" : m.replyTo.content}
                     </div>
@@ -1901,7 +1919,7 @@ export default function Chat() {
             </div>
 
             <div className="text-xs text-gray-500 truncate">
-              {replyTo.type === "image"
+              {replyTo.spoiler ? "🔒 스포일러 메시지" : replyTo.type === "image"
                 ? "📷 사진"
                 : replyTo.content?.startsWith("data:image/") ? "✨ 이모티콘" : replyTo.content}
             </div>
@@ -1946,6 +1964,7 @@ export default function Chat() {
         </div>
       )}
 
+      {spoilerMode && <SpoilerComposerNotice onCancel={() => setSpoilerMode(false)} />}
       <div className="px-4 pb-5 pt-2.5 shrink-0">
         <input
           type="file"
@@ -1968,6 +1987,11 @@ export default function Chat() {
         <div className="relative shrink-0">
           {showPlusMenu && (
             <div className={`${plusMenuStyles.menu} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setSpoilerMode(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                <span className="text-[9px] font-bold">스포일러</span>
+              </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
@@ -2148,6 +2172,7 @@ export default function Chat() {
                   content:
                     ctxMenu.msg.content,
                   type: ctxMenu.msg.type,
+                  spoiler: ctxMenu.msg.spoiler || false,
                 });
 
                 setCtxMenu(null);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { DrawingPoint, DrawingStroke, packDrawing, paintDrawingPoint } from "@/lib/drawing-replay";
 
 const COLORS = [
   "#1a1a1a", "#ef4444", "#3b82f6", "#22c55e", "#a855f7", "#f97316",
@@ -12,7 +13,7 @@ const SIZES = [
 ];
 
 type Props = {
-  onSend: (dataUrl: string) => void;
+  onSend: (dataUrl: string, strokes?: DrawingStroke[]) => void | Promise<void>;
   onClose: () => void;
   accentFrom?: string;
   accentTo?: string;
@@ -28,7 +29,11 @@ export default function DrawingCanvas({
   const [color, setColor] = useState("#1a1a1a");
   const [sizeIdx, setSizeIdx] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
-  const drawing = useRef(false);
+  const drawing = useRef<number | null>(null);
+  const strokes = useRef<DrawingStroke[]>([]);
+  const activeStroke = useRef<DrawingStroke | null>(null);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const lastPos = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -40,51 +45,47 @@ export default function DrawingCanvas({
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
-  const getPos = (e: React.TouchEvent | React.MouseEvent, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    const sx = canvas.width / rect.width;
-    const sy = canvas.height / rect.height;
-    if ("touches" in e) {
-      const t = e.touches[0];
-      return { x: (t.clientX - rect.left) * sx, y: (t.clientY - rect.top) * sy };
-    }
-    return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy };
+  const getPos = (e: React.PointerEvent<HTMLCanvasElement>): DrawingPoint | null => {
+    const canvas = e.currentTarget, rect = canvas.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return null;
+    return { x: Math.round((e.clientX - rect.left) * canvas.width / rect.width), y: Math.round((e.clientY - rect.top) * canvas.height / rect.height) };
   };
-
-  const startDraw = (e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    drawing.current = true;
-    lastPos.current = getPos(e, canvas);
+  const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (sending || drawing.current !== null || e.button !== 0) return;
+    const pos = getPos(e), ctx = e.currentTarget.getContext("2d"); if (!pos || !ctx) return;
+    e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);
+    drawing.current = e.pointerId; lastPos.current = pos;
+    activeStroke.current = { color: isEraser ? "#ffffff" : color, width: SIZES[sizeIdx].px * (isEraser ? 4 : 1), points: [pos] };
+    paintDrawingPoint(ctx, activeStroke.current, 0);
   };
-
-  const draw = (e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault();
-    if (!drawing.current) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (drawing.current !== e.pointerId || !activeStroke.current) return;
+    const ctx = e.currentTarget.getContext("2d"), pos = getPos(e);
     if (!ctx) return;
-    const pos = getPos(e, canvas);
-    const px = SIZES[sizeIdx].px;
-    ctx.beginPath();
-    ctx.strokeStyle = isEraser ? "#ffffff" : color;
-    ctx.lineWidth = isEraser ? px * 4 : px;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.moveTo(lastPos.current?.x ?? pos.x, lastPos.current?.y ?? pos.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
+    if (!pos) { endDraw(e); return; }
+    if (lastPos.current && Math.hypot(pos.x - lastPos.current.x, pos.y - lastPos.current.y) < 2) return;
+    activeStroke.current.points.push(pos);
+    paintDrawingPoint(ctx, activeStroke.current, activeStroke.current.points.length - 1);
     lastPos.current = pos;
   };
-
-  const endDraw = () => {
-    drawing.current = false;
-    lastPos.current = null;
+  const endDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (drawing.current !== e.pointerId) return;
+    if (activeStroke.current) strokes.current.push(activeStroke.current);
+    activeStroke.current = null; drawing.current = null; lastPos.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+  const send = async () => {
+    if (sending) return;
+    if (!strokes.current.length) { setError("먼저 손글씨를 써 줘."); return; }
+    setSending(true); setError("");
+    try { await onSend(canvasRef.current?.toDataURL("image/png") || "", packDrawing(strokes.current)); }
+    catch (e) { setError(e instanceof Error ? e.message : "보내지 못했어. 다시 눌러 줘."); }
+    finally { setSending(false); }
   };
 
   const clearCanvas = () => {
+    if (sending) return;
+    strokes.current = []; activeStroke.current = null; drawing.current = null; lastPos.current = null;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -97,7 +98,7 @@ export default function DrawingCanvas({
     <div className="fixed inset-0 z-[9999] flex flex-col bg-gray-100">
       {/* 헤더 */}
       <div className="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-xl border-b border-gray-100 shrink-0">
-        <button onClick={onClose}
+        <button onClick={onClose} disabled={sending}
           className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 active:scale-90 transition text-lg font-bold">
           ✕
         </button>
@@ -107,10 +108,10 @@ export default function DrawingCanvas({
           </svg>
           손글씨
         </span>
-        <button onClick={() => onSend(canvasRef.current?.toDataURL("image/png") ?? "")}
+        <button onClick={send} disabled={sending}
           className="px-4 py-2 rounded-full text-white text-sm font-black active:scale-95 transition shadow-md"
           style={{ background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})`, boxShadow: `0 4px 16px ${accentFrom}50` }}>
-          전송
+          {sending ? "보내는 중…" : "전송"}
         </button>
       </div>
 
@@ -122,11 +123,11 @@ export default function DrawingCanvas({
           height={600}
           className="rounded-2xl bg-white shadow-xl w-full touch-none"
           style={{ maxHeight: "100%", objectFit: "contain", cursor: isEraser ? "cell" : "crosshair" }}
-          onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
-          onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+          onPointerDown={startDraw} onPointerMove={draw} onPointerUp={endDraw} onPointerCancel={endDraw} onLostPointerCapture={endDraw}
         />
       </div>
 
+      {error && <p role="alert" className="bg-red-50 px-4 py-2 text-xs text-red-500">{error}</p>}
       {/* 툴바 */}
       <div className="shrink-0 bg-white border-t border-gray-100 px-5 py-3">
         <div className="flex items-center justify-between">

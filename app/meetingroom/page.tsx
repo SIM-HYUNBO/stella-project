@@ -1,5 +1,10 @@
 ﻿"use client";
 
+import SpoilerMessage from "@/components/SpoilerMessage";
+import SpoilerComposerNotice from "@/components/SpoilerComposerNotice";
+import DrawingReplay from "@/components/DrawingReplay";
+import { validDrawing, type DrawingStroke } from "@/lib/drawing-replay";
+
 import plusMenuStyles from "@/components/ChatPlusMenu.module.css";
 
 import StickerStudio from "@/components/StickerStudio";
@@ -74,7 +79,9 @@ type MeetingMessage = {
   type?: "text" | "image" | "sticker" | "urgent" | "audio";
   createdAt?: any;
   readBy?: string[];
-  replyTo?: { id: string; from: string; content: string };
+  replyTo?: { id: string; from: string; content: string; spoiler?: boolean };
+  spoiler?: boolean;
+  drawingStrokes?: DrawingStroke[];
   stickerMotion?: string;
   stickerName?: string;
 };
@@ -113,7 +120,7 @@ export default function MeetingRoomPage() {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
-  const [replyTo, setReplyTo] = useState<{ id: string; from: string; content: string; type: string } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; from: string; content: string; type: string; spoiler?: boolean } | null>(null);
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -128,6 +135,8 @@ export default function MeetingRoomPage() {
   const [isDictating, setIsDictating] = useState(false);
   const [showDrawCanvas, setShowDrawCanvas] = useState(false);
   const [showStickerStudio, setShowStickerStudio] = useState(false);
+  const [spoilerMode, setSpoilerMode] = useState(false);
+  useEffect(() => setSpoilerMode(false), [currentRoom?.id]);
   const recognitionRef = useRef<any>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
@@ -254,10 +263,13 @@ export default function MeetingRoomPage() {
           from: data.from,
           content: data.content,
           type: data.type || "text",
+          spoiler: data.spoiler === true,
+          drawingStrokes: data.drawingStrokes,
           stickerMotion: data.stickerMotion,
           stickerName: data.stickerName,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
+          replyTo: data.replyTo,
         };
         if (m.from !== nickname && !m.readBy?.includes(nickname)) {
           await updateDoc(
@@ -494,17 +506,20 @@ export default function MeetingRoomPage() {
     const rawInput = textOverride ?? input;
     if (!rawInput.trim() || !nickname || !currentRoom || isSending) return;
     const text = rawInput.trim();
+    const isSpoiler = spoilerMode && textOverride === undefined;
     setIsSending(true);
     try {
       await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
         from: nickname,
         content: text,
         type: "text",
+        ...(isSpoiler ? { spoiler: true } : {}),
         createdAt: serverTimestamp(),
         readBy: [nickname],
-        ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content } } : {}),
+        ...(replyTo ? { replyTo: { id: replyTo.id, from: replyTo.from, content: replyTo.content, spoiler: replyTo.spoiler || false } } : {}),
       });
       setReplyTo(null);
+      setSpoilerMode(false);
       setInput("");
       new Audio("/sounds/alert1.mp3").play().catch(() => {});
     } catch {
@@ -574,13 +589,14 @@ export default function MeetingRoomPage() {
       img.src = url;
     });
 
-  const sendImage = async (file: File) => {
+  const sendImage = async (file: File, drawingStrokes?: DrawingStroke[]) => {
     if (!nickname || !currentRoom) return;
     const base64 = await compressToBase64(file);
     await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
       from: nickname,
       content: base64,
       type: "image",
+      ...(validDrawing(drawingStrokes) ? { drawingStrokes } : {}),
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
@@ -610,13 +626,13 @@ export default function MeetingRoomPage() {
     setShowStickerStudio(false);
   };
 
-  const sendDrawing = async (dataUrl: string) => {
-    setShowDrawCanvas(false);
+  const sendDrawing = async (dataUrl: string, strokes?: DrawingStroke[]) => {
     if (!nickname || !currentRoom) return;
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const file = new File([blob], "drawing.png", { type: "image/png" });
-    await sendImage(file);
+    await sendImage(file, strokes);
+    setShowDrawCanvas(false);
   };
 
   const inviteUser = async (targetNickname: string) => {
@@ -897,7 +913,7 @@ export default function MeetingRoomPage() {
         </div>
         {messages.map((m, i) => {
           const isMine = m.from === nickname;
-          const emojiOnly = (m.type === "text" || !m.type) && isEmojiOnly(m.content);
+          const emojiOnly = !m.spoiler && (m.type === "text" || !m.type) && isEmojiOnly(m.content);
           const bareMessage = editingMsgId !== m.id && (m.type === "image" || m.type === "sticker" || emojiOnly);
           const prev = messages[i - 1];
           const showUser = !prev || prev.from !== m.from;
@@ -966,7 +982,7 @@ export default function MeetingRoomPage() {
                   >
                     {m.replyTo && (
                       <div className={`mb-2 px-2 py-1 rounded-xl border-l-4 text-xs opacity-70 ${isMine && !bareMessage ? "border-white/60 bg-white/20" : "border-sky-300 bg-sky-50 text-gray-700"}`}>
-                        <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.content?.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : <>{m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}</>}
+                        <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.spoiler ? "🔒 스포일러 메시지" : m.replyTo.content?.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : <>{m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}</>}
                       </div>
                     )}
                     {editingMsgId === m.id ? (
@@ -984,6 +1000,10 @@ export default function MeetingRoomPage() {
                           <button onClick={saveMeetingEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
                         </div>
                       </div>
+                    ) : m.spoiler ? (
+                      <SpoilerMessage content={m.content}>{renderHighlighted(m.content)}</SpoilerMessage>
+                    ) : m.type === "image" && validDrawing(m.drawingStrokes) ? (
+                      <DrawingReplay src={m.content} strokes={m.drawingStrokes} onExpand={() => setLightboxSrc(m.content)} />
                     ) : m.type === "sticker" ? (
                       <AnimatedSticker src={m.content} motion={m.stickerMotion} name={m.stickerName} />
                     ) : m.type === "image" ? (
@@ -1001,7 +1021,7 @@ export default function MeetingRoomPage() {
                       <span className="break-words whitespace-pre-wrap">{renderHighlighted(m.content)}</span>
                     )}
                   </div>
-                  {m.type !== "image" && m.type !== "audio" && m.type !== "sticker" && (() => {
+                  {!m.spoiler && m.type !== "image" && m.type !== "audio" && m.type !== "sticker" && (() => {
                     const url = extractFirstUrl(m.content);
                     return url ? <LinkPreview url={url} isMine={isMine} /> : null;
                   })()}
@@ -1091,12 +1111,13 @@ export default function MeetingRoomPage() {
         <div className="px-4 py-2 bg-sky-50 border-t border-sky-100 flex items-center gap-2 shrink-0">
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black text-sky-500">↩ {replyTo.from}에게 답장</p>
-            <p className="text-xs text-gray-500 truncate">{replyTo.content.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : replyTo.content}</p>
+            <p className="text-xs text-gray-500 truncate">{replyTo.spoiler ? "🔒 스포일러 메시지" : replyTo.content.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : replyTo.content}</p>
           </div>
           <button onClick={() => setReplyTo(null)} className="text-gray-400 text-sm font-bold shrink-0">✕</button>
         </div>
       )}
 
+      {spoilerMode && <SpoilerComposerNotice onCancel={() => setSpoilerMode(false)} />}
       <div className="px-4 pb-5 pt-2.5 shrink-0">
         <input
           type="file"
@@ -1119,6 +1140,11 @@ export default function MeetingRoomPage() {
         <div className="relative shrink-0">
           {showPlusMenu && (
             <div className={`${plusMenuStyles.menu} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setSpoilerMode(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                <span className="text-[9px] font-bold">스포일러</span>
+              </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
@@ -1400,7 +1426,7 @@ export default function MeetingRoomPage() {
         {ctxMenu && (
           <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
-              <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type }); setCtxMenu(null); }}>↩ 답장</button>
+              <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
               {ctxMenu.isMine && (
                 <>
                   <button hidden={ctxMenu.msg.type === "sticker"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
