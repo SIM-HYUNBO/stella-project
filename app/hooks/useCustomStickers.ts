@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot, runTransaction } from "firebase/firestore";
 import { auth, db } from "@/app/firebase";
-import { CustomSticker, isCustomSticker, MAX_STICKERS } from "@/lib/custom-stickers";
+import { CustomSticker, isCustomSticker, MAX_STICKERS, MAX_STICKER_LIBRARY_DATA } from "@/lib/custom-stickers";
 
 const validStickers = (value: unknown): CustomSticker[] => Array.isArray(value) ? value.filter(isCustomSticker) : [];
 
@@ -35,6 +35,7 @@ export default function useCustomStickers() {
       const items = validStickers(snapshot.data().customStickers);
       if (items.some(item => item.id === sticker.id)) return;
       if (items.length >= MAX_STICKERS) throw Error(`이모티콘은 ${MAX_STICKERS}개까지 저장할 수 있어. 하나 지운 뒤 다시 저장해 줘.`);
+      if (JSON.stringify([...items, sticker]).length > MAX_STICKER_LIBRARY_DATA) throw Error("이모티콘 저장 공간이 꽉 찼어. 안 쓰는 이모티콘을 지운 뒤 다시 저장해 줘.");
       transaction.update(target, { customStickers: [...items, sticker] });
     });
   };

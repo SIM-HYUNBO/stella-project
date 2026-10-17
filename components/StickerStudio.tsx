@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import AnimatedSticker from "./AnimatedSticker";
 import useCustomStickers from "@/app/hooks/useCustomStickers";
-import { CustomSticker, MAX_STICKER_IMAGE, MAX_STICKERS, StickerMotion, STICKER_MOTIONS } from "@/lib/custom-stickers";
+import useStickerVoice from "@/app/hooks/useStickerVoice";
+import StickerFaceCapture from "./StickerFaceCapture";
+import { CustomSticker, MAX_STICKER_IMAGE, MAX_STICKERS, StickerMotion, STICKER_MOTIONS, StickerVoice, StickerFace } from "@/lib/custom-stickers";
 
 const COLORS = ["#263244", "#f472b6", "#fb923c", "#facc15", "#34d399", "#38bdf8", "#a78bfa", "#ffffff"];
 
@@ -25,6 +27,17 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [voice, setVoice] = useState<StickerVoice>();
+  const [face, setFace] = useState<StickerFace>();
+  const [faceBusy, setFaceBusy] = useState(false);
+  const recording = useStickerVoice(setVoice);
+  const captureBusy = recording.busy || faceBusy;
+  const voicePreview = useRef<HTMLAudioElement>(null);
+  useEffect(() => {
+    const stopPreview = (event: Event) => { if ((event as CustomEvent).detail !== "studio-preview") voicePreview.current?.pause(); };
+    window.addEventListener("wagie:sticker-voice", stopPreview);
+    return () => window.removeEventListener("wagie:sticker-voice", stopPreview);
+  }, []);
 
   const remember = () => {
     const canvas = canvasRef.current, context = canvas?.getContext("2d");
@@ -73,12 +86,12 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
       const context = output.getContext("2d"); if (!context) throw Error("그림을 만들지 못했어.");
       context.drawImage(canvas, 0, 0, width, width);
       const image = output.toDataURL("image/png");
-      if (image.length <= MAX_STICKER_IMAGE) return { id: crypto.randomUUID(), name: name.trim() || "내 이모티콘", image, motion };
+      if (image.length <= MAX_STICKER_IMAGE) return { id: crypto.randomUUID(), name: name.trim() || "내 이모티콘", image, motion, ...(voice ? { voice } : {}), ...(face ? { face } : {}) };
     }
     throw Error("그림이 너무 복잡해. 조금 단순하게 그려 줘.");
   };
   const action = async (fn: () => Promise<void>) => {
-    if (busyRef.current) return;
+    if (busyRef.current || captureBusy) return;
     busyRef.current = true; setBusy(true); setError(""); setNotice("");
     try { await fn(); }
     catch (e) { setError(e instanceof Error ? e.message : "저장하거나 보내지 못했어. 다시 눌러 줘."); }
@@ -97,7 +110,7 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
           <div className="relative mx-auto aspect-square w-full max-w-[384px] overflow-hidden rounded-2xl" style={{ backgroundImage: "conic-gradient(#eef2f6 25%,white 0 50%,#eef2f6 0 75%,white 0)", backgroundSize: "20px 20px" }}>
             {!preview && <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-slate-400">여기에 직접 그려 봐</span>}
             <canvas ref={canvasRef} width={384} height={384} aria-label="이모티콘 그림판" className="relative h-full w-full touch-none"
-              onPointerDown={event => { if (busy || pointer.current !== null || event.button !== 0) return; event.preventDefault(); remember(); pointer.current = event.pointerId; last.current = null; event.currentTarget.setPointerCapture(event.pointerId); draw(event, true); }}
+              onPointerDown={event => { if (busy || faceBusy || pointer.current !== null || event.button !== 0) return; event.preventDefault(); remember(); pointer.current = event.pointerId; last.current = null; event.currentTarget.setPointerCapture(event.pointerId); draw(event, true); }}
               onPointerMove={event => { if (pointer.current === event.pointerId) draw(event); }}
               onPointerUp={end} onPointerCancel={end} onLostPointerCapture={end} />
           </div>
@@ -112,12 +125,23 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
         </section>
         <section className="flex flex-col rounded-3xl border border-slate-100 bg-white p-5">
           <h2 className="text-xs font-semibold text-slate-400">움직임 미리보기</h2>
-          <div className="flex min-h-[180px] flex-1 items-center justify-center">{preview ? <AnimatedSticker src={preview} motion={motion} /> : <span className="text-sm text-slate-300">그림을 그리면 여기에서 움직여</span>}</div>
-          <div className="grid grid-cols-3 gap-2">{STICKER_MOTIONS.map(item => <button key={item.id} disabled={busy} aria-pressed={motion === item.id} onClick={() => setMotion(item.id)} className={`rounded-xl px-2 py-2.5 text-xs ${motion === item.id ? "bg-sky-100 font-bold text-sky-700" : "bg-slate-50 text-slate-500"}`}>{item.label}</button>)}</div>
+          <div className="flex min-h-[180px] flex-1 items-center justify-center">{preview ? <AnimatedSticker src={preview} motion={motion} voice={voice} face={face} /> : <span className="text-sm text-slate-300">그림을 그리면 여기에서 움직여</span>}</div>
+          <div className="grid grid-cols-3 gap-2">{STICKER_MOTIONS.map(item => <button key={item.id} disabled={busy || faceBusy} aria-pressed={!face && motion === item.id} onClick={() => { setMotion(item.id); setFace(undefined); }} className={`rounded-xl px-2 py-2.5 text-xs ${!face && motion === item.id ? "bg-sky-100 font-bold text-sky-700" : "bg-slate-50 text-slate-500"}`}>{item.label}</button>)}</div>
           <input value={name} disabled={busy} maxLength={24} onChange={event => setName(event.target.value)} aria-label="이모티콘 이름" placeholder="이모티콘 이름" className="mt-4 rounded-xl border border-slate-100 px-3 py-3 text-sm outline-none focus:border-sky-300" />
+          <div className="mt-4 rounded-2xl bg-sky-50 p-3">
+            <p className="text-xs font-bold text-sky-700">목소리 넣기 · 최대 6초</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {recording.phase === "recording" ? <button onClick={recording.stop} className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600"><span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />{recording.seconds}/6초 · 녹음 끝내기</button> :
+                <button disabled={busy || captureBusy} onClick={recording.start} className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-sky-600 disabled:opacity-40"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" /></svg>{recording.phase === "permission" ? "마이크 권한 확인 중…" : recording.phase === "processing" ? "목소리 저장 중…" : voice ? "다시 녹음" : "목소리 녹음"}</button>}
+              {voice && !recording.busy && <button disabled={busy} onClick={() => setVoice(undefined)} className="px-2 text-xs text-slate-500">목소리 지우기</button>}
+            </div>
+            {voice && !recording.busy && <audio ref={voicePreview} key={voice.data} controls preload="metadata" src={voice.data} onPlay={() => window.dispatchEvent(new CustomEvent("wagie:sticker-voice", { detail: "studio-preview" }))} aria-label="녹음한 목소리 미리 듣기" className="mt-2 h-9 w-full" />}
+            {recording.error && <p role="alert" className="mt-2 text-xs text-red-500">{recording.error}</p>}
+          </div>
+          <StickerFaceCapture image={preview} value={face} onChange={setFace} disabled={busy || recording.busy} onBusy={setFaceBusy} />
           <div className="mt-3 flex gap-2">
-            <button disabled={busy || !ready || !preview || !!loadError} onClick={() => action(async () => { await save(makeSticker()); setNotice("내 이모티콘에 저장했어!"); })} className="flex-1 rounded-xl bg-sky-100 py-3 text-sm font-semibold text-sky-700 disabled:opacity-40">저장</button>
-            {onSend && <button disabled={busy || !preview} onClick={() => action(() => onSend(makeSticker()))} className="flex-1 rounded-xl bg-sky-400 py-3 text-sm font-semibold text-white disabled:opacity-40">보내기</button>}
+            <button disabled={busy || captureBusy || !ready || !preview || !!loadError} onClick={() => action(async () => { await save(makeSticker()); setNotice("내 이모티콘에 저장했어!"); })} className="flex-1 rounded-xl bg-sky-100 py-3 text-sm font-semibold text-sky-700 disabled:opacity-40">저장</button>
+            {onSend && <button disabled={busy || captureBusy || !preview} onClick={() => action(() => onSend(makeSticker()))} className="flex-1 rounded-xl bg-sky-400 py-3 text-sm font-semibold text-white disabled:opacity-40">보내기</button>}
           </div>
         </section>
       </div>
@@ -127,7 +151,7 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
         {!ready ? <p className="text-sm text-slate-400">이모티콘 불러오는 중…</p> : !stickers.length ? <p className="rounded-2xl bg-white p-5 text-sm text-slate-400">첫 이모티콘을 저장해 봐. 채팅방 + 메뉴에서도 꺼내 쓸 수 있어.</p> :
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{stickers.map(sticker => <div key={sticker.id} className="relative rounded-2xl border border-slate-100 bg-white p-3 text-center">
             <button aria-label={`${sticker.name} 삭제`} disabled={busy} onClick={() => { if (confirm(`${sticker.name}을 내 이모티콘에서 지울까? 보낸 메시지는 남아 있어.`)) action(() => remove(sticker.id)); }} className="absolute right-2 top-2 z-10 rounded-full px-2 py-1 text-xs text-slate-400">✕</button>
-            <AnimatedSticker src={sticker.image} motion={sticker.motion} small name={sticker.name} />
+            <AnimatedSticker src={sticker.image} motion={sticker.motion} voice={sticker.voice} face={sticker.face} small name={sticker.name} />
             <p className="truncate text-xs text-slate-500">{sticker.name}</p>
             {onSend && <button disabled={busy} onClick={() => action(() => onSend(sticker))} className="mt-2 w-full rounded-lg bg-sky-50 py-2 text-xs font-semibold text-sky-600 disabled:opacity-40">보내기</button>}
           </div>)}</div>}

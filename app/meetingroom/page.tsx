@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import BubbleEntrance from "@/components/BubbleEntrance";
 import BubbleEffectPicker from "@/components/BubbleEffectPicker";
@@ -13,7 +13,7 @@ import plusMenuStyles from "@/components/ChatPlusMenu.module.css";
 
 import StickerStudio from "@/components/StickerStudio";
 import AnimatedSticker from "@/components/AnimatedSticker";
-import type { CustomSticker } from "@/lib/custom-stickers";
+import type { CustomSticker, StickerVoice, StickerFace } from "@/lib/custom-stickers";
 
 import useChatScroll from "@/app/hooks/useChatScroll";
 import ChatScrollButton from "@/components/ChatScrollButton";
@@ -89,6 +89,8 @@ type MeetingMessage = {
   drawingStrokes?: DrawingStroke[];
   stickerMotion?: string;
   stickerName?: string;
+  stickerVoice?: StickerVoice;
+  stickerFace?: StickerFace;
 };
 
 type User = {
@@ -276,6 +278,8 @@ export default function MeetingRoomPage() {
           drawingStrokes: data.drawingStrokes,
           stickerMotion: data.stickerMotion,
           stickerName: data.stickerName,
+          stickerVoice: data.stickerVoice,
+          stickerFace: data.stickerFace,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
           replyTo: data.replyTo,
@@ -622,6 +626,8 @@ export default function MeetingRoomPage() {
       type: "sticker",
       stickerMotion: sticker.motion,
       stickerName: sticker.name,
+      ...(sticker.voice ? { stickerVoice: sticker.voice } : {}),
+      ...(sticker.face ? { stickerFace: sticker.face } : {}),
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
@@ -1016,7 +1022,7 @@ export default function MeetingRoomPage() {
                     ) : m.type === "image" && validDrawing(m.drawingStrokes) ? (
                       <DrawingReplay src={m.content} strokes={m.drawingStrokes} onExpand={() => setLightboxSrc(m.content)} />
                     ) : m.type === "sticker" ? (
-                      <AnimatedSticker src={m.content} motion={m.stickerMotion} name={m.stickerName} />
+                      <AnimatedSticker src={m.content} motion={m.stickerMotion} name={m.stickerName} voice={m.stickerVoice} face={m.stickerFace} />
                     ) : m.type === "image" ? (
                       <img
                         src={m.content}

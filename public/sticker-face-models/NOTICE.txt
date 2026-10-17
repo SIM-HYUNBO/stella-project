@@ -1,0 +1,5 @@
+Face detector and 68-point tiny landmark model files copied from
+@vladmandic/face-api v1.7.15 (installed npm package).
+Project: https://github.com/vladmandic/face-api
+The accompanying LICENSE is the upstream MIT license.
+These files are served locally so recording does not depend on a model CDN.
