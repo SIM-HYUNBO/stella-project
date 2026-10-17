@@ -1,5 +1,9 @@
 ﻿"use client";
 
+import BubbleEntrance from "@/components/BubbleEntrance";
+import BubbleEffectPicker from "@/components/BubbleEffectPicker";
+import { BUBBLE_EFFECTS, type BubbleEffect } from "@/lib/bubble-effects";
+
 import SpoilerMessage from "@/components/SpoilerMessage";
 import SpoilerComposerNotice from "@/components/SpoilerComposerNotice";
 import DrawingReplay from "@/components/DrawingReplay";
@@ -65,6 +69,7 @@ type Message = {
   replyTo?: ReplyTo;
   reactions?: Record<string, string[]>;
   edited?: boolean;
+  bubbleEffect?: string;
   spoiler?: boolean;
   drawingStrokes?: DrawingStroke[];
   stickerMotion?: string;
@@ -475,6 +480,9 @@ export default function Chat() {
   const [showDrawCanvas, setShowDrawCanvas] = useState(false);
   const [showStickerStudio, setShowStickerStudio] = useState(false);
   const [spoilerMode, setSpoilerMode] = useState(false);
+  const [selectedEffect, setSelectedEffect] = useState<BubbleEffect>("none");
+  const [showEffectPicker, setShowEffectPicker] = useState(false);
+  useEffect(() => { setSelectedEffect("none"); setShowEffectPicker(false); }, [currentChatUser?.id]);
   useEffect(() => setSpoilerMode(false), [currentChatUser?.id]);
   const recognitionRef = useRef<any>(null);
   const [showSpecialMenu, setShowSpecialMenu] = useState(false);
@@ -792,6 +800,7 @@ export default function Chat() {
           toUid: data.toUid,
           content: data.content,
           type: data.type || "text",
+          bubbleEffect: data.bubbleEffect,
           spoiler: data.spoiler === true,
           drawingStrokes: data.drawingStrokes,
           stickerMotion: data.stickerMotion,
@@ -1140,6 +1149,7 @@ export default function Chat() {
       content: text,
       type: "text",
         ...(isSpoiler ? { spoiler: true } : {}),
+        ...(selectedEffect !== "none" && textOverride === undefined ? { bubbleEffect: selectedEffect } : {}),
       createdAt: serverTimestamp(),
       readBy: [nickname],
     };
@@ -1155,6 +1165,7 @@ export default function Chat() {
       setInput("");
       setReplyTo(null);
       setSpoilerMode(false);
+      setSelectedEffect("none");
       fetch("/api/fcm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1801,7 +1812,7 @@ export default function Chat() {
                   </div>
                 )}
 
-                <div
+                <BubbleEntrance effect={m.bubbleEffect} isMine={isMine} messageId={m.id}><div
                   className={`${bareMessage ? "p-0 text-gray-800" : "px-4 py-2.5 text-sm leading-relaxed font-medium"} ${bareMessage ? "" :
                     isMine
                       ? "text-slate-800 rounded-[1.4rem] rounded-br-md"
@@ -1817,7 +1828,7 @@ export default function Chat() {
                   }}
                 >
                   {emojiOnly && editingMsgId !== m.id ? <span className="block text-[48px] leading-snug break-words whitespace-pre-wrap">{m.content}</span> : renderMsgContent(m)}
-                </div>
+                </div></BubbleEntrance>
 
                 {m.reactions &&
                   Object.keys(m.reactions).length >
@@ -1965,6 +1976,11 @@ export default function Chat() {
       )}
 
       {spoilerMode && <SpoilerComposerNotice onCancel={() => setSpoilerMode(false)} />}
+      {showEffectPicker && <BubbleEffectPicker value={selectedEffect} onChange={value => { setSelectedEffect(value); setShowEffectPicker(false); }} onClose={() => setShowEffectPicker(false)} color={accent.from} softColor={accent.ring} />}
+      {selectedEffect !== "none" && <div className="mx-4 mb-1 flex items-center justify-between rounded-xl px-3 py-2 text-xs" style={{ background: `${accent.ring}55`, color: accent.from }}>
+        <span>다음 메시지 · {BUBBLE_EFFECTS.find(effect => effect.id === selectedEffect)?.label}</span>
+        <button type="button" aria-label="등장 효과 취소" onClick={() => setSelectedEffect("none")} className="px-2 py-1">✕</button>
+      </div>}
       <div className="px-4 pb-5 pt-2.5 shrink-0">
         <input
           type="file"
@@ -1987,6 +2003,11 @@ export default function Chat() {
         <div className="relative shrink-0">
           {showPlusMenu && (
             <div className={`${plusMenuStyles.menu} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowEffectPicker(true); setShowPlusMenu(false); }}
+                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4m-2-2h4"/></svg>
+                <span className="text-[9px] font-bold">등장 효과</span>
+              </button>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setSpoilerMode(true); setShowPlusMenu(false); }}
                 className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>

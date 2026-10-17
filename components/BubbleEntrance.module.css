@@ -1,0 +1,26 @@
+.entrance { transform-origin: left bottom; }
+.own { transform-origin: right bottom; }
+.waiting { opacity: 0; }
+.fade { animation: bubbleFade .45s ease-out both; }
+.pop { animation: bubblePop .6s ease-out both; }
+.shake { animation: bubbleShake .65s ease-in-out both; }
+.preview { animation-duration: 2s; animation-iteration-count: infinite; }
+@keyframes bubbleFade {
+  0% { opacity: 0; transform: translateY(7px); }
+  50%,100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes bubblePop {
+  0% { opacity: 0; transform: scale(.75) translateY(6px); }
+  25% { opacity: 1; transform: scale(1.06) translateY(-3px); }
+  45% { transform: scale(.98) translateY(1px); }
+  65%,100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes bubbleShake {
+  0%,65%,100% { transform: translateX(0) rotate(0); }
+  10%,30%,50% { transform: translateX(-3px) rotate(-2deg); }
+  20%,40% { transform: translateX(3px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .waiting { opacity: 1; }
+  .fade,.pop,.shake { animation: none; }
+}
