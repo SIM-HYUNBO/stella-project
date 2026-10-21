@@ -1,6 +1,8 @@
+import { aiGuard } from "@/lib/ai-guard";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+  const denied = await aiGuard(req); if (denied) return denied;
   const { ingredients } = await req.json();
   const key = process.env.GROQ_API_KEY;
   if (!key) return NextResponse.json({ recipe: "AI 기능이 설정되지 않았어요." });

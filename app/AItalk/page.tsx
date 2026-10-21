@@ -1,4 +1,5 @@
 ﻿"use client";
+import { apiFetch } from "@/lib/api-fetch";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -19,7 +20,7 @@ export default function Page() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await fetch("/api/ai-chat", {
+        const res = await apiFetch("/api/ai-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, messages: [] }),
@@ -45,7 +46,7 @@ export default function Page() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("/api/ai-chat", {
+      const res = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, messages: newMessages }),

@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         db.collection("notifications").doc(toName).collection("items").doc(body.id).set({ title, message, from: fromName, url: "/my-room", read: false, createdAt: admin.firestore.FieldValue.serverTimestamp() }),
         (async () => {
           const token = (await db.collection("fcm_tokens").doc(toName).get()).data()?.token;
-          if (token) await admin.messaging().send({ token, data: { title, body: message, url: "/my-room" }, webpush: { notification: { title, body: message, icon: "/wag.png", tag: `letter-${body.id}` }, fcmOptions: { link: "/my-room" } }, android: { notification: { title, body: message } }, apns: { payload: { aps: { alert: { title, body: message }, sound: "default" } } } });
+          if (token && to.data()?.pushEnabled !== false) await admin.messaging().send({ token, data: { title, body: message, url: "/my-room" }, webpush: { notification: { title, body: message, icon: "/wag.png", tag: `letter-${body.id}` }, fcmOptions: { link: "/my-room" } }, android: { notification: { title, body: message } }, apns: { payload: { aps: { alert: { title, body: message }, sound: "default" } } } });
         })(),
       ]);
     }

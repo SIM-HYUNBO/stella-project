@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api-fetch";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -21,6 +22,26 @@ export default function StorySessionPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [showExit, setShowExit] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const ending = useRef(false);
+  useEffect(() => {
+    if (!requestDocId || !nickname) return;
+    return onSnapshot(doc(db, "story_requests", requestDocId), snap => {
+      const data=snap.data(), allowed=data && [data.from,data.to].includes(nickname) && data.status === "accepted";
+      setSessionReady(!!allowed);
+      if (!allowed && !ending.current) router.replace("/creative/story");
+    }, () => { setSessionReady(false); alert("작품 연결이 끊겼어. 다시 들어와 줘."); });
+  }, [requestDocId, nickname, router]);
+  const finishSession = async () => {
+    if (!requestDocId || ending.current) return;
+    ending.current=true;
+    try {
+      const res=await apiFetch("/api/creative-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"story",id:requestDocId})});
+      const data=await res.json(); if(!res.ok) throw Error(data.error);
+      router.replace("/creative");
+    } catch(e) { alert(e instanceof Error?e.message:"종료하지 못했어. 다시 시도해 줘."); }
+    finally {ending.current=false;}
+  };
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,7 +83,7 @@ export default function StorySessionPage() {
 
   // 내 차례인지 계산: 처음엔 from 차례, 이후 번갈아가며
   const isMyTurn = (() => {
-    if (!nickname || !fromUser) return false;
+    if (!sessionReady || !nickname || !fromUser) return false;
     if (lines.length === 0) return nickname === fromUser;
     const last = lines[lines.length - 1];
     return last.by !== nickname;
@@ -71,11 +92,13 @@ export default function StorySessionPage() {
   const sendLine = async () => {
     if (!input.trim() || !nickname || !isMyTurn || sending) return;
     setSending(true);
+    try {
     await addDoc(collection(db, "story_sessions", sessionId, "lines"), {
       by: nickname, text: input.trim(), createdAt: serverTimestamp(),
     });
     setInput("");
-    setSending(false);
+    } catch { alert("문장을 보내지 못했어. 입력한 내용은 남겨 뒀어."); }
+    finally { setSending(false); }
   };
 
   const handleSave = () => {
@@ -171,10 +194,7 @@ export default function StorySessionPage() {
             </div>
             <div className="flex gap-2">
               <button onClick={() => setShowExit(false)} className="flex-1 py-3 rounded-2xl bg-white/10 text-white/70 font-bold text-sm active:scale-95 transition">취소</button>
-              <button onClick={async () => {
-                if (requestDocId) await updateDoc(doc(db, "story_requests", requestDocId), { status: "ended" });
-                router.push("/creative");
-              }} className="flex-1 py-3 rounded-2xl font-bold text-sm text-white active:scale-95 transition"
+              <button onClick={finishSession} className="flex-1 py-3 rounded-2xl font-bold text-sm text-white active:scale-95 transition"
                 style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }}>
                 나가기
               </button>

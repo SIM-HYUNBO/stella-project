@@ -1,8 +1,10 @@
+import { aiGuard } from "@/lib/ai-guard";
 export const runtime = "nodejs";
 
 let prankWinCount = 0;
 
 export async function POST(req) {
+  const denied = await aiGuard(req); if (denied) return denied;
   try {
     const { messages = [] } = await req.json();
     if (!Array.isArray(messages)) return Response.json({ text: "메시지 형식 오류" }, { status: 400 });

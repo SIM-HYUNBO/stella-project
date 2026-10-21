@@ -1,104 +1,51 @@
 "use client";
-
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/firebase";
-import { collection, doc, getDoc, query, where, onSnapshot } from "firebase/firestore";
+import { collection, doc, query, where, onSnapshot } from "firebase/firestore";
 
 export default function AppBadge() {
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (!("setAppBadge" in navigator)) return;
-
-    let unsubDm: (() => void) | null = null;
-    let unsubGroup: (() => void) | null = null;
-    let dmCount = 0;
-    let groupCount = 0;
-
-    const updateBadge = () => {
-      const total = dmCount + groupCount;
-      if (total > 0) {
-        (navigator as any).setAppBadge(total).catch(() => {});
-      } else {
-        (navigator as any).clearAppBadge().catch(() => {});
-      }
-    };
-
-    let roomMsgUnsubs: (() => void)[] = [];
-    const countsPerRoom: Record<string, number> = {};
-
-    const unsubAuth = onAuthStateChanged(auth, async (user) => {
-      if (unsubDm) { unsubDm(); unsubDm = null; }
-      if (unsubGroup) { unsubGroup(); unsubGroup = null; }
-      roomMsgUnsubs.forEach(u => u());
-      roomMsgUnsubs = [];
-
-      if (!user) {
-        dmCount = 0; groupCount = 0;
-        (navigator as any).clearAppBadge?.().catch(() => {});
-        return;
-      }
-
-      const snap = await getDoc(doc(db, "users", user.uid));
-      if (!snap.exists()) return;
-      const nickname: string = snap.data().nickname;
-
-      unsubDm = onSnapshot(
-        query(collection(db, "messages"), where("to", "==", nickname)),
-        (s) => {
-          let n = 0;
-          s.forEach((d) => {
-            const data = d.data();
-            if (data.from !== nickname && !data.readBy?.includes(nickname)) n++;
-          });
-          dmCount = n;
-          updateBadge();
+    const badge = navigator as any;
+    let generation = 0, stops: (() => void)[] = [], profileStop = () => {};
+    const clear = () => { stops.forEach(s => s()); stops = []; badge.clearAppBadge?.().catch(() => {}); };
+    const stopAuth = onAuthStateChanged(auth, user => {
+      const token = ++generation; profileStop(); clear();
+      if (!user) return;
+      let current = "";
+      profileStop = onSnapshot(doc(db, "users", user.uid), profile => {
+        const nickname = profile.data()?.nickname;
+        if (token !== generation || !nickname || current === nickname) return;
+        current = nickname; clear();
+        let dm = 0;
+        const counts = new Map<string, number>();
+        const update = () => {
+          if (token !== generation || current !== nickname) return;
+          const total = dm + Array.from(counts.values()).reduce((a, b) => a + b, 0);
+          (total ? badge.setAppBadge(total) : badge.clearAppBadge()).catch(() => {});
+        };
+        stops.push(onSnapshot(query(collection(db, "messages"), where("to", "==", nickname)), snap => {
+          dm = snap.docs.filter(d => d.data().from !== nickname && !d.data().readBy?.includes(nickname)).length; update();
+        }));
+        for (const group of ["group_rooms", "meeting_rooms"]) {
+          const roomStops = new Map<string, () => void>();
+          stops.push(() => roomStops.forEach(stop => stop()));
+          stops.push(onSnapshot(query(collection(db, group), where("members", "array-contains", nickname)), rooms => {
+            const active = new Set(rooms.docs.map(d => d.id));
+            roomStops.forEach((stop, id) => { if (!active.has(id)) { stop(); roomStops.delete(id); counts.delete(`${group}/${id}`); } });
+            update();
+            rooms.docs.forEach(room => {
+              if (roomStops.has(room.id)) return;
+              roomStops.set(room.id, onSnapshot(collection(db, group, room.id, "messages"), snap => {
+                counts.set(`${group}/${room.id}`, snap.docs.filter(d => d.data().from !== nickname && !d.data().readBy?.includes(nickname)).length); update();
+              }));
+            });
+          }));
         }
-      );
-
-      // 방 목록 감지 → 각 방 메시지에 개별 onSnapshot 설정
-      unsubGroup = onSnapshot(
-        query(collection(db, "group_rooms"), where("members", "array-contains", nickname)),
-        (roomSnap) => {
-          // 기존 방 메시지 리스너 정리
-          roomMsgUnsubs.forEach(u => u());
-          roomMsgUnsubs = [];
-
-          const activeRoomIds = new Set(roomSnap.docs.map(d => d.id));
-          // 삭제된 방 카운트 제거
-          Object.keys(countsPerRoom).forEach(id => {
-            if (!activeRoomIds.has(id)) delete countsPerRoom[id];
-          });
-
-          roomSnap.docs.forEach(roomDoc => {
-            const roomId = roomDoc.id;
-            const unsub = onSnapshot(
-              collection(db, "group_rooms", roomId, "messages"),
-              (msgSnap) => {
-                let count = 0;
-                msgSnap.forEach(m => {
-                  const data = m.data();
-                  if (data.from !== nickname && !(data.readBy || []).includes(nickname)) count++;
-                });
-                countsPerRoom[roomId] = count;
-                groupCount = Object.values(countsPerRoom).reduce((a, b) => a + b, 0);
-                updateBadge();
-              }
-            );
-            roomMsgUnsubs.push(unsub);
-          });
-        }
-      );
+      });
     });
-
-    return () => {
-      unsubAuth();
-      if (unsubDm) unsubDm();
-      if (unsubGroup) unsubGroup();
-      roomMsgUnsubs.forEach(u => u());
-      (navigator as any).clearAppBadge?.().catch(() => {});
-    };
+    return () => { generation++; stopAuth(); profileStop(); clear(); };
   }, []);
-
   return null;
 }

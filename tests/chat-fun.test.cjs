@@ -24,13 +24,13 @@ function initializer(path, name) {
   for (const path of ['app/avatar/page.tsx', 'app/groupchat/page.tsx', 'app/meetingroom/page.tsx']) {
     let saved, notification, mode = true;
     const env = { nickname: 'me', uid: 'me-id', input: 'secret answer', spoilerMode: true, selectedEffect: 'none', setSelectedEffect: () => {}, isSending: false, currentChatUser: { nickname: 'friend', id: 'friend-id' }, currentRoom: { id: 'room', members: ['me', 'friend'], name: 'room' }, replyTo: null, chosungGame: null, wordGame: null, game369: null, wordGameKey: null, db: {}, collection: (...args) => args, serverTimestamp: () => 'time', addDoc: async (_, data) => { saved = data; }, setIsSending: () => {}, setInput: () => {}, setReplyTo: () => {}, setSpoilerMode: value => { mode = value; }, Audio: class { play() { return Promise.resolve(); } }, fetch: async (_, options) => { notification = JSON.parse(options.body); }, alert: () => {}, updateTyping: async () => {}, sendTyping: async () => {} };
-    vm.runInNewContext(compile('var send=' + initializer(path, 'sendMessage')), env);
+    env.apiFetch=env.fetch; env.playSendSound=()=>{}; vm.runInNewContext(compile('var send=' + initializer(path, 'sendMessage')), env);
     await env.send(); assert.equal(saved.spoiler, true); assert.equal(saved.content, 'secret answer'); assert.equal(mode, false);
     if (notification) assert.equal(notification.message.includes('secret answer'), false);
     env.spoilerMode = false; await env.send(); assert.equal(saved.spoiler, undefined);
     env.spoilerMode = true; mode = true; env.addDoc = async () => { throw Error('offline'); }; await env.send(); assert.equal(mode, true);
     env.addDoc = async (_, data) => { saved = data; }; env.compressToBase64 = async () => 'data:image/jpeg;base64,AA=='; env.validDrawing = drawing.exports.validDrawing;
-    vm.runInNewContext(compile('var image=' + initializer(path, 'sendImage')), env);
+    env.apiFetch=env.fetch; env.playSendSound=()=>{}; vm.runInNewContext(compile('var image=' + initializer(path, 'sendImage')), env);
     await env.image({}, strokes); assert.equal(saved.drawingStrokes, strokes); assert.equal(saved.type, 'image');
     await env.image({}); assert.equal(saved.drawingStrokes, undefined);
   }

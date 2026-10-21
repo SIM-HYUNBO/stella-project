@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');const vm=require('node:vm');const ts=require('typescript');
 let payload;
-const context={exports:{},require:()=>({NextResponse:{json:(body,options)=>Response.json(body,options)}}),Response,Date,process:{env:{GROQ_API_KEY:'test'}},fetch:async(_,options)=>{payload=JSON.parse(options.body);return new Response('data: [DONE]\n',{status:200});}};
+const context={exports:{},require:name=>name==='@/lib/api-user'?{apiUser:async()=>({db:{},uid:'test'}),apiRateLimit:async()=>{},ApiError:class extends Error{}}:({NextResponse:{json:(body,options)=>Response.json(body,options)}}),Response,Date,process:{env:{GROQ_API_KEY:'test'}},fetch:async(_,options)=>{payload=JSON.parse(options.body);return new Response('data: [DONE]\n',{status:200});}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('app/api/ai/route.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,context);
 (async()=>{
  const run=body=>context.exports.POST({json:async()=>({messages:[{role:'user',content:'hello'}],...body})});

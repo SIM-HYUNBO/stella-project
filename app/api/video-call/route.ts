@@ -28,6 +28,8 @@ function iceConfig(uid: string) {
 
 async function invitePush(admin: ReturnType<typeof getAdmin>, name: string, from: string, id: string) {
   try {
+    const people = await admin.firestore().collection("users").where("nickname", "==", name).limit(1).get();
+    if (people.docs[0]?.data()?.pushEnabled === false) return;
     const token = (await admin.firestore().collection("fcm_tokens").doc(name).get()).data()?.token;
     const url = `/video-call/${id}`, title = "영상통화", message = `${from}님이 영상통화에 초대했어요`;
     if (token) await admin.messaging().send({ token, data: { url, title, body: message },

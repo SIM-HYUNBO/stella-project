@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api-fetch";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -26,6 +27,29 @@ export default function DrawSessionPage() {
   const [sizeIdx, setSizeIdx] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
   const [showExit, setShowExit] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const ending = useRef(false);
+  const pendingWrite = useRef<Promise<void> | null>(null);
+  useEffect(() => {
+    if (!requestDocId || !nickname) return;
+    return onSnapshot(doc(db, "draw_requests", requestDocId), snap => {
+      const data=snap.data(), allowed=data && [data.from,data.to].includes(nickname) && data.status === "accepted";
+      setSessionReady(!!allowed);
+      if (!allowed && !ending.current) router.replace("/creative/draw");
+    }, () => { setSessionReady(false); alert("작품 연결이 끊겼어. 다시 들어와 줘."); });
+  }, [requestDocId, nickname, router]);
+  const finishSession = async () => {
+    if (!requestDocId || ending.current) return;
+    ending.current=true;
+    try {
+      await endDraw();
+      await pendingWrite.current;
+      const res=await apiFetch("/api/creative-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"draw",id:requestDocId})});
+      const data=await res.json(); if(!res.ok) throw Error(data.error);
+      router.replace("/creative");
+    } catch(e) { alert(e instanceof Error?e.message:"종료하지 못했어. 다시 시도해 줘."); }
+    finally {ending.current=false;}
+  };
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -108,10 +132,10 @@ export default function DrawSessionPage() {
     const sy = CANVAS_H / rect.height;
     if ("touches" in e) {
       const t = (e as React.TouchEvent).touches[0];
-      return { x: (t.clientX - rect.left) * sx, y: (t.clientY - rect.top) * sy };
+      return { x: Math.max(0, Math.min(CANVAS_W, (t.clientX - rect.left) * sx)), y: Math.max(0, Math.min(CANVAS_H, (t.clientY - rect.top) * sy)) };
     }
     const me = e as React.MouseEvent;
-    return { x: (me.clientX - rect.left) * sx, y: (me.clientY - rect.top) * sy };
+    return { x: Math.max(0, Math.min(CANVAS_W, (me.clientX - rect.left) * sx)), y: Math.max(0, Math.min(CANVAS_H, (me.clientY - rect.top) * sy)) };
   };
 
   const getCtx = () => {
@@ -121,6 +145,7 @@ export default function DrawSessionPage() {
 
   const startDraw = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
+    if (!sessionReady) return;
     const ctx = getCtx();
     if (!ctx) return;
     drawing.current = true;
@@ -136,7 +161,7 @@ export default function DrawSessionPage() {
 
   const moveDraw = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    if (!drawing.current) return;
+    if (!drawing.current || !sessionReady || ending.current) return;
     const ctx = getCtx();
     if (!ctx) return;
     const pos = getPos(e);
@@ -153,19 +178,26 @@ export default function DrawSessionPage() {
   const endDraw = async () => {
     if (!drawing.current || !nickname || !sessionId) return;
     drawing.current = false;
-    const points = [...currentPoints.current];
+    const captured = [...currentPoints.current];
+    const points = captured.length > 4096 ? Array.from({ length: 4096 }, (_, i) => captured[Math.floor(i * (captured.length - 1) / 4095)]) : captured;
     currentPoints.current = [];
+    if (!sessionReady || !requestDocId) return;
     if (points.length < 2) return;
 
     const strokeRef = doc(collection(db, "draw_sessions", sessionId, "strokes"));
     localStrokeIds.current.add(strokeRef.id);
-    await setDoc(strokeRef, {
-      by: nickname,
+    const write = (async () => {
+    const response = await apiFetch("/api/creative-session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "draw", id: requestDocId, action: "stroke", strokeId: strokeRef.id, stroke: {
       color: isEraser ? "#ffffff" : color,
       size: isEraser ? SIZES[sizeIdx].px * 4 : SIZES[sizeIdx].px,
       points,
-      createdAt: serverTimestamp(),
-    });
+    } }) });
+    if (!response.ok) throw Error((await response.json()).error || "그림을 보내지 못했어.");
+    })();
+    pendingWrite.current = write;
+    try { await write; }
+    catch (e) { localStrokeIds.current.delete(strokeRef.id); alert(e instanceof Error ? e.message : "그림을 보내지 못했어."); }
+    finally { if (pendingWrite.current === write) pendingWrite.current = null; }
   };
 
   const handleSave = () => {
@@ -283,12 +315,7 @@ export default function DrawSessionPage() {
                 className="flex-1 py-3 rounded-2xl bg-white/10 text-white/70 font-bold text-sm active:scale-95 transition">
                 취소
               </button>
-              <button onClick={async () => {
-                if (requestDocId) {
-                  await updateDoc(doc(db, "draw_requests", requestDocId), { status: "ended" });
-                }
-                router.push("/creative");
-              }}
+              <button onClick={finishSession}
                 className="flex-1 py-3 rounded-2xl font-bold text-sm text-white active:scale-95 transition"
                 style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }}>
                 나가기

@@ -30,6 +30,7 @@ export default function SignupPage() {
    
     if (step === 1) {
       if (nickname.trim().length < 2) { setError("닉네임은 2자 이상이어야 해요."); return; }
+      if (nickname.trim().length > 30 || /[\/\x00-\x1f]/.test(nickname)) { setError("닉네임은 30자 이내로, 슬래시 없이 입력해 줘."); return; }
       if (!email) { setError("이메일을 입력해주세요."); return; }
       if (password.length < 6) { setError("비밀번호는 6자 이상이어야 해요."); return; }
       if (password !== confirmPassword) { setError("비밀번호가 일치하지 않아요."); return; }

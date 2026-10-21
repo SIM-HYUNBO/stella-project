@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AITextLinks from "@/components/AITextLinks";
@@ -758,7 +760,7 @@ export default function StudyAIPage() {
       messages.slice(index + 1).forEach(m => batch.delete(doc(db, "studyChats", user.uid, "messages", m.id)));
       await batch.commit(); saved = true;
       const history = mediaHistory([...messages.slice(0, index), { ...messages[index], content: text }]);
-      const res = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }) });
+      const res = await apiFetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }) });
       if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || `server ${res.status}`); }
       if (!res.body) throw new Error("empty response");
       const full = await readAIStream(res.body, setStreamingText);
@@ -780,7 +782,7 @@ export default function StudyAIPage() {
       await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "user", content: userText, ...(attached ? { media: attached } : {}), createdAt: serverTimestamp() });
       userSaved = true; setPendingMedia(null);
       const history = mediaHistory([...messages, { role: "user", content: userText, ...(attached ? { media: attached } : {}) }]);
-      const res = await fetch("/api/ai", {
+      const res = await apiFetch("/api/ai", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }),
       });

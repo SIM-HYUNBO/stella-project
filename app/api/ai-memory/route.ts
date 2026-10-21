@@ -1,6 +1,8 @@
+import { aiGuard } from "@/lib/ai-guard";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  const denied = await aiGuard(req); if (denied) return denied;
   const { messages } = await req.json();
 
   const text = (messages || []).map((m: any) => `${m.role}: ${m.content}`).join("\n");

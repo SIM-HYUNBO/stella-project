@@ -1,0 +1,14 @@
+const fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript'),assert=require('node:assert/strict');
+let authenticate,cleanup;const listeners=new Map(),calls=[];
+const firestore={doc:(_db,...parts)=>parts.join('/'),collection:(_db,...parts)=>parts.join('/'),where:()=>null,query:ref=>ref,onSnapshot:(ref,fn)=>{listeners.set(ref,fn);return ()=>listeners.delete(ref);}};
+const env={exports:{},navigator:{setAppBadge:n=>{calls.push(n);return Promise.resolve();},clearAppBadge:()=>{calls.push(0);return Promise.resolve();}},require:name=>name==='react'?{useEffect:fn=>cleanup=fn()}:name==='firebase/auth'?{onAuthStateChanged:(_a,fn)=>{authenticate=fn;return ()=>{};}}:name==='firebase/firestore'?firestore:{auth:{},db:{}}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('components/AppBadge.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,env);env.exports.default();
+const snap=rows=>({docs:rows.map(([id,value])=>({id,data:()=>value}))});
+authenticate({uid:'a'});listeners.get('users/a')({data:()=>({nickname:'Alice'})});
+listeners.get('messages')(snap([]));listeners.get('group_rooms')(snap([['g',{}]]));listeners.get('meeting_rooms')(snap([['m',{}]]));
+listeners.get('group_rooms/g/messages')(snap([['msg',{from:'Bob',readBy:[]}]]));assert.equal(calls.at(-1),1);
+listeners.get('meeting_rooms/m/messages')(snap([['meeting',{from:'Bob',readBy:[]}]]));assert.equal(calls.at(-1),2);
+listeners.get('group_rooms')(snap([]));assert.equal(calls.at(-1),1);assert.equal(listeners.has('group_rooms/g/messages'),false);
+listeners.get('meeting_rooms/m/messages')(snap([['meeting',{from:'Bob',readBy:['Alice']}]]));assert.equal(calls.at(-1),0);
+authenticate(null);assert.equal(listeners.size,0);assert.equal(calls.at(-1),0);cleanup();
+console.log('Badge: meeting unread counts, last-room leave, read state and logout cleanup passed');

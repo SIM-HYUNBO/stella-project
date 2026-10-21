@@ -1,8 +1,10 @@
+import { aiGuard } from "@/lib/ai-guard";
 import { NextRequest, NextResponse } from "next/server";
 
 type Message = { from: string; content: string; };
 
 export async function POST(req: NextRequest) {
+  const denied = await aiGuard(req); if (denied) return denied;
   try {
     const { messages }: { messages: Message[] } = await req.json();
     if (!messages || messages.length === 0) return NextResponse.json({ summary: "요약할 메시지가 없습니다." });

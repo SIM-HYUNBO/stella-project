@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -65,12 +67,13 @@ export default function StoryLobbyPage() {
   const sendRequest = async (friend: Friend) => {
     if (!nickname || outgoing || requesting) return;
     setRequesting(friend.nickname);
+    try {
     const sessionId = `story_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     await addDoc(collection(db, "story_requests"), {
       from: nickname, to: friend.nickname,
       status: "pending", sessionId, createdAt: serverTimestamp(),
     });
-    fetch("/api/fcm", {
+    apiFetch("/api/fcm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -80,7 +83,8 @@ export default function StoryLobbyPage() {
         url: "/creative/story",
       }),
     }).catch(() => {});
-    setRequesting(null);
+    } catch { alert("요청을 보내지 못했어. 연결을 확인하고 다시 눌러 줘."); }
+    finally { setRequesting(null); }
   };
 
   const acceptRequest = async (req: StoryRequest) => {

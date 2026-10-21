@@ -18,7 +18,7 @@ for (const change of [{ motion: 'unknown' }, { image: 'javascript:alert(1)' }, {
     let sender; function walk(node) { if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'sendSticker') sender = node.initializer.getText(ast); ts.forEachChild(node, walk); } walk(ast);
     let written, closed = false;
     const env = { nickname: 'me', currentChatUser: { nickname: 'friend' }, currentRoom: { id: 'room', name: 'room', members: ['me', 'friend'] }, db: {}, collection: (...args) => args.slice(1), serverTimestamp: () => 'timestamp', addDoc: async (_, data) => { written = data; }, setShowStickerStudio: value => { closed = !value; }, fetch: async () => ({}) };
-    vm.runInNewContext(compile('var send = ' + sender), env);
+    env.apiFetch=env.fetch; env.playSendSound=()=>{}; vm.runInNewContext(compile('var send = ' + sender), env);
     await env.send(sticker);
     assert.equal(written.type, 'sticker'); assert.equal(written.content, sticker.image);
     assert.equal(written.stickerMotion, 'bounce'); assert.equal(written.stickerName, sticker.name); assert.equal(closed, true);

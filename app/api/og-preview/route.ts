@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { previewHTML } from "@/lib/preview-fetch";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
   if (!url) return NextResponse.json({ error: "no url" }, { status: 400 });
 
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; bot/1.0)" },
-      signal: AbortSignal.timeout(5000),
-    });
-    const html = await res.text();
+    const { html, url: finalUrl } = await previewHTML(url);
 
     const getMeta = (prop: string) => {
       const m =
@@ -21,7 +19,8 @@ export async function GET(req: NextRequest) {
 
     const title = getMeta("title") || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() || "";
     const description = getMeta("description");
-    const image = getMeta("image");
+    let image = "";
+    try { const candidate = new URL(getMeta("image"), finalUrl); if (getMeta("image") && ["http:", "https:"].includes(candidate.protocol)) image = candidate.href; } catch {}
     const siteName = getMeta("site_name");
 
     return NextResponse.json({ title, description, image, siteName });

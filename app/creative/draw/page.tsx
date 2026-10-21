@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -70,6 +72,7 @@ export default function DrawLobbyPage() {
   const sendRequest = async (friend: Friend) => {
     if (!nickname || outgoing || requesting) return;
     setRequesting(friend.nickname);
+    try {
     const sessionId = `draw_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     await addDoc(collection(db, "draw_requests"), {
       from: nickname,
@@ -78,7 +81,7 @@ export default function DrawLobbyPage() {
       sessionId,
       createdAt: serverTimestamp(),
     });
-    fetch("/api/fcm", {
+    apiFetch("/api/fcm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -88,7 +91,8 @@ export default function DrawLobbyPage() {
         url: "/creative/draw",
       }),
     }).catch(() => {});
-    setRequesting(null);
+    } catch { alert("요청을 보내지 못했어. 연결을 확인하고 다시 눌러 줘."); }
+    finally { setRequesting(null); }
   };
 
   const acceptRequest = async (req: DrawRequest) => {

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
+import { apiUser, apiRateLimit, ApiError } from "@/lib/api-user";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
+    const { db, uid } = await apiUser(req);
+    await apiRateLimit(db, uid, "ai", 20);
     const { messages, robotName, mode } = await req.json();
     const searchEnabled = mode !== "profile";
 
@@ -11,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing GROQ_API_KEY" }, { status: 500 });
     }
 
-    if (!Array.isArray(messages) || messages.some((m: any) => !m || !["user", "assistant"].includes(m.role) || typeof m.content !== "string")) {
+    if (!Array.isArray(messages) || messages.length > 200 || JSON.stringify(messages).length > 900000 || messages.some((m: any) => !m || !["user", "assistant"].includes(m.role) || typeof m.content !== "string")) {
       return NextResponse.json({ error: "Invalid messages" }, { status: 400 });
     }
     const safeMessages = messages.map((m: any) => ({
@@ -147,6 +150,7 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
     });
 
   } catch (err: any) {
+    if (err instanceof ApiError) return NextResponse.json({ error: err.message }, { status: err.status });
     return NextResponse.json({ error: err?.message || "서버 오류" }, { status: 500 });
   }
 }

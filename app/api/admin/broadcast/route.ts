@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
 
     if (targetNicknames && Array.isArray(targetNicknames) && targetNicknames.length > 0) {
       for (const nick of targetNicknames as string[]) {
+        const people = await admin.firestore().collection("users").where("nickname", "==", nick).limit(1).get();
+        if (people.docs[0]?.data()?.pushEnabled === false) continue;
         const subDoc = await admin.firestore().collection("push_subscriptions").doc(nick).get();
         if (!subDoc.exists) { failed++; continue; }
         try {
@@ -36,6 +38,8 @@ export async function POST(req: NextRequest) {
     } else {
       const subs = await admin.firestore().collection("push_subscriptions").get();
       for (const sub of subs.docs) {
+        const people = await admin.firestore().collection("users").where("nickname", "==", sub.id).limit(1).get();
+        if (people.docs[0]?.data()?.pushEnabled === false) continue;
         try {
           const subscription = JSON.parse(sub.data().subscription);
           await webpush.sendNotification(subscription, payload);

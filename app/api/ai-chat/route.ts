@@ -1,8 +1,10 @@
+import { aiGuard } from "@/lib/ai-guard";
 export const runtime = "nodejs";
 
 let userWinCount = 0;
 
 export async function POST(req: Request) {
+  const denied = await aiGuard(req); if (denied) return denied;
   try {
     const { messages } = await req.json();
     if (!messages || messages.length === 0) return Response.json({ messages: [], userWinCount: 0 });

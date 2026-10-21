@@ -6,6 +6,7 @@ import { onAuthStateChanged, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, Timestamp, orderBy } from "firebase/firestore";
 import { auth, db } from "@/app/firebase";
 import TextAvatar from "@/components/TextAvatar";
+import { setPushPreference } from "@/app/hooks/usePushSubscription";
 
 type UserInfo = {
   nickname: string;
@@ -77,6 +78,7 @@ export default function SettingsPage() {
           email: firebaseUser.email || "",
         });
         setEditNickname(data.nickname || "");
+        setNotifications(data.pushEnabled !== false && typeof Notification !== "undefined" && Notification.permission === "granted");
         const savedTheme = data.chatTheme || localStorage.getItem("globalChatTheme") || "sky";
         setChatTheme(savedTheme);
         localStorage.setItem("globalChatTheme", savedTheme);
@@ -94,15 +96,14 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    setNotifications(localStorage.getItem("notificationsEnabled") === "true");
     setAppLock(localStorage.getItem("appLockEnabled") === "true");
     setSound(localStorage.getItem("soundEnabled") !== "false");
     setAdminMode(localStorage.getItem("stellaAdminMode") === "true");
   }, []);
 
-  const handleNotifications = (v: boolean) => {
-    setNotifications(v);
-    localStorage.setItem("notificationsEnabled", String(v));
+  const handleNotifications = async (v: boolean) => {
+    try { await setPushPreference(v); setNotifications(v); }
+    catch (e) { alert(e instanceof Error ? e.message : "알림 설정을 바꾸지 못했어."); }
   };
 
   const handleSound = (v: boolean) => {
@@ -167,33 +168,23 @@ export default function SettingsPage() {
   };
 
   const saveNickname = async () => {
-    if (!uid || !editNickname.trim()) return;
-    const oldNickname = user?.nickname;
-    const newNickname = editNickname.trim();
+    if (!uid || !editNickname.trim() || saving) return;
+    const oldNickname = user?.nickname, newNickname = editNickname.trim();
     if (oldNickname === newNickname) { setEditMode(false); return; }
     setSaving(true);
-    const nickSnap = await getDocs(query(collection(db, "users"), where("nickname", "==", newNickname)));
-    if (!nickSnap.empty) {
-      alert("이미 사용 중인 닉네임이에요.");
-      setSaving(false);
-      return;
-    }
-    await updateDoc(doc(db, "users", uid), { nickname: newNickname });
-    if (auth.currentUser) await updateProfile(auth.currentUser, { displayName: newNickname });
-    setUser((prev) => prev ? { ...prev, nickname: newNickname } : prev);
-    // 채팅방 멤버 목록도 자동 업데이트
-    if (oldNickname) {
-      try {
-        const idToken = await auth.currentUser?.getIdToken();
-        await fetch("/api/migrate-nickname", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken, from: oldNickname, to: newNickname }),
-        });
-      } catch {}
-    }
-    setSaving(false);
-    setEditMode(false);
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      const response = await fetch("/api/migrate-nickname", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, from: oldNickname, to: newNickname }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw Error(result.error || "닉네임을 변경하지 못했어.");
+      if (auth.currentUser) await updateProfile(auth.currentUser, { displayName: newNickname });
+      setUser(prev => prev ? { ...prev, nickname: newNickname } : prev);
+      setEditMode(false);
+    } catch (e) { alert(e instanceof Error ? e.message : "닉네임을 변경하지 못했어."); }
+    finally { setSaving(false); }
   };
 
   const navItems = [

@@ -103,18 +103,21 @@ export default function ProfilePage() {
     if (!newNickname || newNickname === oldNickname) { setEditNickname(false); return; }
     setNicknameSaving(true);
     try {
-      await updateDoc(doc(db, "users", user.uid), { nickname: newNickname });
-      await updateProfile(user, { displayName: newNickname });
       if (oldNickname) {
         const idToken = await user.getIdToken();
-        await fetch("/api/migrate-nickname", {
+        const response = await fetch("/api/migrate-nickname", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idToken, from: oldNickname, to: newNickname }),
         });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw Error(result.error || "닉네임을 변경하지 못했어.");
       }
+      await updateProfile(user, { displayName: newNickname });
       originalNicknameRef.current = newNickname;
       setEditNickname(false);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "닉네임을 변경하지 못했어.");
     } finally {
       setNicknameSaving(false);
     }

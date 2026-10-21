@@ -21,7 +21,7 @@ assert.equal(effects.exports.bubbleEffect(undefined), 'none');
     let saved;
     const env = { nickname: 'me', uid: 'me-id', input: 'hello', spoilerMode: false, selectedEffect: 'pop', isSending: false, currentChatUser: { nickname: 'friend', id: 'friend' }, currentRoom: { id: 'room', members: ['me', 'friend'], name: 'room' }, replyTo: null, chosungGame: null, wordGame: null, game369: null, wordGameKey: null, db: {}, collection: (...args) => args, serverTimestamp: () => 'time', addDoc: async (_, data) => { saved = data; }, setIsSending: () => {}, setInput: () => {}, setReplyTo: () => {}, setSpoilerMode: () => {}, Audio: class { play() { return Promise.resolve(); } }, fetch: async () => ({}), alert: () => {}, updateTyping: () => {}, sendTyping: () => {} };
     env.setSelectedEffect = value => { env.selectedEffect = value; };
-    vm.runInNewContext(compile('var send=' + send), env);
+    env.apiFetch=env.fetch; env.playSendSound=()=>{}; vm.runInNewContext(compile('var send=' + send), env);
     await env.send(); assert.equal(saved.bubbleEffect, 'pop'); assert.equal(env.selectedEffect, 'none');
     await env.send(); assert.equal(saved.bubbleEffect, undefined);
     env.selectedEffect = 'shake'; await env.send('game answer'); assert.equal(saved.bubbleEffect, undefined);

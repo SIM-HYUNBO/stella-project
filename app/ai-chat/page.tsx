@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -58,7 +60,7 @@ export default function AIChatPage() {
     const userMsg = { role: "user", content: input, createdAt: serverTimestamp() };
     setInput("");
     await addDoc(collection(db, "chat_sessions", sessionId, "messages"), userMsg);
-    const res = await fetch("/api/ai", {
+    const res = await apiFetch("/api/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })), memory, uid }),
@@ -67,7 +69,7 @@ export default function AIChatPage() {
     const aiMsg = { role: "assistant", content: data.reply || "응답 실패", createdAt: serverTimestamp() };
     await addDoc(collection(db, "chat_sessions", sessionId, "messages"), aiMsg);
     if (isVip) {
-      const memRes = await fetch("/api/ai-memory", {
+      const memRes = await apiFetch("/api/ai-memory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [...messages, userMsg, aiMsg] }),

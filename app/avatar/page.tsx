@@ -1,5 +1,8 @@
 "use client";
 
+import { apiFetch, playSendSound } from "@/lib/api-fetch";
+import { dmConstraint, messageTimestamp } from "@/lib/dm-query";
+
 import BubbleEntrance from "@/components/BubbleEntrance";
 import BubbleEffectPicker from "@/components/BubbleEffectPicker";
 import { BUBBLE_EFFECTS, type BubbleEffect } from "@/lib/bubble-effects";
@@ -45,6 +48,7 @@ import {
   setDoc,
   deleteDoc,
   where,
+  arrayUnion,
 } from "firebase/firestore";
 import { usePushSubscription } from "@/app/hooks/usePushSubscription";
 
@@ -779,11 +783,11 @@ export default function Chat() {
   }, [showFireworks]);
 
   useEffect(() => {
-    if (!currentChatUser || !nickname) return;
+    if (!currentChatUser || !nickname || !uid) return;
 
     const q = query(
       collection(db, "messages"),
-      orderBy("createdAt", "asc")
+      dmConstraint(uid, nickname, currentChatUser.id, currentChatUser.nickname)
     );
 
     const unsub = onSnapshot(q, async (snap) => {
@@ -791,7 +795,9 @@ export default function Chat() {
 
       let lastMsg = "";
 
-      for (const d of snap.docs) {
+      const pendingTime = Date.now();
+      const ordered = [...snap.docs].sort((a, b) => messageTimestamp(a.data().createdAt, pendingTime) - messageTimestamp(b.data().createdAt, pendingTime));
+      for (const d of ordered) {
         const data = d.data();
 
         const m: Message = {
@@ -835,7 +841,7 @@ export default function Chat() {
           !m.readBy?.includes(nickname)
         ) {
           await updateDoc(doc(db, "messages", m.id), {
-            readBy: [...(m.readBy || []), nickname],
+            readBy: arrayUnion(nickname),
           });
 
           m.readBy = [...(m.readBy || []), nickname];
@@ -1165,12 +1171,12 @@ export default function Chat() {
     setIsSending(true);
     try {
       await addDoc(collection(db, "messages"), msgData);
-      new Audio("/sounds/alert1.mp3").play().catch(() => {});
+      playSendSound();
       setInput("");
       setReplyTo(null);
       setSpoilerMode(false);
       setSelectedEffect("none");
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1238,7 +1244,7 @@ export default function Chat() {
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
-    fetch("/api/fcm", {
+    apiFetch("/api/fcm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1265,7 +1271,7 @@ export default function Chat() {
       createdAt: serverTimestamp(),
       readBy: [nickname],
     });
-    fetch("/api/fcm", {
+    apiFetch("/api/fcm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

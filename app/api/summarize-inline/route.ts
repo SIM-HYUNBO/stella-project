@@ -1,4 +1,6 @@
+import { aiGuard } from "@/lib/ai-guard";
 export async function POST(req: Request) {
+  const denied = await aiGuard(req); if (denied) return denied;
   const { title, text } = await req.json();
   const key = process.env.GROQ_API_KEY;
   if (!key) return Response.json({ summary: "AI 키가 없어요." });

@@ -1,4 +1,5 @@
 ﻿"use client";
+import { apiFetch } from "@/lib/api-fetch";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,7 @@ export default function LiveSTTWithHeader() {
 
   const summarizeMeeting = async () => {
     setLoading(true);
-    const res = await fetch("/api/summarize-inline", { method: "POST", body: JSON.stringify({ title, text }) });
+    const res = await apiFetch("/api/summarize-inline", { method: "POST", body: JSON.stringify({ title, text }) });
     const data = await res.json();
     setSummary(data.summary);
     setLoading(false);

@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { readAIStream } from "@/lib/ai-stream";
 import AIResponse from "@/components/AIResponse";
 import AIMediaPicker, { AIMediaPreview } from "@/components/AIMediaPicker";
@@ -130,7 +132,7 @@ export default function RobotPage() {
   };
 
   const streamAI = async (msgs: any[], onChunk: (t: string) => void): Promise<string> => {
-    const res = await fetch("/api/ai", {
+    const res = await apiFetch("/api/ai", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: msgs, robotName }),
     });

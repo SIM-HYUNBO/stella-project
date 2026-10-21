@@ -4,7 +4,7 @@ const mediaCtx={exports:{}};vm.runInNewContext(compile('lib/ai-media.ts'),mediaC
 const image={kind:'image',name:'test.jpg',frames:['data:image/jpeg;base64,/9j/AA==']};
 const history=mediaCtx.exports.mediaHistory([{role:'user',content:'first',media:image},{role:'ai',content:'answer'},{role:'user',content:'second',media:image}]);
 assert.equal(history[0].media,undefined);assert.equal(history[1].role,'assistant');assert.equal(history[2].media,image);
-let calls=[];const ctx={exports:{},require:()=>({NextResponse:{json:(b,o)=>Response.json(b,o)}}),Response,AbortSignal,Date,process:{env:{GROQ_API_KEY:'test'}},fetch:async(_,options)=>{const body=JSON.parse(options.body);calls.push(body);return body.stream===false?Response.json({choices:[{message:{content:'A red square.'}}]}):new Response('data: [DONE]\n');}};
+let calls=[];const ctx={exports:{},require:name=>name==='@/lib/api-user'?{apiUser:async()=>({db:{},uid:'test'}),apiRateLimit:async()=>{},ApiError:class extends Error{}}:({NextResponse:{json:(b,o)=>Response.json(b,o)}}),Response,AbortSignal,Date,process:{env:{GROQ_API_KEY:'test'}},fetch:async(_,options)=>{const body=JSON.parse(options.body);calls.push(body);return body.stream===false?Response.json({choices:[{message:{content:'A red square.'}}]}):new Response('data: [DONE]\n');}};
 vm.runInNewContext(compile('app/api/ai/route.ts'),ctx);
 const run=media=>ctx.exports.POST({json:async()=>({messages:[{role:'user',content:'explain',media}]})});
 (async()=>{

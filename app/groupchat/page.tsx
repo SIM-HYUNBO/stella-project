@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch, playSendSound } from "@/lib/api-fetch";
+
 import BubbleEntrance from "@/components/BubbleEntrance";
 import BubbleEffectPicker from "@/components/BubbleEffectPicker";
 import { BUBBLE_EFFECTS, type BubbleEffect } from "@/lib/bubble-effects";
@@ -908,10 +910,10 @@ export default function GroupChat() {
       setSpoilerMode(false);
       setSelectedEffect("none");
       setInput("");
-      new Audio("/sounds/alert1.mp3").play().catch(() => {});
+      playSendSound();
       const targets = currentRoom.members.filter((m) => m !== nickname);
       if (targets.length > 0) {
-        fetch("/api/fcm", {
+        apiFetch("/api/fcm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1038,7 +1040,7 @@ export default function GroupChat() {
     });
     const targets = currentRoom.members.filter((m) => m !== nickname);
     if (targets.length > 0) {
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1068,7 +1070,7 @@ export default function GroupChat() {
     });
     const targets = currentRoom.members.filter((m) => m !== nickname);
     if (targets.length > 0) {
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1127,7 +1129,7 @@ export default function GroupChat() {
         status: "pending",
         createdAt: serverTimestamp(),
       });
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toNicknames: targetNickname, fromNickname: nickname, message: `${currentRoom.name} 채팅방에 초대되었어요! 🎉` }),
       }).catch(() => {});

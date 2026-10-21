@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch, playSendSound } from "@/lib/api-fetch";
+
 import BubbleEntrance from "@/components/BubbleEntrance";
 import BubbleEffectPicker from "@/components/BubbleEffectPicker";
 import { BUBBLE_EFFECTS, type BubbleEffect } from "@/lib/bubble-effects";
@@ -536,7 +538,7 @@ export default function MeetingRoomPage() {
       setSpoilerMode(false);
       setSelectedEffect("none");
       setInput("");
-      new Audio("/sounds/alert1.mp3").play().catch(() => {});
+      playSendSound();
     } catch {
       alert("메시지 전송에 실패했어요. 다시 시도해줘!");
     } finally {
@@ -556,7 +558,7 @@ export default function MeetingRoomPage() {
     });
     const targets = currentRoom.members.filter((m) => m !== nickname);
     if (targets.length > 0) {
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -633,7 +635,7 @@ export default function MeetingRoomPage() {
     });
     const targets = currentRoom.members.filter(member => member !== nickname);
     if (targets.length) {
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toNicknames: targets, fromNickname: nickname,
           message: "✨ 움직이는 이모티콘을 보냈어요", roomName: currentRoom.name,
@@ -671,7 +673,7 @@ export default function MeetingRoomPage() {
         status: "pending",
         createdAt: serverTimestamp(),
       });
-      fetch("/api/fcm", {
+      apiFetch("/api/fcm", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toNicknames: targetNickname, fromNickname: nickname, message: `${currentRoom.name} 회의방에 초대되었어요! 📋` }),
       }).catch(() => {});

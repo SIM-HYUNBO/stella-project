@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useEffect, useMemo, useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -152,7 +154,7 @@ export default function FriendsPage() {
       to: target.uid, toNickname: target.nickname,
       status: "pending", createdAt: Date.now(),
     });
-    fetch("/api/fcm", {
+    apiFetch("/api/fcm", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ toNicknames: target.nickname, fromNickname: currentNickname, message: "친구 요청이 도착했어요! 👋" }),
     }).catch(() => {});
