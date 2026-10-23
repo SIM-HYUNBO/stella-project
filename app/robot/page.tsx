@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api-fetch";
+import theme from "./robot-theme.module.css";
 
 import { readAIStream } from "@/lib/ai-stream";
 import AIResponse from "@/components/AIResponse";
@@ -19,7 +20,7 @@ import {
 
 type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; };
 
-const accent = { from: "#64748b", to: "#1e293b", shadow: "rgba(100,116,139,0.18)", ring: "#e2e8f0" };
+const accent = { from: "#38bdf8", to: "#2797d4", shadow: "rgba(56,189,248,0.22)", ring: "#bae6fd" };
 
 function friendlyError(msg: string): string {
   const m = msg.toLowerCase();
@@ -214,7 +215,7 @@ export default function RobotPage() {
   );
 
   if (namingStep) return (
-    <main className="fixed inset-0 overflow-y-auto text-slate-800" style={{ background: "#fff" }}>
+    <main className={`fixed inset-0 overflow-y-auto text-slate-800 ${theme.page}`}>
       <header className="flex items-center gap-3 px-5 py-5" style={{ paddingTop: "max(20px, env(safe-area-inset-top))" }}>
         <button aria-label="뒤로가기" onClick={() => router.back()} className="flex h-10 w-10 items-center justify-center rounded-full border border-white bg-white/70 text-slate-500 transition hover:bg-white">
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m14 6-6 6 6 6" /></svg>
@@ -228,7 +229,7 @@ export default function RobotPage() {
           <h1 className="text-[30px] font-semibold leading-[1.35] tracking-tight">안녕.<br /><span className="relative isolate inline-block"><span aria-hidden="true" className="absolute -bottom-0.5 left-0 right-0 -z-10 h-2 rounded-full bg-amber-100 blur-[3px] shadow-[0_0_14px_rgba(253,230,138,0.65)]" />무슨 얘기부터 할까?</span></h1>
           <p className="mt-4 text-sm leading-relaxed text-slate-500">그냥 심심해서 와도 좋아.<br />그 전에, 나를 뭐라고 부르고 싶어?</p>
         </div>
-        <form onSubmit={e => { e.preventDefault(); void saveName(nameInput); }} className="rounded-[28px] border border-white bg-white/80 p-5 shadow-[0_12px_48px_-20px_rgba(51,65,85,0.2)] backdrop-blur-xl">
+        <form onSubmit={e => { e.preventDefault(); void saveName(nameInput); }} className={`rounded-[28px] border bg-white/90 p-5 backdrop-blur-xl ${theme.nameCard}`}>
           <label htmlFor="robot-first-name" className="mb-3 block text-xs font-semibold text-slate-600">너만의 AI 이름</label>
           <div className="flex items-center rounded-2xl border border-slate-200/70 bg-white px-4 focus-within:ring-2" style={{ borderColor: nameInput ? accent.ring : undefined }}>
             <input id="robot-first-name" type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
@@ -239,7 +240,7 @@ export default function RobotPage() {
           </div>
           <div className="mt-3 flex items-center gap-2 text-xs"><span className="mr-1 text-slate-400">이런 이름은?</span>{["루미", "모모", "구름"].map(name => <button key={name} type="button" disabled={savingName} onClick={() => setNameInput(name)} className="rounded-full bg-slate-50 px-3 py-1.5 text-slate-500 transition hover:bg-slate-100">{name}</button>)}</div>
           {nameError && <p role="alert" className="mt-3 text-xs text-red-500">{nameError}</p>}
-          <button type="submit" disabled={!nameInput.trim() || savingName} className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-800 py-4 text-sm font-semibold text-white transition hover:bg-slate-700 active:scale-[0.98] disabled:opacity-30">
+          <button type="submit" disabled={!nameInput.trim() || savingName} className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl bg-sky-500 py-4 text-sm font-semibold text-white transition hover:bg-sky-600 active:scale-[0.98] disabled:opacity-30">
             {savingName ? "이름 기억하는 중…" : "우리, 이야기 시작할까?"}
             <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
           </button>
@@ -250,13 +251,13 @@ export default function RobotPage() {
   );
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white">
+    <div className={`fixed inset-0 flex flex-col ${theme.page}`}>
 
-        <dialog ref={historyDialog} onCancel={() => setShowHistory(false)} onClose={() => setShowHistory(false)} className="m-0 h-dvh max-h-none w-[min(85vw,340px)] max-w-none border-0 bg-white p-5 shadow-2xl backdrop:bg-slate-900/25">
+        <dialog ref={historyDialog} onCancel={() => setShowHistory(false)} onClose={() => setShowHistory(false)} className={`m-0 h-dvh max-h-none w-[min(85vw,340px)] max-w-none border-0 p-5 shadow-2xl backdrop:bg-slate-900/25 ${theme.history}`}>
           <div className="mb-6 flex items-center justify-between"><h2 className="font-semibold text-slate-800">최근 채팅</h2><button aria-label="목록 닫기" onClick={() => setShowHistory(false)} className="h-10 w-10 text-slate-500">✕</button></div>
-          <button disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(null)} className="mb-5 w-full rounded-2xl bg-slate-100 px-4 py-3 text-left text-sm font-medium disabled:opacity-40">＋ 새 채팅</button>
+          <button disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(null)} className={`mb-5 w-full rounded-2xl px-4 py-3 text-left text-sm font-medium disabled:opacity-40 ${theme.newChat}`}>＋ 새 채팅</button>
           {historyError ? <p role="alert" className="text-sm text-red-500">대화 목록을 불러오지 못했어. 페이지를 새로고침해 줘.</p> : !historyReady ? <p className="text-sm text-slate-400">대화를 불러오는 중…</p> : conversations.length === 0 ? <p className="text-sm text-slate-400">첫 이야기를 시작해 봐.</p> : conversations.map(chat => (
-            <button key={chat.id} disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className={`mb-2 w-full rounded-2xl p-3 text-left transition hover:bg-slate-50 disabled:opacity-40 ${chat.id === sessionId ? "bg-slate-100" : "bg-white"}`}>
+            <button key={chat.id} disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className={`mb-2 w-full rounded-2xl p-3 text-left transition hover:bg-sky-50 disabled:opacity-40 ${chat.id === sessionId ? theme.selected : "bg-white"}`}>
               <span className="block truncate text-sm font-medium text-slate-800">{chat.title || "이전 대화"}</span>
               <span className="mt-1 block truncate text-xs text-slate-400">{chat.preview}</span>
               <span className="mt-2 block text-[10px] text-slate-400">{new Date(chat.time).toLocaleDateString("ko-KR")}</span>
@@ -264,7 +265,7 @@ export default function RobotPage() {
           ))}
         </dialog>
         {/* 헤더 */}
-        <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
+        <div className={`flex items-center justify-between shrink-0 px-4 py-3 backdrop-blur-xl border-b ${theme.header}`} style={{ boxShadow: "0 1px 12px rgba(56,189,248,0.04)" }}>
           <div className="flex min-w-0 items-center gap-2">
             <button aria-label="최근 채팅 목록" onClick={() => setShowHistory(true)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M4 6h16M4 12h12M4 18h9" /></svg></button>
             <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/60 text-gray-500 hover:bg-white/90 transition active:scale-90">
@@ -290,10 +291,7 @@ export default function RobotPage() {
 
   <button
     onClick={() => router.push("/studyai")}
-    className="px-3 py-1 rounded-xl text-[11px] font-bold text-white transition hover:scale-105"
-    style={{
-      background: "#334155",
-    }}
+    className={`px-3 py-1 rounded-xl text-[11px] font-bold transition hover:scale-105 ${theme.study}`}
   >
    학습용 AI
   </button>
@@ -303,8 +301,8 @@ export default function RobotPage() {
         </div>
         
 
-        {/* White surface with soft pearl light; decoration never intercepts input. */}
-        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-5 px-5 py-6 relative" style={{ background: "#fff" }}>
+        {/* Soft yellow and sky-blue accents stay behind the conversation. */}
+        <div className={`flex-1 min-h-0 overflow-y-auto flex flex-col gap-5 px-5 py-6 relative ${theme.surface}`}>
           {messages.length === 0 && !isStreaming && (
             <section className="relative m-auto w-full max-w-md px-5 py-6">
               <RobotWelcomeArt color="#38bdf8" compact />
@@ -317,7 +315,7 @@ export default function RobotPage() {
                   { title: "나 오늘 이런 일 있었잖아", sub: "좋았던 일도, 조금 짜증 난 일도", prompt: "나 오늘 있었던 일 얘기하고 싶어. 들어줄래?" },
                   { title: "말로 하기 좀 애매한데…", sub: "잘 정리해서 말하지 않아도 괜찮아", prompt: "뭐라고 설명해야 할지 모르겠는데, 질문 하나씩 해줄래?" },
                 ].map(item => <button key={item.title} type="button" onClick={() => { setInput(item.prompt); inputRef.current?.focus(); }}
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-white/90 bg-white/75 px-4 py-3.5 text-left shadow-[0_3px_16px_-10px_rgba(51,65,85,0.2)] backdrop-blur-sm transition hover:bg-white active:scale-[0.99]">
+                  className={`group flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 text-left backdrop-blur-sm transition active:scale-[0.99] ${theme.suggestion}`}>
                   <span><span className="block text-sm font-medium text-slate-700">{item.title}</span><span className="mt-1 block text-xs text-slate-400">{item.sub}</span></span>
                   <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-slate-300 transition group-hover:text-slate-600"><path d="m9 6 6 6-6 6" /></svg>
                 </button>)}
@@ -328,11 +326,11 @@ export default function RobotPage() {
           {messages.map(msg => (
             <div key={msg.id} className="relative mx-auto w-full max-w-2xl">
               {msg.role === "user" ? (
-                <AIUserMessage content={msg.content} media={msg.media} disabled={isStreaming || mediaBusy} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
+                <AIUserMessage tone="sunny" content={msg.content} media={msg.media} disabled={isStreaming || mediaBusy} onSave={text => reviseMessage(msg.id, text)} onDelete={async () => { await deleteDoc(doc(db, "robotChats", user.uid, "messages", msg.id)); }} />
 
               ) : (
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
-                  <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
+                  <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
                   <div className="whitespace-pre-wrap break-words"><AIResponse text={msg.content} /></div>
                 </article>
               )}
@@ -340,10 +338,10 @@ export default function RobotPage() {
           ))}
           {isStreaming && (
             <article aria-busy="true" className="relative mx-auto w-full max-w-2xl py-3 text-[15px] leading-7 text-slate-800">
-              <p className="mb-2 text-xs font-medium text-slate-400">{robotName}</p>
+              <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
               <div className="whitespace-pre-wrap break-words">
                 {streamingText ? <><AIResponse text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
-                  <span aria-label="답변 생각 중" className="flex gap-1 py-2">{[0,150,300].map(delay => <span key={delay} className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${delay}ms` }} />)}</span>
+                  <span aria-label="답변 생각 중" className="flex gap-1 py-2">{[0,150,300].map((delay, index) => <span key={delay} className={`h-1.5 w-1.5 rounded-full animate-bounce ${index === 1 ? "bg-amber-300" : "bg-sky-400"}`} style={{ animationDelay: `${delay}ms` }} />)}</span>
                 )}
               </div>
             </article>
@@ -364,7 +362,7 @@ export default function RobotPage() {
         <div className="px-4 pb-5 pt-2.5 shrink-0">
           <div className="relative flex items-center gap-2.5 rounded-full px-5 py-3 transition-all overflow-visible"
             style={{
-              background: `linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.58) 100%)`,
+              background: "linear-gradient(120deg, rgba(255,252,235,0.94), rgba(255,255,255,0.92) 45%, rgba(239,249,255,0.94))",
               backdropFilter: "blur(32px)",
               WebkitBackdropFilter: "blur(32px)",
               border: `1.5px solid rgba(255,255,255,0.95)`,

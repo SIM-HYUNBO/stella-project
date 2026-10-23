@@ -4,9 +4,10 @@ import { useRef, useState } from "react";
 import { AIMedia } from "@/lib/ai-media";
 import { AIMediaPreview } from "./AIMediaPicker";
 
-export default function AIUserMessage({ content, media, disabled, onSave, onDelete }: {
+export default function AIUserMessage({ content, media, disabled, onSave, onDelete, tone }: {
   content: string; media?: AIMedia; disabled: boolean;
   onSave: (text: string) => Promise<void>; onDelete: () => Promise<void>;
+  tone?: "sunny";
 }) {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -22,7 +23,7 @@ export default function AIUserMessage({ content, media, disabled, onSave, onDele
     finally { pending.current = false; setBusy(false); }
   };
   return <div className={`group ml-auto max-w-[85%] ${editing ? "w-full" : "w-fit"}`}>
-    <div className="rounded-[24px] rounded-br-lg bg-sky-100 px-4 py-3 text-[15px] leading-7 text-sky-950">
+    <div className={`rounded-[24px] rounded-br-lg px-4 py-3 text-[15px] leading-7 text-sky-950 ${tone === "sunny" ? "border border-sky-100 bg-gradient-to-br from-sky-50 to-sky-100/80" : "bg-sky-100"}`}>
       {media && <AIMediaPreview media={media} />}
       {editing ? <form onSubmit={e => { e.preventDefault(); if (draft.trim()) void act(() => onSave(draft.trim())); }}>
         <textarea autoFocus aria-label="메시지 수정" value={draft} disabled={busy || disabled} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Escape" && !busy) setEditing(false); }} rows={Math.min(8, Math.max(2, draft.split("\n").length))} className="block w-full resize-y bg-transparent text-[15px] leading-7 outline-none focus-visible:ring-1 focus-visible:ring-sky-300" />
