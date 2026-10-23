@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
 
     let cleanupFailed = false;
     const safeDelete = async (fn: () => Promise<any>) => { try { await fn(); } catch { cleanupFailed = true; } };
-    await safeDelete(() => db.recursiveDelete(db.doc(`robotImageAssets/${uid}`)));
 
     // friends
     await safeDelete(async () => {

@@ -8,8 +8,6 @@ import AIResponse from "@/components/AIResponse";
 import AIMediaPicker, { AIMediaPreview } from "@/components/AIMediaPicker";
 import { AIMedia, mediaHistory } from "@/lib/ai-media";
 import AIUserMessage from "@/components/AIUserMessage";
-import AIImageComposer from "@/components/AIImageComposer";
-import AIGeneratedImage from "@/components/AIGeneratedImage";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -20,7 +18,7 @@ import {
   serverTimestamp, deleteDoc, doc, getDoc, setDoc, updateDoc,
 } from "firebase/firestore";
 
-type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; generatedImage?: { id: string; prompt: string }; };
+type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; };
 
 const accent = { from: "#38bdf8", to: "#2797d4", shadow: "rgba(56,189,248,0.22)", ring: "#bae6fd" };
 
@@ -54,9 +52,6 @@ function friendlyError(msg: string): string {
 export default function RobotPage() {
   const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
   const [mediaBusy, setMediaBusy] = useState(false);
-  const [showImageComposer, setShowImageComposer] = useState(false);
-  const [generatingImage, setGeneratingImage] = useState(false);
-  const imageSession = useRef<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [allMessages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -210,23 +205,9 @@ export default function RobotPage() {
   const clearHistory = async () => {
     if (!user || sendingRef.current || !sessionId || !confirm("이 대화만 삭제할까? 다른 대화는 그대로 남아.")) return;
     try {
-      const cleanup = await apiFetch(`/api/ai-image?sessionId=${encodeURIComponent(sessionId)}`, { method: "DELETE" });
-      if (!cleanup.ok) throw Error("이미지를 삭제하지 못했어.");
       await Promise.all(messages.map(m => deleteDoc(doc(db, "robotChats", user.uid, "messages", m.id))));
       openConversation(null);
     } catch { setErrorMsg("대화를 삭제하지 못했어. 다시 시도해 줘."); }
-  };
-
-  const generateImage = async (prompt: string, requestId: string) => {
-    if (!user || sendingRef.current || !historyReady) throw Error("대화를 준비하는 중이야. 잠시 후 다시 눌러 줘.");
-    sendingRef.current = true; setIsStreaming(true); setGeneratingImage(true); setStreamingText(""); setErrorMsg(null);
-    const targetSession = imageSession.current || sessionId || crypto.randomUUID();
-    imageSession.current = targetSession; setSessionId(targetSession);
-    try {
-      const response = await apiFetch("/api/ai-image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, requestId, sessionId: targetSession }) });
-      const result = await response.json();
-      if (!response.ok) throw Error(result.error || "이미지를 만들지 못했어.");
-    } finally { sendingRef.current = false; setIsStreaming(false); setGeneratingImage(false); }
   };
 
   if (!user) return (
@@ -271,7 +252,6 @@ export default function RobotPage() {
 
   return (
     <div className={`fixed inset-0 flex flex-col ${theme.page}`}>
-        {showImageComposer && <AIImageComposer onClose={() => setShowImageComposer(false)} onGenerate={generateImage} />}
 
         <dialog ref={historyDialog} onCancel={() => setShowHistory(false)} onClose={() => setShowHistory(false)} className={`m-0 h-dvh max-h-none w-[min(85vw,340px)] max-w-none border-0 p-5 shadow-2xl backdrop:bg-slate-900/25 ${theme.history}`}>
           <div className="mb-6 flex items-center justify-between"><h2 className="font-semibold text-slate-800">최근 채팅</h2><button aria-label="목록 닫기" onClick={() => setShowHistory(false)} className="h-10 w-10 text-slate-500">✕</button></div>
@@ -352,7 +332,6 @@ export default function RobotPage() {
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
                   <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
                   <div className="whitespace-pre-wrap break-words"><AIResponse text={msg.content} /></div>
-                  {msg.generatedImage && <AIGeneratedImage id={msg.generatedImage.id} prompt={msg.generatedImage.prompt} />}
                 </article>
               )}
             </div>
@@ -361,7 +340,7 @@ export default function RobotPage() {
             <article aria-busy="true" className="relative mx-auto w-full max-w-2xl py-3 text-[15px] leading-7 text-slate-800">
               <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
               <div className="whitespace-pre-wrap break-words">
-                {generatingImage ? <p className="text-sm text-sky-600">그림을 만들고 있어…</p> : streamingText ? <><AIResponse text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
+                {streamingText ? <><AIResponse text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
                   <span aria-label="답변 생각 중" className="flex gap-1 py-2">{[0,150,300].map((delay, index) => <span key={delay} className={`h-1.5 w-1.5 rounded-full animate-bounce ${index === 1 ? "bg-amber-300" : "bg-sky-400"}`} style={{ animationDelay: `${delay}ms` }} />)}</span>
                 )}
               </div>
@@ -403,7 +382,7 @@ export default function RobotPage() {
               borderRadius: "999px 999px 0 0",
               pointerEvents: "none",
             }} />
-            <AIMediaPicker disabled={isStreaming || mediaBusy || !historyReady} onChange={setPendingMedia} onBusy={setMediaBusy} onError={setErrorMsg} onCreateImage={() => { imageSession.current = sessionId || crypto.randomUUID(); setShowImageComposer(true); }} />
+            <AIMediaPicker disabled={isStreaming || mediaBusy || !historyReady} onChange={setPendingMedia} onBusy={setMediaBusy} onError={setErrorMsg} />
             <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
               placeholder={isStreaming ? "응답 중이야..." : `${robotName}에게 말해봐...`}
