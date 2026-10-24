@@ -3,10 +3,12 @@
 import { useEffect } from "react";
 import { onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/app/firebase";
+import { isAndroidApp } from "@/lib/native-push";
 
 export default function FCMToken() {
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isAndroidApp()) return;
     if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
 
     let unsubscribe = null;

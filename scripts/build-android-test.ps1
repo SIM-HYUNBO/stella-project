@@ -29,7 +29,10 @@ try {
     $taskApk = Join-Path $taskOutput "WAGIE-$taskVersion-test.apk"
     Copy-Item -LiteralPath 'android\app\build\outputs\apk\debug\app-debug.apk' -Destination $taskApk
     Write-Output "APK ready: $taskApk"
-    Write-Output ('SHA256: ' + (Get-FileHash -Algorithm SHA256 -LiteralPath $taskApk).Hash)
+    $taskHashStream = [System.IO.File]::OpenRead($taskApk)
+    $taskHasher = [System.Security.Cryptography.SHA256]::Create()
+    try { Write-Output ('SHA256: ' + ([BitConverter]::ToString($taskHasher.ComputeHash($taskHashStream))).Replace('-', '')) }
+    finally { $taskHashStream.Dispose(); $taskHasher.Dispose() }
 } finally {
     $env:JAVA_HOME = $taskPreviousJava
     $env:ANDROID_HOME = $taskPreviousAndroid

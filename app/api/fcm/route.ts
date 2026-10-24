@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiUser, apiRateLimit, ApiError } from "@/lib/api-user";
+import { sendUserPush } from "@/lib/push-delivery";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,17 +31,14 @@ export async function POST(req: NextRequest) {
       // The inbox is independent from device permission and token availability.
       await db.collection("notifications").doc(name).collection("items").add({ from: nickname, title, message, url: link, createdAt: admin.firestore.FieldValue.serverTimestamp(), read: false });
       if (profile.pushEnabled === false) return { nickname: name, status: "disabled" };
-      const ref = db.collection("fcm_tokens").doc(name), token = (await ref.get()).data()?.token;
-      if (!token) return { nickname: name, status: "no_token" };
       try {
-        await admin.messaging().send({ token, data: { title, body: message, url: link },
+        const status = await sendUserPush(db, admin.messaging(), name, { data: { title, body: message, url: link },
           webpush: { headers: { Urgency: "high" }, notification: { title, body: message, icon: "/wag.png", badge: "/wag.png", tag: `chat-${Date.now()}`, data: { url: link } }, fcmOptions: { link } },
           android: { priority: "high", notification: { title, body: message, sound: "alert1", defaultSound: false } },
           apns: { payload: { aps: { alert: { title, body: message }, sound: "default", contentAvailable: true } } },
         });
-        return { nickname: name, status: "sent" };
+        return { nickname: name, status };
       } catch (e: any) {
-        if (["messaging/registration-token-not-registered", "messaging/invalid-registration-token"].includes(e?.code)) await db.runTransaction(async tx => { if ((await tx.get(ref)).data()?.token === token) tx.delete(ref); });
         return { nickname: name, status: "send_failed" };
       }
     }));

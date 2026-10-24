@@ -39,3 +39,4 @@ next-env.d.ts
 /output/android/
 *.jks
 *.keystore
+/android/app/google-services.json

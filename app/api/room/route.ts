@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendUserPush } from "@/lib/push-delivery";
 import getAdmin from "@/lib/firebaseAdmin";
 import { EMPTY_ROOM, validId, validLetter, validateRoom, letterAccess } from "@/lib/room";
 
@@ -92,8 +93,7 @@ export async function POST(req: NextRequest) {
       await Promise.allSettled([
         db.collection("notifications").doc(toName).collection("items").doc(body.id).set({ title, message, from: fromName, url: "/my-room", read: false, createdAt: admin.firestore.FieldValue.serverTimestamp() }),
         (async () => {
-          const token = (await db.collection("fcm_tokens").doc(toName).get()).data()?.token;
-          if (token && to.data()?.pushEnabled !== false) await admin.messaging().send({ token, data: { title, body: message, url: "/my-room" }, webpush: { notification: { title, body: message, icon: "/wag.png", tag: `letter-${body.id}` }, fcmOptions: { link: "/my-room" } }, android: { notification: { title, body: message } }, apns: { payload: { aps: { alert: { title, body: message }, sound: "default" } } } });
+          if (to.data()?.pushEnabled !== false) await sendUserPush(db, admin.messaging(), toName, { data: { title, body: message, url: "/my-room" }, webpush: { notification: { title, body: message, icon: "/wag.png", tag: `letter-${body.id}` }, fcmOptions: { link: "/my-room" } }, android: { notification: { title, body: message } }, apns: { payload: { aps: { alert: { title, body: message }, sound: "default" } } } });
         })(),
       ]);
     }

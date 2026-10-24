@@ -13,6 +13,7 @@ const config: CapacitorConfig = {
     errorPath: 'offline.html',
   },
   android: { allowMixedContent: false },
+  plugins: { PushNotifications: { presentationOptions: [] } },
 };
 
 export default config;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import getAdmin from "@/lib/firebaseAdmin";
+import { sendUserPush } from "@/lib/push-delivery";
 import { refreshCall, visibleCall, memberOf, isParticipant, MAX_CALL_MEMBERS, validCallId, validDescription, type VideoCall } from "@/lib/video-call";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +31,8 @@ async function invitePush(admin: ReturnType<typeof getAdmin>, name: string, from
   try {
     const people = await admin.firestore().collection("users").where("nickname", "==", name).limit(1).get();
     if (people.docs[0]?.data()?.pushEnabled === false) return;
-    const token = (await admin.firestore().collection("fcm_tokens").doc(name).get()).data()?.token;
     const url = `/video-call/${id}`, title = "영상통화", message = `${from}님이 영상통화에 초대했어요`;
-    if (token) await admin.messaging().send({ token, data: { url, title, body: message },
+    await sendUserPush(admin.firestore(), admin.messaging(), name, { data: { url, title, body: message },
       webpush: { headers: { TTL: "90", Urgency: "high" }, notification: { title, body: message, icon: "/wag.png", tag: `video-${id}`, data: { url } }, fcmOptions: { link: url } },
       android: { priority: "high", ttl: 90000, notification: { title, body: message } },
       apns: { headers: { "apns-expiration": String(Math.floor(Date.now() / 1000) + 90) }, payload: { aps: { alert: { title, body: message }, sound: "default" } } },

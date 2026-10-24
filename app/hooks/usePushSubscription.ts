@@ -3,13 +3,22 @@ import { useEffect, useState } from "react";
 import { auth, db, getFirebaseMessaging } from "@/app/firebase";
 import { getToken } from "firebase/messaging";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { isAndroidApp, nativePushPermission, nativePushToken } from "@/lib/native-push";
 const EVENT = "wagie:push-preference";
 
-export async function saveFCMToken(nickname: string): Promise<boolean> {
+export async function saveFCMToken(nickname: string, request = false): Promise<boolean> {
   const user = auth.currentUser;
-  if (!user || typeof Notification === "undefined" || Notification.permission !== "granted") return false;
+  if (!user || !nickname) return false;
   const profile = await getDoc(doc(db, "users", user.uid));
   if (profile.data()?.pushEnabled === false) return false;
+  if (isAndroidApp()) {
+    const token = await nativePushToken(request);
+    if (!token || auth.currentUser?.uid !== user.uid) return false;
+    const response = await fetch("/api/push-device", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` }, body: JSON.stringify({ token }) });
+    if (!response.ok) throw Error("알림을 등록하지 못했어. 잠시 후 다시 켜 줘.");
+    return true;
+  }
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") return false;
   const messaging = await getFirebaseMessaging();
   if (!messaging) return false;
   const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY });
@@ -21,7 +30,9 @@ export async function saveFCMToken(nickname: string): Promise<boolean> {
 export async function setPushPreference(enabled: boolean) {
   const user = auth.currentUser;
   if (!user) throw Error("다시 로그인해 줘.");
-  if (enabled) {
+  if (enabled && isAndroidApp()) {
+    if (await nativePushPermission(true) !== "granted") throw Error("안드로이드 설정에서 와기 알림을 허용해 줘.");
+  } else if (enabled) {
     if (typeof Notification === "undefined" || !("serviceWorker" in navigator)) throw Error("이 브라우저는 푸시 알림을 지원하지 않아.");
     const permission = Notification.permission === "default" ? await Notification.requestPermission() : Notification.permission;
     if (permission !== "granted") throw Error("브라우저 주소 옆 권한 설정에서 알림을 허용해 줘.");
@@ -43,9 +54,13 @@ export function usePushSubscription(nickname: string | null) {
   useEffect(() => {
     let active = true;
     const check = async () => {
-      if (!nickname || typeof Notification === "undefined" || !auth.currentUser) return;
-      if (active) setIsBlocked(Notification.permission === "denied");
-      try { const enabled = await saveFCMToken(nickname); if (active) setIsSubscribed(enabled); }
+      if (!nickname || !auth.currentUser) return;
+      if (!isAndroidApp() && typeof Notification === "undefined") return;
+      try {
+        const blocked = isAndroidApp() ? await nativePushPermission() === "denied" : Notification.permission === "denied";
+        if (active) setIsBlocked(blocked);
+        const enabled = await saveFCMToken(nickname); if (active) setIsSubscribed(enabled);
+      }
       catch { if (active) setIsSubscribed(false); }
     };
     void check(); window.addEventListener(EVENT, check);

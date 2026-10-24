@@ -130,6 +130,11 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
+    if (auth.currentUser && (await import("@/lib/native-push")).isAndroidApp()) {
+      const response = await fetch("/api/push-device", { method: "DELETE", headers: { Authorization: `Bearer ${await auth.currentUser.getIdToken()}` } });
+      if (!response.ok) { alert("알림 연결을 정리하지 못했어. 잠시 후 다시 로그아웃해 줘."); return; }
+      await (await import("@/lib/native-push")).stopNativePush();
+    }
     await signOut(auth);
     router.push("/");
   };
