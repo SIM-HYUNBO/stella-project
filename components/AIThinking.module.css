@@ -1,0 +1,10 @@
+.waiting { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.robot { flex-shrink: 0; animation: float 1.8s ease-in-out infinite; }
+.eyes { transform-origin: 20px 20px; animation: blink 4s infinite; }
+.dots { display: flex; align-items: center; gap: 5px; height: 20px; }
+.dots > span { width: 6px; height: 6px; border-radius: 50%; background: #facc15; animation: hop 1.2s ease-in-out infinite; }
+.label { color: #8395a5; font-size: 12px; }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
+@keyframes hop { 0%, 55%, 100% { transform: translateY(0); opacity: .55; } 25% { transform: translateY(-6px); opacity: 1; } }
+@keyframes blink { 0%, 42%, 48%, 100% { transform: scaleY(1); } 45% { transform: scaleY(.15); } }
+@media (prefers-reduced-motion: reduce) { .robot, .eyes, .dots > span { animation: none; } }

@@ -5,6 +5,7 @@ import theme from "./robot-theme.module.css";
 
 import { readAIStream } from "@/lib/ai-stream";
 import AIResponse from "@/components/AIResponse";
+import AIThinking from "@/components/AIThinking";
 import AIMediaPicker, { AIMediaPreview } from "@/components/AIMediaPicker";
 import { AIMedia, mediaHistory } from "@/lib/ai-media";
 import AIUserMessage from "@/components/AIUserMessage";
@@ -340,9 +341,7 @@ export default function RobotPage() {
             <article aria-busy="true" className="relative mx-auto w-full max-w-2xl py-3 text-[15px] leading-7 text-slate-800">
               <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
               <div className="whitespace-pre-wrap break-words">
-                {streamingText ? <><AIResponse text={streamingText} /><span className="ml-1 inline-block h-4 w-0.5 bg-slate-400 align-middle animate-pulse" /></> : (
-                  <span aria-label="답변 생각 중" className="flex gap-1 py-2">{[0,150,300].map((delay, index) => <span key={delay} className={`h-1.5 w-1.5 rounded-full animate-bounce ${index === 1 ? "bg-amber-300" : "bg-sky-400"}`} style={{ animationDelay: `${delay}ms` }} />)}</span>
-                )}
+                {streamingText ? <><AIResponse text={streamingText} reveal /><span className="ml-1 inline-block h-4 w-0.5 bg-sky-400 align-middle animate-pulse motion-reduce:animate-none" /></> : <AIThinking />}
               </div>
             </article>
           )}
