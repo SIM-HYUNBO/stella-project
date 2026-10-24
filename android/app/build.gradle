@@ -7,8 +7,8 @@ android {
         applicationId "com.WAGIE.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 10348
+        versionName "1.3.48"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -43,6 +43,16 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// This online wrapper is for direct device testing, not a Play Store release.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any { it.name.toLowerCase().contains('release') }) {
+        def configFile = file('src/main/assets/capacitor.config.json')
+        if (configFile.exists() && new groovy.json.JsonSlurper().parse(configFile).server?.url) {
+            throw new GradleException('Online test wrapper: use assembleDebug. Configure bundled web assets before a production release.')
+        }
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')
