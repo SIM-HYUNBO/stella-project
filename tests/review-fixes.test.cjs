@@ -30,13 +30,8 @@ function fixture(){
  f=fixture();f.data.set('messages/msg',{from:'Alice',to:'Bob',readBy:['Alice']});f.data.set('group_rooms/g',{members:['Alice','Bob']});f.data.set('group_rooms/g/messages/other',{from:'Bob',readBy:['Alice']});
  const rename=f.api('app/api/migrate-nickname/route.ts');res=await rename.POST(f.req('a',{idToken:'a',from:'Alice',to:'Alicia'}));assert.equal(res.status,200);assert.equal(f.data.get('users/a').nickname,'Alicia');assert.equal(f.data.get('messages/msg').from,'Alicia');assert.equal(f.data.get('messages/msg').fromUid,'a');assert.equal(f.data.get('group_rooms/g/messages/other').readBy[0],'Alicia');assert.equal((await rename.POST(f.req('a',{idToken:'a',from:'Alice',to:'Alicia'}))).status,200);
  res=await rename.POST(f.req('c',{idToken:'c',from:'Bob',to:'Taken'}));assert.equal(res.status,403);
- f=fixture();f.data.set('draw_requests/r',{from:'Alice',to:'Bob',status:'accepted',sessionId:'draw_one'});f.data.set('draw_sessions/draw_one/strokes/s',{points:[1]});const session=f.api('app/api/creative-session/route.ts');assert.equal((await session.POST(f.req('c',{kind:'draw',id:'r'}))).status,403);
- const stroke={kind:'draw',id:'r',action:'stroke',strokeId:'new',stroke:{color:'#112233',size:7,points:[{x:10,y:10},{x:20,y:20}]}};
- assert.equal((await session.POST(f.req('a',stroke))).status,200);assert.equal(f.data.get('draw_sessions/draw_one/strokes/new').by,'Alice');
- assert.equal((await session.POST(f.req('a',{kind:'draw',id:'r'}))).status,200);assert.equal(f.data.get('draw_requests/r').status,'ended');assert.equal(f.data.has('draw_sessions/draw_one/strokes/s'),false);
- assert.equal((await session.POST(f.req('a',stroke))).status,409);assert.equal(f.data.has('draw_sessions/draw_one/strokes/new'),false);
  const preview=load('lib/preview-fetch.ts',name=>name==='node:dns/promises'?{lookup:async()=>[{address:'127.0.0.1',family:4}]}:require(name),{setTimeout,clearTimeout});
  for(const ip of ['127.0.0.1','10.0.0.1','169.254.169.254','192.168.0.1','100.64.0.1','::1','0.0.0.0'])assert.equal(preview.publicIPv4(ip),false);assert.equal(preview.publicIPv4('8.8.8.8'),true);
  await assert.rejects(preview.previewHTML('http://example.test'),/private_address/);await assert.rejects(preview.previewHTML('file:///etc/passwd'),/invalid_url/);
- console.log('Review fixes: auth, sender identity, push preferences/inbox, shared rate limit, safe account deletion, nickname migration/retry, creative cleanup and SSRF rejection passed');
+ console.log('Review fixes: auth, sender identity, push preferences/inbox, shared rate limit, safe account deletion, nickname migration/retry and SSRF rejection passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -14,7 +14,6 @@ export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
 
-  const [section, setSection] = useState<"chat" | "creative" | null>(null);
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
