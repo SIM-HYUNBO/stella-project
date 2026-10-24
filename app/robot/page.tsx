@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api-fetch";
+import { buildConversations, conversationDay } from "@/lib/ai-conversations";
 import theme from "./robot-theme.module.css";
 
 import { readAIStream } from "@/lib/ai-stream";
@@ -16,7 +17,7 @@ import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   writeBatch, collection, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, deleteDoc, doc, getDoc, setDoc, updateDoc,
+  serverTimestamp, deleteDoc, doc, setDoc, updateDoc,
 } from "firebase/firestore";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; };
@@ -61,18 +62,16 @@ export default function RobotPage() {
   const [showHistory, setShowHistory] = useState(false);
   const historyDialog = useRef<HTMLDialogElement>(null);
   const sendingRef = useRef(false);
+  const [conversationTitles, setConversationTitles] = useState<Record<string, string>>({});
+  const [renamingChat, setRenamingChat] = useState<string | null>(null);
+  const [chatTitle, setChatTitle] = useState("");
+  const [titleSaving, setTitleSaving] = useState(false);
+  const [titleError, setTitleError] = useState("");
+  const titleSavingRef = useRef(false);
+  const [historyNow, setHistoryNow] = useState(() => new Date());
+  useEffect(() => { const timer = window.setInterval(() => setHistoryNow(new Date()), 60000); return () => window.clearInterval(timer); }, []);
   const messages = useMemo(() => allMessages.filter(m => (m.sessionId || "legacy") === sessionId), [allMessages, sessionId]);
-  const conversations = useMemo(() => {
-    const groups = new Map<string, { id: string; title: string; preview: string; time: number }>();
-    for (const message of allMessages) {
-      const id = message.sessionId || "legacy";
-      const time = message.createdAt?.toMillis?.() || Date.now();
-      const existing = groups.get(id);
-      if (!existing) groups.set(id, { id, title: message.content.slice(0, 32), preview: message.content, time });
-      else { existing.preview = message.content; existing.time = Math.max(existing.time, time); }
-    }
-    return Array.from(groups.values()).sort((a, b) => b.time - a.time);
-  }, [allMessages]);
+  const conversations = useMemo(() => buildConversations(allMessages, conversationTitles), [allMessages, conversationTitles]);
   useEffect(() => { if (showHistory) historyDialog.current?.showModal(); else historyDialog.current?.close(); }, [showHistory]);
   const openConversation = (id: string | null) => {
     if (sendingRef.current || mediaBusy) return;
@@ -98,12 +97,25 @@ export default function RobotPage() {
   useEffect(() => { return watchAuthState(setUser); }, []);
 
   useEffect(() => {
+    setConversationTitles({}); setRenamingChat(null); setTitleError("");
     if (!user) return;
-    getDoc(doc(db, "robotSettings", user.uid)).then((snap) => {
+    return onSnapshot(doc(db, "robotSettings", user.uid), (snap) => {
       if (snap.exists() && snap.data().name) setRobotName(snap.data().name);
       else setNamingStep(true);
-    });
+      const saved = snap.data()?.conversationTitles;
+      setConversationTitles(saved && typeof saved === "object" ? Object.fromEntries(Object.entries(saved).filter((entry): entry is [string, string] => typeof entry[1] === "string")) : {});
+    }, () => setErrorMsg("AI 설정을 불러오지 못했어. 연결을 확인해 줘."));
   }, [user]);
+
+  const saveChatTitle = async () => {
+    if (!user || !renamingChat || !chatTitle.trim() || titleSavingRef.current) return;
+    titleSavingRef.current = true; setTitleSaving(true); setTitleError("");
+    try {
+      await setDoc(doc(db, "robotSettings", user.uid), { conversationTitles: { [renamingChat]: chatTitle.trim().slice(0, 60) } }, { merge: true });
+      setRenamingChat(null);
+    } catch { setTitleError("제목을 저장하지 못했어. 다시 눌러 줘."); }
+    finally { titleSavingRef.current = false; setTitleSaving(false); }
+  };
 
   useEffect(() => {
     setMessages([]); setSessionId(null); setHistoryReady(false); setHistoryError(false);
@@ -257,13 +269,27 @@ export default function RobotPage() {
         <dialog ref={historyDialog} onCancel={() => setShowHistory(false)} onClose={() => setShowHistory(false)} className={`m-0 h-dvh max-h-none w-[min(85vw,340px)] max-w-none border-0 p-5 shadow-2xl backdrop:bg-slate-900/25 ${theme.history}`}>
           <div className="mb-6 flex items-center justify-between"><h2 className="font-semibold text-slate-800">최근 채팅</h2><button aria-label="목록 닫기" onClick={() => setShowHistory(false)} className="h-10 w-10 text-slate-500">✕</button></div>
           <button disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(null)} className={`mb-5 w-full rounded-2xl px-4 py-3 text-left text-sm font-medium disabled:opacity-40 ${theme.newChat}`}>＋ 새 채팅</button>
-          {historyError ? <p role="alert" className="text-sm text-red-500">대화 목록을 불러오지 못했어. 페이지를 새로고침해 줘.</p> : !historyReady ? <p className="text-sm text-slate-400">대화를 불러오는 중…</p> : conversations.length === 0 ? <p className="text-sm text-slate-400">첫 이야기를 시작해 봐.</p> : conversations.map(chat => (
-            <button key={chat.id} disabled={isStreaming || mediaBusy || !historyReady} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className={`mb-2 w-full rounded-2xl p-3 text-left transition hover:bg-sky-50 disabled:opacity-40 ${chat.id === sessionId ? theme.selected : "bg-white"}`}>
-              <span className="block truncate text-sm font-medium text-slate-800">{chat.title || "이전 대화"}</span>
-              <span className="mt-1 block truncate text-xs text-slate-400">{chat.preview}</span>
-              <span className="mt-2 block text-[10px] text-slate-400">{new Date(chat.time).toLocaleDateString("ko-KR")}</span>
-            </button>
-          ))}
+          {historyError ? <p role="alert" className="text-sm text-red-500">대화 목록을 불러오지 못했어. 페이지를 새로고침해 줘.</p> : !historyReady ? <p className="text-sm text-slate-400">대화를 불러오는 중…</p> : conversations.length === 0 ? <p className="text-sm text-slate-400">첫 이야기를 시작해 봐.</p> : (["오늘", "어제", "이전"] as const).map(day => {
+            const chats = conversations.filter(chat => conversationDay(chat.time, historyNow) === day);
+            return chats.length ? <section key={day} className="mb-5" aria-label={`${day} 대화`}>
+              <h3 className="mb-2 px-3 text-[11px] font-semibold text-slate-400">{day}</h3>
+              {chats.map(chat => <div key={chat.id} className={`mb-2 rounded-2xl ${chat.id === sessionId ? theme.selected : "bg-white"}`}>
+                {renamingChat === chat.id ? <form className="p-3" onSubmit={e => { e.preventDefault(); void saveChatTitle(); }}>
+                  <label htmlFor="conversation-title" className="mb-2 block text-xs text-slate-500">대화 제목</label>
+                  <input id="conversation-title" autoFocus maxLength={60} value={chatTitle} disabled={titleSaving} onChange={e => setChatTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && e.nativeEvent.isComposing) e.preventDefault(); if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (!titleSavingRef.current) setRenamingChat(null); } }} className="w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-sky-100" />
+                  {titleError && <p role="alert" className="mt-2 text-xs text-red-500">{titleError}</p>}
+                  <div className="mt-2 flex justify-end gap-2"><button type="button" disabled={titleSaving} onClick={() => setRenamingChat(null)} className="rounded-lg px-3 py-2 text-xs text-slate-500">취소</button><button type="submit" disabled={titleSaving || !chatTitle.trim()} className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-medium text-sky-700 disabled:opacity-40">{titleSaving ? "저장 중…" : "완료"}</button></div>
+                </form> : <div className="flex items-center">
+                  <button disabled={isStreaming || mediaBusy || !historyReady || titleSaving} onClick={() => openConversation(chat.id)} aria-current={chat.id === sessionId ? "page" : undefined} className="min-w-0 flex-1 rounded-2xl p-3 text-left transition hover:bg-sky-50 disabled:opacity-40">
+                    <span className="block truncate text-sm font-medium text-slate-800">{chat.title}</span>
+                    <span className="mt-1 block truncate text-xs text-slate-400">{chat.preview}</span>
+                    {chat.time > 0 && <span className="mt-2 block text-[10px] text-slate-400">{new Date(chat.time).toLocaleDateString("ko-KR")}</span>}
+                  </button>
+                  <button aria-label={`${chat.title} 제목 수정`} disabled={titleSaving} onClick={() => { setRenamingChat(chat.id); setChatTitle(chat.title); setTitleError(""); }} className="mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-sky-50 hover:text-sky-600 disabled:opacity-40"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15v5Z" /></svg></button>
+                </div>}
+              </div>)}
+            </section> : null;
+          })}
         </dialog>
         {/* 헤더 */}
         <div className={`flex items-center justify-between shrink-0 px-4 py-3 backdrop-blur-xl border-b ${theme.header}`} style={{ boxShadow: "0 1px 12px rgba(56,189,248,0.04)" }}>
