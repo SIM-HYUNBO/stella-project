@@ -2,8 +2,8 @@ export const metadata = {
   title: "WAGIE",
   manifest: "/manifest.json",
   icons: {
-    icon: "/wag.png",
-    apple: "/wag.png",
+    icon: "/app-icons/duck-cap-32.png",
+    apple: "/app-icons/duck-cap-180.png",
   },
 };
 
