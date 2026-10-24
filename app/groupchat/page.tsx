@@ -1278,7 +1278,7 @@ export default function GroupChat() {
                 }
                 className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
               >
-                <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-[16px] bg-sky-100 text-sky-700 font-bold flex items-center justify-center shadow">
                   {u.nickname[0]}
                 </div>
 
@@ -1314,7 +1314,7 @@ export default function GroupChat() {
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3799cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
                 <span className="font-bold text-sm text-gray-700">비밀방</span>
@@ -1347,7 +1347,7 @@ export default function GroupChat() {
             </div>
           </div>
           <button onClick={saveRoomSettings}
-            className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition-transform">
+            className="w-full h-12 rounded-2xl bg-sky-500 text-white font-semibold active:scale-95 transition-transform">
             저장
           </button>
         </div>
@@ -1362,7 +1362,7 @@ export default function GroupChat() {
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowPasswordPrompt(false)}>
         <div className="w-80 bg-white rounded-3xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3799cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
             <span className="font-black text-gray-800">비밀방 비밀번호</span>
@@ -1373,7 +1373,7 @@ export default function GroupChat() {
             onKeyDown={(e) => e.key === "Enter" && inviteUser(pendingInviteTarget, enteredPassword)}
             autoFocus/>
           <button onClick={() => inviteUser(pendingInviteTarget, enteredPassword)}
-            className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition-transform">
+            className="w-full h-12 rounded-2xl bg-sky-500 text-white font-semibold active:scale-95 transition-transform">
             초대
           </button>
         </div>
@@ -1388,7 +1388,7 @@ export default function GroupChat() {
   const renderRoom = () => (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* 헤더 */}
-      <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
+      <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white border-b border-slate-100" style={{ boxShadow: "0 4px 18px -14px rgba(50,95,120,0.18)" }}>
         <div className="flex items-center gap-3">
           <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
 
@@ -1402,7 +1402,7 @@ export default function GroupChat() {
                 className="w-11 h-11 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
+              <div className="w-11 h-11 rounded-[16px] bg-sky-100 text-sky-700 font-bold flex items-center justify-center shadow">
                 {currentRoom?.name[0]}
               </div>
             )}
@@ -1833,7 +1833,7 @@ export default function GroupChat() {
         />
 
         <div className="flex items-center gap-2 rounded-full px-3 py-2 transition-all relative overflow-visible"
-          style={{ background:"rgba(255,255,255,0.72)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:"0 4px 24px rgba(0,0,0,0.08),0 0 0 1px rgba(186,230,253,0.4)" }}>
+          style={{ background:`linear-gradient(120deg,rgba(255,253,244,0.95),rgba(255,255,255,0.94) 48%,${accent.ring}33)`, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:`0 8px 24px -12px rgba(60,100,125,0.20),0 0 0 1px ${accent.ring}66` }}>
         {/* + 버튼 */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -2011,17 +2011,17 @@ export default function GroupChat() {
 
   // 방 목록
   const renderRoomList = () => (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="wag-restyled flex flex-col h-full bg-transparent">
       <div className="px-4 py-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-black bg-yellow-200">
-            WAGIE GROUP
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="wag-page-title">
+            단체채팅
           </span>
           <button
             onClick={() => router.push("/groupchat")}
             className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3799cc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -2031,16 +2031,16 @@ export default function GroupChat() {
           </button>
           <button
             onClick={() => router.push("/meetingroom")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 transition active:scale-95"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b49642" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2" />
               <line x1="8" y1="21" x2="16" y2="21" />
               <line x1="12" y1="17" x2="12" y2="21" />
               <line x1="7" y1="8" x2="17" y2="8" />
               <line x1="7" y1="12" x2="13" y2="12" />
             </svg>
-            <span className="text-xs font-bold text-red-500">회의</span>
+            <span className="text-xs font-semibold text-amber-700">회의</span>
           </button>
         </div>
         <div className="text-xs text-gray-400 mt-0.5">단체 채팅</div>
@@ -2062,7 +2062,7 @@ export default function GroupChat() {
             <div className="bg-white rounded-[14px] px-3 py-2 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3799cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
                   <span className="text-xs font-bold text-gray-600">비밀방</span>
@@ -2098,7 +2098,7 @@ export default function GroupChat() {
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 h-11 rounded-[16px] bg-sky-200 text-white font-black"
+                className="flex-1 h-11 rounded-[16px] bg-sky-500 text-white font-semibold"
               >
                 만들기
               </button>
@@ -2119,7 +2119,7 @@ export default function GroupChat() {
             onClick={() =>
               setShowCreate(true)
             }
-            className="w-full h-11 rounded-[16px] bg-sky-200 text-white font-black"
+            className="w-full h-11 rounded-[16px] bg-sky-500 text-white font-semibold"
           >
             + 방 만들기
           </button>
@@ -2134,7 +2134,7 @@ export default function GroupChat() {
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
               currentRoom?.id === room.id
                 ? "bg-sky-200"
-                : "bg-white/80 hover:bg-sky-50 border-sky-200"
+                : "bg-white hover:bg-sky-50/60 border-slate-100"
             }`}
           >
             {room.profileImage ? (
@@ -2144,7 +2144,7 @@ export default function GroupChat() {
                 className="w-11 h-11 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
+              <div className="w-11 h-11 rounded-[16px] bg-sky-100 text-sky-700 font-bold flex items-center justify-center shadow">
                 {room.name[0]}
               </div>
             )}
@@ -2153,7 +2153,7 @@ export default function GroupChat() {
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-sm truncate text-slate-800">{room.name}</span>
                 {room.isSecret && (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3799cc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>

@@ -6,29 +6,27 @@ const jua = localFont({ src: "../app/fonts/google/Jua-Regular.ttf", weight: "400
 
 const Header = () => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b border-gray-100" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
-      <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b border-sky-100/80">
 
-      <div className="relative flex justify-between items-center px-5 py-3">
+      <div className="relative mx-auto flex h-16 max-w-4xl justify-between items-center gap-3 px-4 sm:px-6">
         <Link href="/home" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-[12px] bg-sky-100 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-[13px] bg-amber-50 border border-amber-100 flex items-center justify-center">
             <img src="/wag.png" alt="logo" className="w-6 h-6 object-contain" />
           </div>
-          <span className={`${jua.className} text-[28px] text-sky-400 drop-tracking-wide`}>
+          <span className={`${jua.className} text-[26px] text-sky-500 tracking-wide`}>
             WAGIE
           </span>
-          <span className="text-[14px] text-gray-400 font-light ml-2 animate-[fadeInSlow_1.2s_ease_0.8s_both]">
+          <span className="hidden min-[390px]:inline text-[13px] text-slate-400 font-light ml-2 animate-[fadeInSlow_1.2s_ease_0.8s_both] motion-reduce:animate-none">
             wagging duck
           </span>
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href="/robot" className="relative w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform" title="AI" aria-label="AI 채팅 열기">
-            <span className="absolute -top-1 -right-1 bg-red-400 text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">NEW</span>
+          <Link href="/robot" className="relative w-10 h-10 rounded-[15px] border border-sky-100 bg-sky-50 flex items-center justify-center active:scale-95 transition-transform" title="AI" aria-label="AI 채팅 열기">
             <RobotWelcomeArt color="#38bdf8" icon />
           </Link>
           <Link href="/tools"
-            className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform">
+            aria-label="설정 열기" className="w-10 h-10 rounded-[15px] border border-slate-100 bg-white flex items-center justify-center active:scale-95 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="#50caff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />

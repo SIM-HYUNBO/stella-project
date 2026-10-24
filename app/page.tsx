@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import LoadingScreen from "../components/LoadingScreen";
+import RobotWelcomeArt from "@/components/RobotWelcomeArt";
 
 export default function RootPage() {
   const router = useRouter();
@@ -24,10 +25,10 @@ export default function RootPage() {
   }
 
   return (
-    <div className="min-h-screen bg-yellow-50 font-sans overflow-x-hidden">
+    <div className="wag-app wag-restyled min-h-screen overflow-x-hidden">
 
       {/* ── 헤더 ── */}
-      <header className="sticky top-0 z-50 bg-yellow-50/90 backdrop-blur border-b border-yellow-200">
+      <header className="sticky top-0 z-50 bg-white border-b border-sky-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center">
@@ -52,8 +53,9 @@ export default function RootPage() {
 
       {/* ── 히어로 ── */}
       <section className="max-w-3xl mx-auto px-6 pt-20 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-200 text-yellow-800 text-xs font-bold mb-8">
-          ✦ v2026.6 AI 어시스턴트 출시
+        <RobotWelcomeArt color="#38bdf8" compact />
+        <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium mb-8">
+          작은 대화가 시작되는 곳
         </div>
 
         <h1 className="text-5xl md:text-[64px] font-black text-slate-900 leading-[1.1] mb-6">
@@ -76,7 +78,7 @@ export default function RootPage() {
             무료로 시작하기 →
           </Link>
           <Link href="/login"
-            className="px-7 py-3.5 rounded-2xl bg-yellow-300 text-yellow-900 font-black text-sm hover:bg-yellow-400 transition active:scale-95">
+            className="wag-secondary px-7 py-3.5 rounded-2xl font-semibold text-sm transition active:scale-95">
             로그인
           </Link>
         </div>

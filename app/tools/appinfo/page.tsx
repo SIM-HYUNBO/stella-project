@@ -48,10 +48,10 @@ export default function AppInfoPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 bg-gray-50" />
+    <main className="wag-restyled relative min-h-screen overflow-hidden">
+      <div className="wag-app fixed inset-0" />
 
-      <div className="relative z-10">
+      <div className="wag-page relative z-10">
         {/* 헤더 */}
         <div className="flex items-center h-14 px-4 bg-white">
           <button onClick={() => router.back()}
@@ -96,7 +96,7 @@ export default function AppInfoPage() {
                 <div className="w-10 h-10 rounded-xl bg-sky-200 flex items-center justify-center text-xl">🎧</div>
                 <span className="font-semibold text-slate-800 text-sm">Q&A방</span>
               </div>
-              <span className="text-orange-300 text-xl">›</span>
+              <span className="text-slate-300 text-xl">›</span>
             </button>
           </div>
 
@@ -121,7 +121,7 @@ export default function AppInfoPage() {
                         <p className="font-semibold text-slate-800 text-sm truncate">{n.title}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{formatDate(n.createdAt)}</p>
                       </div>
-                      <span className="text-orange-300 text-lg ml-3 shrink-0 transition-transform duration-200"
+                      <span className="text-slate-300 text-lg ml-3 shrink-0 transition-transform duration-200"
                         style={{ display: "inline-block", transform: expanded[n.id] ? "rotate(180deg)" : "rotate(0deg)" }}>
                         ▼
                       </span>

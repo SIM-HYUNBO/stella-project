@@ -270,15 +270,15 @@ export default function FriendsPage() {
 
   return (
     <PageContainer>
-    <main className="relative min-h-screen overflow-hidden" onClick={() => setMenuOpen(null)}>
-      <div className="fixed inset-0 bg-gray-50" />
+    <main className="wag-restyled relative min-h-screen overflow-hidden" onClick={() => setMenuOpen(null)}>
+      <div className="wag-app fixed inset-0" />
 
       <div className="relative z-10">
         <div className="px-4 py-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black bg-yellow-200">FRIENDS</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="wag-page-title">친구</span>
             {requests.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
+              <span className="w-5 h-5 rounded-full bg-sky-500 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
             )}
             <button
               onClick={() => router.push("/friendmenu")}
@@ -310,7 +310,7 @@ export default function FriendsPage() {
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
             <input value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white rounded-[18px] pl-11 pr-4 py-3.5 text-sm text-slate-800 placeholder:text-[#d4b090] outline-none focus:ring-2 focus:ring-orange-200"
+              className="w-full bg-white rounded-[18px] pl-11 pr-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-sky-200"
               placeholder="사용자 검색" />
           </div>
 
@@ -321,13 +321,13 @@ export default function FriendsPage() {
                 검색 결과 <span className="text-sky-600">{filteredUsers.length}</span>
               </p>
               {filteredUsers.length === 0 ? (
-                <div className="rounded-[20px] bg-white px-4 py-6 text-center text-slate-400 text-sm">
+                <div className="wag-card px-4 py-6 text-center text-slate-400 text-sm">
                   일치하는 사용자가 없어요
                 </div>
               ) : (
                 <div className="space-y-2">
                   {filteredUsers.map((u) => (
-                    <div key={u.uid} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
+                    <div key={u.uid} className="wag-card px-4 py-3.5 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
                           <TextAvatar nickname={u.nickname} fill profileImage={u.profileImage ?? null} />
@@ -341,7 +341,7 @@ export default function FriendsPage() {
                       ) : (
                         <button
                           onClick={() => sendFriendRequest(u)}
-                          className="px-3 py-1.5 rounded-full bg-sky-200 text-white text-xs font-black active:scale-95 transition"
+                          className="px-3 py-1.5 rounded-full bg-sky-500 text-white text-xs font-black active:scale-95 transition"
                         >
                           친구 추가
                         </button>
@@ -359,9 +359,9 @@ export default function FriendsPage() {
               <p className="font-black text-slate-800 text-base mb-3 px-1">받은 요청 🔔 <span className="text-sky-600">{requests.length}</span></p>
               <div className="space-y-2">
                 {requests.map((r) => (
-                  <div key={r.id} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
+                  <div key={r.id} className="wag-card px-4 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
+                      <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
                         <TextAvatar nickname={r.fromNickname || r.from} fill profileImage={null} />
                       </div>
                       <div>
@@ -371,7 +371,7 @@ export default function FriendsPage() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => acceptRequest(r)}
-                        className="px-4 py-2 bg-sky-200 text-white rounded-[12px] text-xs font-black">수락</button>
+                        className="px-4 py-2 bg-sky-500 text-white rounded-[12px] text-xs font-black">수락</button>
                       <button onClick={() => rejectRequest(r)}
                         className="px-4 py-2 bg-gray-50 text-sky-800 rounded-[12px] text-xs font-black">거절</button>
                     </div>
@@ -389,7 +389,7 @@ export default function FriendsPage() {
                 {upcomingBirthdays.map((f) => {
                   const days = getDaysUntilBirthday(f.birthdate)!;
                   return (
-                    <div key={f.uid} className="rounded-[20px] bg-yellow-50 border border-yellow-200 px-4 py-3.5 flex items-center gap-3">
+                    <div key={f.uid} className="wag-card bg-amber-50 border-amber-100 px-4 py-3.5 flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-yellow-300 shrink-0">
                         <TextAvatar nickname={f.nickname} fill profileImage={f.profileImage ?? null} />
                       </div>
@@ -420,10 +420,10 @@ export default function FriendsPage() {
                   const days = getFriendDays(f.friendSince);
                   const intimacy = getIntimacy(days);
                   return (
-                  <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-sky-50 px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
+                  <div key={f.uid} onClick={() => openProfile(f)} className="wag-card bg-sky-50/40 px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-400 shrink-0">
+                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-200 shrink-0">
                           <TextAvatar nickname={f.nickname} fill profileImage={f.profileImage ?? null} />
                         </div>
                         <span className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center">
@@ -469,10 +469,10 @@ export default function FriendsPage() {
                   const days = getFriendDays(f.friendSince);
                   const intimacy = getIntimacy(days);
                   return (
-                  <div key={f.uid} onClick={() => openProfile(f)} className="relative rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
+                  <div key={f.uid} onClick={() => openProfile(f)} className="relative wag-card px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
+                        <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
                           <TextAvatar nickname={f.nickname} fill profileImage={f.profileImage ?? null} />
                         </div>
                         <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-white" />
@@ -549,7 +549,7 @@ export default function FriendsPage() {
             <div className="flex gap-3 px-6 pb-8">
               <button
                 onClick={() => { setProfileView(null); router.push(`/avatar?open=${profileView.nickname}`); }}
-                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] bg-sky-200 text-white font-black active:scale-95 transition"
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-[16px] bg-sky-500 text-white font-black active:scale-95 transition"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -617,7 +617,7 @@ export default function FriendsPage() {
               <div className="w-10 h-1 rounded-full bg-gray-200" />
             </div>
             <div className="px-5 py-3 flex items-center gap-3 border-b border-gray-50">
-              <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
+              <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-sky-100 shrink-0">
                 <TextAvatar nickname={actionSheet.nickname} fill profileImage={actionSheet.profileImage ?? null} />
               </div>
               <p className="font-black text-slate-800">{actionSheet.nickname}</p>

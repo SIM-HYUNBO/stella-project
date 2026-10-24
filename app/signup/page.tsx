@@ -76,7 +76,7 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
+    <main className="wag-app wag-restyled min-h-screen flex flex-col items-center justify-center px-4 py-12">
 
       {/* 브랜드 */}
       <div className="flex items-center gap-2 mb-8">
@@ -116,7 +116,7 @@ export default function SignupPage() {
         </div>
 
         {/* 카드 */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+        <div className="wag-card border border-gray-100 shadow-sm p-8">
 
         
           {/* Step 2 - 기본 정보 */}

@@ -198,24 +198,24 @@ export default function SettingsPage() {
   const pinKeys = ["1","2","3","4","5","6","7","8","9","","0","←"];
 
   return (
-    <main className="relative min-h-screen" style={{ background: "#f0f9ff" }}>
+    <main className="wag-app wag-restyled relative min-h-screen">
       {/* 배경 블롭 */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: "#bae6fd" }}/>
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: "#fff2bc" }}/>
         <div className="absolute top-1/3 -right-16 w-56 h-56 rounded-full blur-3xl opacity-30" style={{ background: "#e0f2fe" }}/>
         <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-30" style={{ background: "#dbeafe" }}/>
       </div>
 
       {/* 헤더 */}
-      <div className="flex items-center h-14 px-4 bg-white/70 backdrop-blur-xl border-b border-white/80 sticky top-0 z-20">
+      <div className="flex items-center h-14 px-4 wag-topbar sticky top-0 z-20">
         <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 text-sky-600 font-bold text-lg mr-3 shadow-sm">←</button>
-        <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
+        <span className="font-semibold text-slate-800 text-base">설정</span>
       </div>
 
-      <div className="px-5 pt-5 pb-20 space-y-4 relative z-10">
+      <div className="wag-page px-5 pt-6 pb-20 space-y-5 relative z-10">
 
         {/* 내 정보 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4">
+        <div className="wag-card px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">내 정보</span>
             <button
@@ -236,7 +236,7 @@ export default function SettingsPage() {
                 <input
                   value={editNickname}
                   onChange={(e) => setEditNickname(e.target.value)}
-                  className="w-full font-black text-slate-800 text-base bg-sky-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-orange-200"
+                  className="w-full font-black text-slate-800 text-base bg-sky-50 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-sky-200"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && saveNickname()}
                 />
@@ -249,7 +249,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 채팅 테마 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4">
+        <div className="wag-card px-5 py-4">
           <span className="text-xs font-black text-gray-400 uppercase tracking-wider">채팅 테마</span>
           <div className="flex gap-3 mt-3">
             {THEMES.map(t => {
@@ -273,7 +273,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 앱 설정 토글 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
+        <div className="wag-card overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">앱 설정</span>
           </div>
@@ -288,7 +288,7 @@ export default function SettingsPage() {
               className={`flex items-center justify-between px-5 py-4 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-yellow-200 flex items-center justify-center text-lg">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-lg">
                   {icon}
                 </div>
                 <span className="font-bold text-slate-800 text-sm">{label}</span>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
 
         {/* 관리자 모드 (Stella 전용) */}
         {user?.nickname === "Stella" && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
+          <div className="wag-card overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-50">
               <span className="text-xs font-black text-gray-400 uppercase tracking-wider">관리자</span>
             </div>
@@ -342,7 +342,7 @@ export default function SettingsPage() {
         )}
 
         {/* 기능 버튼들 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
+        <div className="wag-card overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">기능</span>
           </div>
@@ -353,7 +353,7 @@ export default function SettingsPage() {
               className={`w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-yellow-200 flex items-center justify-center text-lg">{icon}</div>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-lg">{icon}</div>
                 <span className="font-bold text-slate-800 text-sm">{label}</span>
               </div>
               <span className="text-orange-300 text-lg font-bold">›</span>
@@ -362,7 +362,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 최근 알림 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
+        <div className="wag-card overflow-hidden">
           <button
             onClick={() => setShowNotifCenter(v => !v)}
             className="w-full flex items-center justify-between px-5 py-4"

@@ -5,8 +5,8 @@ export default function LoadingScreen() {
     <div
       className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-3"
       style={{
-        paddingTop: "60px",
-        paddingBottom: "58px",
+        paddingTop: "64px",
+        paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
         background: "rgba(255, 255, 255, 0.55)",
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",

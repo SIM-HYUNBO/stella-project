@@ -156,7 +156,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="relative w-full min-h-screen overflow-x-hidden">
+    <div className="wag-app wag-restyled relative w-full min-h-screen overflow-x-hidden">
 
       {/* 뒤로가기 */}
       <button onClick={() => router.back()}
@@ -171,31 +171,31 @@ export default function ProfilePage() {
         ) : coverGradient ? (
           <div className="w-full h-full" style={{ background: coverGradient }} />
         ) : (
-          <div className="w-full h-full bg-sky-200 flex flex-col items-center justify-center gap-2">
+          <div className="w-full h-full bg-[linear-gradient(125deg,#fff4cc,#e7f5ff)] flex flex-col items-center justify-center gap-2">
             <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
             <span className="text-4xl">🖼️</span>
-            <p className="text-white/80 text-sm font-semibold">커버 이미지 설정하기</p>
+            <p className="text-slate-500 text-sm font-medium">커버 이미지 설정하기</p>
           </div>
         )}
-        <div className="absolute inset-0 bg-sky-200/50 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-3 right-3 bg-black/30 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">사진 변경</div>
       </div>
       <input type="file" ref={coverRef} onChange={changeCoverImage} className="hidden" />
 
       {/* 프로필 카드 */}
-      <div className="relative z-10 -mt-16 px-5 pb-24">
-        <div className="rounded-[28px] bg-white px-6 pt-6 pb-7" style={{ boxShadow: "0 -4px 30px rgba(0,0,0,0.08)" }}>
+      <div className="relative z-10 mx-auto max-w-2xl -mt-16 px-5 pb-24">
+        <div className="wag-card px-6 pt-6 pb-7">
 
           {/* 프로필 이미지 */}
           <div className="flex items-end gap-4 -mt-16 mb-5">
             <div onClick={() => profileRef.current?.click()}
-              className="relative w-24 h-24 rounded-[22px] bg-sky-200 overflow-hidden cursor-pointer shrink-0">
+              className="relative w-24 h-24 rounded-[26px] border-4 border-white shadow-sm bg-sky-100 overflow-hidden cursor-pointer shrink-0">
               {profileImage ? (
                 <img src={profileImage} className="w-full h-full object-cover" />
               ) : (
                 <div className="flex items-center justify-center h-full text-3xl">+</div>
               )}
-              <div className="absolute bottom-0 right-0 w-7 h-7 bg- rounded-tl-xl flex items-center justify-center text-white text-xs">✏️</div>
+              <div className="absolute bottom-0 right-0 w-7 h-7 bg-sky-500 rounded-tl-xl flex items-center justify-center text-white text-xs">✏️</div>
             </div>
             <input type="file" ref={profileRef} onChange={changeProfileImage} className="hidden" />
           </div>

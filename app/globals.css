@@ -6,6 +6,12 @@
 
 :root {
   --app-font: "SUIT";
+  --wag-ink: #243748;
+  --wag-muted: #7e91a1;
+  --wag-line: #e5eff5;
+  --wag-sky: #ebf7ff;
+  --wag-yellow: #fff7d9;
+  --wag-blue: #2797d4;
 }
 
 html {
@@ -26,7 +32,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 
-  background: linear-gradient(to right, #fefce8, #e0f2fe);
+  background: radial-gradient(ellipse at 95% 0%, #fff7d9 0, transparent 48%), radial-gradient(ellipse at 0% 100%, #cce8fc 0, transparent 58%), #fff;
   background-attachment: fixed;
   color: #0f172a;
 
@@ -64,3 +70,33 @@ button {
   transform: scale(1.02);
 }
 @keyframes mp-spin { to { transform: rotate(360deg); } }
+
+@layer components {
+  .wag-app { background: radial-gradient(ellipse at 95% 0%, #fff7d9 0, transparent 48%), radial-gradient(ellipse at 0% 100%, #cce8fc 0, transparent 58%), #fff; color: var(--wag-ink); }
+  .wag-page { width: 100%; max-width: 48rem; margin-inline: auto; padding-bottom: 1.5rem; }
+  .wag-heading { font-size: 1rem; font-weight: 650; letter-spacing: -.025em; color: var(--wag-ink); }
+  .wag-page-title { font-size: 1.5rem; font-weight: 650; letter-spacing: -.04em; color: var(--wag-ink); background: linear-gradient(transparent 70%, #fff0b5 70%); width: fit-content; }
+  .wag-card { background: #fff; border: 1px solid var(--wag-line); border-radius: 24px; box-shadow: 0 8px 30px -22px #9fb8c8; }
+  .wag-hero { background: linear-gradient(115deg, #fff9e8, #fff 52%, #edf8ff); border-color: #edead7; box-shadow: 0 16px 45px -30px #a6bdcb; }
+  .wag-underline { background: linear-gradient(transparent 78%, #ffeeb0 78%); }
+  .wag-primary { color: #fff; background: linear-gradient(145deg, #38bdf8, #2797d4); border: 1px solid #37ade5; box-shadow: 0 4px 12px -6px #58b7df; }
+  .wag-secondary { color: #746024; background: #fff7d9; border: 1px solid #f3e7b3; }
+  .wag-icon-tile { display: flex; flex: 0 0 auto; width: 2.75rem; height: 2.75rem; align-items: center; justify-content: center; border-radius: 15px; background: #f0f9ff; color: #3799cc; border: 1px solid #e1f0fa; }
+  .wag-feature { display: flex; align-items: center; gap: 14px; min-height: 92px; width: 100%; padding: 19px; border: 1px solid var(--wag-line); border-radius: 24px; background: #fff; color: #87a2b3; text-align: left; transition: border-color .2s, box-shadow .2s, transform .2s; }
+  .wag-feature:hover { border-color: #bbdfee; box-shadow: 0 8px 24px -20px #70a9c6; }
+  .wag-feature:active { transform: scale(.99); }
+  .wag-feature-sky { background: linear-gradient(120deg, #edf8ff, #fbfdff); border-color: #d9edf9; }
+  .wag-feature-yellow { background: linear-gradient(120deg, #fffae7, #fffdf5); border-color: #f3eac8; }
+  .wag-feature-yellow .wag-icon-tile { background: #fff3be; border-color: #f4e7ae; color: #9a8136; }
+  .wag-count { min-width: 24px; padding: 4px 7px; border-radius: 12px; background: white; color: #2886b6; font-size: 11px; text-align: center; font-weight: 600; }
+  .wag-menu-row { display: flex; align-items: center; gap: 14px; width: 100%; padding: 17px 19px; transition: background .2s; }
+  .wag-menu-row + .wag-menu-row { border-top: 1px solid #f0f4f7; }
+  .wag-menu-row:hover { background: #f9fcfe; }
+  .wag-topbar { border-bottom: 1px solid #e5eff5; background: #fff; }
+  .wag-restyled .font-black { font-weight: 650; }
+  .wag-restyled :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"])), .wag-restyled :where(textarea) { accent-color: #38bdf8; }
+  .wag-restyled :where(input, textarea):focus-visible { outline: 2px solid #b8e5fb; outline-offset: 2px; }
+}
+
+:where(button, a, input, textarea, select):focus-visible { outline: 2px solid #67bde6; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .screen-ripple { animation: none !important; } }

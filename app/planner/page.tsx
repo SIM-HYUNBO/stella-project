@@ -193,19 +193,19 @@ export default function PlannerPage() {
 
   return (
     <PageContainer>
-      <main className="relative min-h-screen">
-        <div className="fixed inset-0 bg-gray-50" />
+      <main className="wag-restyled relative min-h-screen">
+        <div className="wag-app fixed inset-0" />
         <div className="relative z-10">
 
           {/* 헤더 */}
           <div className="px-4 py-4">
-            <span className="text-xl font-black bg-yellow-200">PLANNER</span>
+            <span className="wag-page-title">플래너</span>
             <div className="text-xs text-gray-400 mt-0.5">플래너</div>
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => setType("daily")}
                 className={`px-4 py-1.5 rounded-xl text-xs font-black transition active:scale-90 ${
-                  type === "daily" ? "bg-sky-200 text-white" : "bg-sky-50 text-sky-600"
+                  type === "daily" ? "bg-sky-500 text-white" : "bg-sky-50 text-sky-600"
                 }`}
               >
                 daily
@@ -271,7 +271,7 @@ export default function PlannerPage() {
                   <button
                     onClick={addTask}
                     disabled={!newTask.trim()}
-                    className="px-4 bg-sky-200 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
+                    className="px-4 bg-sky-500 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
                   >
                     추가
                   </button>
@@ -432,7 +432,7 @@ export default function PlannerPage() {
                           ) : (
                             <button
                               onClick={pauseTimer}
-                              className="flex items-center gap-1 px-4 py-1.5 bg-sky-200 text-white text-xs font-black rounded-xl active:scale-90 transition"
+                              className="flex items-center gap-1 px-4 py-1.5 bg-sky-500 text-white text-xs font-black rounded-xl active:scale-90 transition"
                             >
                               ⏸ 일시정지
                             </button>
