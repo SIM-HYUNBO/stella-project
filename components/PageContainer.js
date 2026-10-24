@@ -98,7 +98,8 @@ const PageContainer = ({ children }) => {
 
   return (
     <div
-      className="wag-app relative flex w-full min-h-screen justify-center [overflow-x:clip]"
+      className="relative flex w-full min-h-screen justify-center [overflow-x:clip]"
+      style={{ background: "#f0f9ff" }}
       onClick={(e) =>
         createRipple(e.clientX, e.clientY)
       }
@@ -115,12 +116,12 @@ const PageContainer = ({ children }) => {
     >
       {/* 배경 블롭 */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full blur-3xl opacity-20" style={{ background: "#fde68a" }}/>
-        <div className="absolute top-1/3 -right-16 w-56 h-56 rounded-full blur-3xl opacity-35" style={{ background: "#b6dffb" }}/>
-        <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-35" style={{ background: "#bddbfb" }}/>
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: "#bae6fd" }}/>
+        <div className="absolute top-1/3 -right-16 w-56 h-56 rounded-full blur-3xl opacity-30" style={{ background: "#e0f2fe" }}/>
+        <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-30" style={{ background: "#dbeafe" }}/>
       </div>
 
-      <div className="flex flex-col w-full max-w-4xl relative pb-[calc(80px+env(safe-area-inset-bottom))] pt-[64px] z-10">
+      <div className="flex flex-col w-full max-w-4xl relative pb-12 pt-[60px] z-10">
         <Header />
 
         <main className="w-full p-4 relative z-10">
@@ -129,7 +130,7 @@ const PageContainer = ({ children }) => {
       </div>
 
       {/* 하단 네비게이션 */}
-      <nav aria-label="주 메뉴" className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-sky-100 h-[calc(64px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_-22px_rgba(51,119,155,0.25)] flex justify-center">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 h-[58px] shadow-[0_-2px_20px_rgba(14,165,233,0.08)] flex justify-center">
         <div className="flex items-center justify-around w-full max-w-4xl px-1">
           {NAV_ITEMS.map(({ label, path, icon }) => {
             const active = pathname === path || pathname?.startsWith(path + "/");
@@ -140,10 +141,9 @@ const PageContainer = ({ children }) => {
                 title={label}
                 aria-current={active ? "page" : undefined}
                 onClick={() => router.push(path)}
-                className={`flex flex-col gap-1 items-center justify-center flex-1 h-16 transition-colors duration-150 ${active ? "text-sky-600" : "text-slate-400 hover:text-slate-600"}`}
+                className={`flex items-center justify-center flex-1 h-[58px] transition-all duration-150 ${active ? "text-sky-500" : "text-gray-400 hover:text-gray-500"}`}
               >
-                <span className={`flex h-8 w-12 items-center justify-center rounded-2xl transition-colors ${active ? "bg-sky-50 ring-1 ring-sky-100" : ""}`}>{icon(active)}</span>
-                <span className={`text-[9px] leading-none ${active ? "font-semibold" : "font-medium"}`}>{label}</span>
+                {icon(active)}
               </button>
             );
           })}

@@ -30,9 +30,9 @@ export default function HiddenPage() {
   const remove = async (id: string) => { await deleteDoc(doc(db, "hidden", id)); };
 
   return (
-    <main className="wag-restyled relative min-h-screen overflow-hidden">
-      <div className="wag-app fixed inset-0" />
-      <div className="wag-page relative z-10">
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gray-50" />
+      <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🙈 숨긴 친구</span>
@@ -44,7 +44,7 @@ export default function HiddenPage() {
               <p className="text-sky-600 font-semibold">숨긴 친구가 없어요</p>
             </div>
           ) : list.map((v) => (
-            <div key={v.id} className="rounded-[20px] wag-card px-5 py-4 flex items-center justify-between">
+            <div key={v.id} className="rounded-[20px] bg-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-sky-200 flex items-center justify-center text-xl">🙈</div>
                 <p className="font-black text-slate-800 text-sm">{v.target_name}</p>

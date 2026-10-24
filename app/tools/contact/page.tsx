@@ -86,7 +86,7 @@ export default function QnaPage() {
 
   return (
     <main className="relative h-screen flex flex-col overflow-hidden">
-      <div className="wag-app fixed inset-0" />
+      <div className="fixed inset-0 bg-gray-50" />
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">

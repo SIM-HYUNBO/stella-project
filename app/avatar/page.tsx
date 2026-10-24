@@ -246,7 +246,7 @@ function SwipeUserItem({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] mb-3 border border-slate-100">
+    <div className="relative overflow-hidden rounded-[18px] mb-2 border border-sky-200">
       {/* 왼쪽 패널 — 즐겨찾기 (왼→오 슬라이드) */}
       <div className="absolute left-0 top-0 h-full flex" style={{ width: LEFT_WIDTH }}>
         <button
@@ -1563,7 +1563,7 @@ export default function Chat() {
   const renderChat = () => (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentChatUser && (
-        <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white border-b border-slate-100" style={{ boxShadow: "0 4px 18px -14px rgba(50,95,120,0.18)" }}>
+        <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
           <div className="flex min-w-0 items-center gap-2 mr-2">
             <button
               onClick={() => setCurrentChatUser(null)}
@@ -1580,7 +1580,7 @@ export default function Chat() {
                   className="w-11 h-11 rounded-full object-cover shadow"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-[16px] bg-sky-100 text-sky-700 font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
                   {currentChatUser.nickname[0]}
                 </div>
               )}
@@ -2010,7 +2010,7 @@ export default function Chat() {
         />
 
         <div className="flex items-center gap-2 rounded-full px-3 py-2 transition-all relative overflow-visible"
-          style={{ background:`linear-gradient(120deg,rgba(255,253,244,0.95),rgba(255,255,255,0.94) 48%,${accent.ring}33)`, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:`0 8px 24px -12px rgba(60,100,125,0.20),0 0 0 1px ${accent.ring}66` }}>
+          style={{ background:"rgba(255,255,255,0.72)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:"0 4px 24px rgba(0,0,0,0.08),0 0 0 1px rgba(186,230,253,0.4)" }}>
         {/* + 버튼 (이미지/Aa/마이크 묶음) */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -2247,11 +2247,11 @@ export default function Chat() {
   );
 
   const renderUserList = () => (
-    <div className="wag-restyled flex flex-col h-full bg-transparent">
+    <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4 flex items-center justify-between">
         <div>
-          <div className="wag-page-title">
-            채팅
+          <div className="text-xl font-black bg-yellow-200">
+            WAGIE
           </div>
 
           <div className="text-xs text-gray-400 mt-0.5">

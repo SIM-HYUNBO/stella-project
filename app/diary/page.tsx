@@ -123,7 +123,7 @@ function CommentItem({
                 <button
                   onClick={() => onSubmitReply(diaryId, comment.id)}
                   disabled={!replyInputs[comment.id]?.trim() || sendingReply === comment.id}
-                  className="h-8 px-2.5 rounded-[10px] bg-sky-500 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
+                  className="h-8 px-2.5 rounded-[10px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
                 >
                   전송
                 </button>
@@ -238,7 +238,7 @@ function ReactionBar({
             <button
               onClick={() => onSubmitComment(diaryId)}
               disabled={!commentInputs[diaryId]?.trim() || sendingComment === diaryId}
-              className="h-9 px-3 rounded-[12px] bg-sky-500 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
+              className="h-9 px-3 rounded-[12px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
             >
               전송
             </button>
@@ -470,14 +470,14 @@ export default function DiaryPage() {
 
   return (
     <PageContainer>
-    <main className="wag-restyled relative min-h-screen overflow-hidden">
-      <div className="wag-app fixed inset-0" />
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gray-50" />
 
       <div className="relative z-10">
         {/* 헤더 */}
         <div className="px-4 py-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="wag-page-title">다이어리</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black bg-yellow-200">DIARY</span>
             <button
               onClick={() => router.push("/friendmenu")}
               className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
@@ -507,7 +507,7 @@ export default function DiaryPage() {
           {(["mine", "friends"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
-                tab === t ? "bg-sky-500 text-white" : "text-sky-600"
+                tab === t ? "bg-sky-200 text-white" : "text-sky-600"
               }`}>
               {t === "mine" ? "내 일기" : "친구 일기"}
             </button>
@@ -517,10 +517,10 @@ export default function DiaryPage() {
         <div className="px-5 pb-10 mt-4">
           {tab === "mine" && (
             <>
-              <div className="wag-card p-5 mb-4">
+              <div className="rounded-[24px] bg-white p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-[10px] font-black text-amber-700 tracking-widest">TODAY</p>
+                    <p className="text-[10px] font-black text-[#d4904a] tracking-widest">TODAY</p>
                     <p className="font-black text-slate-800 text-sm mt-0.5">{formatDate(today)}</p>
                   </div>
                   {todayEntry && !editing && (
@@ -549,7 +549,7 @@ export default function DiaryPage() {
                     </div>
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      className="w-full text-sm text-slate-800 bg-sky-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-slate-400"
+                      className="w-full text-sm text-slate-800 bg-sky-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
                     />
                     <div className="text-right text-xs text-slate-400 mb-3">{content.length}/200</div>
                     <div className="flex items-center justify-between">
@@ -560,7 +560,7 @@ export default function DiaryPage() {
                         {isPublic ? "🌍 공개" : "🔒 비공개"}
                       </button>
                       <button onClick={handleSave} disabled={saving || !content.trim()}
-                        className="px-6 py-2.5 bg-sky-500 text-white text-sm font-black rounded-full disabled:opacity-40 active:scale-[0.97] transition-transform">
+                        className="px-6 py-2.5 bg-sky-200 text-white text-sm font-black rounded-full disabled:opacity-40 active:scale-[0.97] transition-transform">
                         {saving ? "저장 중..." : "저장 💾"}
                       </button>
                     </div>

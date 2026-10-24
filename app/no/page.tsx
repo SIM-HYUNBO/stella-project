@@ -55,9 +55,9 @@ export default function AlarmSoundPage() {
   };
 
   return (
-    <main className="wag-restyled relative min-h-screen overflow-hidden">
-      <div className="wag-app fixed inset-0" />
-      <div className="wag-page relative z-10">
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gray-50" />
+      <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🔔 알림 소리 설정</span>

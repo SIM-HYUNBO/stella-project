@@ -33,20 +33,20 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="wag-app wag-restyled relative min-h-screen overflow-hidden">
-      <div className="wag-app fixed inset-0" />
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gray-50" />
 
-      <div className="relative z-10 mx-auto w-full max-w-md min-h-screen flex flex-col justify-center px-5 py-10">
+      <div className="relative z-10 min-h-screen flex flex-col justify-center px-5 py-10">
 
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-sky-100 mb-4">
             <img src="/wag.png" alt="logo" className="w-12 h-12 object-contain" />
           </div>
           <h1 className="text-4xl font-black tracking-[0.18em] text-sky-600">WAGIE</h1>
-          <p className="text-slate-500 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
+          <p className="text-sky-700 text-sm font-medium mt-2">다시 만나서 반가워요 🧡</p>
         </div>
 
-        <div className="wag-card px-6 py-7 space-y-4">
+        <div className="rounded-[28px] bg-white/80 backdrop-blur-md px-6 py-7 space-y-4">
           <p className="font-black text-slate-800 text-xl mb-1">로그인</p>
 
           <form onSubmit={handleLogin} className="space-y-3">
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
             <button type="submit" disabled={loading}
               className="group relative w-full h-14 rounded-[18px] overflow-hidden active:scale-[0.98] transition-transform disabled:opacity-70">
-              <div className="wag-primary absolute inset-0" />
+              <div className="absolute inset-0 bg-sky-400" />
               <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_3s_infinite]" />
               <span className="relative text-white font-black text-base">
                 {loading ? "로그인 중..." : "로그인 💭"}

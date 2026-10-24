@@ -180,7 +180,7 @@ export default function TitlesPage() {
             <p className="font-black text-gray-800 text-base px-1 mb-3">🔒 잠긴 칭호</p>
             <div className="grid grid-cols-2 gap-3">
               {lockedTitles.map((t) => (
-                <div key={t.id} className="wag-card px-4 py-4 opacity-60">
+                <div key={t.id} className="rounded-[20px] bg-white px-4 py-4 opacity-60">
                   <p className="text-3xl mb-2 grayscale">{t.icon}</p>
                   <p className="text-gray-500 font-black text-sm">{t.name}</p>
                   <p className="text-gray-400 text-[10px] mt-1">🔒 {t.condition}</p>

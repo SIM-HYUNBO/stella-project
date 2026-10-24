@@ -1,5 +1,5 @@
 .page {
-  background: radial-gradient(ellipse at 95% 0%, #fff7d9 0, transparent 48%), radial-gradient(ellipse at 0% 100%, #cce8fc 0, transparent 58%), #fff;
+  background: radial-gradient(ellipse at 95% 0%, #fff7d9 0, transparent 48%), radial-gradient(ellipse at 0% 100%, #eaf7ff 0, transparent 50%), #fff;
 }
 .header { background: rgba(255, 255, 255, .9); border-bottom-color: #e3f2fb; }
 .surface { background: transparent; }

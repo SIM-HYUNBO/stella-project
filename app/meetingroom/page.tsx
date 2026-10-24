@@ -761,7 +761,7 @@ export default function MeetingRoomPage() {
                 onClick={() => inviteUser(u.nickname)}
                 className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
               >
-                <div className="w-11 h-11 rounded-[16px] bg-sky-100 text-sky-700 font-bold flex items-center justify-center shadow">
+                <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
                   {u.nickname[0]}
                 </div>
                 <div className="flex-1">
@@ -788,7 +788,7 @@ export default function MeetingRoomPage() {
   const renderRoom = () => (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* 헤더 */}
-      <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white border-b border-slate-100" style={{ boxShadow: "0 4px 18px -14px rgba(50,95,120,0.18)" }}>
+      <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
         <div className="flex items-center gap-3">
           <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
 
@@ -796,7 +796,7 @@ export default function MeetingRoomPage() {
             {currentRoom?.profileImage ? (
               <img src={currentRoom.profileImage} alt="프로필" className="w-11 h-11 rounded-full object-cover shadow" />
             ) : (
-              <div className="w-11 h-11 rounded-[16px] bg-amber-100 text-amber-700 font-bold flex items-center justify-center shadow">
+              <div className="w-11 h-11 rounded-full bg-yellow-200 text-white font-bold flex items-center justify-center shadow">
                 {currentRoom?.name[0]}
               </div>
             )}
@@ -1159,7 +1159,7 @@ export default function MeetingRoomPage() {
         />
 
         <div className="flex items-center gap-2 rounded-full px-3 py-2 transition-all relative overflow-visible"
-          style={{ background:`linear-gradient(120deg,rgba(255,253,244,0.95),rgba(255,255,255,0.94) 48%,${accent.ring}33)`, backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:`0 8px 24px -12px rgba(60,100,125,0.20),0 0 0 1px ${accent.ring}66` }}>
+          style={{ background:"rgba(255,255,255,0.72)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", border:"1.5px solid rgba(255,255,255,0.9)", boxShadow:"0 4px 24px rgba(0,0,0,0.08),0 0 0 1px rgba(186,230,253,0.4)" }}>
         {/* + 버튼 */}
         <div className="relative shrink-0">
           {showPlusMenu && (
@@ -1303,12 +1303,12 @@ export default function MeetingRoomPage() {
               value={topicInput}
               onChange={(e) => setTopicInput(e.target.value)}
               placeholder="오늘 회의 주제를 입력하세요"
-              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"
               autoFocus
             />
             <button
               onClick={saveTopic}
-              className="w-full h-12 rounded-2xl bg-sky-500 text-white font-semibold text-base active:scale-95 transition-transform"
+              className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black text-base active:scale-95 transition-transform"
             >
               저장
             </button>
@@ -1329,18 +1329,18 @@ export default function MeetingRoomPage() {
 
   // 방 목록
   const renderRoomList = () => (
-    <div className="wag-restyled flex flex-col h-full bg-transparent">
+    <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="wag-page-title">
-              회의방
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black bg-yellow-200">
+              WAGIE MEETING
             </span>
             <button
               onClick={() => router.push("/groupchat")}
               className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3799cc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -1350,16 +1350,16 @@ export default function MeetingRoomPage() {
             </button>
             <button
               onClick={() => router.push("/meetingroom")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-100 transition active:scale-95"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-100 transition active:scale-90"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b49642" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2" />
                 <line x1="8" y1="21" x2="16" y2="21" />
                 <line x1="12" y1="17" x2="12" y2="21" />
                 <line x1="7" y1="8" x2="17" y2="8" />
                 <line x1="7" y1="12" x2="13" y2="12" />
               </svg>
-              <span className="text-xs font-semibold text-amber-700">회의</span>
+              <span className="text-xs font-bold text-red-500">회의</span>
             </button>
           </div>
           <div className="text-xs text-gray-400 mt-0.5">회의방</div>
@@ -1380,7 +1380,7 @@ export default function MeetingRoomPage() {
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 h-11 rounded-[16px] bg-sky-500 text-white font-semibold"
+                className="flex-1 h-11 rounded-[16px] bg-sky-200 text-white font-black"
               >
                 만들기
               </button>
@@ -1395,7 +1395,7 @@ export default function MeetingRoomPage() {
         ) : (
           <button
             onClick={() => setShowCreate(true)}
-            className="w-full h-11 rounded-[16px] bg-sky-500 text-white font-semibold"
+            className="w-full h-11 rounded-[16px] bg-sky-200 text-white font-black"
           >
             + 회의방 만들기
           </button>
@@ -1410,13 +1410,13 @@ export default function MeetingRoomPage() {
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
               currentRoom?.id === room.id
                 ? "bg-sky-200"
-                : "bg-white hover:bg-sky-50/60 border-slate-100"
+                : "bg-white/80 hover:bg-sky-50 border-sky-200"
             }`}
           >
             {room.profileImage ? (
               <img src={room.profileImage} alt="프로필" className="w-11 h-11 rounded-full object-cover shadow shrink-0" />
             ) : (
-              <div className="w-11 h-11 rounded-[16px] bg-amber-100 text-amber-700 font-bold flex items-center justify-center shadow shrink-0">
+              <div className="w-11 h-11 rounded-full bg-yellow-200 text-white font-bold flex items-center justify-center shadow shrink-0">
                 {room.name[0]}
               </div>
             )}

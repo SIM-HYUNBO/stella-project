@@ -204,7 +204,7 @@ export default function CalendarPage() {
 
   return (
     <PageContainer>
-      <div className="wag-restyled flex flex-col h-[calc(100dvh-128px)] bg-white -m-4 overflow-hidden">
+      <div className="flex flex-col h-[calc(100vh-48px)] bg-white -m-4 overflow-hidden">
 
         {/* ── 상단 헤더 ── */}
         <div className="shrink-0 px-4 pt-3 pb-0 bg-white">
@@ -461,7 +461,7 @@ export default function CalendarPage() {
               <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addEvent()}
                 placeholder="일정 제목" autoFocus
-                className="w-full h-12 rounded-2xl bg-white border border-gray-200 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-sky-200"/>
+                className="w-full h-12 rounded-2xl bg-white border border-gray-200 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"/>
 
               {/* 종일 토글 */}
               <div className="flex items-center justify-between">
@@ -478,12 +478,12 @@ export default function CalendarPage() {
                   <div className="flex-1">
                     <p className="text-xs text-gray-400 font-bold mb-1">시작</p>
                     <input type="time" value={newStart} onChange={(e) => setNewStart(e.target.value)}
-                      className="w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-sky-200"/>
+                      className="w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
                   </div>
                   <div className="flex-1">
                     <p className="text-xs text-gray-400 font-bold mb-1">종료</p>
                     <input type="time" value={newEnd} onChange={(e) => setNewEnd(e.target.value)}
-                      className="w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-sky-200"/>
+                      className="w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
                   </div>
                 </div>
               )}
@@ -520,7 +520,7 @@ export default function CalendarPage() {
               </div>
 
               <button onClick={addEvent} disabled={adding || !newTitle.trim()}
-                className="w-full h-12 rounded-2xl bg-sky-500 text-white font-black active:scale-95 transition disabled:opacity-50">
+                className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition disabled:opacity-50">
                 추가
               </button>
             </div>

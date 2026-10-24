@@ -12,16 +12,16 @@ export default function CleanupPage() {
   ];
 
   return (
-    <main className="wag-restyled relative min-h-screen overflow-hidden">
-      <div className="wag-app fixed inset-0" />
-      <div className="wag-page relative z-10">
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="fixed inset-0 bg-gray-50" />
+      <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🧹 친구 정리</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-3">
           {items.map(({ icon, label, sub }) => (
-            <div key={label} className="rounded-[20px] wag-card px-5 py-4 flex items-center gap-4">
+            <div key={label} className="rounded-[20px] bg-white px-5 py-4 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shrink-0 shadow">{icon}</div>
               <div>
                 <p className="font-black text-slate-800 text-sm">{label}</p>
