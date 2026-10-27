@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import PageContainer from "@/components/PageContainer";
 import TextAvatar from "@/components/TextAvatar";
 import LoadingScreen from "@/components/LoadingScreen";
+import AppRating from "@/components/AppRating";
 
 const TITLE_MAP: Record<string, { icon: string; name: string }> = {
   newcomer:    { icon: "🌱", name: "새싹" },
@@ -650,6 +651,8 @@ export default function HomePage() {
               공유
             </button>
           </div>
+
+          {uid && <AppRating key={uid} uid={uid} />}
 
           {/* ── 친구 버블 ── */}
           {friends.length > 0 && (

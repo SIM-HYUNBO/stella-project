@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     await safeDelete(() => db.doc(`presence/${uid}`).delete());
     await safeDelete(() => db.doc(`fcm_tokens/${nickname}`).delete());
     await safeDelete(() => db.doc(`nicknameMigrations/${uid}`).delete());
+    await safeDelete(() => db.doc(`appRatings/${uid}`).delete());
     await safeDelete(async () => {
       const claims = await db.collection("nicknameClaims").where("uid", "==", uid).get();
       await Promise.all(claims.docs.map(d => d.ref.delete()));
