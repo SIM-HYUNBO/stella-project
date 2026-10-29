@@ -627,33 +627,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* ── 공유 배너 ── */}
-          <div className="rounded-[20px] bg-white border border-slate-100 px-4 py-3.5 flex items-center justify-between">
-            <div>
-              <p className="font-black text-slate-700 text-sm">WAGIE를 공유해 주세요 🙌</p>
-              <p className="text-xs text-slate-400 mt-0.5">친구에게 와기를 소개해봐요</p>
-            </div>
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: "WAGIE", text: "와기 - 친구들과 함께해요!", url: window.location.origin });
-                } else {
-                  navigator.clipboard.writeText(window.location.origin);
-                  alert("링크가 복사됐어요!");
-                }
-              }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-sky-400 text-white text-xs font-black active:scale-95 transition shrink-0"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
-              공유
-            </button>
-          </div>
-
-          {uid && <AppRating key={uid} uid={uid} />}
-
           {/* ── 친구 버블 ── */}
           {friends.length > 0 && (
             <div>
@@ -737,41 +710,76 @@ export default function HomePage() {
                 </button>
               </div>
 
-              <button onClick={() => router.push("/friendmenu")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🤝</div>
-                  <div className="text-left flex-1">
-                    <p className="text-slate-800 font-black text-base">친구 목록</p>
-                    <p className="text-sky-600 text-sm">친구 {friends.length}명과 함께해요</p>
-                  </div>
-                  <span className="text-orange-300 text-2xl">›</span>
-                </div>
-              </button>
+              <details className="group/more rounded-[24px] bg-white/70">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[24px] px-5 py-4 text-sm font-bold text-slate-700 transition hover:bg-white/60 [&::-webkit-details-marker]:hidden">
+                  <span className="min-w-0">더 보기 <span className="mt-0.5 block text-xs font-medium text-slate-400">친구 · 회의방 · Q&A · 공유 · 평가</span></span>
+                  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-sky-500 transition-transform group-open/more:rotate-180"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <div className="space-y-3 px-3 pb-3">
+                  <button onClick={() => router.push("/friendmenu")}
+                    className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
+                    <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🤝</div>
+                      <div className="text-left flex-1">
+                        <p className="text-slate-800 font-black text-base">친구 목록</p>
+                        <p className="text-sky-600 text-sm">친구 {friends.length}명과 함께해요</p>
+                      </div>
+                      <span className="text-orange-300 text-2xl">›</span>
+                    </div>
+                  </button>
 
-              <button onClick={() => router.push("/meetingroom")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📋</div>
-                  <div className="text-left flex-1">
-                    <p className="text-slate-800 font-black text-base">회의방</p>
-                    <p className="text-sky-600 text-sm">주제 고정 · 긴급회의 알림</p>
-                  </div>
-                  <span className="text-red-300 text-2xl">›</span>
-                </div>
-              </button>
+                  <button onClick={() => router.push("/meetingroom")}
+                    className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
+                    <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📋</div>
+                      <div className="text-left flex-1">
+                        <p className="text-slate-800 font-black text-base">회의방</p>
+                        <p className="text-sky-600 text-sm">주제 고정 · 긴급회의 알림</p>
+                      </div>
+                      <span className="text-red-300 text-2xl">›</span>
+                    </div>
+                  </button>
 
-              <button onClick={() => router.push("/tools/contact")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🎧</div>
-                  <div className="text-left flex-1">
-                    <p className="text-slate-800 font-black text-base">Q&A방</p>
-                    <p className="text-sky-600 text-sm">궁금한 점을 남겨보세요</p>
+                  <button onClick={() => router.push("/tools/contact")}
+                    className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
+                    <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🎧</div>
+                      <div className="text-left flex-1">
+                        <p className="text-slate-800 font-black text-base">Q&A방</p>
+                        <p className="text-sky-600 text-sm">궁금한 점을 남겨보세요</p>
+                      </div>
+                      <span className="text-sky-400 text-2xl">›</span>
+                    </div>
+                  </button>
+
+                  {/* ── 공유 배너 ── */}
+                  <div className="rounded-[20px] bg-white border border-slate-100 px-4 py-3.5 flex items-center justify-between">
+                    <div>
+                      <p className="font-black text-slate-700 text-sm">WAGIE를 공유해 주세요 🙌</p>
+                      <p className="text-xs text-slate-400 mt-0.5">친구에게 와기를 소개해봐요</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({ title: "WAGIE", text: "와기 - 친구들과 함께해요!", url: window.location.origin });
+                        } else {
+                          navigator.clipboard.writeText(window.location.origin);
+                          alert("링크가 복사됐어요!");
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-sky-400 text-white text-xs font-black active:scale-95 transition shrink-0"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                      공유
+                    </button>
                   </div>
-                  <span className="text-sky-400 text-2xl">›</span>
+
+                  {uid && <AppRating key={uid} uid={uid} />}
                 </div>
-              </button>
+              </details>
 
             </div>
           </div>
