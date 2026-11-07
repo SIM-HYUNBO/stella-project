@@ -22,6 +22,7 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import FCMToken from "@/components/FCMToken";
 import NativePush from "@/components/NativePush";
 import AppBadge from "@/components/AppBadge";
+import { AppInstallProvider } from "@/components/AppInstall";
 import BirthdayNotification from "@/components/BirthdayNotification";
 import FriendRequestPopup from "@/components/FriendRequestPopup";
 import RoomInvitePopup from "@/components/RoomInvitePopup";
@@ -83,7 +84,7 @@ export default function RootLayout({ children }) {
             <RoomInvitePopup />
             <IncomingVideoCall />
 
-            {children}
+            <AppInstallProvider>{children}</AppInstallProvider>
 
           </FontProvider>
         </ThemeProvider>

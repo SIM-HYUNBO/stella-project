@@ -10,6 +10,7 @@ import PageContainer from "@/components/PageContainer";
 import TextAvatar from "@/components/TextAvatar";
 import LoadingScreen from "@/components/LoadingScreen";
 import AppRating from "@/components/AppRating";
+import { AppInstallButton } from "@/components/AppInstall";
 
 const TITLE_MAP: Record<string, { icon: string; name: string }> = {
   newcomer:    { icon: "🌱", name: "새싹" },
@@ -573,6 +574,8 @@ export default function HomePage() {
         </div>
 
         <div className="px-5 pt-4 pb-24 space-y-6">
+
+          <AppInstallButton />
 
           {/* ── 히어로 ── */}
           <div className="relative rounded-[32px] overflow-hidden">
