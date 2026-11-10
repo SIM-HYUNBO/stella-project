@@ -111,8 +111,21 @@ export default function SpyRoomPage() {
         <header className="px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xl font-black bg-yellow-200">WAGIE SPY</span>
-            <Link href="/groupchat" className="rounded-xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-600">일반</Link>
-            <Link href="/meetingroom" className="rounded-xl bg-red-50 px-2.5 py-1 text-xs font-bold text-red-500">회의</Link>
+            <Link href="/groupchat" className="inline-flex items-center gap-1 rounded-xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-600">
+              <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              일반
+            </Link>
+            <Link href="/meetingroom" className="inline-flex items-center gap-1 rounded-xl bg-red-50 px-2.5 py-1 text-xs font-bold text-red-500">
+              <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4M7 8h10M7 12h6" />
+              </svg>
+              회의
+            </Link>
             <span aria-current="page" className="inline-flex items-center gap-1 rounded-xl bg-violet-100 px-2.5 py-1 text-xs font-bold text-violet-700"><SpyIcon />스파이</span>
           </div>
           <p className="mt-0.5 text-xs text-gray-400">스파이 단체채팅</p>
