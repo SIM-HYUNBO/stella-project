@@ -1,5 +1,6 @@
 "use client";
 
+import SpyIcon from "@/components/SpyIcon";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
 
 import BubbleEntrance from "@/components/BubbleEntrance";
@@ -2042,7 +2043,7 @@ export default function GroupChat() {
             </svg>
             <span className="text-xs font-bold text-red-500">회의</span>
           </button>
-          <button type="button" onClick={() => router.push("/spyroom")} className="rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90">스파이</button>
+          <button type="button" onClick={() => router.push("/spyroom")} className="inline-flex items-center gap-1 rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90"><SpyIcon />스파이</button>
         </div>
         <div className="text-xs text-gray-400 mt-0.5">단체 채팅</div>
       </div>

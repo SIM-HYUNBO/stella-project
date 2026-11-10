@@ -1,5 +1,6 @@
 "use client";
 
+import SpyIcon from "@/components/SpyIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import PageContainer from "@/components/PageContainer";
@@ -112,7 +113,7 @@ export default function SpyRoomPage() {
             <span className="text-xl font-black bg-yellow-200">WAGIE SPY</span>
             <Link href="/groupchat" className="rounded-xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-600">일반</Link>
             <Link href="/meetingroom" className="rounded-xl bg-red-50 px-2.5 py-1 text-xs font-bold text-red-500">회의</Link>
-            <span aria-current="page" className="rounded-xl bg-violet-100 px-2.5 py-1 text-xs font-bold text-violet-700">스파이</span>
+            <span aria-current="page" className="inline-flex items-center gap-1 rounded-xl bg-violet-100 px-2.5 py-1 text-xs font-bold text-violet-700"><SpyIcon />스파이</span>
           </div>
           <p className="mt-0.5 text-xs text-gray-400">스파이 단체채팅</p>
         </header>
@@ -154,8 +155,8 @@ export default function SpyRoomPage() {
         ) : (
           <div className="space-y-3 px-3">
             {!lobby && !error && <LoadingScreen />}
-            <div className="flex justify-between gap-2">
-              <button type="button" className={primary} disabled={!lobby} onClick={() => setCreating(v => !v)}>{creating ? "만들기 닫기" : "+ 스파이방 만들기"}</button>
+            <div className="flex flex-col items-end gap-2">
+              <button type="button" className={`${primary} w-full`} disabled={!lobby} onClick={() => setCreating(v => !v)}>{creating ? "만들기 닫기" : "+ 스파이방 만들기"}</button>
               <button type="button" className={secondary} onClick={() => void refresh()}>목록 새로고침</button>
             </div>
             {creating && <form className="space-y-3 rounded-2xl bg-white p-4" onSubmit={e => { e.preventDefault(); void create(); }}>
@@ -167,7 +168,7 @@ export default function SpyRoomPage() {
                   {lobby?.friends.map(friend => <label key={friend.uid} className="flex cursor-pointer items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm text-slate-700"><input type="checkbox" checked={invited.includes(friend.uid)} disabled={busy || (invited.length === 9 && !invited.includes(friend.uid))} onChange={e => setInvited(current => e.target.checked ? [...current, friend.uid] : current.filter(id => id !== friend.uid))} />{friend.name}</label>)}
                 </div>
               </fieldset>
-              <button className={primary} disabled={busy || !invited.length || !name.trim()}>만들기</button>
+              <button className={`${primary} w-full`} disabled={busy || !invited.length || !name.trim()}>만들기</button>
             </form>}
             {lobby?.rooms.map(item => <button type="button" key={item.id} onClick={() => open(item.id)} className="flex w-full items-center justify-between gap-2 rounded-[20px] border border-sky-100 bg-white px-4 py-3 text-left">
               <span className="min-w-0 truncate font-bold text-slate-800">{item.name}</span><span className="shrink-0 text-xs text-slate-500">{item.count}명 · {item.startedAt ? "진행 중" : "입장 대기"}</span>
