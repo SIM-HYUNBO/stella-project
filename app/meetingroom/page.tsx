@@ -1332,7 +1332,7 @@ export default function MeetingRoomPage() {
     <div className="flex flex-col h-full bg-gray-50">
       <div className="px-4 py-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xl font-black bg-yellow-200">
               WAGIE MEETING
             </span>
@@ -1361,6 +1361,7 @@ export default function MeetingRoomPage() {
               </svg>
               <span className="text-xs font-bold text-red-500">회의</span>
             </button>
+            <button type="button" onClick={() => router.push("/spyroom")} className="rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90">스파이</button>
           </div>
           <div className="text-xs text-gray-400 mt-0.5">회의방</div>
         </div>
