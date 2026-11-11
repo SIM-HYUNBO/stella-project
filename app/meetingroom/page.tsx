@@ -622,10 +622,10 @@ export default function MeetingRoomPage() {
 
   const sendSticker = async (sticker: CustomSticker) => {
     if (!nickname || !currentRoom) throw Error("채팅방을 다시 열어 줘.");
-    const base64 = sticker.image;
+    const image = sticker.image;
     await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), {
       from: nickname,
-      content: base64,
+      content: image,
       type: "sticker",
       stickerMotion: sticker.motion,
       stickerName: sticker.name,
@@ -1236,7 +1236,7 @@ export default function MeetingRoomPage() {
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowStickerStudio(true); setShowPlusMenu(false); }}
                 className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 14c2 3 6 3 8 0"/><path d="M8 9h.01M16 9h.01"/></svg>
-                <span className="text-[9px] font-bold">내 이모티콘</span>
+                <span className="text-[9px] font-bold">이모티콘</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}

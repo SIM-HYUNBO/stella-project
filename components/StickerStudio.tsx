@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import AnimatedSticker from "./AnimatedSticker";
+import { ANIMAL_STICKER_PACKS } from "@/lib/animal-stickers";
 import useCustomStickers from "@/app/hooks/useCustomStickers";
 import useStickerVoice from "@/app/hooks/useStickerVoice";
 import StickerFaceCapture from "./StickerFaceCapture";
@@ -12,6 +13,9 @@ const COLORS = ["#263244", "#f472b6", "#fb923c", "#facc15", "#34d399", "#38bdf8"
 
 function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: CustomSticker) => Promise<void> }) {
   const { stickers, ready, error: loadError, save, remove } = useCustomStickers();
+  const [animals, setAnimals] = useState(Boolean(onSend));
+  const [packIndex, setPackIndex] = useState(0);
+  const pack = ANIMAL_STICKER_PACKS[packIndex];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointer = useRef<number | null>(null);
   const last = useRef<{ x: number; y: number } | null>(null);
@@ -101,9 +105,29 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
   return <div className="min-h-full bg-[#f8fafc] text-slate-700">
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
       <button aria-label="이모티콘 공방 닫기" disabled={busy} onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-50 disabled:opacity-40"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m14 6-6 6 6 6" /></svg></button>
-      <h1 className="text-base font-bold">이모티콘 공방</h1><span className="w-9" />
+      <h1 className="text-base font-bold">{animals ? "와기 이모티콘" : "이모티콘 공방"}</h1><span className="w-9" />
     </header>
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 pb-12">
+      {onSend && <div className="flex gap-2 rounded-2xl bg-slate-100 p-1" aria-label="이모티콘 종류">
+        {[true, false].map(value => <button type="button" key={String(value)} aria-pressed={animals === value} disabled={busy || captureBusy} onClick={() => {
+          voicePreview.current?.pause();
+          setError(""); setAnimals(value);
+        }} className={`flex-1 rounded-xl px-2 py-2 text-sm font-bold disabled:opacity-50 ${animals === value ? "bg-white text-sky-700 shadow-sm" : "text-slate-500"}`}>{value ? "와기 동물 이모티콘" : "내 이모티콘"}</button>)}
+      </div>}
+      {animals && onSend && <section className="space-y-4" aria-label="와기 동물 이모티콘">
+        <div className="flex flex-wrap gap-2">
+          {ANIMAL_STICKER_PACKS.map((item, index) => <button type="button" key={item.id} aria-pressed={index === packIndex} disabled={busy} onClick={() => setPackIndex(index)} className={`rounded-full px-3 py-2 text-sm font-semibold ${index === packIndex ? "bg-sky-100 text-sky-700" : "bg-white text-slate-600"}`}>{item.icon} {item.label}</button>)}
+        </div>
+        <p className="text-xs text-slate-500">이모티콘을 누르면 채팅방에 바로 보내져.</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {pack.stickers.map(sticker => <button type="button" key={sticker.id} disabled={busy} aria-label={`${sticker.name} 보내기`} onClick={() => action(() => onSend(sticker))} className="flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-white p-3 text-center transition hover:border-sky-200 active:scale-95 disabled:opacity-50">
+            <AnimatedSticker src={sticker.image} motion={sticker.motion} small name={sticker.name} />
+            <span className="text-xs font-semibold text-slate-600">{sticker.name.split(" · ")[1]}</span>
+          </button>)}
+        </div>
+        {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+      </section>}
+      <div hidden={animals} className="space-y-6">
       <div><p className="text-xl font-bold text-slate-800">내가 그린 그림이 움직여!</p><p className="mt-1 text-sm text-slate-400">그림을 그리고, 움직임을 골라 채팅에 보내 봐.</p></div>
       <div className="grid gap-4 sm:grid-cols-2">
         <section className="rounded-3xl border border-slate-100 bg-white p-4">
@@ -156,6 +180,7 @@ function Studio({ onClose, onSend }: { onClose: () => void; onSend?: (sticker: C
             {onSend && <button disabled={busy} onClick={() => action(() => onSend(sticker))} className="mt-2 w-full rounded-lg bg-sky-50 py-2 text-xs font-semibold text-sky-600 disabled:opacity-40">보내기</button>}
           </div>)}</div>}
       </section>
+      </div>
     </main>
   </div>;
 }
