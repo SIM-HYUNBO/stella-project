@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { FieldPath } from "firebase-admin/firestore";
 import { ApiError, apiRateLimit, apiUser } from "@/lib/api-user";
 import { enterSpyRoom, spyView, type SpyRoom } from "@/lib/spy-room";
 
@@ -54,15 +55,17 @@ export async function POST(req: NextRequest) {
       const ref = await db.collection("spyRooms").add(room);
       return json({ id: ref.id });
     }
-    if (!validId(body?.id) || !validId(body.session) || !["enter", "leave", "send"].includes(body.action)) throw new ApiError(400, "스파이방 요청을 확인해 줘.");
+    if (!validId(body?.id) || !validId(body.session) || !["enter", "leave", "send", "history"].includes(body.action)) throw new ApiError(400, "스파이방 요청을 확인해 줘.");
     const message = typeof body.text === "string" ? body.text.trim() : "";
     if (body.action === "send") {
       if (!message || message.length > 500 || !validId(body.messageId)) throw new ApiError(400, "메시지는 1~500자로 써 줘.");
       await apiRateLimit(db, uid, "spy-send", 45);
     }
     const ref = db.collection("spyRooms").doc(body.id);
+    const history = ref.collection("messages");
     return json(await db.runTransaction(async tx => {
-      let room = (await tx.get(ref)).data() as SpyRoom | undefined;
+      const snapshot = await tx.get(ref);
+      let room = snapshot.data() as SpyRoom | undefined;
       if (!room?.memberIds.includes(uid)) throw new ApiError(404, "초대받은 사람만 들어갈 수 있어.");
       const now = Date.now();
       if (body.action === "leave") {
@@ -72,19 +75,34 @@ export async function POST(req: NextRequest) {
         }
         return { ok: true };
       }
+      const ordered = history.orderBy("at", "desc").orderBy(FieldPath.documentId(), "desc");
+      if (body.action === "history") {
+        if (!Number.isSafeInteger(body.before?.at) || typeof body.before?.id !== "string" || body.before.id.length > 260) throw new ApiError(400, "이전 메시지를 불러올 수 없어.");
+        const page = (await tx.get(ordered.startAfter(body.before.at, body.before.id).limit(31))).docs;
+        return { messages: page.slice(0, 30).map(d => d.data()).reverse(), hasMore: page.length > 30 };
+      }
+      const legacy = snapshot.data()?.historyMigrated ? [] : room.messages;
+      const id = body.action === "send" ? `${uid}:${body.messageId}` : null;
+      const recent = (await tx.get(ordered.limit(31))).docs.map(d => d.data() as SpyRoom["messages"][number]);
+      const duplicate = id ? (await tx.get(history.doc(id))).exists : false;
+      if (!snapshot.data()?.historyMigrated) {
+        for (const item of legacy) tx.set(history.doc(item.id), item);
+        tx.update(ref, { historyMigrated: true, messages: [] });
+      }
       if (body.action === "enter" && (room.presence[uid]?.session !== body.session || room.presence[uid].at <= now - 4000)) {
         room = enterSpyRoom(room, uid, body.session, now);
         tx.update(ref, { presence: room.presence, startedAt: room.startedAt });
       }
       if (body.action === "send") {
         if (room.startedAt === null) throw new ApiError(409, "모두 들어오면 채팅이 열려.");
-        const id = `${uid}:${body.messageId}`;
-        if (!room.messages.some(m => m.id === id)) {
-          room.messages = [...room.messages, { id, uid, text: message, at: now }].slice(-100);
-          tx.update(ref, { messages: room.messages });
+        if (id && !duplicate && !legacy.some(m => m.id === id)) {
+          const item = { id, uid, text: message, at: now };
+          tx.set(history.doc(id), item);
+          recent.push(item);
         }
       }
-      return spyView(room, ref.id, uid, now, secret);
+      const combined = [...recent, ...legacy].sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+      return { ...spyView({ ...room, messages: combined.slice(-30) }, ref.id, uid, now, secret), hasMore: combined.length > 30 };
     }));
   } catch (error) { return fail(error); }
 }

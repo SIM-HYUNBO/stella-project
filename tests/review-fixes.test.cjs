@@ -11,7 +11,8 @@ function fixture(){
  const db={collection,collectionGroup:()=>({where:()=>({get:async()=>({docs:[]})})}),doc:ref,runTransaction:async fn=>{const writes=[];const out=await fn({get:r=>r.get(),set:(r,v,o)=>writes.push(()=>r.set(v,o)),update:(r,v)=>writes.push(()=>r.update(v)),delete:r=>writes.push(()=>r.delete())});for(const w of writes)await w();return out;},recursiveDelete:async r=>{for(const key of [...data.keys()])if(key===r.key||key.startsWith(r.key+'/'))data.delete(key);}};
  const sends=[];const admin={firestore:Object.assign(()=>db,{FieldValue:{serverTimestamp:()=>123,arrayRemove:v=>({remove:v})}}),auth:()=>({verifyIdToken:async token=>{if(!['a','b','c'].includes(token))throw Error('invalid');return {uid:token};},deleteUser:async uid=>authDeleted.push(uid)}),messaging:()=>({send:async message=>sends.push(message)})};
  const user=load('lib/api-user.ts',()=>()=>admin);
- const api=file=>load(file,name=>name==='next/server'?next:name==='@/lib/api-user'?user:()=>admin);
+ const delivery=load('lib/push-delivery.ts',require);
+ const api=file=>load(file,name=>name==='next/server'?next:name==='@/lib/api-user'?user:name==='@/lib/push-delivery'?delivery:()=>admin);
  const req=(uid,body)=>({headers:new Headers(uid?{Authorization:`Bearer ${uid}`} : {}),json:async()=>body});
  return {data,db,admin,user,api,req,sends,authDeleted};
 }
@@ -20,6 +21,9 @@ function fixture(){
  assert.equal((await f.api('app/api/ai/route.ts').POST(f.req(null,{messages:[]}))).status,401);
  assert.equal((await push.POST(f.req(null,{}))).status,401);
  assert.equal((await push.POST(f.req('invalid',{}))).status,401);
+ f.data.get('users/a').nickname='Stella';
+ assert.equal((await f.api('app/api/admin/broadcast/route.ts').POST(f.req('a',{message:'test'}))).status,403);
+ f.data.get('users/a').nickname='Alice';
  assert.equal((await push.POST(f.req('a',{toNicknames:['Stranger'],message:'spam'}))).status,403);assert.equal(f.sends.length,0);
  let res=await push.POST(f.req('a',{toNicknames:['Bob'],fromNickname:'forged',message:'hello'}));assert.equal(res.status,200);assert.match(f.sends[0].data.title,/Alice/);assert.ok(!f.sends[0].data.title.includes('forged'));
  f.data.get('users/b').pushEnabled=false;await push.POST(f.req('a',{toNicknames:['Bob'],message:'quiet'}));assert.equal(f.sends.length,1);assert.ok([...f.data.values()].some(v=>v.message==='quiet'));

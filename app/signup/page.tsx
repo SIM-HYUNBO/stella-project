@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, type User } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { saveFCMToken } from "../hooks/usePushSubscription";
 
 const STEPS = ["기본 정보", "연락처", "약관"];
@@ -24,6 +24,7 @@ export default function SignupPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const pendingUser = useRef<User | null>(null);
 
   const nextStep = async () => {
    
@@ -50,21 +51,24 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        nickname: nickname.trim(),
-        birthdate,
-        phone: phone.replace(/\D/g, ""),
-        createdAt: serverTimestamp(),
+      const user = pendingUser.current || (await createUserWithEmailAndPassword(auth, email, password)).user;
+      pendingUser.current = user;
+      const response = await fetch("/api/signup-profile", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` },
+        body: JSON.stringify({ nickname, birthdate, phone: phone.replace(/\D/g, "") }),
       });
+      if (!response.ok) {
+        if (response.status === 409) { await user.delete(); pendingUser.current = null; setStep(1); }
+        throw Error((await response.json()).error || "가입을 마치지 못했어.");
+      }
+      pendingUser.current = null;
       try {
         if ("serviceWorker" in navigator && "PushManager" in window) {
           const permission = await Notification.requestPermission();
           if (permission === "granted") await saveFCMToken(nickname.trim());
         }
       } catch {}
+      router.replace("/home");
     } catch (err: any) {
       if (err.code === "auth/email-already-in-use") setError("이미 사용 중인 이메일이에요.");
       else if (err.code === "auth/invalid-email") setError("올바른 이메일 형식이 아니에요.");

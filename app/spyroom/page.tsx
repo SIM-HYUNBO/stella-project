@@ -9,7 +9,7 @@ import { apiFetch, playSendSound } from "@/lib/api-fetch";
 import type { SpyMember, SpyMessage } from "@/lib/spy-room";
 
 type RoomSummary = { id: string; name: string; count: number; startedAt: number | null };
-type RoomView = { id: string; name: string; members: SpyMember[]; online: string[]; startedAt: number | null; role: "spy" | "member" | null; mission: string | null; messages: SpyMessage[] };
+type RoomView = { id: string; name: string; members: SpyMember[]; online: string[]; startedAt: number | null; role: "spy" | "member" | null; mission: string | null; messages: SpyMessage[]; hasMore: boolean };
 type Lobby = { uid: string; rooms: RoomSummary[]; friends: SpyMember[] };
 const inputClass = "min-w-0 rounded-2xl border border-sky-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus-visible:outline-sky-400";
 const primary = "rounded-2xl bg-sky-400 px-4 py-2.5 text-sm font-bold text-white transition active:scale-95 disabled:opacity-40";
@@ -35,6 +35,9 @@ export default function SpyRoomPage() {
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
   const [reveal, setReveal] = useState(false);
+  const [older, setOlder] = useState<SpyMessage[]>([]);
+  const [olderMore, setOlderMore] = useState<boolean | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const scroll = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
   const activeEntry = useRef<typeof entry>(null);
@@ -80,7 +83,22 @@ export default function SpyRoomPage() {
     const next = { id, session: crypto.randomUUID() };
     activeEntry.current = next;
     stickToBottom.current = true;
-    setRoom(null); setReveal(false); setInput(""); setError(""); setConnectionError(""); setEntry(next);
+    setRoom(null); setOlder([]); setOlderMore(null); setReveal(false); setInput(""); setError(""); setConnectionError(""); setEntry(next);
+  }
+
+  const displayMessages = Array.from(new Map([...(older || []), ...(room?.messages || [])].map(item => [item.id, item])).values());
+  async function loadOlder() {
+    const before = displayMessages[0];
+    if (!entry || !before || loadingOlder) return;
+    setLoadingOlder(true); setError("");
+    try {
+      const page = await request<{ messages: SpyMessage[]; hasMore: boolean }>({ action: "history", ...entry, before: { at: before.at, id: before.id } });
+      if (activeEntry.current !== entry) return;
+      stickToBottom.current = false;
+      setOlder([...page.messages, ...displayMessages]);
+      setOlderMore(page.hasMore);
+    } catch (e) { if (activeEntry.current === entry) setError(errorText(e)); }
+    finally { setLoadingOlder(false); }
   }
 
   async function create() {
@@ -149,7 +167,8 @@ export default function SpyRoomPage() {
               {room.startedAt && <>
                 <div ref={scroll} onScroll={e => { const el = e.currentTarget; stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60; }} role="log" aria-label="채팅 메시지" className="h-[40dvh] space-y-2 overflow-y-auto rounded-2xl bg-sky-50 p-3">
                   {!room.messages.length && <p className="py-5 text-center text-xs text-slate-500">게임이 시작됐어! 자연스럽게 대화를 시작해 봐.</p>}
-                  {room.messages.map(message => {
+                  {(olderMore ?? room.hasMore) && <button type="button" className={secondary} disabled={loadingOlder} onClick={() => void loadOlder()}>{loadingOlder ? "불러오는 중…" : "이전 메시지 불러오기"}</button>}
+                  {displayMessages.map(message => {
                     const mine = message.uid === lobby?.uid;
                     return <div key={message.id} className={mine ? "text-right" : "text-left"}>
                       {!mine && <p className="mb-1 text-xs font-bold text-slate-500">{room.members.find(m => m.uid === message.uid)?.name || "친구"}</p>}

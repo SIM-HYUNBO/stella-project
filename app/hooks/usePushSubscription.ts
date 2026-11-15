@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import { auth, db, getFirebaseMessaging } from "@/app/firebase";
 import { getToken } from "firebase/messaging";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { isAndroidApp, nativePushPermission, nativePushToken } from "@/lib/native-push";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { isAndroidApp, nativePushPermission, nativePushToken, stopNativePush } from "@/lib/native-push";
+import { deleteToken } from "firebase/messaging";
 const EVENT = "wagie:push-preference";
 
 export async function saveFCMToken(nickname: string, request = false): Promise<boolean> {
@@ -16,15 +17,40 @@ export async function saveFCMToken(nickname: string, request = false): Promise<b
     if (!token || auth.currentUser?.uid !== user.uid) return false;
     const response = await fetch("/api/push-device", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` }, body: JSON.stringify({ token }) });
     if (!response.ok) throw Error("알림을 등록하지 못했어. 잠시 후 다시 켜 줘.");
+    localStorage.setItem(`wagie-push:${user.uid}`, token);
     return true;
   }
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return false;
   const messaging = await getFirebaseMessaging();
   if (!messaging) return false;
   const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY });
-  if (!token) return false;
-  await setDoc(doc(db, "fcm_tokens", nickname), { token, uid: user.uid, updatedAt: new Date() }, { merge: true });
+  if (!token || auth.currentUser?.uid !== user.uid) return false;
+  const response = await fetch("/api/push-device", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` }, body: JSON.stringify({ token, platform: "web" }) });
+  if (!response.ok) throw Error("알림을 등록하지 못했어.");
+  localStorage.setItem(`wagie-push:${user.uid}`, token);
   return true;
+}
+
+export async function disconnectPush() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const key = `wagie-push:${user.uid}`;
+  const token = localStorage.getItem(key);
+  const android = isAndroidApp();
+  const results = await Promise.allSettled([
+    (async () => {
+      if (!token) return false;
+      const response = await fetch("/api/push-device", { method: "DELETE", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` }, body: JSON.stringify({ token }) });
+      return response.ok;
+    })(),
+    (async () => {
+      if (android) { await stopNativePush(); return !token; }
+      const messaging = await getFirebaseMessaging();
+      return messaging ? await deleteToken(messaging) : !token;
+    })(),
+  ]);
+  if (!results.some(result => result.status === "fulfilled" && result.value)) throw Error("이 기기의 알림 연결을 끊지 못했어. 다시 로그아웃해 줘.");
+  localStorage.removeItem(key);
 }
 
 export async function setPushPreference(enabled: boolean) {

@@ -292,6 +292,7 @@ export default function MeetingRoomPage() {
             doc(db, "meeting_rooms", currentRoom.id, "messages", m.id),
             { readBy: arrayUnion(nickname) }
           );
+          window.dispatchEvent(new Event("wagie:messages-read"));
         }
         msgs.push(m);
       }

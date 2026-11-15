@@ -2,50 +2,74 @@
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/firebase";
-import { collection, doc, query, where, onSnapshot } from "firebase/firestore";
+import { collection, doc, getCountFromServer, getDocsFromServer, query, where, onSnapshot, type Query } from "firebase/firestore";
+
+export async function countUnread(source: Query, nickname: string) {
+  const own = where("from", "==", nickname);
+  const read = where("readBy", "array-contains", nickname);
+  try {
+    const counts = await Promise.all([source, query(source, own), query(source, read), query(source, own, read)].map(getCountFromServer));
+    const [total, mine, seen, mineSeen] = counts.map(result => result.data().count);
+    return Math.max(0, total - mine - seen + mineSeen);
+  } catch (error) {
+    if ((error as { code?: string })?.code !== "failed-precondition") throw error;
+    // Keep counts correct while the production index is being built.
+    const snapshot = await getDocsFromServer(source);
+    return snapshot.docs.filter(message => message.data().from !== nickname && !message.data().readBy?.includes(nickname)).length;
+  }
+}
 
 export default function AppBadge() {
   useEffect(() => {
-    if (!("setAppBadge" in navigator)) return;
-    const badge = navigator as any;
-    let generation = 0, stops: (() => void)[] = [], profileStop = () => {};
-    const clear = () => { stops.forEach(s => s()); stops = []; badge.clearAppBadge?.().catch(() => {}); };
+    if (!navigator.setAppBadge || !navigator.clearAppBadge) return;
+    let stopProfile = () => {}, stopCounts = () => {};
+    const clear = () => { void navigator.clearAppBadge().catch(() => {}); };
     const stopAuth = onAuthStateChanged(auth, user => {
-      const token = ++generation; profileStop(); clear();
+      stopProfile(); stopCounts(); clear();
       if (!user) return;
-      let current = "";
-      profileStop = onSnapshot(doc(db, "users", user.uid), profile => {
-        const nickname = profile.data()?.nickname;
-        if (token !== generation || !nickname || current === nickname) return;
-        current = nickname; clear();
-        let dm = 0;
-        const counts = new Map<string, number>();
-        const update = () => {
-          if (token !== generation || current !== nickname) return;
-          const total = dm + Array.from(counts.values()).reduce((a, b) => a + b, 0);
-          (total ? badge.setAppBadge(total) : badge.clearAppBadge()).catch(() => {});
+      let current: string | undefined;
+      stopProfile = onSnapshot(doc(db, "users", user.uid), profile => {
+        const nickname: string | undefined = profile.data()?.nickname;
+        if (current === nickname) return;
+        current = nickname; stopCounts(); clear();
+        if (!nickname) return;
+        const sources = new Map<string, Query>([["dm", query(collection(db, "messages"), where("to", "==", nickname))]]);
+        let active = true, generation = 0;
+        const refresh = async () => {
+          if (!active || document.hidden) return;
+          const stamp = ++generation;
+          try {
+            const counts = await Promise.all(Array.from(sources.values(), source => countUnread(source, nickname)));
+            if (!active || stamp !== generation) return;
+            const total = counts.reduce((sum, count) => sum + count, 0);
+            if (total) await navigator.setAppBadge(total); else clear();
+          } catch { /* Keep the last known badge while offline. */ }
         };
-        stops.push(onSnapshot(query(collection(db, "messages"), where("to", "==", nickname)), snap => {
-          dm = snap.docs.filter(d => d.data().from !== nickname && !d.data().readBy?.includes(nickname)).length; update();
-        }));
-        for (const group of ["group_rooms", "meeting_rooms"]) {
-          const roomStops = new Map<string, () => void>();
-          stops.push(() => roomStops.forEach(stop => stop()));
-          stops.push(onSnapshot(query(collection(db, group), where("members", "array-contains", nickname)), rooms => {
-            const active = new Set(rooms.docs.map(d => d.id));
-            roomStops.forEach((stop, id) => { if (!active.has(id)) { stop(); roomStops.delete(id); counts.delete(`${group}/${id}`); } });
-            update();
-            rooms.docs.forEach(room => {
-              if (roomStops.has(room.id)) return;
-              roomStops.set(room.id, onSnapshot(collection(db, group, room.id, "messages"), snap => {
-                counts.set(`${group}/${room.id}`, snap.docs.filter(d => d.data().from !== nickname && !d.data().readBy?.includes(nickname)).length); update();
-              }));
-            });
-          }));
-        }
+        const stops = ["group_rooms", "meeting_rooms"].map(group => onSnapshot(
+          query(collection(db, group), where("members", "array-contains", nickname)), rooms => {
+            const previous = Array.from(sources.keys()).filter(key => key.startsWith(group + "/"));
+            const next = rooms.docs.map(room => `${group}/${room.id}`);
+            if (previous.length === next.length && next.every(key => sources.has(key))) return;
+            previous.forEach(key => sources.delete(key));
+            rooms.docs.forEach(room => sources.set(`${group}/${room.id}`, collection(db, group, room.id, "messages")));
+            void refresh();
+          },
+        ));
+        const trigger = () => { void refresh(); };
+        const timer = window.setInterval(trigger, 30000);
+        let readTimer: number | undefined;
+        const afterRead = () => { window.clearTimeout(readTimer); readTimer = window.setTimeout(trigger, 500); };
+        document.addEventListener("visibilitychange", trigger);
+        window.addEventListener("wagie:messages-read", afterRead);
+        trigger();
+        stopCounts = () => {
+          active = false; stops.forEach(stop => stop()); window.clearInterval(timer); window.clearTimeout(readTimer);
+          document.removeEventListener("visibilitychange", trigger);
+          window.removeEventListener("wagie:messages-read", afterRead);
+        };
       });
     });
-    return () => { generation++; stopAuth(); profileStop(); clear(); };
+    return () => { stopAuth(); stopProfile(); stopCounts(); clear(); };
   }, []);
   return null;
 }

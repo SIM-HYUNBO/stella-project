@@ -4,7 +4,7 @@ import { isAndroidApp } from "@/lib/native-push";
 
 export default function ServiceWorkerRegister() {
   useEffect(() => {
-    if (isAndroidApp()) return;
+    if (isAndroidApp() || process.env.NODE_ENV !== "production") return;
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }

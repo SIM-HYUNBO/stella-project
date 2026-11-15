@@ -611,15 +611,15 @@ export default function HomePage() {
 
               <div className="relative mt-5 flex gap-3">
                 {[
-                  { val: Object.values(dmUnread).reduce((a, b) => a + b, 0), label: "안 읽은 DM",  icon: "💬" },
-                  { val: groupUnread || 0,   label: "단체 미확인", icon: "👥" },
-                  { val: friends.length,     label: "친구",        icon: "🤝" },
-                ].map(({ val, label, icon }) => (
-                  <div key={label} className="flex-1 bg-white/25 backdrop-blur-sm rounded-2xl px-3 py-3 text-center">
+                  { val: Object.values(dmUnread).reduce((a, b) => a + b, 0), label: "안 읽은 DM", icon: "💬", href: "/avatar" },
+                  { val: groupUnread || 0,   label: "단체 미확인", icon: "👥", href: "/groupchat" },
+                  { val: friends.length,     label: "친구", icon: "🤝", href: "/friendmenu" },
+                ].map(({ val, label, icon, href }) => (
+                  <button key={label} type="button" onClick={() => router.push(href)} className="min-w-0 flex-1 rounded-2xl bg-white/25 px-2 py-3 text-center backdrop-blur-sm transition hover:bg-white/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-white">
                     <p className="text-lg mb-0.5">{icon}</p>
                     <p className="text-white font-black text-xl leading-none">{val}</p>
                     <p className="text-white/80 text-[10px] font-semibold mt-0.5">{label}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -662,13 +662,12 @@ export default function HomePage() {
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <p className="font-black text-slate-800 text-base">친구들 👫</p>
-                <button onClick={() => router.push("/friendmenu")} className="text-xs text-sky-600 font-bold">전체보기 →</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                 {friends.map((f) => {
                   const unread = dmUnread[f.nickname] || 0;
                   return (
-                    <button key={f.uid} onClick={() => router.push("/avatar")}
+                    <button key={f.uid} onClick={() => router.push(`/avatar?open=${encodeURIComponent(f.nickname)}`)}
                       className="flex-shrink-0 text-center bg-transparent border-none p-0 cursor-pointer">
                       <div className="relative mx-auto w-14 h-14">
                         <div className="absolute inset-0 rounded-full bg- blur-[6px] opacity-50" />
@@ -695,60 +694,13 @@ export default function HomePage() {
             <p className="font-black text-slate-800 text-base mb-3 px-1">메뉴 ✨</p>
             <div className="space-y-3">
 
-              <button onClick={() => router.push("/avatar")}
-                className="group relative w-full rounded-[26px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="px-6 py-5 flex items-center gap-4 relative shadow-lg" style={{ background: "linear-gradient(to right, #7dd3fc, #bae6fd)" }}>
-                  <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)] animate-[shimmer_4s_infinite]" />
-                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative w-14 h-14 rounded-2xl bg-white/25 flex items-center justify-center text-3xl shrink-0">💬</div>
-                  <div className="relative text-left flex-1">
-                    <p className="text-white font-black text-xl drop-shadow">1:1 채팅</p>
-                    <p className="text-white/80 text-sm">친구와 나만의 대화</p>
-                  </div>
-                  {Object.values(dmUnread).reduce((a, b) => a + b, 0) > 0 && (
-                    <span className="relative bg-white text-sky-600 font-black text-sm rounded-full min-w-[32px] h-8 flex items-center justify-center px-2 animate-[pulse_2s_infinite]">
-                      {Object.values(dmUnread).reduce((a, b) => a + b, 0) > 99 ? "99+" : Object.values(dmUnread).reduce((a, b) => a + b, 0)}
-                    </span>
-                  )}
-                </div>
-              </button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => router.push("/groupchat")}
-                  className="relative rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #fde68a, #fcd34d)" }}>
-                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
-                    <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">👥</div>
-                    <p className="text-white font-black text-base drop-shadow">단체채팅</p>
-                    <p className="text-white/80 text-xs mt-0.5">같이 얘기해요</p>
-                    {groupUnread > 0 && (
-                      <span className="absolute top-3 right-3 bg-white text-yellow-700 font-black text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center px-1.5 shadow animate-[pulse_2s_infinite]">
-                        {groupUnread > 99 ? "99+" : groupUnread}
-                      </span>
-                    )}
-                  </div>
-                </button>
-
-                <button onClick={() => router.push("/diary")}
-                  className="rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform relative">
-                  <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #38bdf8, #7dd3fc)" }}>
-                    <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
-                    <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">📔</div>
-                    <p className="text-white font-black text-base drop-shadow">다이어리</p>
-                    <p className="text-white/80 text-xs mt-0.5">오늘을 기록해요</p>
-                  </div>
-                </button>
-              </div>
-
-              <button onClick={() => router.push("/friendmenu")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🤝</div>
-                  <div className="text-left flex-1">
-                    <p className="text-slate-800 font-black text-base">친구 목록</p>
-                    <p className="text-sky-600 text-sm">친구 {friends.length}명과 함께해요</p>
-                  </div>
-                  <span className="text-orange-300 text-2xl">›</span>
+              <button onClick={() => router.push("/diary")}
+                className="relative w-full rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
+                <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #38bdf8, #7dd3fc)" }}>
+                  <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
+                  <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">📔</div>
+                  <p className="text-white font-black text-base drop-shadow">다이어리</p>
+                  <p className="text-white/80 text-xs mt-0.5">오늘을 기록해요</p>
                 </div>
               </button>
 

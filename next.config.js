@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const withPWA = require("next-pwa")({
   dest: "public",
-  register: true,
+  register: false,
   skipWaiting: true,
   customWorkerDir: "worker",
-  disable: false, // 개발 모드에서도 서비스 워커 활성화
+  disable: process.env.NODE_ENV !== "production",
+  buildExcludes: [/manifest\.json$/],
+  publicExcludes: ["!noprecache/**/*", "!**/*.다운로드", "!**/*_files/**", "!workbox-*.js*", "!worker-*.js*"],
 });
 
 module.exports = withPWA({

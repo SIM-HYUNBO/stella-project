@@ -843,6 +843,7 @@ export default function Chat() {
           await updateDoc(doc(db, "messages", m.id), {
             readBy: arrayUnion(nickname),
           });
+          window.dispatchEvent(new Event("wagie:messages-read"));
 
           m.readBy = [...(m.readBy || []), nickname];
         }

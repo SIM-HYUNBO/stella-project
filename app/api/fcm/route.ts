@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const { admin, db, uid, nickname } = await apiUser(req);
     const { toNicknames, message, roomName, url } = await req.json();
     const targets = Array.from(new Set<string>(Array.isArray(toNicknames) ? toNicknames : [toNicknames]));
-    if (!targets.length || targets.length > 50 || targets.some(n => typeof n !== "string" || !n || n.includes("/")) || typeof message !== "string" || message.length > 500 || (url && (typeof url !== "string" || !/^\/(?!\/)/.test(url)))) throw new ApiError(400, "알림 내용을 확인해 줘.");
+    if (!targets.length || targets.length > 50 || targets.some(n => typeof n !== "string" || !n || n.includes("/")) || typeof message !== "string" || message.length > 500 || (url && (typeof url !== "string" || !/^\/(?!\/)/.test(url) || /[\\\u0000-\u0020]/.test(url)))) throw new ApiError(400, "알림 내용을 확인해 줘.");
     await apiRateLimit(db, uid, "push", 120);
     const friends = await db.collection("friends").where("users", "array-contains", uid).get();
     const friendIds = new Set(friends.docs.flatMap(d => d.data().users || []));

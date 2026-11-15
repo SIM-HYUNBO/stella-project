@@ -8,13 +8,14 @@ export async function apiUser(req: Request, legacyToken?: string) {
   if (!admin) throw new ApiError(503, "서버 연결을 준비하지 못했어. 잠시 후 다시 시도해 줘.");
   const token = req.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1] || legacyToken;
   if (!token) throw new ApiError(401, "로그인이 필요해.");
-  let uid: string;
-  try { uid = (await admin.auth().verifyIdToken(token)).uid; }
+  let claims: Awaited<ReturnType<ReturnType<typeof admin.auth>["verifyIdToken"]>>;
+  try { claims = await admin.auth().verifyIdToken(token); }
   catch { throw new ApiError(401, "로그인이 만료됐어. 다시 로그인해 줘."); }
+  const { uid } = claims;
   const db = admin.firestore();
   const profile = await db.collection("users").doc(uid).get();
   if (!profile.exists) throw new ApiError(403, "내 프로필을 찾지 못했어.");
-  return { admin, db, uid, profile: profile.data()!, nickname: profile.data()!.nickname as string };
+  return { admin, db, uid, claims, profile: profile.data()!, nickname: profile.data()!.nickname as string };
 }
 
 // Shared Firestore counter: survives cold starts and concurrent server instances.

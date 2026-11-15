@@ -486,6 +486,7 @@ export default function GroupChat() {
                 readBy: arrayUnion(nickname),
               }
             );
+          window.dispatchEvent(new Event("wagie:messages-read"));
           }
 
           msgs.push(m);
