@@ -41,7 +41,7 @@ export default function AppPinScreen({ title, description, count, error, step, o
           <div className="grid grid-cols-3 justify-items-center gap-3">
             {keys.map(key => key ? <button key={key} type="button" aria-label={key === "delete" ? "마지막 숫자 지우기" : key} disabled={count === 4 || (key === "delete" && !count)}
               onClick={() => key === "delete" ? onDelete() : onDigit(key)}
-              className="grid aspect-square w-full max-w-[72px] place-items-center rounded-full border border-sky-100 bg-gradient-to-b from-white to-sky-50 text-2xl font-black tabular-nums shadow-[0_4px_0_#dbeafe,0_6px_10px_rgba(56,139,180,0.12)] transition hover:border-sky-200 active:translate-y-0.5 active:shadow-[0_2px_0_#dbeafe] focus-visible:ring-2 focus-visible:ring-sky-500 disabled:opacity-60">
+              className="grid aspect-square w-full max-w-[72px] place-items-center rounded-full border border-sky-100 bg-gradient-to-b from-white to-sky-50 text-2xl font-normal [font-family:inherit] tabular-nums shadow-[0_4px_0_#dbeafe,0_6px_10px_rgba(56,139,180,0.12)] transition hover:border-sky-200 active:translate-y-0.5 active:shadow-[0_2px_0_#dbeafe] focus-visible:ring-2 focus-visible:ring-sky-500 disabled:opacity-60">
               {key === "delete" ? <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 6H9l-6 6 6 6h12a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Zm-8 3 6 6m0-6-6 6" /></svg> : key}
             </button> : <span key="empty" aria-hidden="true" className="grid place-items-center text-sm text-amber-500">✦</span>)}
           </div>
