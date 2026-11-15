@@ -13,6 +13,10 @@ function pack(id: string, label: string, icon: string, poses: [string, StickerMo
 }
 
 export const ANIMAL_STICKER_PACKS = [
+  pack("penguin", "아기 펭귄", "🐧", [
+    ["배로 슝", "float"], ["물고기 잡았다!", "pulse"], ["추워서 덜덜", "wiggle"],
+    ["부끄러워", "pulse"], ["흥!", "wiggle"], ["만세", "bounce"],
+  ]),
   pack("rabbit", "토끼", "🐰", [["안녕", "bounce"], ["당근 냠냠", "pulse"], ["수줍은 하트", "pulse"], ["엉엉", "wiggle"], ["삐짐", "wiggle"], ["잘 자", "float"]]),
   pack("cat", "치즈 고양이", "🐱", [["안녕", "bounce"], ["빵 터짐", "bounce"], ["깜짝", "wiggle"], ["흘깃", "float"], ["아이고", "wiggle"], ["만세", "bounce"]]),
   pack("otter", "아기 수달", "🦦", [["안녕", "bounce"], ["내 조개", "float"], ["좋아", "pulse"], ["첨벙", "bounce"], ["부탁해", "pulse"], ["쿨쿨", "float"]]),
