@@ -27,7 +27,6 @@ export default function FriendsPage() {
   const [search, setSearch] = useState("");
 
   // 숨기기 / 알림끄기 / 즐겨찾기
-  const [hiddenDocs, setHiddenDocs] = useState<Record<string, string>>({});
   const [mutedDocs, setMutedDocs] = useState<Record<string, string>>({});
   const [favoriteDocs, setFavoriteDocs] = useState<Record<string, string>>({});
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
@@ -67,20 +66,6 @@ export default function FriendsPage() {
       const list: any[] = [];
       snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
       setRequests(list);
-    });
-  }, [currentUser]);
-
-  // 숨긴 친구 구독
-  useEffect(() => {
-    if (!currentUser) return;
-    const q = query(collection(db, "hidden"), where("user_id", "==", currentUser.uid));
-    return onSnapshot(q, (snap) => {
-      const docs: Record<string, string> = {};
-      snap.forEach((d) => {
-        const uid = d.data().target_uid;
-        if (uid) docs[uid] = d.id;
-      });
-      setHiddenDocs(docs);
     });
   }, [currentUser]);
 
@@ -183,17 +168,10 @@ export default function FriendsPage() {
     setMenuOpen(null);
   };
 
-  const toggleHide = async (friend: any) => {
-    if (!currentUser) return;
-    if (hiddenDocs[friend.uid]) {
-      await deleteDoc(doc(db, "hidden", hiddenDocs[friend.uid]));
-    } else {
-      await addDoc(collection(db, "hidden"), {
-        user_id: currentUser.uid,
-        target_uid: friend.uid,
-        target_name: friend.nickname,
-      });
-    }
+  const toggleHide = async (friend: { uid: string; nickname: string }) => {
+    try {
+      await hidden.hide(friend.uid, friend.nickname);
+    } catch { alert("친구를 숨기지 못했어. 잠시 후 다시 시도해 줘."); }
     setMenuOpen(null);
   };
 

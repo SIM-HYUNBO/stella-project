@@ -1410,12 +1410,9 @@ export default function Chat() {
     blocked.some((b) => b.target_id === id);
 
   const toggleHide = async (targetUid: string, targetNickname: string) => {
-    if (!uid) return;
-    if (hiddenDocs[targetUid]) {
-      await deleteDoc(doc(db, "hidden", hiddenDocs[targetUid]));
-    } else {
-      await addDoc(collection(db, "hidden"), { user_id: uid, target_uid: targetUid, target_name: targetNickname });
-    }
+    try {
+      await hidden.hide(targetUid, targetNickname);
+    } catch { alert("친구를 숨기지 못했어. 잠시 후 다시 시도해 줘."); }
   };
 
   const toggleMute = async (targetUid: string, targetNickname: string) => {
@@ -2274,7 +2271,7 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-3">
        {users
-  .filter((u) => friendIds.has(u.nickname) && hidden.visible(u.id, u.nickname))
+  .filter((u) => friendIds.has(u.nickname) && !hiddenDocs[u.id] && hidden.visible(u.id, u.nickname))
   .map((u) => (
           <SwipeUserItem
             key={u.id}
@@ -2311,7 +2308,7 @@ export default function Chat() {
   const pendingRequest = friendRequests[0] ?? null;
 
   // 채팅 중: 모바일·데스크탑 모두 fixed inset-0 (PageContainer p-4 오버플로우 문제 방지)
-  if (currentChatUser && hidden.visible(currentChatUser.id, currentChatUser.nickname)) {
+  if (currentChatUser && !hiddenDocs[currentChatUser.id] && hidden.visible(currentChatUser.id, currentChatUser.nickname)) {
     return (
       <div className="fixed inset-0 z-40 flex flex-col" style={{ background: theme.bg }}>
         {pendingRequest && (
