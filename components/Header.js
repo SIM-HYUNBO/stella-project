@@ -23,15 +23,16 @@ const Header = () => {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Link href="/help" className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-sky-600 transition-transform active:scale-90" title="도움말" aria-label="도움말 열기">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.7 9a2.4 2.4 0 1 1 3.5 2.13c-.76.4-1.2.95-1.2 1.87" />
+              <circle cx="12" cy="16.4" r="0.85" fill="currentColor" stroke="none" />
+            </svg>
+          </Link>
           <Link href="/robot" className="relative w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform" title="AI" aria-label="AI 채팅 열기">
             <span className="absolute -top-1 -right-1 bg-red-400 text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">NEW</span>
             <RobotWelcomeArt color="#38bdf8" icon />
-          </Link>
-          <Link href="/help" className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-sky-600 transition-transform active:scale-90" title="도움말" aria-label="도움말 열기">
-            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 8.5a3 3 0 1 1 4.4 2.65c-.95.5-1.4 1.12-1.4 2.35" />
-              <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
-            </svg>
           </Link>
           <Link href="/tools"
             className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform">
