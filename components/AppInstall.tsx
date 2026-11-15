@@ -8,6 +8,8 @@ interface InstallPromptEvent extends Event {
   prompt(): Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+const INSTALLED_KEY = "wagie:app-installed";
+
 const AppInstallContext = createContext<{
   visible: boolean;
   prompt: InstallPromptEvent | null;
@@ -22,27 +24,37 @@ export function AppInstallProvider({ children }: { children: ReactNode }) {
     if (Capacitor.isNativePlatform()) return;
 
     const standalone = window.matchMedia("(display-mode: standalone), (display-mode: window-controls-overlay)");
-    const updateVisibility = () => {
-      const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone;
-      setVisible(!standalone.matches && !iosStandalone);
-    };
-    const capturePrompt = (event: Event) => {
-      event.preventDefault();
-      setPrompt(event as InstallPromptEvent);
-    };
-    const handleInstalled = () => {
+    let installed = false;
+    const rememberInstall = () => {
+      installed = true;
+      try { localStorage.setItem(INSTALLED_KEY, "true"); } catch {}
       setVisible(false);
       setPrompt(null);
     };
+    const updateVisibility = () => {
+      const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone;
+      if (standalone.matches || iosStandalone) { rememberInstall(); return; }
+      let remembered = false;
+      try { remembered = localStorage.getItem(INSTALLED_KEY) === "true"; } catch {}
+      setVisible(!installed && !remembered);
+    };
+    const capturePrompt = (event: Event) => {
+      if (installed) return;
+      event.preventDefault();
+      setPrompt(event as InstallPromptEvent);
+    };
+    const onStorage = (event: StorageEvent) => { if (event.key === INSTALLED_KEY) updateVisibility(); };
 
     updateVisibility();
     standalone.addEventListener("change", updateVisibility);
     window.addEventListener("beforeinstallprompt", capturePrompt);
-    window.addEventListener("appinstalled", handleInstalled);
+    window.addEventListener("appinstalled", rememberInstall);
+    window.addEventListener("storage", onStorage);
     return () => {
       standalone.removeEventListener("change", updateVisibility);
       window.removeEventListener("beforeinstallprompt", capturePrompt);
-      window.removeEventListener("appinstalled", handleInstalled);
+      window.removeEventListener("appinstalled", rememberInstall);
+      window.removeEventListener("storage", onStorage);
     };
   }, []);
 

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
+import AppPinScreen from "./AppPinScreen";
 
 interface Props {
   onUnlock: () => void;
@@ -10,7 +11,6 @@ export default function AppLock({ onUnlock }: Props) {
   const [pin, setPin] = useState("");
   const [stored, setStored] = useState("");
   const [error, setError] = useState(false);
-  const [shake, setShake] = useState(false);
 
   useEffect(() => {
     setStored(localStorage.getItem("appLockPin") || "");
@@ -28,9 +28,8 @@ export default function AppLock({ onUnlock }: Props) {
           sessionStorage.setItem("appLockUnlocked", "true");
           onUnlock();
         } else {
-          setShake(true);
           setError(true);
-          setTimeout(() => { setPin(""); setShake(false); }, 600);
+          setTimeout(() => { setPin(""); }, 600);
         }
       }, 100);
     }
@@ -38,62 +37,6 @@ export default function AppLock({ onUnlock }: Props) {
 
   const del = () => { setPin((p) => p.slice(0, -1)); setError(false); };
 
-  const dots = [0, 1, 2, 3];
-  const keys = ["1","2","3","4","5","6","7","8","9","","0","←"];
-
-  return (
-    <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center bg-sky-50">
-      <div className="text-5xl mb-6">🔒</div>
-      <div className="text-xl font-black text-slate-800 mb-2">앱 비밀번호</div>
-      <div className="text-sm text-gray-400 mb-8">4자리 PIN을 입력하세요</div>
-
-      <div className={`flex gap-4 mb-10 ${shake ? "animate-[shake_0.5s_ease-in-out]" : ""}`}>
-        {dots.map((i) => (
-          <div
-            key={i}
-            className={`w-4 h-4 rounded-full border-2 transition-colors ${
-              i < pin.length
-                ? error ? "bg-red-400" : "bg-sky-500"
-                : "border-gray-300 bg-transparent"
-            }`}
-          />
-        ))}
-      </div>
-
-      {error && <p className="text-red-400 text-sm font-bold mb-4 -mt-6">잘못된 비밀번호입니다</p>}
-
-      <div className="grid grid-cols-3 gap-3 w-64">
-        {keys.map((k, i) => (
-          k === "" ? <div key={i} /> :
-          k === "←" ? (
-            <button
-              key={i}
-              onClick={del}
-              className="h-16 rounded-2xl bg-white text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition"
-            >
-              ←
-            </button>
-          ) : (
-            <button
-              key={i}
-              onClick={() => press(k)}
-              className="h-16 rounded-2xl bg-white text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 transition active:bg-sky-50"
-            >
-              {k}
-            </button>
-          )
-        ))}
-      </div>
-
-      <style jsx>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-8px); }
-          40% { transform: translateX(8px); }
-          60% { transform: translateX(-8px); }
-          80% { transform: translateX(8px); }
-        }
-      `}</style>
-    </div>
-  );
+  return <AppPinScreen title="앱 비밀번호" description="설정한 비밀번호 4자리를 입력해 줘." count={pin.length}
+    error={error ? "비밀번호가 틀렸어. 다시 입력해 줘." : undefined} onDigit={press} onDelete={del} />;
 }

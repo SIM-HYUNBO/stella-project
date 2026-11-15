@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import AppPinScreen from "@/components/AppPinScreen";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
@@ -195,7 +196,6 @@ export default function SettingsPage() {
   ];
 
   const pinCurrent = pinStep === "enter" ? newPin : confirmPin;
-  const pinKeys = ["1","2","3","4","5","6","7","8","9","","0","←"];
 
   return (
     <main className="relative min-h-screen" style={{ background: "#f0f9ff" }}>
@@ -416,47 +416,12 @@ export default function SettingsPage() {
 
       </div>
 
-      {/* PIN 설정 모달 */}
-      {showPinSetup && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-sky-50">
-          <button onClick={() => setShowPinSetup(false)} className="absolute top-5 right-5 text-gray-400 text-2xl">✕</button>
-
-          <div className="text-5xl mb-5">🔒</div>
-          <div className="text-xl font-black text-slate-800 mb-1">
-            {pinStep === "enter" ? "새 PIN 설정" : "PIN 확인"}
-          </div>
-          <div className="text-sm text-gray-400 mb-8">
-            {pinStep === "enter" ? "사용할 4자리 PIN을 입력하세요" : "한 번 더 입력하세요"}
-          </div>
-
-          <div className="flex gap-4 mb-3">
-            {[0,1,2,3].map((i) => (
-              <div key={i} className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                i < pinCurrent.length ? "bg-sky-500" : "border-gray-300"
-              }`} />
-            ))}
-          </div>
-          {pinError && <p className="text-red-400 text-xs font-bold mb-3">{pinError}</p>}
-          <div className="mb-8 h-4" />
-
-          <div className="grid grid-cols-3 gap-3 w-64">
-            {pinKeys.map((k, i) => (
-              k === "" ? <div key={i} /> :
-              k === "←" ? (
-                <button key={i} onClick={delPinKey}
-                  className="h-16 rounded-2xl bg-white text-2xl text-gray-500 flex items-center justify-center active:scale-95 transition">
-                  ←
-                </button>
-              ) : (
-                <button key={i} onClick={() => pressPinKey(k)}
-                  className="h-16 rounded-2xl bg-white text-2xl font-black text-slate-800 flex items-center justify-center active:scale-95 active:bg-sky-50 transition">
-                  {k}
-                </button>
-              )
-            ))}
-          </div>
-        </div>
-      )}
+      {showPinSetup && <AppPinScreen
+        title={pinStep === "enter" ? "새 비밀번호 설정" : "비밀번호 확인"}
+        description={pinStep === "enter" ? "이 기기에서 사용할 비밀번호 4자리를 골라 줘." : "같은 비밀번호를 한 번 더 입력해 줘."}
+        step={pinStep === "enter" ? 1 : 2} count={pinCurrent.length} error={pinError}
+        onDigit={pressPinKey} onDelete={delPinKey} onClose={() => setShowPinSetup(false)}
+      />}
     </main>
   );
 }
