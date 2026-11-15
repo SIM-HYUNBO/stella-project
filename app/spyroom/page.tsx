@@ -1,5 +1,6 @@
 "use client";
 
+import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,7 +33,7 @@ export default function SpyRoomPage() {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [invited, setInvited] = useState<string[]>([]);
-  const [input, setInput] = useState("");
+  const { input, setInput, clearSentDraft } = useChatDraft("spy", lobby?.uid, entry?.id);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
@@ -85,7 +86,7 @@ export default function SpyRoomPage() {
     const next = { id, session: crypto.randomUUID() };
     activeEntry.current = next;
     stickToBottom.current = true;
-    setRoom(null); setOlder([]); setOlderMore(null); setReveal(false); setInput(""); setError(""); setConnectionError(""); setEntry(next);
+    setRoom(null); setOlder([]); setOlderMore(null); setReveal(false); setError(""); setConnectionError(""); setEntry(next);
   }
 
   const displayMessages = Array.from(new Map([...(older || []), ...(room?.messages || [])].map(item => [item.id, item])).values());
@@ -118,9 +119,10 @@ export default function SpyRoomPage() {
     setBusy(true); setError("");
     try {
       const view = await request<RoomView>({ action: "send", ...entry, text: input, messageId: crypto.randomUUID() });
+      clearSentDraft(input);
       if (activeEntry.current !== entry) return;
       stickToBottom.current = true;
-      setRoom(view); setInput(""); playSendSound();
+      setRoom(view); playSendSound();
     } catch (e) { if (activeEntry.current === entry) setError(errorText(e)); }
     finally { setBusy(false); }
   }

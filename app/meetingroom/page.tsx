@@ -1,5 +1,6 @@
 "use client";
 
+import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
@@ -119,12 +120,13 @@ const ACCENT: Record<string, { from: string; to: string; shadow: string; ring: s
 
 export default function MeetingRoomPage() {
   const hidden = useHiddenFriends();
+  const [uid, setUid] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const [memberTitles, setMemberTitles] = useState<Record<string, string>>({});
   const [rooms, setRooms] = useState<MeetingRoom[]>([]);
   const [currentRoom, setCurrentRoom] = useState<MeetingRoom | null>(null);
   const [messages, setMessages] = useState<MeetingMessage[]>([]);
-  const [input, setInput] = useState("");
+  const { input, setInput, clearSentDraft } = useChatDraft("meeting", uid, currentRoom?.id);
   const [isSending, setIsSending] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [activeTheme, setActiveTheme] = useState("sky");
@@ -199,6 +201,7 @@ export default function MeetingRoomPage() {
 
   useEffect(() => {
     const unsub = watchAuthState(async (user) => {
+      setUid(user?.uid ?? null);
       if (user) {
         const snap = await getDoc(doc(db, "users", user.uid));
         setNickname(snap.exists() ? (snap.data().nickname || "유저") : (user.displayName || "유저"));
@@ -542,7 +545,7 @@ export default function MeetingRoomPage() {
       setReplyTo(null);
       setSpoilerMode(false);
       setSelectedEffect("none");
-      setInput("");
+      if (textOverride === undefined) clearSentDraft(rawInput);
       playSendSound();
     } catch {
       alert("메시지 전송에 실패했어요. 다시 시도해줘!");

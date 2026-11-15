@@ -1,5 +1,6 @@
 "use client";
 
+import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
 import { dmConstraint, messageTimestamp } from "@/lib/dm-query";
@@ -418,7 +419,7 @@ export default function Chat() {
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const [input, setInput] = useState("");
+  const { input, setInput, clearSentDraft } = useChatDraft("dm", uid, currentChatUser?.id);
   const [isSending, setIsSending] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [activeTheme, setActiveTheme] = useState("sky");
@@ -1111,7 +1112,7 @@ export default function Chat() {
           content: `🎉 정답! ${nickname}님이 맞췄어요! 정답은 「${chosungGame.answer}」`,
           type: "system", createdAt: serverTimestamp(),
         });
-        setInput(""); setReplyTo(null); return;
+        if (textOverride === undefined) clearSentDraft(rawInput); setReplyTo(null); return;
       }
     }
 
@@ -1122,14 +1123,14 @@ export default function Chat() {
       const isClap = requiredClaps > 0 && (text === "👏".repeat(requiredClaps) || text === "박수" || text === "짝".repeat(requiredClaps));
       if (is369(expected)) {
         if (!isClap) {
-          setInput("");
           await end369(`❌ ${expected}에서 ${"👏".repeat(requiredClaps)}를 쳐야 했는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          if (textOverride === undefined) clearSentDraft(rawInput);
           return;
         }
       } else {
         if (text !== String(expected)) {
-          setInput("");
           await end369(`❌ ${expected}가 정답이었는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          if (textOverride === undefined) clearSentDraft(rawInput);
           return;
         }
       }
@@ -1141,8 +1142,8 @@ export default function Chat() {
     // 끝말잇기 검증
     if (wordGame?.active && wordGameKey) {
       if (wordGame.lastChar && text.charAt(0) !== wordGame.lastChar) {
-        setInput("");
         await endWordGame(`❌ '${wordGame.lastChar}'(으)로 시작해야 하는데 '${text}'를 입력했어요. ${nickname}님 탈락! 게임 종료.`);
+        if (textOverride === undefined) clearSentDraft(rawInput);
         return;
       }
       const newLastChar = text.charAt(text.length - 1);
@@ -1175,7 +1176,7 @@ export default function Chat() {
     try {
       await addDoc(collection(db, "messages"), msgData);
       playSendSound();
-      setInput("");
+      if (textOverride === undefined) clearSentDraft(rawInput);
       setReplyTo(null);
       setSpoilerMode(false);
       setSelectedEffect("none");

@@ -1,5 +1,6 @@
 "use client";
 
+import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
@@ -202,6 +203,7 @@ const ACCENT: Record<string, { from: string; to: string; shadow: string; ring: s
 
 export default function GroupChat() {
   const hidden = useHiddenFriends();
+  const [uid, setUid] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const [memberTitles, setMemberTitles] = useState<Record<string, string>>({});
 
@@ -214,7 +216,7 @@ export default function GroupChat() {
     GroupMessage[]
   >([]);
 
-  const [input, setInput] = useState("");
+  const { input, setInput, clearSentDraft } = useChatDraft("group", uid, currentRoom?.id);
   const [isSending, setIsSending] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [activeTheme, setActiveTheme] = useState("sky");
@@ -345,6 +347,7 @@ export default function GroupChat() {
 
   useEffect(() => {
     const unsub = watchAuthState(async (user) => {
+      setUid(user?.uid ?? null);
       if (user) {
         const snap = await getDoc(doc(db, "users", user.uid));
         setNickname(snap.exists() ? (snap.data().nickname || "유저") : (user.displayName || "유저"));
@@ -858,7 +861,7 @@ export default function GroupChat() {
           from: "__system__", content: `🎉 정답! ${nickname}님이 맞췄어요! 정답은 「${chosungGame.answer}」`,
           type: "system", createdAt: serverTimestamp(),
         });
-        setInput(""); return;
+        if (textOverride === undefined) clearSentDraft(rawInput); return;
       }
     }
 
@@ -869,14 +872,14 @@ export default function GroupChat() {
       const isClap = requiredClaps > 0 && (text === "👏".repeat(requiredClaps) || text === "박수" || text === "짝".repeat(requiredClaps));
       if (is369(expected)) {
         if (!isClap) {
-          setInput("");
           await end369(`❌ ${expected}에서 ${"👏".repeat(requiredClaps)}를 쳐야 했는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          if (textOverride === undefined) clearSentDraft(rawInput);
           return;
         }
       } else {
         if (text !== String(expected)) {
-          setInput("");
           await end369(`❌ ${expected}가 정답이었는데 ${nickname}님이 틀렸어요! 게임 종료.`);
+          if (textOverride === undefined) clearSentDraft(rawInput);
           return;
         }
       }
@@ -888,8 +891,8 @@ export default function GroupChat() {
     // 끝말잇기 검증
     if (wordGame?.active) {
       if (wordGame.lastChar && text.charAt(0) !== wordGame.lastChar) {
-        setInput("");
         await endWordGame(`❌ '${wordGame.lastChar}'(으)로 시작해야 하는데 '${text}'를 입력했어요. ${nickname}님 탈락! 게임 종료.`);
+        if (textOverride === undefined) clearSentDraft(rawInput);
         return;
       }
       const newLastChar = text.charAt(text.length - 1);
@@ -914,7 +917,7 @@ export default function GroupChat() {
       setReplyTo(null);
       setSpoilerMode(false);
       setSelectedEffect("none");
-      setInput("");
+      if (textOverride === undefined) clearSentDraft(rawInput);
       playSendSound();
       const targets = currentRoom.members.filter((m) => m !== nickname);
       if (targets.length > 0) {
