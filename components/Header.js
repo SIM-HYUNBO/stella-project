@@ -17,15 +17,21 @@ const Header = () => {
           <span className={`${jua.className} text-[28px] text-sky-400 drop-tracking-wide`}>
             WAGIE
           </span>
-          <span className="text-[14px] text-gray-400 font-light ml-2 animate-[fadeInSlow_1.2s_ease_0.8s_both]">
+          <span className="hidden min-[420px]:inline text-[14px] text-gray-400 font-light ml-2 animate-[fadeInSlow_1.2s_ease_0.8s_both]">
             wagging duck
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link href="/robot" className="relative w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform" title="AI" aria-label="AI 채팅 열기">
             <span className="absolute -top-1 -right-1 bg-red-400 text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">NEW</span>
             <RobotWelcomeArt color="#38bdf8" icon />
+          </Link>
+          <Link href="/help" className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-sky-600 transition-transform active:scale-90" title="도움말" aria-label="도움말 열기">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 8.5a3 3 0 1 1 4.4 2.65c-.95.5-1.4 1.12-1.4 2.35" />
+              <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
+            </svg>
           </Link>
           <Link href="/tools"
             className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center active:scale-90 transition-transform">
