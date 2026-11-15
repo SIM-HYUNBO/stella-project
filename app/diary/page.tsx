@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -67,7 +68,8 @@ function CommentItem({
 }: CommentItemProps) {
   const liked = comment.likes?.includes(userId ?? "") ?? false;
   const isOpen = openReplies.has(comment.id);
-  const replies = repliesByComment[comment.id] ?? [];
+  const hidden = useHiddenFriends();
+  const replies = (repliesByComment[comment.id] ?? []).filter(reply => hidden.visible(reply.uid, reply.nickname));
 
   return (
     <div>
@@ -169,7 +171,8 @@ function ReactionBar({
   onToggleCommentLike, onToggleReplies, onSubmitReply, onChangeReplyInput,
 }: ReactionBarProps) {
   const entryReactions = reactionsByEntry[diaryId] || {};
-  const comments = commentsByEntry[diaryId];
+  const hidden = useHiddenFriends();
+  const comments = commentsByEntry[diaryId]?.filter(comment => hidden.visible(comment.uid, comment.nickname));
   const isOpen = openComments.has(diaryId);
 
   return (
@@ -205,7 +208,7 @@ function ReactionBar({
 
       {isOpen && (
         <div className="mt-3 space-y-3">
-          {(commentsByEntry[diaryId] ?? []).map((c) => (
+          {(comments ?? []).map((c) => (
             <CommentItem
               key={c.id}
               diaryId={diaryId}
@@ -222,7 +225,7 @@ function ReactionBar({
             />
           ))}
 
-          {commentsByEntry[diaryId]?.length === 0 && (
+          {comments?.length === 0 && (
             <p className="text-xs text-gray-400 text-center py-1">첫 댓글을 남겨봐요 👀</p>
           )}
 
@@ -250,6 +253,7 @@ function ReactionBar({
 }
 
 export default function DiaryPage() {
+  const hidden = useHiddenFriends();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [nickname, setNickname] = useState("");
@@ -591,7 +595,7 @@ export default function DiaryPage() {
 
           {tab === "friends" && (
             <div className="space-y-3">
-              {friendEntries.map((entry) => (
+              {friendEntries.filter(entry => hidden.visible(entry.uid, entry.nickname)).map((entry) => (
                 <div key={entry.id} className="bg-sky-50 rounded-[22px] p-4">
                   <div className="flex items-center gap-2 mb-3">
                     {entry.profileImage ? (
@@ -609,7 +613,7 @@ export default function DiaryPage() {
                   <ReactionBar diaryId={entry.id} {...reactionBarProps} />
                 </div>
               ))}
-              {friendEntries.length === 0 && (
+              {!friendEntries.some(entry => hidden.visible(entry.uid, entry.nickname)) && (
                 <div className="text-center text-slate-400 text-sm py-10">친구들의 공개 일기가 없어요 🌸</div>
               )}
             </div>

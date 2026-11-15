@@ -19,14 +19,15 @@ export default function BirthdayNotification() {
 
       try {
         const q = query(collection(db, "friends"), where("users", "array-contains", user.uid));
-        const snap = await getDocs(q);
+        const [snap, hidden] = await Promise.all([getDocs(q), getDocs(query(collection(db, "hidden"), where("user_id", "==", user.uid)))]);
+        const hiddenIds = new Set(hidden.docs.map(item => item.data().target_uid));
 
         const birthdayFriends: string[] = [];
 
         for (const friendDoc of snap.docs) {
           const users: string[] = friendDoc.data().users || [];
           const friendUid = users.find((u) => u !== user.uid);
-          if (!friendUid) continue;
+          if (!friendUid || hiddenIds.has(friendUid)) continue;
 
           const userSnap = await getDoc(doc(db, "users", friendUid));
           if (!userSnap.exists()) continue;

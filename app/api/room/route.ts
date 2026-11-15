@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasHiddenFriend } from "@/lib/hidden-friends-server";
 import { sendUserPush } from "@/lib/push-delivery";
 import getAdmin from "@/lib/firebaseAdmin";
 import { EMPTY_ROOM, validId, validLetter, validateRoom, letterAccess } from "@/lib/room";
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
     const now = Date.now();
     const mail = incoming.docs.map(d => {
       const m = d.data();
-      return { id: d.id, fromName: m.fromName, toName: m.toName, createdAt: m.createdAt, unlockAt: m.unlockAt, opened: m.opened === true,
+      return { id: d.id, fromUid: m.fromUid, fromName: m.fromName, toName: m.toName, createdAt: m.createdAt, unlockAt: m.unlockAt, opened: m.opened === true,
         ...(m.opened && m.unlockAt <= now ? { image: m.image, text: m.text } : {}) };
     }).sort((a, b) => b.createdAt - a.createdAt);
     return answer({ nickname: profile.data()?.nickname || "나", room: room.data()?.layout || EMPTY_ROOM, mail,
@@ -86,12 +87,12 @@ export async function POST(req: NextRequest) {
       tx.set(recentRef, { lastSentAt: Date.now() }, { merge: true });
       return true;
     });
-    if (created) {
+    if (created && !await hasHiddenFriend(db, body.toUid, uid, fromName).catch(() => true)) {
       const title = "낙서 우편함에 편지가 도착했어";
       const message = `${fromName}님이 편지를 보냈어요 💌`;
       // Mail remains delivered even if the receiver has disabled push notifications.
       await Promise.allSettled([
-        db.collection("notifications").doc(toName).collection("items").doc(body.id).set({ title, message, from: fromName, url: "/my-room", read: false, createdAt: admin.firestore.FieldValue.serverTimestamp() }),
+        db.collection("notifications").doc(toName).collection("items").doc(body.id).set({ title, message, from: fromName, fromUid: uid, url: "/my-room", read: false, createdAt: admin.firestore.FieldValue.serverTimestamp() }),
         (async () => {
           if (to.data()?.pushEnabled !== false) await sendUserPush(db, admin.messaging(), toName, { data: { title, body: message, url: "/my-room" }, webpush: { notification: { title, body: message, icon: "/wag.png", tag: `letter-${body.id}` }, fcmOptions: { link: "/my-room" } }, android: { notification: { title, body: message } }, apns: { payload: { aps: { alert: { title, body: message }, sound: "default" } } } });
         })(),

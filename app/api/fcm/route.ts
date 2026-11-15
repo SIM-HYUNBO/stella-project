@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiUser, apiRateLimit, ApiError } from "@/lib/api-user";
 import { sendUserPush } from "@/lib/push-delivery";
+import { hasHiddenFriend } from "@/lib/hidden-friends-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,13 +24,14 @@ export async function POST(req: NextRequest) {
         allowed = !requests.empty;
       }
       if (!allowed) throw new ApiError(403, "친구나 같은 방의 참여자에게만 알림을 보낼 수 있어.");
-      return { name, profile: person.data() };
+      return { name, profile: person.data(), receiverUid: person.id };
     }));
-    const details = await Promise.all(receivers.map(async ({ name, profile }) => {
+    const details = await Promise.all(receivers.map(async ({ name, profile, receiverUid }) => {
+      if (await hasHiddenFriend(db, receiverUid, uid, nickname)) return { nickname: name, status: "disabled" };
       const title = roomName ? `[${String(roomName).slice(0, 80)}] ${nickname}` : `${nickname}님의 메시지`;
       const link = url || "/home";
       // The inbox is independent from device permission and token availability.
-      await db.collection("notifications").doc(name).collection("items").add({ from: nickname, title, message, url: link, createdAt: admin.firestore.FieldValue.serverTimestamp(), read: false });
+      await db.collection("notifications").doc(name).collection("items").add({ from: nickname, fromUid: uid, title, message, url: link, createdAt: admin.firestore.FieldValue.serverTimestamp(), read: false });
       if (profile.pushEnabled === false) return { nickname: name, status: "disabled" };
       try {
         const status = await sendUserPush(db, admin.messaging(), name, { data: { title, body: message, url: link },

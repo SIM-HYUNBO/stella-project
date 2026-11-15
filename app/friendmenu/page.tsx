@@ -1,8 +1,9 @@
 ﻿"use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch } from "@/lib/api-fetch";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import LoadingScreen from "@/components/LoadingScreen";
 import { auth, db } from "@/app/firebase";
@@ -15,6 +16,7 @@ import { useRouter } from "next/navigation";
 import TextAvatar from "@/components/TextAvatar";
 
 export default function FriendsPage() {
+  const hidden = useHiddenFriends();
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentNickname, setCurrentNickname] = useState<string>("");
@@ -255,16 +257,18 @@ export default function FriendsPage() {
     return Math.ceil((next.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   };
 
-  const upcomingBirthdays = friends.filter((f) => {
+  const visibleFriends = friends.filter(f => hidden.visible(f.uid, f.nickname));
+  const visibleRequests = requests.filter(r => hidden.visible(r.from, r.fromNickname));
+  const favorites = visibleFriends.filter(f => favoriteDocs[f.uid]);
+  const upcomingBirthdays = visibleFriends.filter((f) => {
     if (!f.birthdate) return false;
     const days = getDaysUntilBirthday(f.birthdate);
     return days !== null && days <= 7;
   }).sort((a, b) => (getDaysUntilBirthday(a.birthdate) ?? 99) - (getDaysUntilBirthday(b.birthdate) ?? 99));
 
   const isFriend = (uid: string) => friends.some((f) => f.uid === uid);
-  const filteredUsers = useMemo(() => users.filter((u) => u.nickname?.toLowerCase().includes(search.toLowerCase())), [users, search]);
+  const filteredUsers = users.filter(u => hidden.visible(u.uid, u.nickname) && u.nickname?.toLowerCase().includes(search.toLowerCase()));
   // 숨긴 친구는 목록에서 제외
-  const visibleFriends = friends.filter((f) => !hiddenDocs[f.uid]);
 
   if (!currentUser) return <PageContainer><LoadingScreen /></PageContainer>;
 
@@ -277,8 +281,8 @@ export default function FriendsPage() {
         <div className="px-4 py-4">
           <div className="flex items-center gap-2">
             <span className="text-xl font-black bg-yellow-200">FRIENDS</span>
-            {requests.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{requests.length}</span>
+            {visibleRequests.length > 0 && (
+              <span className="w-5 h-5 rounded-full bg-sky-200 text-white text-[10px] font-black flex items-center justify-center shadow">{visibleRequests.length}</span>
             )}
             <button
               onClick={() => router.push("/friendmenu")}
@@ -354,11 +358,11 @@ export default function FriendsPage() {
           )}
 
           {/* 받은 요청 */}
-          {requests.length > 0 && (
+          {visibleRequests.length > 0 && (
             <div>
-              <p className="font-black text-slate-800 text-base mb-3 px-1">받은 요청 🔔 <span className="text-sky-600">{requests.length}</span></p>
+              <p className="font-black text-slate-800 text-base mb-3 px-1">받은 요청 🔔 <span className="text-sky-600">{visibleRequests.length}</span></p>
               <div className="space-y-2">
-                {requests.map((r) => (
+                {visibleRequests.map((r) => (
                   <div key={r.id} className="rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">
@@ -407,16 +411,16 @@ export default function FriendsPage() {
           )}
 
           {/* 즐겨찾는 친구 */}
-          {friends.filter((f) => favoriteDocs[f.uid]).length > 0 && (
+          {favorites.length > 0 && (
             <div>
               <p className="font-black text-slate-800 text-base mb-3 px-1">
                 <svg className="inline-block w-4 h-4 mr-1 mb-0.5 text-sky-600" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-                즐겨찾는 친구 <span className="text-sky-600">{friends.filter((f) => favoriteDocs[f.uid]).length}</span>
+                즐겨찾는 친구 <span className="text-sky-600">{favorites.length}</span>
               </p>
               <div className="space-y-2">
-                {friends.filter((f) => favoriteDocs[f.uid]).map((f) => {
+                {favorites.map((f) => {
                   const days = getFriendDays(f.friendSince);
                   const intimacy = getIntimacy(days);
                   return (
@@ -506,7 +510,7 @@ export default function FriendsPage() {
       </div>
 
       {/* 프로필 카드 모달 */}
-      {profileView && (
+      {profileView && hidden.visible(profileView.uid, profileView.nickname) && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={() => setProfileView(null)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
           <div
@@ -609,7 +613,7 @@ export default function FriendsPage() {
         </div>
       )}
       {/* 액션 시트 */}
-      {actionSheet && (
+      {actionSheet && hidden.visible(actionSheet.uid, actionSheet.nickname) && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={() => setActionSheet(null)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <div className="relative z-10 bg-white rounded-t-[28px] pb-10 overflow-hidden" onClick={(e) => e.stopPropagation()}>

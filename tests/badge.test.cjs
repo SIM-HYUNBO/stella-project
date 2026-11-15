@@ -10,12 +10,12 @@ const firestore={
  getCountFromServer:async ref=>({data:()=>({count:(sources.get(ref.path)||[]).filter(row=>ref.filters.every(([key,op,value])=>op==='=='?row[key]===value:row[key]?.includes(value))).length})}),
 };
 const events=new Map();
-const env={exports:{},navigator:{setAppBadge:async n=>calls.push(n),clearAppBadge:async()=>calls.push(0)},document:{hidden:false,addEventListener:(key,fn)=>events.set(key,fn),removeEventListener:key=>events.delete(key)},window:{addEventListener:(key,fn)=>events.set(key,fn),removeEventListener:key=>events.delete(key),setInterval:()=>1,clearInterval:()=>{},setTimeout:fn=>fn(),clearTimeout:()=>{}},require:name=>name==='react'?{useEffect:fn=>cleanup=fn()}:name==='firebase/auth'?{onAuthStateChanged:(_a,fn)=>{authenticate=fn;return ()=>{};}}:name==='firebase/firestore'?firestore:{auth:{},db:{}}};
+const env={exports:{},navigator:{setAppBadge:async n=>calls.push(n),clearAppBadge:async()=>calls.push(0)},document:{hidden:false,addEventListener:(key,fn)=>events.set(key,fn),removeEventListener:key=>events.delete(key)},window:{addEventListener:(key,fn)=>events.set(key,fn),removeEventListener:key=>events.delete(key),setInterval:()=>1,clearInterval:()=>{},setTimeout:fn=>fn(),clearTimeout:()=>{}},require:name=>name==='react'?{useEffect:fn=>cleanup=fn()}:name==='firebase/auth'?{onAuthStateChanged:(_a,fn)=>{authenticate=fn;return ()=>{};}}:name==='firebase/firestore'?firestore:name==='@/components/HiddenFriends'?{useHiddenFriends:()=>({ready:true,names:new Set(['Hidden'])})}:{auth:{},db:{}}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('components/AppBadge.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,env);env.exports.default();
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const snap=(...ids)=>({docs:ids.map(id=>({id}))});
 (async()=>{
- sources.set('group_rooms/g/messages',[{from:'Bob',readBy:[]},{from:'Alice',readBy:[]},{from:'Alice',readBy:['Alice']}]);
+ sources.set('group_rooms/g/messages',[{from:'Bob',readBy:[]},{from:'Hidden',readBy:[]},{from:'Alice',readBy:[]},{from:'Alice',readBy:['Alice']}]);
  sources.set('meeting_rooms/m/messages',[{from:'Bob',readBy:[]}]);
  authenticate({uid:'a'});listeners.get('users/a')({data:()=>({nickname:'Alice'})});
  listeners.get('group_rooms')(snap('g'));listeners.get('meeting_rooms')(snap('m'));await tick();

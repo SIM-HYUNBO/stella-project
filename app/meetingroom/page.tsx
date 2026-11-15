@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
 
@@ -117,6 +118,7 @@ const ACCENT: Record<string, { from: string; to: string; shadow: string; ring: s
 };
 
 export default function MeetingRoomPage() {
+  const hidden = useHiddenFriends();
   const [nickname, setNickname] = useState<string | null>(null);
   const [memberTitles, setMemberTitles] = useState<Record<string, string>>({});
   const [rooms, setRooms] = useState<MeetingRoom[]>([]);
@@ -127,7 +129,8 @@ export default function MeetingRoomPage() {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [activeTheme, setActiveTheme] = useState("sky");
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [allTypingUsers, setTypingUsers] = useState<string[]>([]);
+  const typingUsers = allTypingUsers.filter(name => hidden.visible(null, name));
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
   const [replyTo, setReplyTo] = useState<{ id: string; from: string; content: string; type: string; spoiler?: boolean } | null>(null);
@@ -747,7 +750,7 @@ export default function MeetingRoomPage() {
   // 초대 모달
   const renderInviteModal = () => {
     if (!showInvite || !currentRoom) return null;
-    const notInRoom = allUsers.filter((u) => !currentRoom.members.includes(u.nickname));
+    const notInRoom = allUsers.filter((u) => hidden.visible(u.id, u.nickname) && !currentRoom.members.includes(u.nickname));
     return (
       <div
         className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
@@ -918,7 +921,7 @@ export default function MeetingRoomPage() {
       {/* 멤버 */}
       <div className="px-4 py-2 bg-white/60">
         <div className="text-xs text-sky-600 truncate font-semibold">
-          👥 {currentRoom?.members.join(", ")}
+          👥 {currentRoom?.members.filter(name => hidden.visible(null, name)).join(", ")}
         </div>
       </div>
 
@@ -933,6 +936,7 @@ export default function MeetingRoomPage() {
           <div className="absolute -bottom-6 left-1/3 w-36 h-36 rounded-full blur-3xl opacity-40" style={{ background: theme.blob3 }}/>
         </div>
         {messages.map((m, i) => {
+          if (!hidden.visible(null, m.from)) return null;
           const isMine = m.from === nickname;
           const emojiOnly = !m.spoiler && (m.type === "text" || !m.type) && isEmojiOnly(m.content);
           const bareMessage = editingMsgId !== m.id && (m.type === "image" || m.type === "sticker" || emojiOnly);
@@ -1001,7 +1005,7 @@ export default function MeetingRoomPage() {
                     onTouchEnd={handleTouchEnd}
                     onTouchMove={handleTouchEnd}
                   >
-                    {m.replyTo && (
+                    {m.replyTo && hidden.visible(null, m.replyTo.from) && (
                       <div className={`mb-2 px-2 py-1 rounded-xl border-l-4 text-xs opacity-70 ${isMine && !bareMessage ? "border-white/60 bg-white/20" : "border-sky-300 bg-sky-50 text-gray-700"}`}>
                         <span className="font-bold">{m.replyTo.from}</span>: {m.replyTo.spoiler ? "🔒 스포일러 메시지" : m.replyTo.content?.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : <>{m.replyTo.content?.slice(0, 60)}{(m.replyTo.content?.length ?? 0) > 60 ? "…" : ""}</>}
                       </div>
@@ -1128,7 +1132,7 @@ export default function MeetingRoomPage() {
         </div>
       )}
 
-      {replyTo && (
+      {replyTo && hidden.visible(null, replyTo.from) && (
         <div className="px-4 py-2 bg-sky-50 border-t border-sky-100 flex items-center gap-2 shrink-0">
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black text-sky-500">↩ {replyTo.from}에게 답장</p>

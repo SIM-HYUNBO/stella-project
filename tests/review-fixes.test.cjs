@@ -11,8 +11,9 @@ function fixture(){
  const db={collection,collectionGroup:()=>({where:()=>({get:async()=>({docs:[]})})}),doc:ref,runTransaction:async fn=>{const writes=[];const out=await fn({get:r=>r.get(),set:(r,v,o)=>writes.push(()=>r.set(v,o)),update:(r,v)=>writes.push(()=>r.update(v)),delete:r=>writes.push(()=>r.delete())});for(const w of writes)await w();return out;},recursiveDelete:async r=>{for(const key of [...data.keys()])if(key===r.key||key.startsWith(r.key+'/'))data.delete(key);}};
  const sends=[];const admin={firestore:Object.assign(()=>db,{FieldValue:{serverTimestamp:()=>123,arrayRemove:v=>({remove:v})}}),auth:()=>({verifyIdToken:async token=>{if(!['a','b','c'].includes(token))throw Error('invalid');return {uid:token};},deleteUser:async uid=>authDeleted.push(uid)}),messaging:()=>({send:async message=>sends.push(message)})};
  const user=load('lib/api-user.ts',()=>()=>admin);
+ const hidden=load('lib/hidden-friends-server.ts',require);
  const delivery=load('lib/push-delivery.ts',require);
- const api=file=>load(file,name=>name==='next/server'?next:name==='@/lib/api-user'?user:name==='@/lib/push-delivery'?delivery:()=>admin);
+ const api=file=>load(file,name=>name==='next/server'?next:name==='@/lib/api-user'?user:name==='@/lib/push-delivery'?delivery:name==='@/lib/hidden-friends-server'?hidden:()=>admin);
  const req=(uid,body)=>({headers:new Headers(uid?{Authorization:`Bearer ${uid}`} : {}),json:async()=>body});
  return {data,db,admin,user,api,req,sends,authDeleted};
 }
@@ -26,6 +27,7 @@ function fixture(){
  f.data.get('users/a').nickname='Alice';
  assert.equal((await push.POST(f.req('a',{toNicknames:['Stranger'],message:'spam'}))).status,403);assert.equal(f.sends.length,0);
  let res=await push.POST(f.req('a',{toNicknames:['Bob'],fromNickname:'forged',message:'hello'}));assert.equal(res.status,200);assert.match(f.sends[0].data.title,/Alice/);assert.ok(!f.sends[0].data.title.includes('forged'));
+ f.data.set('hidden/b-hides-a',{user_id:'b',target_uid:'a'}); await push.POST(f.req('a',{toNicknames:['Bob'],message:'hidden sender'})); assert.equal(f.sends.length,1); assert.ok(![...f.data.values()].some(v=>v.message==='hidden sender')); f.data.delete('hidden/b-hides-a');
  f.data.get('users/b').pushEnabled=false;await push.POST(f.req('a',{toNicknames:['Bob'],message:'quiet'}));assert.equal(f.sends.length,1);assert.ok([...f.data.values()].some(v=>v.message==='quiet'));
  f.data.delete('fcm_tokens/Bob');delete f.data.get('users/b').pushEnabled;await push.POST(f.req('a',{toNicknames:['Bob'],message:'inbox only'}));assert.ok([...f.data.values()].some(v=>v.message==='inbox only'));
  f=fixture();await f.user.apiRateLimit(f.db,'a','ai',1);await assert.rejects(f.user.apiRateLimit(f.db,'a','ai',1),e=>e.status===429);

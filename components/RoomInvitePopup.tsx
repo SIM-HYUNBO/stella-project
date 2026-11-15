@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -18,6 +19,7 @@ type RoomInvite = {
 };
 
 export default function RoomInvitePopup() {
+  const hidden = useHiddenFriends();
   const [uid, setUid] = useState<string | null>(null);
   const [myNickname, setMyNickname] = useState<string | null>(null);
   const [queue, setQueue] = useState<RoomInvite[]>([]);
@@ -54,11 +56,12 @@ export default function RoomInvitePopup() {
   }, [uid]);
 
   useEffect(() => {
+    if (current && hidden.ready && !hidden.visible(null, current.fromNickname)) { setCurrent(null); return; }
     if (!current && queue.length > 0) {
       setCurrent(queue[0]);
       setQueue((prev) => prev.slice(1));
     }
-  }, [queue, current]);
+  }, [queue, current, hidden.ready, hidden.names]);
 
   const accept = async () => {
     if (!current || !myNickname) return;
@@ -76,7 +79,7 @@ export default function RoomInvitePopup() {
     setCurrent(null);
   };
 
-  if (!current) return null;
+  if (!current || !hidden.visible(null, current.fromNickname)) return null;
 
   return (
     <div style={{

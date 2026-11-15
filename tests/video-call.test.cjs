@@ -37,7 +37,7 @@ function fixture() {
     return run;
   } };
   const admin = { firestore: () => db, auth: () => ({ verifyIdToken: async token => { if (!['alice', 'bob', 'eve', 'cara', 'dan'].includes(token)) throw Error('invalid'); return { uid: token }; } }), messaging: () => ({ send: async () => { pushes++; } }) };
-  const api = load('app/api/video-call/route.ts', name => name === 'next/server' ? { NextResponse: { json: (body, options) => ({ body, status: options.status }) } } : name === '@/lib/firebaseAdmin' ? () => admin : name === 'crypto' ? require('node:crypto') : rules, { process: { env: {} } });
+  const api = load('app/api/video-call/route.ts', name => name === 'next/server' ? { NextResponse: { json: (body, options) => ({ body, status: options.status }) } } : name === '@/lib/hidden-friends-server' ? load('lib/hidden-friends-server.ts', require) : name === '@/lib/firebaseAdmin' ? () => admin : name === 'crypto' ? require('node:crypto') : rules, { process: { env: {} } });
   const req = (uid, body, search = '') => ({ headers: { get: () => uid ? `Bearer ${uid}` : null }, text: async () => JSON.stringify(body), nextUrl: new URL('https://example.test/api/video-call' + search) });
   const post = (uid, body) => api.POST(req(uid, body));
   const get = (uid, search = '') => api.GET(req(uid, undefined, search));

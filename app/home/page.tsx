@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -49,6 +50,7 @@ function getTodayQuote() {
 }
 
 export default function HomePage() {
+  const hidden = useHiddenFriends();
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -160,11 +162,11 @@ export default function HomePage() {
       let total = 0;
       for (const d of snap.docs) {
         const msgSnap = await getDocs(collection(db, "group_rooms", d.id, "messages"));
-        msgSnap.forEach((m) => { const data = m.data(); if (data.from !== nickname && !data.readBy?.includes(nickname)) total++; });
+        msgSnap.forEach((m) => { const data = m.data(); if (data.from !== nickname && hidden.visible(null, data.from) && !data.readBy?.includes(nickname)) total++; });
       }
       setGroupUnread(total);
     });
-  }, [nickname]);
+  }, [nickname, hidden.ready, hidden.names]);
 
   // ── 어드민 커서 ──
   useEffect(() => {
@@ -247,6 +249,9 @@ export default function HomePage() {
   const filteredUsers = allUsers.filter(
     (u) => !userSearch || u.nickname?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase())
   );
+
+  const visibleFriends = friends.filter(f => hidden.visible(f.uid, f.nickname));
+  const visibleDmCount = Object.entries(dmUnread).reduce((total, [name, count]) => hidden.visible(null, name) ? total + count : total, 0);
 
   if (!nickname) {
     return (
@@ -611,9 +616,9 @@ export default function HomePage() {
 
               <div className="relative mt-5 flex gap-3">
                 {[
-                  { val: Object.values(dmUnread).reduce((a, b) => a + b, 0), label: "안 읽은 DM", icon: "💬", href: "/avatar" },
+                  { val: visibleDmCount, label: "안 읽은 DM", icon: "💬", href: "/avatar" },
                   { val: groupUnread || 0,   label: "단체 미확인", icon: "👥", href: "/groupchat" },
-                  { val: friends.length,     label: "친구", icon: "🤝", href: "/friendmenu" },
+                  { val: visibleFriends.length,     label: "친구", icon: "🤝", href: "/friendmenu" },
                 ].map(({ val, label, icon, href }) => (
                   <button key={label} type="button" onClick={() => router.push(href)} className="min-w-0 flex-1 rounded-2xl bg-white/25 px-2 py-3 text-center backdrop-blur-sm transition hover:bg-white/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-white">
                     <p className="text-lg mb-0.5">{icon}</p>
@@ -658,13 +663,13 @@ export default function HomePage() {
           {uid && <AppRating key={uid} uid={uid} />}
 
           {/* ── 친구 버블 ── */}
-          {friends.length > 0 && (
+          {visibleFriends.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <p className="font-black text-slate-800 text-base">친구들 👫</p>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                {friends.map((f) => {
+                {visibleFriends.map((f) => {
                   const unread = dmUnread[f.nickname] || 0;
                   return (
                     <button key={f.uid} onClick={() => router.push(`/avatar?open=${encodeURIComponent(f.nickname)}`)}

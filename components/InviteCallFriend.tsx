@@ -1,14 +1,17 @@
 "use client";
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { callRequest } from "@/lib/video-call-client";
 import type { VideoCall } from "@/lib/video-call";
 
 export default function InviteCallFriend({ call, client, onClose }: { call: VideoCall; client: string; onClose: () => void }) {
+  const hidden = useHiddenFriends();
   const dialog = useRef<HTMLDialogElement>(null);
-  const [friends, setFriends] = useState<{ uid: string; nickname: string }[]>([]);
+  const [allFriends, setFriends] = useState<{ uid: string; nickname: string }[]>([]);
   const [loading, setLoading] = useState(true), [pending, setPending] = useState<string | null>(null);
   const [sent, setSent] = useState<string[]>([]), [message, setMessage] = useState("");
+  const friends = allFriends.filter(friend => hidden.visible(friend.uid, friend.nickname));
   const busy = useRef(false);
   useEffect(() => {
     dialog.current?.showModal();

@@ -27,7 +27,7 @@ function fixture() {
     return result;
   } };
   const admin = { firestore: Object.assign(() => db, { FieldValue: { serverTimestamp: () => 1 } }), auth: () => ({ verifyIdToken: async token => { if (!['sender', 'receiver', 'stranger'].includes(token)) throw Error('invalid'); return { uid: token }; } }), messaging: () => ({ send: async () => { notifications++; } }) };
-  const api = load('app/api/room/route.ts', name => name === 'next/server' ? { NextResponse: { json: (body, options) => ({ body, status: options.status }) } } : name === '@/lib/firebaseAdmin' ? () => admin : rules);
+  const api = load('app/api/room/route.ts', name => name === 'next/server' ? { NextResponse: { json: (body, options) => ({ body, status: options.status }) } } : name === '@/lib/hidden-friends-server' ? load('lib/hidden-friends-server.ts', require) : name === '@/lib/firebaseAdmin' ? () => admin : rules);
   const req = (uid, body) => ({ headers: { get: () => uid ? `Bearer ${uid}` : null }, text: async () => JSON.stringify(body) });
   return { store, api, req, notifications: () => notifications };
 }

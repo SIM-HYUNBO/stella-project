@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import AppPinScreen from "@/components/AppPinScreen";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -43,6 +44,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
 }
 
 export default function SettingsPage() {
+  const hidden = useHiddenFriends();
   const router = useRouter();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [uid, setUid] = useState<string | null>(null);
@@ -57,7 +59,8 @@ export default function SettingsPage() {
   const [adminMode, setAdminMode] = useState(false);
 
   const [chatTheme, setChatTheme] = useState("sky");
-  const [notifItems, setNotifItems] = useState<any[]>([]);
+  const [notificationsList, setNotifItems] = useState<any[]>([]);
+  const notifItems = notificationsList.filter(item => hidden.visible(item.fromUid, item.from));
   const [showNotifCenter, setShowNotifCenter] = useState(false);
 
   const [showPinSetup, setShowPinSetup] = useState(false);

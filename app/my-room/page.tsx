@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -36,14 +37,15 @@ function Envelope({ open = false }: { open?: boolean }) {
 }
 
 export default function MyRoom() {
+  const hidden = useHiddenFriends();
   const router = useRouter();
   const [uid, setUid] = useState("");
   const currentUid = useRef("");
   const [nickname, setNickname] = useState("나");
   const [room, setRoom] = useState<Room>(EMPTY_ROOM);
   const saved = useRef<Room>(EMPTY_ROOM);
-  const [mail, setMail] = useState<Mail[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [allMail, setMail] = useState<Mail[]>([]);
+  const [allFriends, setFriends] = useState<Friend[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -57,6 +59,8 @@ export default function MyRoom() {
   const [constellation, setConstellation] = useState<StarLine[]>([]);
   const [showSky, setShowSky] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
+  const mail = allMail.filter(item => hidden.visible(item.fromUid, item.fromName));
+  const friends = allFriends.filter(friend => hidden.visible(friend.uid, friend.nickname));
   const mailbox = useRef<HTMLElement>(null);
   const drag = useRef<{ id: string; pointer: number; x: number; y: number; startX: number; startY: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

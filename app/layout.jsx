@@ -22,6 +22,7 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import FCMToken from "@/components/FCMToken";
 import NativePush from "@/components/NativePush";
 import AppBadge from "@/components/AppBadge";
+import { HiddenFriendsProvider } from "@/components/HiddenFriends";
 import { AppInstallProvider } from "@/components/AppInstall";
 import BirthdayNotification from "@/components/BirthdayNotification";
 import FriendRequestPopup from "@/components/FriendRequestPopup";
@@ -68,6 +69,7 @@ export default function RootLayout({ children }) {
             <ServiceWorkerRegister />
 
             {/* FCM 초기화 */}
+            <HiddenFriendsProvider>
             <FCMToken />
             <NativePush />
 
@@ -85,6 +87,7 @@ export default function RootLayout({ children }) {
             <IncomingVideoCall />
 
             <AppInstallProvider>{children}</AppInstallProvider>
+            </HiddenFriendsProvider>
 
           </FontProvider>
         </ThemeProvider>

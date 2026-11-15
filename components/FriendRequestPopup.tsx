@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -21,6 +22,7 @@ type Request = {
 };
 
 export default function FriendRequestPopup() {
+  const hidden = useHiddenFriends();
   const [popup, setPopup] = useState<Request | null>(null);
   const [currentUid, setCurrentUid] = useState<string | null>(null);
 
@@ -74,7 +76,7 @@ export default function FriendRequestPopup() {
     setPopup(null);
   };
 
-  if (!popup) return null;
+  if (!popup || !hidden.visible(popup.from, popup.fromNickname)) return null;
 
   return (
     <div style={{

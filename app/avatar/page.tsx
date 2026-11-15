@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
 import { dmConstraint, messageTimestamp } from "@/lib/dm-query";
 
@@ -402,6 +403,7 @@ const ACCENT: Record<string, { from: string; to: string; shadow: string; ring: s
 };
 
 export default function Chat() {
+  const hidden = useHiddenFriends();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -783,7 +785,7 @@ export default function Chat() {
   }, [showFireworks]);
 
   useEffect(() => {
-    if (!currentChatUser || !nickname || !uid) return;
+    if (!currentChatUser || !nickname || !uid || !hidden.visible(currentChatUser.id, currentChatUser.nickname)) return;
 
     const q = query(
       collection(db, "messages"),
@@ -860,7 +862,7 @@ export default function Chat() {
     });
 
     return () => unsub();
-  }, [currentChatUser, nickname, uid]);
+  }, [currentChatUser, nickname, uid, hidden.ready, hidden.ids, hidden.names]);
 
   const updateTyping = useCallback(
     async (isTyping: boolean) => {
@@ -2272,7 +2274,7 @@ export default function Chat() {
 
       <div className="flex-1 overflow-y-auto p-3">
        {users
-  .filter((u) => friendIds.has(u.nickname))
+  .filter((u) => friendIds.has(u.nickname) && hidden.visible(u.id, u.nickname))
   .map((u) => (
           <SwipeUserItem
             key={u.id}
@@ -2309,7 +2311,7 @@ export default function Chat() {
   const pendingRequest = friendRequests[0] ?? null;
 
   // 채팅 중: 모바일·데스크탑 모두 fixed inset-0 (PageContainer p-4 오버플로우 문제 방지)
-  if (currentChatUser) {
+  if (currentChatUser && hidden.visible(currentChatUser.id, currentChatUser.nickname)) {
     return (
       <div className="fixed inset-0 z-40 flex flex-col" style={{ background: theme.bg }}>
         {pendingRequest && (

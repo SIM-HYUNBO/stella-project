@@ -1,4 +1,5 @@
 "use client";
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useRef, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import { VideoIcon } from "@/components/VideoCallButton";
 import CallActionButton from "@/components/CallActionButton";
 
 export default function IncomingVideoCall() {
+  const hidden = useHiddenFriends();
   const pathname = usePathname(), router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
   const [incoming, setIncoming] = useState<VideoCall | null>(null);
@@ -32,7 +34,8 @@ export default function IncomingVideoCall() {
     void poll();
     return () => { stopped = true; clearTimeout(timer); };
   }, [uid, pathname]);
-  useEffect(() => { if (incoming) dialog.current?.showModal(); }, [incoming]);
+  const show = Boolean(incoming && hidden.visible(incoming.fromUid, incoming.members.find(m => m.uid === uid)?.invitedBy || incoming.fromName));
+  useEffect(() => { if (show && !dialog.current?.open) dialog.current?.showModal(); }, [show]);
   const decline = async () => {
     if (!incoming || busy) return;
     setBusy(true); setError("");
@@ -40,7 +43,7 @@ export default function IncomingVideoCall() {
     catch { setError("거절을 전달하지 못했어. 다시 눌러 줘."); }
     finally { setBusy(false); }
   };
-  if (!incoming) return null;
+  if (!incoming || !show) return null;
   return createPortal(<dialog ref={dialog} aria-labelledby="incoming-video-title" onCancel={e => { e.preventDefault(); void decline(); }} className="m-auto w-80 max-w-[92vw] rounded-3xl p-6 bg-white text-center shadow-xl backdrop:bg-black/40">
     <div className="mx-auto mb-4 w-14 h-14 flex items-center justify-center rounded-full bg-sky-100 text-sky-500"><VideoIcon /></div>
     <h2 id="incoming-video-title" className="text-lg font-bold text-gray-800">{incoming.members.find(m => m.uid === uid)?.invitedBy || incoming.fromName}</h2>

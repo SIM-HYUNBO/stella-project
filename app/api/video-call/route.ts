@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import getAdmin from "@/lib/firebaseAdmin";
+import { hasHiddenFriend } from "@/lib/hidden-friends-server";
 import { sendUserPush } from "@/lib/push-delivery";
 import { refreshCall, visibleCall, memberOf, isParticipant, MAX_CALL_MEMBERS, validCallId, validDescription, type VideoCall } from "@/lib/video-call";
 
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
         tx.set(other, { callId: body.id }, { merge: true });
         return true;
       });
-      if (invited) await invitePush(admin, toName, fromName, body.id);
+      if (invited && !await hasHiddenFriend(db, body.toUid, uid, fromName).catch(() => true)) await invitePush(admin, toName, fromName, body.id);
       return json({ id: body.id });
     }
     await db.runTransaction(async tx => {

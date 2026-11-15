@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch } from "@/lib/api-fetch";
 
 import { useEffect, useState } from "react";
@@ -12,13 +13,15 @@ import {
 import LoadingScreen from "@/components/LoadingScreen";
 
 export default function AddFriendPage() {
+  const hidden = useHiddenFriends();
   const params = useParams();
   const router = useRouter();
   const targetNickname = decodeURIComponent(params.nickname as string);
 
   const [myUid, setMyUid] = useState<string | null>(null);
   const [myNickname, setMyNickname] = useState("");
-  const [target, setTarget] = useState<any>(null);
+  const [foundTarget, setTarget] = useState<any>(null);
+  const target = foundTarget && hidden.visible(foundTarget.uid, foundTarget.nickname) ? foundTarget : null;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "already" | "self">("idle");
 
@@ -67,7 +70,7 @@ export default function AddFriendPage() {
     setStatus("done");
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !hidden.ready) return <LoadingScreen />;
 
   return (
     <div style={{

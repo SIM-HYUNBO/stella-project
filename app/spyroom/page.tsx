@@ -1,5 +1,6 @@
 "use client";
 
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -24,6 +25,7 @@ async function request<T>(body?: object): Promise<T> {
 const errorText = (error: unknown) => error instanceof Error ? error.message : "다시 시도해 줘.";
 
 export default function SpyRoomPage() {
+  const hidden = useHiddenFriends();
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [entry, setEntry] = useState<{ id: string; session: string } | null>(null);
   const [room, setRoom] = useState<RoomView | null>(null);
@@ -105,7 +107,7 @@ export default function SpyRoomPage() {
     if (busy || !name.trim() || !invited.length) return;
     setBusy(true); setError("");
     try {
-      const result = await request<{ id: string }>({ action: "create", name, invited });
+      const result = await request<{ id: string }>({ action: "create", name, invited: invited.filter(id => hidden.visible(id)) });
       setCreating(false); setInvited([]); setName(""); open(result.id);
     } catch (e) { setError(errorText(e)); }
     finally { setBusy(false); }
@@ -159,7 +161,7 @@ export default function SpyRoomPage() {
                 <p className="text-sm font-bold text-slate-700">{room.startedAt ? "게임 진행 중" : `입장 대기 · ${room.online.length}/${room.members.length}명`}</p>
                 {!room.startedAt && <p className="text-xs text-slate-500">초대한 친구가 모두 이 방을 열면 자동으로 시작해.</p>}
                 <div className="flex flex-wrap gap-2">
-                  {room.members.map(member => <span key={member.uid} className="rounded-full bg-gray-50 px-2.5 py-1 text-xs text-slate-600">{member.name} · {room.online.includes(member.uid) ? "입장" : "대기"}</span>)}
+                  {room.members.filter(member => hidden.visible(member.uid, member.name)).map(member => <span key={member.uid} className="rounded-full bg-gray-50 px-2.5 py-1 text-xs text-slate-600">{member.name} · {room.online.includes(member.uid) ? "입장" : "대기"}</span>)}
                 </div>
                 {room.startedAt && <button type="button" aria-expanded={reveal} className="rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700" onClick={() => setReveal(v => !v)}>{reveal ? "내 역할 숨기기" : "내 역할 확인"}</button>}
                 {room.startedAt && reveal && <p className="rounded-xl bg-violet-50 p-3 text-sm text-violet-900">{room.role === "spy" ? `너는 스파이야! 비밀 미션: ${room.mission}` : "너는 일반 멤버야. 대화하면서 누가 스파이인지 살펴봐!"}</p>}
@@ -169,6 +171,7 @@ export default function SpyRoomPage() {
                   {!room.messages.length && <p className="py-5 text-center text-xs text-slate-500">게임이 시작됐어! 자연스럽게 대화를 시작해 봐.</p>}
                   {(olderMore ?? room.hasMore) && <button type="button" className={secondary} disabled={loadingOlder} onClick={() => void loadOlder()}>{loadingOlder ? "불러오는 중…" : "이전 메시지 불러오기"}</button>}
                   {displayMessages.map(message => {
+                    if (!hidden.visible(message.uid, room.members.find(m => m.uid === message.uid)?.name)) return null;
                     const mine = message.uid === lobby?.uid;
                     return <div key={message.id} className={mine ? "text-right" : "text-left"}>
                       {!mine && <p className="mb-1 text-xs font-bold text-slate-500">{room.members.find(m => m.uid === message.uid)?.name || "친구"}</p>}
@@ -197,7 +200,7 @@ export default function SpyRoomPage() {
                 <legend className="mb-2 text-xs font-bold text-slate-600">초대할 친구 · {invited.length}명 선택 (1~9명)</legend>
                 {!lobby?.friends.length && <p className="text-xs text-slate-500">먼저 친구를 추가해 줘.</p>}
                 <div className="max-h-48 space-y-2 overflow-y-auto">
-                  {lobby?.friends.map(friend => <label key={friend.uid} className="flex cursor-pointer items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm text-slate-700"><input type="checkbox" checked={invited.includes(friend.uid)} disabled={busy || (invited.length === 9 && !invited.includes(friend.uid))} onChange={e => setInvited(current => e.target.checked ? [...current, friend.uid] : current.filter(id => id !== friend.uid))} />{friend.name}</label>)}
+                  {lobby?.friends.filter(friend => hidden.visible(friend.uid, friend.name)).map(friend => <label key={friend.uid} className="flex cursor-pointer items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm text-slate-700"><input type="checkbox" checked={invited.includes(friend.uid)} disabled={busy || (invited.length === 9 && !invited.includes(friend.uid))} onChange={e => setInvited(current => e.target.checked ? [...current, friend.uid] : current.filter(id => id !== friend.uid))} />{friend.name}</label>)}
                 </div>
               </fieldset>
               <button className={`${primary} w-full`} disabled={busy || !invited.length || !name.trim()}>만들기</button>

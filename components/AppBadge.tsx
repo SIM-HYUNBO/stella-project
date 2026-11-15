@@ -2,26 +2,33 @@
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/firebase";
+import { useHiddenFriends } from "@/components/HiddenFriends";
 import { collection, doc, getCountFromServer, getDocsFromServer, query, where, onSnapshot, type Query } from "firebase/firestore";
 
-export async function countUnread(source: Query, nickname: string) {
+export async function countUnread(source: Query, nickname: string, hiddenNames: ReadonlySet<string> = new Set()) {
   const own = where("from", "==", nickname);
   const read = where("readBy", "array-contains", nickname);
   try {
     const counts = await Promise.all([source, query(source, own), query(source, read), query(source, own, read)].map(getCountFromServer));
     const [total, mine, seen, mineSeen] = counts.map(result => result.data().count);
-    return Math.max(0, total - mine - seen + mineSeen);
+    const hidden = await Promise.all(Array.from(hiddenNames).filter(name => name !== nickname).map(async name => {
+      const sender = where("from", "==", name);
+      const [all, readByMe] = await Promise.all([getCountFromServer(query(source, sender)), getCountFromServer(query(source, sender, read))]);
+      return all.data().count - readByMe.data().count;
+    }));
+    return Math.max(0, total - mine - seen + mineSeen - hidden.reduce((sum, count) => sum + count, 0));
   } catch (error) {
     if ((error as { code?: string })?.code !== "failed-precondition") throw error;
     // Keep counts correct while the production index is being built.
     const snapshot = await getDocsFromServer(source);
-    return snapshot.docs.filter(message => message.data().from !== nickname && !message.data().readBy?.includes(nickname)).length;
+    return snapshot.docs.filter(message => message.data().from !== nickname && !hiddenNames.has(message.data().from) && !message.data().readBy?.includes(nickname)).length;
   }
 }
 
 export default function AppBadge() {
+  const { ready, names } = useHiddenFriends();
   useEffect(() => {
-    if (!navigator.setAppBadge || !navigator.clearAppBadge) return;
+    if (!ready || !navigator.setAppBadge || !navigator.clearAppBadge) return;
     let stopProfile = () => {}, stopCounts = () => {};
     const clear = () => { void navigator.clearAppBadge().catch(() => {}); };
     const stopAuth = onAuthStateChanged(auth, user => {
@@ -39,7 +46,7 @@ export default function AppBadge() {
           if (!active || document.hidden) return;
           const stamp = ++generation;
           try {
-            const counts = await Promise.all(Array.from(sources.values(), source => countUnread(source, nickname)));
+            const counts = await Promise.all(Array.from(sources.values(), source => countUnread(source, nickname, names)));
             if (!active || stamp !== generation) return;
             const total = counts.reduce((sum, count) => sum + count, 0);
             if (total) await navigator.setAppBadge(total); else clear();
@@ -70,6 +77,6 @@ export default function AppBadge() {
       });
     });
     return () => { stopAuth(); stopProfile(); stopCounts(); clear(); };
-  }, []);
+  }, [ready, names]);
   return null;
 }
