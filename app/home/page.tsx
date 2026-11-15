@@ -695,12 +695,14 @@ export default function HomePage() {
             <div className="space-y-3">
 
               <button onClick={() => router.push("/diary")}
-                className="relative w-full rounded-[24px] overflow-hidden active:scale-[0.97] transition-transform">
-                <div className="px-5 py-5 relative shadow-md" style={{ background: "linear-gradient(to bottom right, #38bdf8, #7dd3fc)" }}>
-                  <div className="absolute top-[-16px] right-[-16px] w-20 h-20 rounded-full bg-white/15" />
-                  <div className="w-11 h-11 rounded-xl bg-white/25 flex items-center justify-center text-2xl mb-3">📔</div>
-                  <p className="text-white font-black text-base drop-shadow">다이어리</p>
-                  <p className="text-white/80 text-xs mt-0.5">오늘을 기록해요</p>
+                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
+                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📔</div>
+                  <div className="text-left flex-1">
+                    <p className="text-slate-800 font-black text-base">다이어리</p>
+                    <p className="text-sky-600 text-sm">오늘을 기록해요</p>
+                  </div>
+                  <span aria-hidden="true" className="text-sky-400 text-2xl">›</span>
                 </div>
               </button>
 
