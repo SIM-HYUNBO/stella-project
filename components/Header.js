@@ -23,7 +23,7 @@ const Header = () => {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Link href="/help" className="mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-[#50caff] transition-transform active:scale-90" title="도움말" aria-label="도움말 열기">
+          <Link href="/help" className="mr-6 flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-[#50caff] transition-transform active:scale-90" title="도움말" aria-label="도움말 열기">
             <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <path d="M9.7 9a2.4 2.4 0 1 1 3.5 2.13c-.76.4-1.2.95-1.2 1.87" />
