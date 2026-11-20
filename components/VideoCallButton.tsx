@@ -1,5 +1,4 @@
 "use client";
-import jelly from "@/components/JellyControls.module.css";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { callRequest } from "@/lib/video-call-client";
@@ -28,7 +27,7 @@ export default function VideoCallButton({ userId, nickname, onStarted }: { userI
   };
   return <>
     <button type="button" title="영상통화" aria-label={`${nickname}에게 영상통화`} disabled={busy} onClick={start}
-      className={`${jelly.button} w-full flex items-center gap-3 rounded-[14px] bg-sky-50 px-4 py-3 text-sky-700 active:scale-95 transition disabled:opacity-40`}><VideoIcon /><span className="text-left"><span className="block font-bold text-sm">{busy ? "연결 준비 중…" : "영상통화"}</span><span className="block mt-1 text-xs">와기에서 얼굴 보며 대화하기</span></span></button>
+      className="w-full flex items-center gap-3 rounded-[14px] bg-sky-50 px-4 py-3 text-sky-700 active:scale-95 transition disabled:opacity-40"><VideoIcon /><span className="text-left"><span className="block font-bold text-sm">{busy ? "연결 준비 중…" : "영상통화"}</span><span className="block mt-1 text-xs">와기에서 얼굴 보며 대화하기</span></span></button>
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
   </>;
 }

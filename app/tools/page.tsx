@@ -1,6 +1,4 @@
-"use client";
-
-import jelly from "@/components/JellyControls.module.css";
+﻿"use client";
 
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import AppPinScreen from "@/components/AppPinScreen";
@@ -38,7 +36,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <button
       onClick={() => onChange(!value)}
-      className={`${jelly.button} relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-500" : "bg-gray-200"}`}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 ${value ? "bg-sky-500" : "bg-gray-200"}`}
     >
       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? "translate-x-[24px]" : "translate-x-0"}`} />
     </button>
@@ -214,20 +212,20 @@ export default function SettingsPage() {
 
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white/70 backdrop-blur-xl border-b border-white/80 sticky top-0 z-20">
-        <button onClick={() => router.back()} className={`${jelly.button} w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 text-sky-600 font-bold text-lg mr-3 shadow-sm`}>←</button>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 text-sky-600 font-bold text-lg mr-3 shadow-sm">←</button>
         <span className="font-black text-slate-800 text-base">⚙️ 설정</span>
       </div>
 
       <div className="px-5 pt-5 pb-20 space-y-4 relative z-10">
 
         {/* 내 정보 */}
-        <div className={`${jelly.card} bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4`}>
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">내 정보</span>
             <button
               onClick={() => editMode ? saveNickname() : setEditMode(true)}
               disabled={saving}
-              className={`${jelly.button} px-3 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 text-sky-600 text-xs font-black transition`}
+              className="px-3 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 text-sky-600 text-xs font-black transition"
             >
               {saving ? "저장 중..." : editMode ? "저장" : "수정"}
             </button>
@@ -255,7 +253,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 채팅 테마 */}
-        <div className={`${jelly.card} bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4`}>
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] px-5 py-4">
           <span className="text-xs font-black text-gray-400 uppercase tracking-wider">채팅 테마</span>
           <div className="flex gap-3 mt-3">
             {THEMES.map(t => {
@@ -265,7 +263,7 @@ export default function SettingsPage() {
                   key={t.id}
                   title={t.label}
                   onClick={() => saveTheme(t.id)}
-                  className={`${jelly.button} w-10 h-10 rounded-full transition-all ${chatTheme === t.id ? "scale-110" : "hover:scale-105"}`}
+                  className={`w-10 h-10 rounded-full transition-all ${chatTheme === t.id ? "scale-110" : "hover:scale-105"}`}
                   style={{
                     background: `linear-gradient(135deg, ${a.from}, ${a.to})`,
                     boxShadow: chatTheme === t.id
@@ -279,7 +277,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 앱 설정 토글 */}
-        <div className={`${jelly.card} bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden`}>
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">앱 설정</span>
           </div>
@@ -306,7 +304,7 @@ export default function SettingsPage() {
 
         {/* 관리자 모드 (Stella 전용) */}
         {user?.nickname === "Stella" && (
-          <div className={`${jelly.card} bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden`}>
+          <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-50">
               <span className="text-xs font-black text-gray-400 uppercase tracking-wider">관리자</span>
             </div>
@@ -336,7 +334,7 @@ export default function SettingsPage() {
                   else alert("오류: " + data.error);
                 } catch (e: any) { alert("오류: " + e.message); }
               }}
-              className={`${jelly.button} w-full flex items-center gap-3 px-5 py-4 active:bg-gray-50 transition`}
+              className="w-full flex items-center gap-3 px-5 py-4 active:bg-gray-50 transition"
             >
               <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-lg">🔄</div>
               <div className="text-left">
@@ -348,7 +346,7 @@ export default function SettingsPage() {
         )}
 
         {/* 기능 버튼들 */}
-        <div className={`${jelly.card} bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden`}>
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-50">
             <span className="text-xs font-black text-gray-400 uppercase tracking-wider">기능</span>
           </div>
@@ -356,7 +354,7 @@ export default function SettingsPage() {
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`${jelly.button} w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
+              className={`w-full flex items-center justify-between px-5 py-4 active:bg-sky-50 transition ${i < navItems.length - 1 ? "border-b border-gray-50" : ""}`}
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-yellow-200 flex items-center justify-center text-lg">{icon}</div>
@@ -368,10 +366,10 @@ export default function SettingsPage() {
         </div>
 
         {/* 최근 알림 */}
-        <div className={`${jelly.card} bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden`}>
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] overflow-hidden">
           <button
             onClick={() => setShowNotifCenter(v => !v)}
-            className={`${jelly.button} w-full flex items-center justify-between px-5 py-4`}
+            className="w-full flex items-center justify-between px-5 py-4"
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center text-lg">🔔</div>
@@ -405,7 +403,7 @@ export default function SettingsPage() {
                 return (
                   <button key={n.id}
                     onClick={() => { if (n.url) router.push(n.url); }}
-                    className={`${jelly.button} w-full rounded-[14px] bg-sky-50 border border-sky-100 px-4 py-3 text-left active:scale-[0.98] transition-transform`}>
+                    className="w-full rounded-[14px] bg-sky-50 border border-sky-100 px-4 py-3 text-left active:scale-[0.98] transition-transform">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <p className="text-[11px] font-black text-sky-500 mb-0.5">{n.from}</p>

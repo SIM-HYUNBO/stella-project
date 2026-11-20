@@ -1,5 +1,4 @@
 "use client";
-import jelly from "@/components/JellyControls.module.css";
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -54,7 +53,7 @@ export default function PhoneCallButton({ userId, nickname, color, cachedPhone }
   const close = () => { dialog.current?.close(); setOpen(false); };
   return <>
     <button type="button" title="통화하기" aria-label={`${nickname}에게 통화하기`} onClick={() => setOpen(true)}
-      className={`${jelly.button} w-9 h-9 flex items-center justify-center rounded-xl bg-white/70 hover:bg-white active:scale-95 transition`} style={{ color }}>
+      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/70 hover:bg-white active:scale-95 transition" style={{ color }}>
       <PhoneIcon />
     </button>
     {open && createPortal(
@@ -69,10 +68,10 @@ export default function PhoneCallButton({ userId, nickname, color, cachedPhone }
           </div>
           <div className="flex flex-col gap-3 w-full">
             {phone ? <a href={`tel:${phone}`} onClick={close}
-              className={`${jelly.button} w-full rounded-[14px] bg-green-50 text-green-700 px-4 py-3 flex items-center gap-3`}><PhoneIcon /><span className="text-left"><span className="block font-bold text-sm">음성통화</span><span className="block text-xs mt-1">{formatPhone(phone)} · 전화 앱</span></span></a>
+              className="w-full rounded-[14px] bg-green-50 text-green-700 px-4 py-3 flex items-center gap-3"><PhoneIcon /><span className="text-left"><span className="block font-bold text-sm">음성통화</span><span className="block text-xs mt-1">{formatPhone(phone)} · 전화 앱</span></span></a>
               : <div className="rounded-[14px] bg-gray-50 px-4 py-3 text-sm text-gray-400"><span className="font-bold">음성통화</span><p className="mt-1 text-xs" role="status">{loading ? "전화번호 확인 중…" : message}</p>{!loading && <button type="button" onClick={() => setRetry(n => n + 1)} className="mt-2 text-xs font-bold text-sky-600">다시 확인</button>}</div>}
             <VideoCallButton userId={userId} nickname={nickname} onStarted={close} />
-            <button autoFocus type="button" onClick={close} className={`${jelly.button} w-full h-10 rounded-[14px] text-gray-500 font-bold text-sm`}>취소</button>
+            <button autoFocus type="button" onClick={close} className="w-full h-10 rounded-[14px] text-gray-500 font-bold text-sm">취소</button>
           </div>
         </div>
       </dialog>, document.body)}
