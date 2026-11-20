@@ -28,6 +28,7 @@ export default function UpgradePage() {
           <p className="mb-6 text-[10px] font-medium tracking-[0.32em] text-sky-200/80">WAGIE MEMBERSHIP</p>
           <h1 className="text-[clamp(2.3rem,7vw,4.4rem)] font-medium leading-[1.2] tracking-[-0.055em]">우리의 대화에<br /><span className="bg-gradient-to-r from-white via-sky-200 to-blue-400 bg-clip-text text-transparent">조금 더 특별함을.</span></h1>
           <p className="mt-6 text-sm leading-relaxed text-slate-400">라이트와 프리미엄, 나에게 맞는 와기를 만나 봐.</p>
+          <p className="mt-5 inline-flex rounded-full border border-sky-200/20 bg-sky-200/10 px-4 py-2 text-xs font-medium text-sky-200">첫 1개월 무료 체험 · 오픈 예정</p>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
@@ -53,15 +54,17 @@ export default function UpgradePage() {
                 </div>
                 <h2 id={`plan-${plan.name}`} className="text-lg font-medium">{plan.label}</h2>
               </div>
-              <p className="mb-7 flex flex-wrap items-baseline gap-1.5">
+              <p className="mb-3 text-xs font-medium text-sky-200">첫 1개월 무료</p>
+              <p className="mb-2 flex flex-wrap items-baseline gap-1.5">
                 <span className="text-lg text-slate-400">₩</span>
                 <span className="text-[52px] font-light leading-none tracking-[-0.04em] tabular-nums">{plan.price}</span>
                 <span className="ml-1 text-xs text-slate-400">/ 월</span>
               </p>
+              <p className="mb-7 text-xs leading-relaxed text-slate-400">무료 체험 종료 후 월 {plan.price}원</p>
               <div className="mb-7 border-t border-white/10 pt-5 text-sm text-slate-400">포함될 기능은 준비 중이에요.</div>
               <button type="button" disabled className={`flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border text-sm font-medium ${plan.premium ? "border-sky-100 bg-gradient-to-r from-sky-200 to-[#c5dfff] text-[#172a40] shadow-[0_0_24px_-8px_rgba(125,211,252,0.5)]" : "border-white/15 bg-white/5 text-slate-300"}`}>
                 <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
-                구독 준비 중
+                1개월 무료 체험 준비 중
               </button>
             </section>
           ))}
