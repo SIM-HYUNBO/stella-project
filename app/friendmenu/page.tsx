@@ -1,6 +1,6 @@
+"use client";
 
 import jelly from "@/components/JellyControls.module.css";
-﻿"use client";
 
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch } from "@/lib/api-fetch";
