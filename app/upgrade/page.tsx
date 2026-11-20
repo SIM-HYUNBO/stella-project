@@ -63,7 +63,10 @@ export default function UpgradePage() {
                 <span className="ml-1 text-xs text-slate-400">/ 월</span>
               </p>
               <p className="mb-7 text-xs leading-relaxed text-slate-400">무료 체험 종료 후 월 {plan.price}원</p>
-              <div className="mb-7 border-t border-white/10 pt-5 text-sm text-slate-400">포함될 기능은 준비 중이에요.</div>
+              <ul className="mb-7 space-y-3 border-t border-white/10 pt-5 text-sm text-slate-200">
+                <li className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-300">✓</span>일반 AI 이용</li>
+                {plan.premium && <li className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-300">✓</span>학습용 AI 이용</li>}
+              </ul>
               <button type="button" disabled className={`flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border text-sm font-medium ${plan.premium ? "border-sky-100 bg-gradient-to-r from-sky-200 to-[#c5dfff] text-[#172a40] shadow-[0_0_24px_-8px_rgba(125,211,252,0.5)]" : "border-white/15 bg-white/5 text-slate-300"}`}>
                 <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
                 1개월 무료 체험 준비 중
@@ -71,6 +74,32 @@ export default function UpgradePage() {
             </section>
           ))}
         </div>
+        <section aria-labelledby="plan-comparison" className="mt-10 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03]">
+          <h2 id="plan-comparison" className="px-5 pb-4 pt-6 text-lg font-medium sm:px-7">기능 비교</h2>
+          <table className="w-full table-fixed text-sm">
+            <caption className="sr-only">라이트와 프리미엄의 예정된 AI 이용 혜택</caption>
+            <thead>
+              <tr className="border-b border-white/10 text-xs text-slate-400">
+                <th scope="col" className="w-[42%] px-5 py-4 text-left font-normal sm:px-7">기능</th>
+                <th scope="col" className="px-2 py-4 font-medium text-slate-200">라이트</th>
+                <th scope="col" className="px-2 py-4 font-medium text-sky-200">프리미엄</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-white/5">
+                <th scope="row" className="px-5 py-5 text-left font-normal text-slate-300 sm:px-7">일반 AI</th>
+                <td className="px-2 py-5 text-center text-sky-200">포함</td>
+                <td className="px-2 py-5 text-center text-sky-200">포함</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-5 text-left font-normal text-slate-300 sm:px-7">학습용 AI</th>
+                <td className="px-2 py-5 text-center text-slate-500">미포함</td>
+                <td className="px-2 py-5 text-center text-sky-200">포함</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="border-t border-white/5 px-5 py-4 text-xs leading-5 text-slate-400 sm:px-7">정식 오픈 시 제공할 멤버십 혜택이에요.</p>
+        </section>
         <p className="mt-9 text-center text-xs leading-6 text-slate-400">멤버십 오픈 예정 · 현재는 요금 안내 페이지예요.<br />구매와 결제는 정식 오픈 후 이용할 수 있어요.</p>
       </div>
     </main>
