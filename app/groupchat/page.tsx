@@ -1,5 +1,7 @@
 "use client";
 
+import listCards from "@/app/avatar/friend-list.module.css";
+
 import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { addChatDocument as addDoc } from "@/lib/event-chat-document";
 import { useHiddenFriends } from "@/components/HiddenFriends";
@@ -2141,11 +2143,7 @@ export default function GroupChat() {
           <button
             key={room.id}
             onClick={() => setCurrentRoom(room)}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
-              currentRoom?.id === room.id
-                ? "bg-sky-200"
-                : "bg-white/80 hover:bg-sky-50 border-sky-200"
-            }`}
+            className={`${listCards.card} ${currentRoom?.id === room.id ? listCards.active : ""} w-full flex items-center gap-3 px-3 py-3 transition text-left`}
           >
             {room.profileImage ? (
               <img

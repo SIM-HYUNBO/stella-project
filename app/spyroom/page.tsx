@@ -1,5 +1,7 @@
 "use client";
 
+import listCards from "@/app/avatar/friend-list.module.css";
+
 import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
@@ -207,7 +209,7 @@ export default function SpyRoomPage() {
               </fieldset>
               <button className={`${primary} w-full`} disabled={busy || !invited.length || !name.trim()}>만들기</button>
             </form>}
-            {lobby?.rooms.map(item => <button type="button" key={item.id} onClick={() => open(item.id)} className="flex w-full items-center justify-between gap-2 rounded-[20px] border border-sky-100 bg-white px-4 py-3 text-left">
+            {lobby?.rooms.map(item => <button type="button" key={item.id} onClick={() => open(item.id)} className={`${listCards.card} flex w-full items-center justify-between gap-2 px-4 py-3 text-left`}>
               <span className="min-w-0 truncate font-bold text-slate-800">{item.name}</span><span className="shrink-0 text-xs text-slate-500">{item.count}명 · {item.startedAt ? "진행 중" : "입장 대기"}</span>
             </button>)}
             {lobby && !lobby.rooms.length && <p className="rounded-2xl bg-white p-5 text-center text-sm text-slate-500">아직 스파이방이 없어. 친구를 초대해서 시작해 봐!</p>}

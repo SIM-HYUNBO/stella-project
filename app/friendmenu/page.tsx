@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import listCards from "@/app/avatar/friend-list.module.css";
+
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch } from "@/lib/api-fetch";
 
@@ -402,7 +404,7 @@ export default function FriendsPage() {
                   const days = getFriendDays(f.friendSince);
                   const intimacy = getIntimacy(days);
                   return (
-                  <div key={f.uid} onClick={() => openProfile(f)} className="rounded-[20px] bg-sky-50 px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
+                  <div key={f.uid} onClick={() => openProfile(f)} className={`${listCards.card} ${listCards.active} px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition`}>
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-400 shrink-0">
@@ -451,7 +453,7 @@ export default function FriendsPage() {
                   const days = getFriendDays(f.friendSince);
                   const intimacy = getIntimacy(days);
                   return (
-                  <div key={f.uid} onClick={() => openProfile(f)} className="relative rounded-[20px] bg-white px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
+                  <div key={f.uid} onClick={() => openProfile(f)} className={`${listCards.card} relative px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition`}>
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-orange-200 shrink-0">

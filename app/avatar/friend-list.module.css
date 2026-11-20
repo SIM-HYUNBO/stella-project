@@ -14,6 +14,10 @@
   background: linear-gradient(135deg, #f1fbff, #c9eaff 55%, #e3f4ff);
 }
 
+.card {
+  composes: frame surface;
+}
+
 @media (hover: hover) {
   .surface:hover { box-shadow: inset 0 1.5px 0 #fff, inset 0 0 0 1px rgba(125,211,252,0.5); }
 }
