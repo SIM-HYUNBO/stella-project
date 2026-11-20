@@ -19,7 +19,7 @@
 }
 
 .hero {
-  background: linear-gradient(120deg, rgba(255,253,244,0.96), rgba(246,252,255,0.88) 52%, rgba(215,239,255,0.78));
+  background: linear-gradient(120deg, rgba(255,240,189,0.98), rgba(173,216,247,0.95) 52%, rgba(137,198,239,0.95));
   box-shadow: 0 18px 44px -24px rgba(28,126,183,0.36), inset 0 2px 0 #fff, inset 0 -1px 0 rgba(116,189,230,0.2);
 }
 
