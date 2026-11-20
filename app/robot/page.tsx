@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api-fetch";
+import AIMembershipGate from "@/components/AIMembershipGate";
 import { buildConversations, conversationDay } from "@/lib/ai-conversations";
 import theme from "./robot-theme.module.css";
 
@@ -25,6 +26,7 @@ type ChatMessage = { id: string; role: "user" | "assistant"; content: string; cr
 const accent = { from: "#38bdf8", to: "#2797d4", shadow: "rgba(56,189,248,0.22)", ring: "#bae6fd" };
 
 function friendlyError(msg: string): string {
+  if (msg.includes("멤버십")) return msg;
   const m = msg.toLowerCase();
   if (m.includes("model_not_found") || m.includes("model") && m.includes("not")) return "AI 모델 연결을 확인해야 해. 잠시 후 다시 시도해 줘.";
   if (m.includes("permission") || m.includes("insufficient")) return "대화를 저장할 권한이 없어. 다시 로그인해 줘.";
@@ -51,7 +53,11 @@ function friendlyError(msg: string): string {
   return "AI가 잠시 응답을 못 했어. 다시 해봐 🔄";
 }
 
-export default function RobotPage() {
+export default function RobotPageEntry() {
+  return <AIMembershipGate><RobotPage /></AIMembershipGate>;
+}
+
+function RobotPage() {
   const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [user, setUser] = useState<any>(null);

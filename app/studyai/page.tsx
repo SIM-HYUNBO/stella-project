@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api-fetch";
+import AIMembershipGate from "@/components/AIMembershipGate";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,7 @@ type StudyMsg = {
 ========================================================= */
 
 function friendlyError(msg: string): string {
+  if (msg.includes("멤버십")) return msg;
   const m = msg.toLowerCase();
 
   if (
@@ -638,7 +640,11 @@ function NoteDrawer({
    MAIN
 ========================================================= */
 
-export default function StudyAIPage() {
+export default function StudyAIPageEntry() {
+  return <AIMembershipGate study><StudyAIPage /></AIMembershipGate>;
+}
+
+function StudyAIPage() {
   const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [authReady, setAuthReady] = useState(false);

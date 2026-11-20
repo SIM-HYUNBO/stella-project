@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { apiUser, apiRateLimit, ApiError } from "@/lib/api-user";
+import { requireAIMembership } from "@/lib/membership-server";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
     const { db, uid } = await apiUser(req);
-    await apiRateLimit(db, uid, "ai", 20);
     const { messages, robotName, mode } = await req.json();
+    await requireAIMembership(db, uid, mode === "study");
+    await apiRateLimit(db, uid, "ai", 20);
     const searchEnabled = mode !== "profile";
 
     if (!process.env.GROQ_API_KEY) {
