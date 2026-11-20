@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Header from "/components/Header";
 import AppLock from "@/components/AppLock";
+import ChatKingSync from "@/components/ChatKingSync";
 
 const NAV_ITEMS = [
   {
@@ -114,6 +115,7 @@ const PageContainer = ({ children }) => {
         );
       }}
     >
+      <ChatKingSync />
       {/* 배경 블롭 */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: "#bae6fd" }}/>

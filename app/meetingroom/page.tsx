@@ -1,6 +1,7 @@
 "use client";
 
 import { useChatDraft } from "@/app/hooks/useChatDraft";
+import { addChatDocument as addDoc } from "@/lib/event-chat-document";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
@@ -39,7 +40,6 @@ import { watchAuthState } from "../authService";
 
 import {
   collection,
-  addDoc,
   query,
   orderBy,
   onSnapshot,

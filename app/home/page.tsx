@@ -699,6 +699,20 @@ export default function HomePage() {
             <p className="font-black text-slate-800 text-base mb-3 px-1">메뉴 ✨</p>
             <div className="space-y-3">
 
+              <button onClick={() => router.push("/events")}
+                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
+                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-xl bg-yellow-100 flex items-center justify-center text-sky-600">
+                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 4 4 5-7 5 7 4-4-2 12H5L3 6Z" /><path d="M5 21h14" /></svg>
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <p className="text-slate-800 font-black text-base">와기 이벤트</p>
+                    <p className="text-sky-600 text-sm">채팅의 왕 · 12/1 ~ 12/10</p>
+                  </div>
+                  <span aria-hidden="true" className="text-sky-400 text-2xl">›</span>
+                </div>
+              </button>
+
               <button onClick={() => router.push("/diary")}
                 className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">

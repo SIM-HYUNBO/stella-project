@@ -1,6 +1,7 @@
 "use client";
 
 import { useChatDraft } from "@/app/hooks/useChatDraft";
+import { addChatDocument as addDoc } from "@/lib/event-chat-document";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import { apiFetch, playSendSound } from "@/lib/api-fetch";
 import { dmConstraint, messageTimestamp } from "@/lib/dm-query";
@@ -38,7 +39,6 @@ import { db } from "@/app/firebase";
 import { watchAuthState } from "../authService";
 import {
   collection,
-  addDoc,
   query,
   orderBy,
   onSnapshot,

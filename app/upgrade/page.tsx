@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import LightTrialNotice from "@/components/LightTrialNotice";
 
 const plans = [
   { name: "LIGHT", label: "라이트", price: "2,000", premium: false },
@@ -29,6 +30,7 @@ export default function UpgradePage() {
           <h1 className="text-[clamp(2.3rem,7vw,4.4rem)] font-medium leading-[1.2] tracking-[-0.055em]">우리의 대화에<br /><span className="bg-gradient-to-r from-white via-sky-200 to-blue-400 bg-clip-text text-transparent">조금 더 특별함을.</span></h1>
           <p className="mt-6 text-sm leading-relaxed text-slate-400">라이트와 프리미엄, 나에게 맞는 와기를 만나 봐.</p>
           <p className="mt-5 inline-flex rounded-full border border-sky-200/20 bg-sky-200/10 px-4 py-2 text-xs font-medium text-sky-200">첫 1개월 무료 체험 · 오픈 예정</p>
+          <LightTrialNotice />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
