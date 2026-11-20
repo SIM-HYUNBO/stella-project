@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { auth } from "@/app/firebase";
 
-export default function AppRating({ uid }: { uid: string }) {
+export default function AppRating({ uid, className }: { uid: string; className?: string }) {
   const [rating, setRating] = useState(0);
   const [saved, setSaved] = useState(0);
   const [hover, setHover] = useState(0);
@@ -47,7 +47,7 @@ export default function AppRating({ uid }: { uid: string }) {
   };
 
   return (
-    <section aria-labelledby="app-rating-title" className="rounded-[20px] border border-sky-100 bg-white px-4 py-4 shadow-sm">
+    <section aria-labelledby="app-rating-title" className={className || "rounded-[20px] border border-sky-100 bg-white px-4 py-4 shadow-sm"}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 id="app-rating-title" className="text-sm font-black text-slate-700">와기를 평가해 주세요</h2>

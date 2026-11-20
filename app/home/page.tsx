@@ -1,4 +1,5 @@
 "use client";
+import panels from "./home-panels.module.css";
 
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import { useEffect, useState } from "react";
@@ -572,8 +573,8 @@ export default function HomePage() {
           <AppInstallButton />
 
           {/* ── 히어로 ── */}
-          <div className="relative rounded-[32px] overflow-hidden">
-            <div className="p-6 relative" style={{ background: "linear-gradient(135deg, #7dd3fc, #bae6fd)" }}>
+          <div className={`${panels.panel} ${panels.hero} rounded-[32px] overflow-hidden`}>
+            <div className="p-6 relative">
               <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-36 h-36 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2" />
               <div className="absolute top-4 left-1/2 w-20 h-20 rounded-full bg-white/5 -translate-x-1/2" />
@@ -581,14 +582,14 @@ export default function HomePage() {
 
               <div className="relative flex items-center justify-between">
                 <div>
-                  <p className="text-white/80 text-sm font-semibold mb-1">{getGreeting()}</p>
-                  <h1 className="text-4xl font-black text-white leading-tight">
+                  <p className="text-sky-700 text-sm font-semibold mb-1">{getGreeting()}</p>
+                  <h1 className="text-4xl font-black text-slate-800 leading-tight">
                     안녕,<br />{nickname} 👋
                   </h1>
                   {title && TITLE_MAP[title] && (
                     <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/25 backdrop-blur-sm">
                       <span className="text-sm">{TITLE_MAP[title].icon}</span>
-                      <span className="text-white text-xs font-black">{TITLE_MAP[title].name}</span>
+                      <span className="text-sky-800 text-xs font-black">{TITLE_MAP[title].name}</span>
                     </div>
                   )}
                 </div>
@@ -609,23 +610,23 @@ export default function HomePage() {
                   { val: groupUnread || 0,   label: "단체 미확인", icon: "👥", href: "/groupchat" },
                   { val: visibleFriends.length,     label: "친구", icon: "🤝", href: "/friendmenu" },
                 ].map(({ val, label, icon, href }) => (
-                  <button key={label} type="button" onClick={() => router.push(href)} className="min-w-0 flex-1 rounded-2xl bg-white/25 px-2 py-3 text-center backdrop-blur-sm transition hover:bg-white/40 active:scale-95 focus-visible:ring-2 focus-visible:ring-white">
+                  <button key={label} type="button" onClick={() => router.push(href)} className={`${panels.stat} min-w-0 flex-1 rounded-2xl px-2 py-3 text-center active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-400`}>
                     <p className="text-lg mb-0.5">{icon}</p>
-                    <p className="text-white font-black text-xl leading-none">{val}</p>
-                    <p className="text-white/80 text-[10px] font-semibold mt-0.5">{label}</p>
+                    <p className="text-slate-800 font-black text-xl leading-none">{val}</p>
+                    <p className="text-sky-800 text-[10px] font-semibold mt-0.5">{label}</p>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm px-5 py-3 flex items-center gap-2">
+            <div className="border-t border-white/80 bg-white/40 px-5 py-3 flex items-center gap-2">
               <span className="text-base">💡</span>
               <p className="text-sky-800 text-xs font-semibold">{getTodayQuote()}</p>
             </div>
           </div>
 
           {/* ── 공유 배너 ── */}
-          <div className="rounded-[20px] bg-white border border-slate-100 px-4 py-3.5 flex items-center justify-between">
+          <div className={`${panels.panel} rounded-[24px] px-4 py-4 flex items-center justify-between gap-3`}>
             <div>
               <p className="font-black text-slate-700 text-sm">WAGIE를 공유해 주세요 🙌</p>
               <p className="text-xs text-slate-400 mt-0.5">친구에게 와기를 소개해봐요</p>
@@ -639,7 +640,7 @@ export default function HomePage() {
                   alert("링크가 복사됐어요!");
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-sky-400 text-white text-xs font-black active:scale-95 transition shrink-0"
+              className={`${panels.shareButton} flex items-center gap-1.5 px-3 py-2 rounded-[14px] text-slate-800 text-xs font-black active:scale-95 transition shrink-0`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -649,11 +650,11 @@ export default function HomePage() {
             </button>
           </div>
 
-          {uid && <AppRating key={uid} uid={uid} />}
+          {uid && <AppRating key={uid} uid={uid} className={`${panels.panel} rounded-[24px] px-4 py-4`} />}
 
           {/* ── 친구 버블 ── */}
           {visibleFriends.length > 0 && (
-            <div>
+            <div className={`${panels.panel} rounded-[24px] p-5`}>
               <div className="flex items-center justify-between mb-3 px-1">
                 <p className="font-black text-slate-800 text-base">친구들 👫</p>
               </div>
@@ -689,9 +690,9 @@ export default function HomePage() {
             <div className="space-y-3">
 
               <button onClick={() => router.push("/events")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 shrink-0 rounded-xl bg-yellow-100 flex items-center justify-center text-sky-600">
+                className={`${panels.panel} ${panels.menu}`}>
+                <div className="px-6 py-4 flex items-center gap-4">
+                  <div className={`${panels.menuIcon} w-12 h-12 rounded-2xl flex items-center justify-center text-sky-600`}>
                     <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 4 4 5-7 5 7 4-4-2 12H5L3 6Z" /><path d="M5 21h14" /></svg>
                   </div>
                   <div className="text-left flex-1 min-w-0">
@@ -703,9 +704,9 @@ export default function HomePage() {
               </button>
 
               <button onClick={() => router.push("/diary")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📔</div>
+                className={`${panels.panel} ${panels.menu}`}>
+                <div className="px-6 py-4 flex items-center gap-4">
+                  <div className={`${panels.menuIcon} w-12 h-12 rounded-2xl flex items-center justify-center text-2xl`}>📔</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">다이어리</p>
                     <p className="text-sky-600 text-sm">오늘을 기록해요</p>
@@ -715,9 +716,9 @@ export default function HomePage() {
               </button>
 
               <button onClick={() => router.push("/meetingroom")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-yellow-200 flex items-center justify-center text-2xl shadow">📋</div>
+                className={`${panels.panel} ${panels.menu}`}>
+                <div className="px-6 py-4 flex items-center gap-4">
+                  <div className={`${panels.menuIcon} w-12 h-12 rounded-2xl flex items-center justify-center text-2xl`}>📋</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">회의방</p>
                     <p className="text-sky-600 text-sm">주제 고정 · 긴급회의 알림</p>
@@ -727,9 +728,9 @@ export default function HomePage() {
               </button>
 
               <button onClick={() => router.push("/tools/contact")}
-                className="w-full rounded-[24px] overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl shadow">🎧</div>
+                className={`${panels.panel} ${panels.menu}`}>
+                <div className="px-6 py-4 flex items-center gap-4">
+                  <div className={`${panels.menuIcon} w-12 h-12 rounded-2xl flex items-center justify-center text-2xl`}>🎧</div>
                   <div className="text-left flex-1">
                     <p className="text-slate-800 font-black text-base">Q&A방</p>
                     <p className="text-sky-600 text-sm">궁금한 점을 남겨보세요</p>
