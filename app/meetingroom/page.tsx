@@ -1,5 +1,7 @@
 "use client";
 
+import jelly from "@/components/JellyControls.module.css";
+
 import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { addChatDocument as addDoc } from "@/lib/event-chat-document";
 import { useHiddenFriends } from "@/components/HiddenFriends";
@@ -767,7 +769,7 @@ export default function MeetingRoomPage() {
                 key={u.id}
                 disabled={inviting}
                 onClick={() => inviteUser(u.nickname)}
-                className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
+                className={`${jelly.button} flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left`}
               >
                 <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
                   {u.nickname[0]}
@@ -780,7 +782,7 @@ export default function MeetingRoomPage() {
           </div>
           <button
             onClick={() => setShowInvite(false)}
-            className="mt-4 w-full h-11 rounded-2xl bg-gray-100 hover:bg-gray-200 text-sm"
+            className={`${jelly.button} mt-4 w-full h-11 rounded-2xl bg-gray-100 hover:bg-gray-200 text-sm`}
           >
             닫기
           </button>
@@ -798,7 +800,7 @@ export default function MeetingRoomPage() {
       {/* 헤더 */}
       <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
         <div className="flex items-center gap-3">
-          <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
+          <button onClick={() => setCurrentRoom(null)} className={`${jelly.button} text-gray-500 text-lg px-1`}>←</button>
 
           <div className="relative shrink-0 group">
             {currentRoom?.profileImage ? (
@@ -811,7 +813,7 @@ export default function MeetingRoomPage() {
             <button
               disabled={profileUploading}
               onClick={() => profileInputRef.current?.click()}
-              className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition ${profileUploading ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              className={`${jelly.button} absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition ${profileUploading ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
             >
               ✏️
             </button>
@@ -838,13 +840,13 @@ export default function MeetingRoomPage() {
                   onKeyDown={(e) => { if (e.key === "Enter") saveRoomName(); if (e.key === "Escape") setEditingRoomName(false); }}
                   className="h-7 px-2 rounded-lg text-sm outline-none text-gray-800 w-32"
                 />
-                <button onClick={saveRoomName} className="text-xs text-sky-600 font-bold px-2 py-1 bg-sky-50 rounded-lg">저장</button>
-                <button onClick={() => setEditingRoomName(false)} className="text-xs text-gray-400 px-1">✕</button>
+                <button onClick={saveRoomName} className={`${jelly.button} text-xs text-sky-600 font-bold px-2 py-1 bg-sky-50 rounded-lg`}>저장</button>
+                <button onClick={() => setEditingRoomName(false)} className={`${jelly.button} text-xs text-gray-400 px-1`}>✕</button>
               </div>
             ) : (
               <button
                 onClick={() => { setNewRoomNameEdit(currentRoom?.name || ""); setEditingRoomName(true); }}
-                className="font-bold text-gray-800 hover:text-sky-600 transition text-left flex items-center gap-1"
+                className={`${jelly.button} font-bold text-gray-800 hover:text-sky-600 transition text-left flex items-center gap-1`}
               >
                 {currentRoom?.name}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -859,11 +861,11 @@ export default function MeetingRoomPage() {
 
         <div className="flex items-center gap-2">
           <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
-            className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+            className={`${jelly.button} w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform`}
             style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
           <button
             onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+            className={`${jelly.button} w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
           </button>
@@ -875,19 +877,19 @@ export default function MeetingRoomPage() {
           onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => { setShowHeaderMenu(false); sendUrgent(); }}
-            className="w-full px-4 py-3 text-left text-sm text-red-600 font-bold hover:bg-red-50 transition"
+            className={`${jelly.button} w-full px-4 py-3 text-left text-sm text-red-600 font-bold hover:bg-red-50 transition`}
           >
             🚨 긴급
           </button>
           <button
             onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
-            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
+            className={`${jelly.button} w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition`}
           >
             초대
           </button>
           <button
             onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
-            className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+            className={`${jelly.button} w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition`}
           >
             나가기
           </button>
@@ -902,7 +904,7 @@ export default function MeetingRoomPage() {
             const a = ACCENT[t.id];
             return (
               <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_meeting_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
-                className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                className={`${jelly.button} w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
                 style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
             );
           })}
@@ -912,7 +914,7 @@ export default function MeetingRoomPage() {
       {/* 고정 주제 바 */}
       <button
         onClick={() => { setTopicInput(currentRoom?.topic || ""); setShowTopicEdit(true); }}
-        className="w-full flex items-center gap-2 px-4 py-2 bg-sky-50 active:bg-sky-200 transition-colors shrink-0"
+        className={`${jelly.button} w-full flex items-center gap-2 px-4 py-2 bg-sky-50 active:bg-sky-200 transition-colors shrink-0`}
       >
         <span className="text-sm">📌</span>
         <p className="text-xs font-bold text-sky-600 flex-1 text-left truncate">
@@ -1024,8 +1026,8 @@ export default function MeetingRoomPage() {
                           rows={2}
                         />
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditingMsgId(null)} className="text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition">취소</button>
-                          <button onClick={saveMeetingEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
+                          <button onClick={() => setEditingMsgId(null)} className={`${jelly.button} text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition`}>취소</button>
+                          <button onClick={saveMeetingEdit} className={`${jelly.button} text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition`}>완료</button>
                         </div>
                       </div>
                     ) : m.spoiler ? (
@@ -1109,8 +1111,8 @@ export default function MeetingRoomPage() {
           <span className="text-lg shrink-0">🎵</span>
           <span className="text-xs font-black text-sky-600 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
-          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center shrink-0 disabled:opacity-50">
+          <button onClick={cancelAudio} disabled={sendingAudio} className={`${jelly.button} w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40`}>✕</button>
+          <button onClick={sendAudio} disabled={sendingAudio} className={`${jelly.button} w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center shrink-0 disabled:opacity-50`}>
             {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
@@ -1121,11 +1123,11 @@ export default function MeetingRoomPage() {
         <div className="px-3 py-2 bg-white flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className={`${jelly.button} w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40`}>✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center disabled:opacity-50"
+              className={`${jelly.button} w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center disabled:opacity-50`}
             >
               {sendingImage
                 ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1141,7 +1143,7 @@ export default function MeetingRoomPage() {
             <p className="text-[10px] font-black text-sky-500">↩ {replyTo.from}에게 답장</p>
             <p className="text-xs text-gray-500 truncate">{replyTo.spoiler ? "🔒 스포일러 메시지" : replyTo.content.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : replyTo.content}</p>
           </div>
-          <button onClick={() => setReplyTo(null)} className="text-gray-400 text-sm font-bold shrink-0">✕</button>
+          <button onClick={() => setReplyTo(null)} className={`${jelly.button} text-gray-400 text-sm font-bold shrink-0`}>✕</button>
         </div>
       )}
 
@@ -1149,7 +1151,7 @@ export default function MeetingRoomPage() {
       {showEffectPicker && <BubbleEffectPicker value={selectedEffect} onChange={value => { setSelectedEffect(value); setShowEffectPicker(false); }} onClose={() => setShowEffectPicker(false)} color={accent.from} softColor={accent.ring} />}
       {selectedEffect !== "none" && <div className="mx-4 mb-1 flex items-center justify-between rounded-xl px-3 py-2 text-xs" style={{ background: `${accent.ring}55`, color: accent.from }}>
         <span>다음 메시지 · {BUBBLE_EFFECTS.find(effect => effect.id === selectedEffect)?.label}</span>
-        <button type="button" aria-label="등장 효과 취소" onClick={() => setSelectedEffect("none")} className="px-2 py-1">✕</button>
+        <button type="button" aria-label="등장 효과 취소" onClick={() => setSelectedEffect("none")} className={`${jelly.button} px-2 py-1`}>✕</button>
       </div>}
       <div className="px-4 pb-5 pt-2.5 shrink-0">
         <input
@@ -1174,19 +1176,19 @@ export default function MeetingRoomPage() {
           {showPlusMenu && (
             <div className={`${plusMenuStyles.menu} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowEffectPicker(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4m-2-2h4"/></svg>
                 <span className="text-[9px] font-bold">등장 효과</span>
               </button>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setSpoilerMode(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                 <span className="text-[9px] font-bold">스포일러</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1200,7 +1202,7 @@ export default function MeetingRoomPage() {
                     if (hlSel.start !== hlSel.end) { applyHighlight(hlColor); setShowPlusMenu(false); }
                     else setShowHlPicker((p) => !p);
                   }}
-                  className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md active:scale-95 transition"
+                  className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md active:scale-95 transition`}
                 >
                   <span className="text-[13px] font-black text-sky-500">Aa</span>
                   <span className="text-[9px] font-bold text-sky-500">글자 강조</span>
@@ -1212,7 +1214,7 @@ export default function MeetingRoomPage() {
                         key={key}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => { setHlColor(key); setShowHlPicker(false); }}
-                        className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
+                        className={`${jelly.button} w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
                       />
                     ))}
                   </div>
@@ -1221,7 +1223,7 @@ export default function MeetingRoomPage() {
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { toggleRecording(); setShowPlusMenu(false); }}
-                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isRecording ? "bg-red-50 border-red-200 text-red-500 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isRecording ? "bg-red-50 border-red-200 text-red-500 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -1234,7 +1236,7 @@ export default function MeetingRoomPage() {
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={startDictation}
-                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="4" y1="9" x2="4" y2="15"/><line x1="8" y1="6" x2="8" y2="18"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="16" y1="6" x2="16" y2="18"/><line x1="20" y1="9" x2="20" y2="15"/>
@@ -1242,14 +1244,14 @@ export default function MeetingRoomPage() {
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowStickerStudio(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition">
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 14c2 3 6 3 8 0"/><path d="M8 9h.01M16 9h.01"/></svg>
                 <span className="text-[9px] font-bold">이모티콘</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { setShowDrawCanvas(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -1260,7 +1262,7 @@ export default function MeetingRoomPage() {
           )}
           <button
             onClick={() => setShowPlusMenu((p) => !p)}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black"
+            className={`${jelly.button} w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black`}
             style={showPlusMenu ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: "#fff" } : { color: accent.from }}
           >
             {showPlusMenu ? "✕" : "+"}
@@ -1292,7 +1294,7 @@ export default function MeetingRoomPage() {
 
         <button
           onClick={() => sendMessage()}
-          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
+          className={`${jelly.button} w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90`}
           style={input.trim() ? { background:`linear-gradient(135deg,${accent.from},${accent.to})`, boxShadow:`0 4px 16px ${accent.shadow}` } : { background:`${accent.ring}55`, color:accent.from }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1317,7 +1319,7 @@ export default function MeetingRoomPage() {
             />
             <button
               onClick={saveTopic}
-              className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black text-base active:scale-95 transition-transform"
+              className={`${jelly.button} w-full h-12 rounded-2xl bg-sky-200 text-white font-black text-base active:scale-95 transition-transform`}
             >
               저장
             </button>
@@ -1347,7 +1349,7 @@ export default function MeetingRoomPage() {
             </span>
             <button
               onClick={() => router.push("/groupchat")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
+              className={`${jelly.button} flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -1359,7 +1361,7 @@ export default function MeetingRoomPage() {
             </button>
             <button
               onClick={() => router.push("/meetingroom")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-100 transition active:scale-90"
+              className={`${jelly.button} flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-100 transition active:scale-90`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -1370,7 +1372,7 @@ export default function MeetingRoomPage() {
               </svg>
               <span className="text-xs font-bold text-red-500">회의</span>
             </button>
-            <button type="button" onClick={() => router.push("/spyroom")} className="inline-flex items-center gap-1 rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90"><SpyIcon />스파이</button>
+            <button type="button" onClick={() => router.push("/spyroom")} className={`${jelly.button} inline-flex items-center gap-1 rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90`}><SpyIcon />스파이</button>
           </div>
           <div className="text-xs text-gray-400 mt-0.5">회의방</div>
         </div>
@@ -1390,13 +1392,13 @@ export default function MeetingRoomPage() {
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 h-11 rounded-[16px] bg-sky-200 text-white font-black"
+                className={`${jelly.button} flex-1 h-11 rounded-[16px] bg-sky-200 text-white font-black`}
               >
                 만들기
               </button>
               <button
                 onClick={() => { setShowCreate(false); setNewRoomName(""); }}
-                className="flex-1 h-11 rounded-[16px] bg-white text-sky-600 font-semibold"
+                className={`${jelly.button} flex-1 h-11 rounded-[16px] bg-white text-sky-600 font-semibold`}
               >
                 취소
               </button>
@@ -1405,7 +1407,7 @@ export default function MeetingRoomPage() {
         ) : (
           <button
             onClick={() => setShowCreate(true)}
-            className="w-full h-11 rounded-[16px] bg-sky-200 text-white font-black"
+            className={`${jelly.button} w-full h-11 rounded-[16px] bg-sky-200 text-white font-black`}
           >
             + 회의방 만들기
           </button>
@@ -1417,7 +1419,7 @@ export default function MeetingRoomPage() {
           <button
             key={room.id}
             onClick={() => setCurrentRoom(room)}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
+            className={`${jelly.button} w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
               currentRoom?.id === room.id
                 ? "bg-sky-200"
                 : "bg-white/80 hover:bg-sky-50 border-sky-200"
@@ -1465,11 +1467,11 @@ export default function MeetingRoomPage() {
         {ctxMenu && (
           <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
-              <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
+              <button className={`${jelly.button} w-full px-4 py-3 text-left hover:bg-gray-50 text-sm`} onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
               {ctxMenu.isMine && (
                 <>
-                  <button hidden={ctxMenu.msg.type === "sticker"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
-                  <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteMeetingMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
+                  <button hidden={ctxMenu.msg.type === "sticker"} className={`${jelly.button} w-full px-4 py-3 text-left hover:bg-gray-50 text-sm`} onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
+                  <button className={`${jelly.button} w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm`} onClick={() => deleteMeetingMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
                 </>
               )}
             </div>
@@ -1487,7 +1489,7 @@ export default function MeetingRoomPage() {
               onClick={(e) => e.stopPropagation()}
             />
             <button
-              className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center"
+              className={`${jelly.button} absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center`}
               onClick={() => setLightboxSrc(null)}
             >✕</button>
           </div>,
@@ -1526,7 +1528,7 @@ export default function MeetingRoomPage() {
             onClick={(e) => e.stopPropagation()}
           />
           <button
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center"
+            className={`${jelly.button} absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center`}
             onClick={() => setLightboxSrc(null)}
           >✕</button>
         </div>,

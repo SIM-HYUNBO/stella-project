@@ -1,5 +1,7 @@
 "use client";
 
+import jelly from "@/components/JellyControls.module.css";
+
 import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { useHiddenFriends } from "@/components/HiddenFriends";
 import SpyIcon from "@/components/SpyIcon";
@@ -133,7 +135,7 @@ export default function SpyRoomPage() {
         <header className="px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xl font-black bg-yellow-200">WAGIE SPY</span>
-            <Link href="/groupchat" className="inline-flex items-center gap-1 rounded-xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-600">
+            <Link href="/groupchat" className={`${jelly.button} inline-flex items-center gap-1 rounded-xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-600`}>
               <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
@@ -141,7 +143,7 @@ export default function SpyRoomPage() {
               </svg>
               일반
             </Link>
-            <Link href="/meetingroom" className="inline-flex items-center gap-1 rounded-xl bg-red-50 px-2.5 py-1 text-xs font-bold text-red-500">
+            <Link href="/meetingroom" className={`${jelly.button} inline-flex items-center gap-1 rounded-xl bg-red-50 px-2.5 py-1 text-xs font-bold text-red-500`}>
               <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                 <rect x="2" y="3" width="20" height="14" rx="2" />
                 <path d="M8 21h8M12 17v4M7 8h10M7 12h6" />
@@ -155,7 +157,7 @@ export default function SpyRoomPage() {
         {entry ? (
           <div className="space-y-3 px-3">
             <div className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2">
-              <button type="button" className={secondary} onClick={() => { activeEntry.current = null; setEntry(null); setRoom(null); void refresh(); }}>‹ 방 목록</button>
+              <button type="button" className={`${jelly.button} ${secondary}`} onClick={() => { activeEntry.current = null; setEntry(null); setRoom(null); void refresh(); }}>‹ 방 목록</button>
               <h1 className="min-w-0 truncate font-black text-slate-800">{room?.name || "입장 중…"}</h1>
             </div>
             {room && <>
@@ -165,13 +167,13 @@ export default function SpyRoomPage() {
                 <div className="flex flex-wrap gap-2">
                   {room.members.filter(member => hidden.visible(member.uid, member.name)).map(member => <span key={member.uid} className="rounded-full bg-gray-50 px-2.5 py-1 text-xs text-slate-600">{member.name} · {room.online.includes(member.uid) ? "입장" : "대기"}</span>)}
                 </div>
-                {room.startedAt && <button type="button" aria-expanded={reveal} className="rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700" onClick={() => setReveal(v => !v)}>{reveal ? "내 역할 숨기기" : "내 역할 확인"}</button>}
+                {room.startedAt && <button type="button" aria-expanded={reveal} className={`${jelly.button} rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700`} onClick={() => setReveal(v => !v)}>{reveal ? "내 역할 숨기기" : "내 역할 확인"}</button>}
                 {room.startedAt && reveal && <p className="rounded-xl bg-violet-50 p-3 text-sm text-violet-900">{room.role === "spy" ? `너는 스파이야! 비밀 미션: ${room.mission}` : "너는 일반 멤버야. 대화하면서 누가 스파이인지 살펴봐!"}</p>}
               </section>
               {room.startedAt && <>
                 <div ref={scroll} onScroll={e => { const el = e.currentTarget; stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60; }} role="log" aria-label="채팅 메시지" className="h-[40dvh] space-y-2 overflow-y-auto rounded-2xl bg-sky-50 p-3">
                   {!room.messages.length && <p className="py-5 text-center text-xs text-slate-500">게임이 시작됐어! 자연스럽게 대화를 시작해 봐.</p>}
-                  {(olderMore ?? room.hasMore) && <button type="button" className={secondary} disabled={loadingOlder} onClick={() => void loadOlder()}>{loadingOlder ? "불러오는 중…" : "이전 메시지 불러오기"}</button>}
+                  {(olderMore ?? room.hasMore) && <button type="button" className={`${jelly.button} ${secondary}`} disabled={loadingOlder} onClick={() => void loadOlder()}>{loadingOlder ? "불러오는 중…" : "이전 메시지 불러오기"}</button>}
                   {displayMessages.map(message => {
                     if (!hidden.visible(message.uid, room.members.find(m => m.uid === message.uid)?.name)) return null;
                     const mine = message.uid === lobby?.uid;
@@ -183,7 +185,7 @@ export default function SpyRoomPage() {
                 </div>
                 <form onSubmit={e => { e.preventDefault(); void send(); }} className="flex gap-2 rounded-full bg-white p-1.5 shadow-sm">
                   <input aria-label="메시지" className="min-w-0 flex-1 rounded-full px-3 text-sm text-slate-800 outline-none" value={input} maxLength={500} onChange={e => setInput(e.target.value)} placeholder="메시지 입력" />
-                  <button className={primary} disabled={busy || !input.trim()}>전송</button>
+                  <button className={`${jelly.button} ${primary}`} disabled={busy || !input.trim()}>전송</button>
                 </form>
               </>}
             </>}
@@ -193,8 +195,8 @@ export default function SpyRoomPage() {
           <div className="space-y-3 px-3">
             {!lobby && !error && <LoadingScreen />}
             <div className="flex flex-col items-end gap-2">
-              <button type="button" className={`${primary} w-full`} disabled={!lobby} onClick={() => setCreating(v => !v)}>{creating ? "만들기 닫기" : "+ 스파이방 만들기"}</button>
-              <button type="button" className={secondary} onClick={() => void refresh()}>목록 새로고침</button>
+              <button type="button" className={`${jelly.button} ${primary} w-full`} disabled={!lobby} onClick={() => setCreating(v => !v)}>{creating ? "만들기 닫기" : "+ 스파이방 만들기"}</button>
+              <button type="button" className={`${jelly.button} ${secondary}`} onClick={() => void refresh()}>목록 새로고침</button>
             </div>
             {creating && <form className="space-y-3 rounded-2xl bg-white p-4" onSubmit={e => { e.preventDefault(); void create(); }}>
               <input className={`w-full ${inputClass}`} aria-label="방 이름" value={name} onChange={e => setName(e.target.value)} maxLength={32} placeholder="방 이름 입력" required />
@@ -205,9 +207,9 @@ export default function SpyRoomPage() {
                   {lobby?.friends.filter(friend => hidden.visible(friend.uid, friend.name)).map(friend => <label key={friend.uid} className="flex cursor-pointer items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm text-slate-700"><input type="checkbox" checked={invited.includes(friend.uid)} disabled={busy || (invited.length === 9 && !invited.includes(friend.uid))} onChange={e => setInvited(current => e.target.checked ? [...current, friend.uid] : current.filter(id => id !== friend.uid))} />{friend.name}</label>)}
                 </div>
               </fieldset>
-              <button className={`${primary} w-full`} disabled={busy || !invited.length || !name.trim()}>만들기</button>
+              <button className={`${jelly.button} ${primary} w-full`} disabled={busy || !invited.length || !name.trim()}>만들기</button>
             </form>}
-            {lobby?.rooms.map(item => <button type="button" key={item.id} onClick={() => open(item.id)} className="flex w-full items-center justify-between gap-2 rounded-[20px] border border-sky-100 bg-white px-4 py-3 text-left">
+            {lobby?.rooms.map(item => <button type="button" key={item.id} onClick={() => open(item.id)} className={`${jelly.card} flex w-full items-center justify-between gap-2 rounded-[20px] border border-sky-100 bg-white px-4 py-3 text-left`}>
               <span className="min-w-0 truncate font-bold text-slate-800">{item.name}</span><span className="shrink-0 text-xs text-slate-500">{item.count}명 · {item.startedAt ? "진행 중" : "입장 대기"}</span>
             </button>)}
             {lobby && !lobby.rooms.length && <p className="rounded-2xl bg-white p-5 text-center text-sm text-slate-500">아직 스파이방이 없어. 친구를 초대해서 시작해 봐!</p>}

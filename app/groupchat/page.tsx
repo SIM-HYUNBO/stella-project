@@ -1,5 +1,7 @@
 "use client";
 
+import jelly from "@/components/JellyControls.module.css";
+
 import { useChatDraft } from "@/app/hooks/useChatDraft";
 import { addChatDocument as addDoc } from "@/lib/event-chat-document";
 import { useHiddenFriends } from "@/components/HiddenFriends";
@@ -1284,7 +1286,7 @@ export default function GroupChat() {
                 onClick={() =>
                   handleInviteClick(u.nickname)
                 }
-                className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left"
+                className={`${jelly.button} flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-gray-50 transition text-left`}
               >
                 <div className="w-11 h-11 rounded-full bg- text-white font-bold flex items-center justify-center shadow">
                   {u.nickname[0]}
@@ -1303,7 +1305,7 @@ export default function GroupChat() {
             onClick={() =>
               setShowInvite(false)
             }
-            className="mt-4 w-full h-11 rounded-2xl bg-gray-100 hover:bg-gray-200 text-sm"
+            className={`${jelly.button} mt-4 w-full h-11 rounded-2xl bg-gray-100 hover:bg-gray-200 text-sm`}
           >
             닫기
           </button>
@@ -1327,7 +1329,7 @@ export default function GroupChat() {
                 </svg>
                 <span className="font-bold text-sm text-gray-700">비밀방</span>
               </div>
-              <button onClick={() => setSettingSecret(!settingSecret)} className={`relative w-12 h-6 rounded-full transition-colors ${settingSecret ? "bg-sky-500" : "bg-gray-200"}`}>
+              <button onClick={() => setSettingSecret(!settingSecret)} className={`${jelly.button} relative w-12 h-6 rounded-full transition-colors ${settingSecret ? "bg-sky-500" : "bg-gray-200"}`}>
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${settingSecret ? "translate-x-[24px]" : "translate-x-0"}`}/>
               </button>
             </div>
@@ -1342,7 +1344,7 @@ export default function GroupChat() {
                 </svg>
                 <span className="font-bold text-sm text-gray-700">초대 전용 (방장만 초대)</span>
               </div>
-              <button onClick={() => setSettingInviteOnly(!settingInviteOnly)} className={`relative w-12 h-6 rounded-full transition-colors ${settingInviteOnly ? "bg-sky-300" : "bg-gray-200"}`}>
+              <button onClick={() => setSettingInviteOnly(!settingInviteOnly)} className={`${jelly.button} relative w-12 h-6 rounded-full transition-colors ${settingInviteOnly ? "bg-sky-300" : "bg-gray-200"}`}>
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${settingInviteOnly ? "translate-x-[24px]" : "translate-x-0"}`}/>
               </button>
             </div>
@@ -1355,7 +1357,7 @@ export default function GroupChat() {
             </div>
           </div>
           <button onClick={saveRoomSettings}
-            className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition-transform">
+            className={`${jelly.button} w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition-transform`}>
             저장
           </button>
         </div>
@@ -1381,7 +1383,7 @@ export default function GroupChat() {
             onKeyDown={(e) => e.key === "Enter" && inviteUser(pendingInviteTarget, enteredPassword)}
             autoFocus/>
           <button onClick={() => inviteUser(pendingInviteTarget, enteredPassword)}
-            className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition-transform">
+            className={`${jelly.button} w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition-transform`}>
             초대
           </button>
         </div>
@@ -1398,7 +1400,7 @@ export default function GroupChat() {
       {/* 헤더 */}
       <div className="flex items-center justify-between shrink-0 px-4 py-3 bg-white/70 backdrop-blur-xl border-b border-white/80" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}>
         <div className="flex items-center gap-3">
-          <button onClick={() => setCurrentRoom(null)} className="text-gray-500 text-lg px-1">←</button>
+          <button onClick={() => setCurrentRoom(null)} className={`${jelly.button} text-gray-500 text-lg px-1`}>←</button>
 
           <div className="relative shrink-0 group">
             {currentRoom?.profileImage ? (
@@ -1420,7 +1422,7 @@ export default function GroupChat() {
               onClick={() =>
                 profileInputRef.current?.click()
               }
-              className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition ${
+              className={`${jelly.button} absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition ${
                 profileUploading
                   ? "opacity-100"
                   : "opacity-0 group-hover:opacity-100"
@@ -1456,13 +1458,13 @@ export default function GroupChat() {
                   onKeyDown={(e) => { if (e.key === "Enter") saveRoomName(); if (e.key === "Escape") setEditingRoomName(false); }}
                   className="h-7 px-2 rounded-lg text-sm outline-none text-gray-800 w-32"
                 />
-                <button onClick={saveRoomName} className="text-xs text-sky-600 font-bold px-2 py-1 bg-sky-50 rounded-lg">저장</button>
-                <button onClick={() => setEditingRoomName(false)} className="text-xs text-gray-400 px-1">✕</button>
+                <button onClick={saveRoomName} className={`${jelly.button} text-xs text-sky-600 font-bold px-2 py-1 bg-sky-50 rounded-lg`}>저장</button>
+                <button onClick={() => setEditingRoomName(false)} className={`${jelly.button} text-xs text-gray-400 px-1`}>✕</button>
               </div>
             ) : (
               <button
                 onClick={() => { setNewRoomNameEdit(currentRoom?.name || ""); setEditingRoomName(true); }}
-                className="font-bold text-gray-800 hover:text-sky-600 transition text-left flex items-center gap-1"
+                className={`${jelly.button} font-bold text-gray-800 hover:text-sky-600 transition text-left flex items-center gap-1`}
               >
                 {currentRoom?.name}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -1477,12 +1479,12 @@ export default function GroupChat() {
 
         <div className="flex items-center gap-2">
           <button onClick={(e) => { e.stopPropagation(); setShowThemePicker(p => !p); }}
-            className="w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform"
+            className={`${jelly.button} w-7 h-7 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform`}
             style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}/>
           {currentRoom?.createdBy === nickname && (
             <button
               onClick={openRoomSettings}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+              className={`${jelly.button} w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500`}
               title="방 설정"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1493,7 +1495,7 @@ export default function GroupChat() {
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setShowHeaderMenu((p) => !p); }}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+            className={`${jelly.button} w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-500`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
           </button>
@@ -1505,13 +1507,13 @@ export default function GroupChat() {
           onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => { setShowHeaderMenu(false); setShowInvite(true); }}
-            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
+            className={`${jelly.button} w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition`}
           >
             초대
           </button>
           <button
             onClick={() => { setShowHeaderMenu(false); leaveRoom(); }}
-            className="w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition"
+            className={`${jelly.button} w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition`}
           >
             나가기
           </button>
@@ -1527,7 +1529,7 @@ export default function GroupChat() {
             const a = ACCENT[t.id];
             return (
               <button key={t.id} title={t.id} onClick={() => { setActiveTheme(t.id); if (currentRoom?.id) localStorage.setItem(`chatTheme_group_${currentRoom.id}`, t.id); setShowThemePicker(false); }}
-                className={`w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
+                className={`${jelly.button} w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ${activeTheme === t.id ? "scale-110" : "border-white/40"}`}
                 style={{ background: `linear-gradient(135deg, ${a.from}, ${a.to})`, borderColor: activeTheme === t.id ? a.from : undefined, boxShadow: activeTheme === t.id ? `0 0 0 2px ${a.ring}` : undefined }}/>
             );
           })}
@@ -1555,7 +1557,7 @@ export default function GroupChat() {
               </span>
             )}
           </div>
-          <button onClick={() => endWordGame("🏳️ 끝말잇기가 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+          <button onClick={() => endWordGame("🏳️ 끝말잇기가 종료됐어요.")} className={`${jelly.button} text-[10px] text-slate-400 font-bold px-2`}>종료</button>
         </div>
       )}
 
@@ -1565,7 +1567,7 @@ export default function GroupChat() {
             <span className="text-xs font-black text-purple-700">❓ 초성 퀴즈</span>
             <span className="px-2.5 py-0.5 rounded-full bg-purple-200 text-purple-700 text-xs font-black tracking-widest">【 {chosungGame.consonants} 】</span>
           </div>
-          <button onClick={() => endChosungGame(`❌ 초성 퀴즈 종료. 정답은 「${chosungGame.answer}」였어요.`)} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+          <button onClick={() => endChosungGame(`❌ 초성 퀴즈 종료. 정답은 「${chosungGame.answer}」였어요.`)} className={`${jelly.button} text-[10px] text-slate-400 font-bold px-2`}>종료</button>
         </div>
       )}
 
@@ -1579,10 +1581,10 @@ export default function GroupChat() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={sendClap}
-              className="px-3 py-1 rounded-xl bg-orange-400 text-white text-sm font-black active:scale-90 transition">
+              className={`${jelly.button} px-3 py-1 rounded-xl bg-orange-400 text-white text-sm font-black active:scale-90 transition`}>
               👏 박수
             </button>
-            <button onClick={() => end369("🏳️ 369 게임이 종료됐어요.")} className="text-[10px] text-slate-400 font-bold px-2">종료</button>
+            <button onClick={() => end369("🏳️ 369 게임이 종료됐어요.")} className={`${jelly.button} text-[10px] text-slate-400 font-bold px-2`}>종료</button>
           </div>
         </div>
       )}
@@ -1690,8 +1692,8 @@ export default function GroupChat() {
                           rows={2}
                         />
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditingMsgId(null)} className="text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition">취소</button>
-                          <button onClick={saveGroupEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
+                          <button onClick={() => setEditingMsgId(null)} className={`${jelly.button} text-xs text-white/70 px-3 py-1 rounded-full bg-white/10 active:scale-95 transition`}>취소</button>
+                          <button onClick={saveGroupEdit} className={`${jelly.button} text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition`}>완료</button>
                         </div>
                       </div>
                     ) : m.spoiler ? (
@@ -1783,11 +1785,11 @@ export default function GroupChat() {
         <div className="px-3 py-2 bg-white flex items-center gap-3 shrink-0">
           <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
+            <button onClick={cancelPendingImage} disabled={sendingImage} className={`${jelly.button} w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40`}>✕</button>
             <button
               onClick={sendPendingImage}
               disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center disabled:opacity-50"
+              className={`${jelly.button} w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center disabled:opacity-50`}
             >
               {sendingImage
                 ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1802,8 +1804,8 @@ export default function GroupChat() {
           <span className="text-lg shrink-0">🎵</span>
           <span className="text-xs font-black text-sky-600 shrink-0">대기중</span>
           <audio src={pendingAudio.url} controls className="flex-1 h-8 min-w-0" />
-          <button onClick={cancelAudio} disabled={sendingAudio} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40">✕</button>
-          <button onClick={sendAudio} disabled={sendingAudio} className="w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center shrink-0 disabled:opacity-50">
+          <button onClick={cancelAudio} disabled={sendingAudio} className={`${jelly.button} w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold shrink-0 disabled:opacity-40`}>✕</button>
+          <button onClick={sendAudio} disabled={sendingAudio} className={`${jelly.button} w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center shrink-0 disabled:opacity-50`}>
             {sendingAudio ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "➤"}
           </button>
         </div>
@@ -1815,7 +1817,7 @@ export default function GroupChat() {
             <p className="text-[10px] font-black text-sky-500">↩ {replyTo.from}에게 답장</p>
             <p className="text-xs text-gray-500 truncate">{replyTo.spoiler ? "🔒 스포일러 메시지" : replyTo.content.startsWith("data:image/") ? "🖼️ 그림 / 이모티콘" : replyTo.content}</p>
           </div>
-          <button onClick={() => setReplyTo(null)} className="text-gray-400 text-sm font-bold shrink-0">✕</button>
+          <button onClick={() => setReplyTo(null)} className={`${jelly.button} text-gray-400 text-sm font-bold shrink-0`}>✕</button>
         </div>
       )}
 
@@ -1823,7 +1825,7 @@ export default function GroupChat() {
       {showEffectPicker && <BubbleEffectPicker value={selectedEffect} onChange={value => { setSelectedEffect(value); setShowEffectPicker(false); }} onClose={() => setShowEffectPicker(false)} color={accent.from} softColor={accent.ring} />}
       {selectedEffect !== "none" && <div className="mx-4 mb-1 flex items-center justify-between rounded-xl px-3 py-2 text-xs" style={{ background: `${accent.ring}55`, color: accent.from }}>
         <span>다음 메시지 · {BUBBLE_EFFECTS.find(effect => effect.id === selectedEffect)?.label}</span>
-        <button type="button" aria-label="등장 효과 취소" onClick={() => setSelectedEffect("none")} className="px-2 py-1">✕</button>
+        <button type="button" aria-label="등장 효과 취소" onClick={() => setSelectedEffect("none")} className={`${jelly.button} px-2 py-1`}>✕</button>
       </div>}
       <div className="px-4 pb-5 pt-2.5 shrink-0">
         <input
@@ -1848,19 +1850,19 @@ export default function GroupChat() {
           {showPlusMenu && (
             <div className={`${plusMenuStyles.menu} absolute bottom-[52px] left-0 z-50 animate-[fadeInUp_0.15s_ease]`}>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowEffectPicker(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4m-2-2h4"/></svg>
                 <span className="text-[9px] font-bold">등장 효과</span>
               </button>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setSpoilerMode(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition">
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 text-sky-600 active:scale-95 transition`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                 <span className="text-[9px] font-bold">스포일러</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { imageInputRef.current?.click(); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1874,7 +1876,7 @@ export default function GroupChat() {
                     if (hlSel.start !== hlSel.end) { applyHighlight(hlColor); setShowPlusMenu(false); }
                     else setShowHlPicker((p) => !p);
                   }}
-                  className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md active:scale-95 transition"
+                  className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md active:scale-95 transition`}
                 >
                   <span className="text-[13px] font-black text-sky-500">Aa</span>
                   <span className="text-[9px] font-bold text-sky-500">글자 강조</span>
@@ -1886,7 +1888,7 @@ export default function GroupChat() {
                         key={key}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => { setHlColor(key); setShowHlPicker(false); }}
-                        className={`w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
+                        className={`${jelly.button} w-8 h-8 rounded-full ${{ y:"bg-yellow-300", g:"bg-green-300", p:"bg-pink-300", b:"bg-sky-300" }[key]} active:scale-90 transition ${key === hlColor ? "ring-2 ring-offset-1 ring-slate-400" : ""}`}
                       />
                     ))}
                   </div>
@@ -1895,7 +1897,7 @@ export default function GroupChat() {
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { toggleRecording(); setShowPlusMenu(false); }}
-                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isRecording ? "bg-red-50 border-red-200 text-red-500 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isRecording ? "bg-red-50 border-red-200 text-red-500 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -1908,7 +1910,7 @@ export default function GroupChat() {
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={startDictation}
-                className={`flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] border shadow-md active:scale-95 transition ${isDictating ? "bg-green-50 border-green-300 text-green-600 animate-pulse" : "bg-white border-sky-200 text-sky-600"}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="4" y1="9" x2="4" y2="15"/><line x1="8" y1="6" x2="8" y2="18"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="16" y1="6" x2="16" y2="18"/><line x1="20" y1="9" x2="20" y2="15"/>
@@ -1916,14 +1918,14 @@ export default function GroupChat() {
                 <span className="text-[9px] font-bold">{isDictating ? "듣는중" : "받아쓰기"}</span>
               </button>
               <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setShowStickerStudio(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition">
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition`}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 14c2 3 6 3 8 0"/><path d="M8 9h.01M16 9h.01"/></svg>
                 <span className="text-[9px] font-bold">이모티콘</span>
               </button>
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { setShowDrawCanvas(true); setShowPlusMenu(false); }}
-                className="flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition"
+                className={`${jelly.button} flex flex-col items-center gap-1 w-14 py-2 rounded-[14px] bg-white border border-sky-200 shadow-md text-sky-600 active:scale-95 transition`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -1934,7 +1936,7 @@ export default function GroupChat() {
           )}
           <button
             onClick={() => setShowPlusMenu((p) => !p)}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black"
+            className={`${jelly.button} w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 text-lg font-black`}
             style={showPlusMenu ? { background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: "#fff" } : { color: accent.from }}
           >
             {showPlusMenu ? "✕" : "+"}
@@ -1977,12 +1979,12 @@ export default function GroupChat() {
                     { label: "369 게임", onClick: start369, color: "text-orange-600 border-orange-100 bg-orange-50" },
                   ].map(({ label, onClick, color }) => (
                     <button key={label} onMouseDown={(e) => e.preventDefault()} onClick={onClick}
-                      className={`flex items-center justify-center px-3 py-2.5 rounded-[14px] border text-xs font-black whitespace-nowrap active:scale-95 transition ${color}`}>
+                      className={`${jelly.button} flex items-center justify-center px-3 py-2.5 rounded-[14px] border text-xs font-black whitespace-nowrap active:scale-95 transition ${color}`}>
                       {label}
                     </button>
                   ))}
                   <button onMouseDown={(e) => e.preventDefault()} onClick={drawLots}
-                    className="col-span-2 flex items-center justify-center px-3 py-2.5 rounded-[14px] border text-xs font-black bg-yellow-50 border-yellow-100 text-yellow-600 active:scale-95 transition">
+                    className={`${jelly.button} col-span-2 flex items-center justify-center px-3 py-2.5 rounded-[14px] border text-xs font-black bg-yellow-50 border-yellow-100 text-yellow-600 active:scale-95 transition`}>
                     🎰 제비뽑기
                   </button>
                 </div>
@@ -1994,7 +1996,7 @@ export default function GroupChat() {
               if (input.trim()) { sendMessage(); }
               else { setShowSpecialMenu((p) => !p); }
             }}
-            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 font-black text-sm"
+            className={`${jelly.button} w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 font-black text-sm`}
             style={input.trim() ? { background:`linear-gradient(135deg,${accent.from},${accent.to})`, boxShadow:`0 4px 16px ${accent.shadow}` } : { background:`${accent.ring}55`, color:accent.from }}
           >
             {input.trim() ? (
@@ -2028,7 +2030,7 @@ export default function GroupChat() {
           </span>
           <button
             onClick={() => router.push("/groupchat")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
+            className={`${jelly.button} flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90`}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -2040,7 +2042,7 @@ export default function GroupChat() {
           </button>
           <button
             onClick={() => router.push("/meetingroom")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90"
+            className={`${jelly.button} flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-50 hover:bg-red-100 transition active:scale-90`}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -2051,7 +2053,7 @@ export default function GroupChat() {
             </svg>
             <span className="text-xs font-bold text-red-500">회의</span>
           </button>
-          <button type="button" onClick={() => router.push("/spyroom")} className="inline-flex items-center gap-1 rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90"><SpyIcon />스파이</button>
+          <button type="button" onClick={() => router.push("/spyroom")} className={`${jelly.button} inline-flex items-center gap-1 rounded-xl bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-90`}><SpyIcon />스파이</button>
         </div>
         <div className="text-xs text-gray-400 mt-0.5">단체 채팅</div>
       </div>
@@ -2077,7 +2079,7 @@ export default function GroupChat() {
                   </svg>
                   <span className="text-xs font-bold text-gray-600">비밀방</span>
                 </div>
-                <button onClick={() => setNewIsSecret(!newIsSecret)} className={`relative w-10 h-5 rounded-full transition-colors ${newIsSecret ? "bg-sky-500" : "bg-gray-200"}`}>
+                <button onClick={() => setNewIsSecret(!newIsSecret)} className={`${jelly.button} relative w-10 h-5 rounded-full transition-colors ${newIsSecret ? "bg-sky-500" : "bg-gray-200"}`}>
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${newIsSecret ? "translate-x-5" : "translate-x-0"}`}/>
                 </button>
               </div>
@@ -2092,7 +2094,7 @@ export default function GroupChat() {
                   </svg>
                   <span className="text-xs font-bold text-gray-600">초대 전용</span>
                 </div>
-                <button onClick={() => setNewInviteOnly(!newInviteOnly)} className={`relative w-10 h-5 rounded-full transition-colors ${newInviteOnly ? "bg-sky-300" : "bg-gray-200"}`}>
+                <button onClick={() => setNewInviteOnly(!newInviteOnly)} className={`${jelly.button} relative w-10 h-5 rounded-full transition-colors ${newInviteOnly ? "bg-sky-300" : "bg-gray-200"}`}>
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${newInviteOnly ? "translate-x-5" : "translate-x-0"}`}/>
                 </button>
               </div>
@@ -2108,7 +2110,7 @@ export default function GroupChat() {
             <div className="flex gap-2">
               <button
                 onClick={createRoom}
-                className="flex-1 h-11 rounded-[16px] bg-sky-200 text-white font-black"
+                className={`${jelly.button} flex-1 h-11 rounded-[16px] bg-sky-200 text-white font-black`}
               >
                 만들기
               </button>
@@ -2118,7 +2120,7 @@ export default function GroupChat() {
                   setShowCreate(false);
                   setNewRoomName("");
                 }}
-                className="flex-1 h-11 rounded-[16px] bg-white text-sky-600 font-semibold"
+                className={`${jelly.button} flex-1 h-11 rounded-[16px] bg-white text-sky-600 font-semibold`}
               >
                 취소
               </button>
@@ -2129,7 +2131,7 @@ export default function GroupChat() {
             onClick={() =>
               setShowCreate(true)
             }
-            className="w-full h-11 rounded-[16px] bg-sky-200 text-white font-black"
+            className={`${jelly.button} w-full h-11 rounded-[16px] bg-sky-200 text-white font-black`}
           >
             + 방 만들기
           </button>
@@ -2141,7 +2143,7 @@ export default function GroupChat() {
           <button
             key={room.id}
             onClick={() => setCurrentRoom(room)}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
+            className={`${jelly.button} w-full flex items-center gap-3 px-3 py-3 rounded-[18px] mb-2 border transition text-left ${
               currentRoom?.id === room.id
                 ? "bg-sky-200"
                 : "bg-white/80 hover:bg-sky-50 border-sky-200"
@@ -2233,7 +2235,7 @@ export default function GroupChat() {
                   className="w-full h-11 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-violet-200"/>
               </div>
               <button onClick={submitChosung} disabled={!chosungConsonants.trim() || !chosungAnswer.trim()}
-                className="w-full h-12 rounded-2xl bg-violet-400 text-white font-black disabled:opacity-40 active:scale-95 transition">
+                className={`${jelly.button} w-full h-12 rounded-2xl bg-violet-400 text-white font-black disabled:opacity-40 active:scale-95 transition`}>
                 퀴즈 시작!
               </button>
             </div>
@@ -2271,7 +2273,7 @@ export default function GroupChat() {
                 ) : (
                   <>
                     <p className="text-slate-700 text-sm leading-relaxed text-center">{selectedFortune?.text}</p>
-                    <button onClick={() => setShowFortune(false)} className="mt-5 w-full h-12 rounded-[16px] bg-sky-100 text-sky-600 font-black text-sm active:scale-95 transition">
+                    <button onClick={() => setShowFortune(false)} className={`${jelly.button} mt-5 w-full h-12 rounded-[16px] bg-sky-100 text-sky-600 font-black text-sm active:scale-95 transition`}>
                       확인 ✨
                     </button>
                   </>
@@ -2284,11 +2286,11 @@ export default function GroupChat() {
         {ctxMenu && (
           <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
-              <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
+              <button className={`${jelly.button} w-full px-4 py-3 text-left hover:bg-gray-50 text-sm`} onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
               {ctxMenu.isMine && (
                 <>
-                  <button hidden={ctxMenu.msg.type === "sticker"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editGroupMsg(ctxMenu.msgId)}>✏️ 수정</button>
-                  <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteGroupMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
+                  <button hidden={ctxMenu.msg.type === "sticker"} className={`${jelly.button} w-full px-4 py-3 text-left hover:bg-gray-50 text-sm`} onClick={() => editGroupMsg(ctxMenu.msgId)}>✏️ 수정</button>
+                  <button className={`${jelly.button} w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm`} onClick={() => deleteGroupMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
                 </>
               )}
             </div>
@@ -2306,7 +2308,7 @@ export default function GroupChat() {
               onClick={(e) => e.stopPropagation()}
             />
             <button
-              className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center"
+              className={`${jelly.button} absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center`}
               onClick={() => setLightboxSrc(null)}
             >✕</button>
           </div>,
@@ -2357,7 +2359,7 @@ export default function GroupChat() {
             onClick={(e) => e.stopPropagation()}
           />
           <button
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center"
+            className={`${jelly.button} absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 text-white text-xl flex items-center justify-center`}
             onClick={() => setLightboxSrc(null)}
           >✕</button>
         </div>,
