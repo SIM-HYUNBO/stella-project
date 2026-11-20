@@ -192,6 +192,7 @@ export default function SettingsPage() {
   };
 
   const navItems = [
+    { icon: "✦", label: "베이직 · 프리미엄", path: "/upgrade" },
     { icon: "ℹ️", label: "앱 정보", path: "/tools/appinfo" },
     { icon: "🔔", label: "알림",    path: "/no" },
     { icon: "👥", label: "친구",    path: "/fri" },
