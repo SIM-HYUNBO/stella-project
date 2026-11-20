@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 const plans = [
-  { name: "BASIC", label: "베이직", price: "2,000", premium: false },
+  { name: "LIGHT", label: "라이트", price: "2,000", premium: false },
   { name: "PREMIUM", label: "프리미엄", price: "5,000", premium: true },
 ];
 
@@ -26,7 +26,7 @@ export default function UpgradePage() {
         <div className="mb-12 text-center sm:mb-16">
           <p className="mb-5 text-xs font-medium tracking-[0.28em] text-sky-600">WAGIE MEMBERSHIP</p>
           <h1 className="text-[38px] font-semibold leading-[1.2] tracking-tight sm:text-6xl">우리의 대화에<br /><span className="text-sky-500">조금 더 특별함을.</span></h1>
-          <p className="mt-6 text-sm leading-relaxed text-slate-500">베이직과 프리미엄, 나에게 맞는 와기를 만나 봐.</p>
+          <p className="mt-6 text-sm leading-relaxed text-slate-500">라이트와 프리미엄, 나에게 맞는 와기를 만나 봐.</p>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
