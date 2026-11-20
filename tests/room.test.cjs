@@ -7,6 +7,13 @@ const path = require('node:path');
 const exportsObject = {};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/room.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: exportsObject });
 const { validateRoom, validLetter, letterAccess, EMPTY_ROOM } = exportsObject;
+test('second letter occupies a separate spot even when the first was moved', () => {
+  const first = exportsObject.nextLetterPosition([]);
+  const second = exportsObject.nextLetterPosition([{ id: 'first', ...first }]);
+  assert.ok(Math.abs(first.x - second.x) >= 25);
+  const afterMove = exportsObject.nextLetterPosition([{ id: 'first', x: 50, y: 28 }]);
+  assert.ok(Math.abs(50 - afterMove.x) >= 25);
+});
 test('letters are only accessible to their recipient after the unlock time', () => {
   const letter = { toUid: 'recipient', unlockAt: 10000 };
   assert.equal(letterAccess(letter, 'other-user', 20000), 'missing');
