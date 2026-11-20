@@ -3,6 +3,7 @@
   border-radius: 24px;
   margin-bottom: 12px;
   box-shadow: 0 12px 30px -16px rgba(62,131,169,0.28);
+  transition: transform 220ms cubic-bezier(0.2,0.7,0.3,1), box-shadow 220ms ease;
 }
 
 .surface.surface {
@@ -18,6 +19,15 @@
   composes: frame surface;
 }
 
-@media (hover: hover) {
-  .surface:hover { box-shadow: inset 0 1.5px 0 #fff, inset 0 0 0 1px rgba(125,211,252,0.5); }
+@media (hover: hover) and (pointer: fine) {
+  .frame:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 34px -14px rgba(62,131,169,0.36);
+  }
+  .frame:active { transform: translateY(-1px) scale(0.995); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame { transition: none; }
+  .frame:hover, .frame:active { transform: none; }
 }
