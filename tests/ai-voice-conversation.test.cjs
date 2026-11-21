@@ -9,7 +9,7 @@ function harness(onSend) {
  const useRef = initial => { const i=cursor++; if (!(i in hooks)) hooks[i]={current:initial}; return hooks[i]; };
  const element = (type, props)=>({type,...props});
  const speech = { cancel(){}, resume(){}, getVoices(){return []}, speak(value){spoken.push(value);value.onstart?.()} };
- const window = { speechSynthesis:speech, SpeechRecognition:class { constructor(){rec=this} start(){} abort(){this.onend?.()} } };
+ const window = { speechSynthesis:speech, SpeechRecognition:class { constructor(){rec=this} start(){} stop(){} abort(){this.onend?.()} } };
  const mod={exports:{}};
  const source=ts.transpileModule(fs.readFileSync('components/AIVoiceConversation.tsx','utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS}}).outputText;
  vm.runInNewContext(source,{exports:mod.exports, setTimeout, clearTimeout, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; throw Error(name); }});
@@ -17,7 +17,7 @@ function harness(onSend) {
  const render=()=>{cursor=0;tree=mod.exports.default({disabled:false,name:'AI',onSend});return tree};
  function find(label,node=tree) { if(!node||typeof node!=='object')return; if(node['aria-label']===label || (node.type==='button' && node.children?.includes?.(label)))return node; for(const child of [node.children].flat(Infinity).filter(child=>child != null)){ const match=find(label,child);if(match)return match; } }
  render();find('음성 대화').onClick();render();find('말하기').onClick();render();
- return { render, find, rec:()=>rec, spoken, result(text){rec.onresult({results:[Object.assign([{transcript:text}],{isFinal:true})]})} };
+ return { render, find, rec:()=>rec, spoken, result(text, isFinal=true){rec.onresult({results:[Object.assign([{transcript:text}],{isFinal})]})} };
 }
 test('finalized speech sends once and speaks the answer',async()=>{
  const calls=[];const h=harness(async text=>{calls.push(text);return '**안녕**'});
@@ -47,4 +47,14 @@ test('blocked playback can be retried directly without another AI request',async
  let requests=0;const h=harness(async()=>{requests++;return '답변'});
  h.result('질문');await h.rec().onend();h.spoken[0].onerror();h.render();
  h.find('답변 듣기').onClick();assert.equal(requests,1);assert.equal(h.spoken.length,2);assert.equal(h.spoken[1].text,'답변');
+});
+
+test('interim-only recognition still sends the visible transcript on end',async()=>{
+ const calls=[];const h=harness(async text=>{calls.push(text);return '답변'});
+ h.result('인식된 문장',false);await h.rec().onend();assert.deepEqual(calls,['인식된 문장']);assert.equal(h.spoken.length,1);
+});
+test('finish button sends even when browser never fires end, without duplicate sends',async()=>{
+ const calls=[];const h=harness(async text=>{calls.push(text);return '답변'});
+ h.result('질문',false);h.render();h.find('말 끝내기').onClick();await h.rec().onend();
+ assert.deepEqual(calls,['질문']);assert.equal(h.spoken.length,1);
 });
