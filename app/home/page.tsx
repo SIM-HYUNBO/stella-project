@@ -584,7 +584,7 @@ export default function HomePage() {
                 <div>
                   <p className="text-sky-700 text-sm font-semibold mb-1">{getGreeting()}</p>
                   <h1 className="text-4xl font-black leading-tight">
-                    <span className="text-[#526B82]">안녕,</span><br />
+                    <span className="text-[#365879]">안녕,</span><br />
                     <span className="text-[#243B53]">{nickname}</span> 👋
                   </h1>
                   {title && TITLE_MAP[title] && (
