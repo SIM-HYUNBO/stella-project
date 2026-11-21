@@ -1,0 +1,39 @@
+.screen{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;overflow:auto;background:radial-gradient(ellipse at 18% 12%,#e0f4ff 0%,transparent 48%),radial-gradient(ellipse at 88% 78%,#fff5c7 0%,transparent 47%),#fbfdff;color:#172d49;padding:max(20px,env(safe-area-inset-top)) 26px max(22px,env(safe-area-inset-bottom));}
+.header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:650;letter-spacing:.12em;}
+.voiceLabel{font-weight:400;color:#8a9cb0;margin-left:5px;letter-spacing:.18em;font-size:11px;}
+.liveDot{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 15px #38bdf888;}
+.close{display:grid;place-items:center;width:40px;height:40px;border:1px solid #dce8f1;border-radius:50%;background:#ffffff99;color:#7c8fa3;}
+.main{flex:1;min-height:380px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:26px 0 10px;}
+.eyebrow{font-size:10px;letter-spacing:.2em;color:#90a3b6;max-width:100%;overflow-wrap:anywhere;}
+.orbStage{position:relative;display:grid;place-items:center;width:min(310px,75vw);height:min(310px,75vw);margin:18px 0 12px;}
+.halo{position:absolute;inset:-12%;border-radius:50%;background:conic-gradient(from 25deg,#8bd8ff66,#fff3b877,#b8e6ff33,#91cfff66);filter:blur(32px);animation:orbit 18s linear infinite;}
+.ring{position:absolute;inset:3%;border-radius:50%;border:1px solid #b4dcf14d;box-shadow:0 0 0 16px #b6def510,0 0 0 36px #b6def508;}
+.orb{position:relative;width:71%;height:71%;border-radius:48% 52% 53% 47% / 48% 44% 56% 52%;overflow:hidden;display:grid;place-items:center;background:radial-gradient(ellipse at 26% 19%,#ffffffef 0%,#d3f4ffb0 23%,transparent 51%),radial-gradient(ellipse at 72% 76%,#ffe78f 0%,transparent 54%),linear-gradient(135deg,#a9e4ff,#57b9f4 50%,#e0f3ff);box-shadow:inset 0 2px 7px #fff,inset -9px -16px 35px #4a9bdd4d,0 25px 65px #63b9ed26,0 5px 12px #88b8d722;border:1px solid #ffffffb3;animation:float 5s ease-in-out infinite;}
+.orbShine{position:absolute;inset:5% 9% 48% 10%;border-radius:50%;background:linear-gradient(165deg,#ffffffb3,transparent);filter:blur(3px);transform:rotate(-25deg);}
+.orbIcon{position:relative;color:#fff;filter:drop-shadow(0 2px 4px #509cd54d);opacity:.85;}
+.orbShadow{position:absolute;bottom:2%;width:40%;height:12px;border-radius:50%;background:#79b3d629;filter:blur(10px);}
+.heading{font-size:clamp(21px,4.8vw,29px);font-weight:500;letter-spacing:-.045em;margin-top:2px;}
+.caption{font-size:12px;line-height:1.8;color:#8c9caf;margin-top:10px;}
+.wave{display:flex;align-items:center;gap:5px;height:32px;margin-top:23px;}
+.wave span{display:block;width:3px;height:7px;background:#91caf0;border-radius:8px;animation:wave 1.4s ease-in-out infinite;}
+.footer{flex-shrink:0;margin:0 auto;width:100%;max-width:460px;padding-top:12px;}
+.controls{display:flex;gap:22px;align-items:center;justify-content:center;}
+.mute,.end{display:grid;place-items:center;border-radius:50%;transition:transform .2s,box-shadow .2s;}
+.mute{width:54px;height:54px;background:#ffffffb3;border:1px solid #fff;box-shadow:0 4px 18px #487ba00e;color:#7491aa;}
+.end{width:64px;height:64px;background:#203c59;color:#fff;box-shadow:0 7px 22px #203c5926;}
+.close:hover,.mute:hover,.end:hover{transform:translateY(-2px);}
+.screen button:focus-visible{outline:3px solid #38bdf8;outline-offset:4px;}
+.privacy{display:flex;align-items:center;justify-content:center;gap:5px;color:#99a9b8;font-size:10px;margin-top:20px;}
+.error{font-size:12px;line-height:1.8;color:#ad5648;text-align:center;padding:12px 16px;background:#fff5efa6;border-radius:16px;margin-bottom:20px;overflow-wrap:anywhere;}
+.screen[data-phase="thinking"] .orb{animation:float 3s ease-in-out infinite;filter:saturate(.7);}
+.screen[data-phase="speaking"] .orb{animation:float 3s ease-in-out infinite,glow 1.6s ease-in-out infinite;}
+.screen[data-phase="paused"] .wave span,.screen[data-phase="error"] .wave span{animation:none;opacity:.3;}
+.screen[data-phase="paused"] .orb,.screen[data-phase="error"] .orb{animation:none;filter:saturate(.5);}
+.screen[data-phase="paused"] .liveDot,.screen[data-phase="error"] .liveDot{background:#a8b4c0;box-shadow:none;}
+@keyframes orbit{to{transform:rotate(360deg);}}
+@keyframes float{0%,100%{transform:translateY(4px) rotate(-3deg);border-radius:48% 52% 53% 47% / 48% 44% 56% 52%;}50%{transform:translateY(-9px) rotate(3deg);border-radius:53% 47% 46% 54% / 53% 52% 48% 47%;}}
+@keyframes wave{0%,100%{height:6px;opacity:.45;}50%{height:23px;opacity:1;}}
+@keyframes glow{50%{filter:brightness(1.08);}}
+@media(max-height:700px){.main{min-height:290px;padding:10px 0;}.orbStage{width:210px;height:210px;margin:10px 0;}.wave{margin-top:12px;}.privacy{margin-top:12px;}}
+@media(prefers-reduced-motion:reduce){.screen *{animation:none!important;transition:none!important;}}
