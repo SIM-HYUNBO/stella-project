@@ -8,11 +8,11 @@ function harness(onSend) {
  const useState = initial => { const i=cursor++; if (!(i in hooks)) hooks[i]=initial; return [hooks[i], next=>{ hooks[i]=typeof next==='function'?next(hooks[i]):next; }]; };
  const useRef = initial => { const i=cursor++; if (!(i in hooks)) hooks[i]={current:initial}; return hooks[i]; };
  const element = (type, props)=>({type,...props});
- const speech = { cancel(){}, getVoices(){return []}, speak(value){spoken.push(value)} };
+ const speech = { cancel(){}, resume(){}, getVoices(){return []}, speak(value){spoken.push(value);value.onstart?.()} };
  const window = { speechSynthesis:speech, SpeechRecognition:class { constructor(){rec=this} start(){} abort(){this.onend?.()} } };
  const mod={exports:{}};
  const source=ts.transpileModule(fs.readFileSync('components/AIVoiceConversation.tsx','utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS}}).outputText;
- vm.runInNewContext(source,{exports:mod.exports, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; throw Error(name); }});
+ vm.runInNewContext(source,{exports:mod.exports, setTimeout, clearTimeout, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; throw Error(name); }});
  let tree;
  const render=()=>{cursor=0;tree=mod.exports.default({disabled:false,name:'AI',onSend});return tree};
  function find(label,node=tree) { if(!node||typeof node!=='object')return; if(node['aria-label']===label || (node.type==='button' && node.children?.includes?.(label)))return node; for(const child of [node.children].flat(Infinity).filter(child=>child != null)){ const match=find(label,child);if(match)return match; } }
@@ -42,4 +42,9 @@ test('voice entry is outside the editable-name conditional',()=>{
   ts.forEachChild(node,visit);
  }
  visit(source);assert.equal(count,1);
+});
+test('blocked playback can be retried directly without another AI request',async()=>{
+ let requests=0;const h=harness(async()=>{requests++;return '답변'});
+ h.result('질문');await h.rec().onend();h.spoken[0].onerror();h.render();
+ h.find('답변 듣기').onClick();assert.equal(requests,1);assert.equal(h.spoken.length,2);assert.equal(h.spoken[1].text,'답변');
 });

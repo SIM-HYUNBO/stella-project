@@ -16,8 +16,10 @@ export default function AIVoiceConversation({ disabled, name, onSend }: {
   const recognition = useRef<any>(null);
   const generation = useRef(0);
   const utterance = useRef<SpeechSynthesisUtterance | null>(null);
+  const speechTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stop = () => {
     generation.current++; active.current = false;
+    if (speechTimer.current) clearTimeout(speechTimer.current);
     recognition.current?.abort(); recognition.current = null;
     window.speechSynthesis?.cancel(); utterance.current = null;
   };
@@ -31,6 +33,25 @@ export default function AIVoiceConversation({ disabled, name, onSend }: {
     document.addEventListener("visibilitychange", hide);
     return () => { document.removeEventListener("visibilitychange", hide); document.body.style.overflow = overflow; previousFocus?.focus(); };
   }, [open]);
+  const playAnswer = (result: string, token: number) => {
+    const synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === "undefined") { active.current = false; setPhase("idle"); setError("이 브라우저에서는 답변을 소리로 읽을 수 없어."); return; }
+    synth.cancel(); synth.resume();
+    setError("");
+    const speech = new SpeechSynthesisUtterance(result.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/https?:\/\/\S+/g, "").replace(/[*#_`|]/g, " "));
+    utterance.current = speech; speech.lang = "ko-KR"; speech.rate = 1;
+    speech.voice = window.speechSynthesis.getVoices().find(voice => voice.lang.startsWith("ko")) || null;
+    const done = () => { if (token === generation.current) { active.current = false; setPhase("idle"); utterance.current = null; } };
+    speech.onstart = () => { if (speechTimer.current) clearTimeout(speechTimer.current); };
+    speech.onend = () => { if (speechTimer.current) clearTimeout(speechTimer.current); done(); };
+    speech.onerror = () => { if (speechTimer.current) clearTimeout(speechTimer.current); done(); if (token === generation.current) setError("음성 재생이 막혔어. ‘답변 듣기’를 눌러 줘."); };
+    speechTimer.current = setTimeout(() => {
+      if (token !== generation.current) return;
+      generation.current++; synth.cancel(); active.current = false; setPhase("idle");
+      setError("소리가 시작되지 않았어. ‘답변 듣기’를 눌러 다시 재생해 줘.");
+    }, 8000);
+    setPhase("speaking"); window.speechSynthesis.speak(speech);
+  };
   const listen = () => {
     if (active.current || disabled) return;
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -64,12 +85,7 @@ export default function AIVoiceConversation({ disabled, name, onSend }: {
         if (token !== generation.current) return;
         if (!result) { setError("답변을 받지 못했어. 채팅 화면의 안내도 확인해 줘."); active.current = false; setPhase("idle"); return; }
         setAnswer(result);
-        const speech = new SpeechSynthesisUtterance(result.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/https?:\/\/\S+/g, "").replace(/[*#_`|]/g, " "));
-        utterance.current = speech; speech.lang = "ko-KR"; speech.rate = 1;
-        speech.voice = window.speechSynthesis.getVoices().find(voice => voice.lang.startsWith("ko")) || null;
-        const done = () => { if (token === generation.current) { active.current = false; setPhase("idle"); utterance.current = null; } };
-        speech.onend = done; speech.onerror = () => { done(); if (token === generation.current) setError("소리 재생을 마치지 못했어. 답변은 아래에서 읽을 수 있어."); };
-        setPhase("speaking"); window.speechSynthesis.speak(speech);
+        playAnswer(result, token);
       } catch { if (token === generation.current) { active.current = false; setPhase("idle"); setError("음성 대화가 끊겼어. 다시 시도해 줘."); } }
     };
     try { rec.start(); setPhase("listening"); } catch { active.current = false; setPhase("idle"); setError("마이크를 시작하지 못했어. 다시 눌러 줘."); }
@@ -90,7 +106,7 @@ export default function AIVoiceConversation({ disabled, name, onSend }: {
         <div className={`flex h-32 w-32 shrink-0 items-center justify-center rounded-full border border-white bg-sky-100 text-sky-500 shadow-[0_12px_60px_#bae6fd80] ${phase !== "idle" ? "animate-pulse motion-reduce:animate-none" : ""}`}>{phase === "speaking" ? <Volume2 size={45} strokeWidth={1.4} /> : <Mic size={45} strokeWidth={1.4} />}</div>
         <p role="status" className="text-sm text-slate-500">{phase === "listening" ? "듣고 있어. 말이 끝나면 잠깐 기다려 줘." : phase === "thinking" ? "답변을 생각하고 있어…" : phase === "speaking" ? "이야기하고 있어" : "마이크를 누르고 편하게 말해 봐"}</p>
         {text && <p className="w-full rounded-2xl bg-sky-100/70 px-5 py-3 text-sm text-slate-700">{text}</p>}
-        {answer && <p className="w-full whitespace-pre-wrap text-sm leading-7 text-slate-700">{answer}</p>}
+        {answer && <><p className="w-full whitespace-pre-wrap text-sm leading-7 text-slate-700">{answer}</p><button type="button" disabled={phase !== "idle" || disabled} onClick={() => { active.current = true; playAnswer(answer, ++generation.current); }} className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-sky-600 shadow-sm disabled:opacity-40"><Volume2 size={18} />답변 듣기</button></>}
         {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
       </div>
       <div className="flex justify-center pb-6">{phase === "idle" ? <button type="button" disabled={disabled} onClick={listen} className="flex items-center gap-2 rounded-full bg-sky-500 px-7 py-4 text-sm font-medium text-white shadow-lg disabled:opacity-40"><Mic size={20} />말하기</button> : <button type="button" onClick={() => { stop(); setPhase("idle"); }} className="flex items-center gap-2 rounded-full bg-white px-7 py-4 text-sm text-slate-600 shadow"><Square size={18} />멈추기</button>}</div>
