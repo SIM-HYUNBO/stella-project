@@ -22,7 +22,7 @@
 
 .hero {
   background: linear-gradient(120deg, rgba(255, 248, 148, 0.98), rgba(173,216,247,0.95) 52%, rgba(137,198,239,0.95));
-  --panel-depth: 0 6px 12px -8px rgba(28,126,183,0.24), 0 22px 42px -24px rgba(28,126,183,0.42);
+  --panel-depth: 0 6px 12px -8px rgba(28,126,183,0.24), 0 22px 42px -24px rgba(28, 126, 183, 0.274);
 }
 
 .stat {
