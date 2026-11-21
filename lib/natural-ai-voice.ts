@@ -1,10 +1,8 @@
-type VoiceReply = { id: number; type: string; message?: string; samples?: Float32Array; sampleRate?: number };
-type Pending = { resolve: (value: VoiceReply) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout>; progress?: (message: string) => void };
+import { spokenAIText } from "./ai-voice-text";
+export { spokenAIText } from "./ai-voice-text";
+type VoiceReply = { id: number; type: string; voiceId?: string; message?: string; samples?: Float32Array; sampleRate?: number };
+type Pending = { resolve: (value: VoiceReply) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout>; progress?: (message: string) => void; voiceId: string };
 export type AIVoiceGender = "female" | "male";
-
-export function spokenAIText(text: string) {
-  return text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/https?:\/\/\S+/g, "").replace(/[*#_`|]/g, " ").replace(/\s+/g, " ").trim();
-}
 
 // No cloud speech API: the model runs in a dedicated worker on the user's device.
 export class NaturalAIVoice {
@@ -23,13 +21,14 @@ export class NaturalAIVoice {
   }
   private request(type: string, text?: string, progress?: (message: string) => void, gender = this.gender): Promise<VoiceReply> {
     if (!this.worker) {
-      this.worker = new Worker('/voice/supertonic-worker.js', { type: 'module' });
+      this.worker = new Worker('/voice/supertonic-worker.js?v=voice-presets-2', { type: 'module' });
       this.worker.onmessage = ({ data }: MessageEvent<VoiceReply>) => {
         const pending = this.pending.get(data.id);
         if (!pending) return;
         if (data.type === 'progress') { pending.progress?.(data.message || '목소리를 준비하고 있어'); return; }
         clearTimeout(pending.timer); this.pending.delete(data.id);
         if (data.type === 'error') pending.reject(new Error(data.message));
+        else if (data.voiceId !== pending.voiceId) pending.reject(new Error('선택한 목소리가 반영되지 않았어. 새로고침한 뒤 다시 연결해 줘.'));
         else pending.resolve(data);
       };
       this.worker.onerror = () => this.dispose();
@@ -41,7 +40,7 @@ export class NaturalAIVoice {
         reject(new Error('목소리 준비가 오래 걸리고 있어. 연결 상태를 확인하고 다시 연결해 줘.'));
         this.dispose();
       }, type === 'init' ? 240000 : 90000);
-      this.pending.set(id, { resolve, reject, timer, progress });
+      this.pending.set(id, { resolve, reject, timer, progress, voiceId: gender === "male" ? "M1" : "F1" });
       this.worker!.postMessage({ id, type, text, voiceId: gender === "male" ? "M1" : "F1" });
     });
   }
@@ -52,7 +51,7 @@ export class NaturalAIVoice {
     }
     return this.ready;
   }
-  speak(text: string, started: () => void, ended: () => void, failed: () => void) {
+  speak(text: string, started: () => void, ended: () => void, failed: (message?: string) => void) {
     const token = ++this.generation;
     const gender = this.gender;
     void (async () => {
@@ -83,7 +82,7 @@ export class NaturalAIVoice {
           await new Promise<void>(resolve => { source.onended = () => { source.disconnect(); resolve(); }; source.start(); if (!didStart) { didStart = true; started(); } });
         }
         if (token === this.generation) { this.source = null; ended(); }
-      } catch { if (token === this.generation) failed(); }
+      } catch (error) { if (token === this.generation) failed(error instanceof Error && /[가-힣]/.test(error.message) ? error.message : undefined); }
     })();
     return () => { this.generation++; try { this.source?.stop(); } catch {} this.source = null; };
   }

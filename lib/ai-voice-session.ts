@@ -9,7 +9,7 @@ type Dependencies = {
   busy: () => boolean;
   prepare?: () => Promise<void>;
   send: (text: string) => Promise<string | undefined>;
-  speak: (text: string, started: () => void, ended: () => void, failed: () => void) => () => void;
+  speak: (text: string, started: () => void, ended: () => void, failed: (message?: string) => void) => () => void;
   state: (state: VoiceState) => void;
   schedule?: typeof setTimeout;
   cancel?: typeof clearTimeout;
@@ -75,7 +75,7 @@ export class AIVoiceSession {
             ended = true; this.clearTimer(); this.stopSpeech = null;
             this.later(() => this.listen(token), 500);
           },
-          () => { if (this.valid(token) && !ended) this.fail("목소리를 재생하지 못했어. 소리 설정을 확인하고 다시 연결해 줘."); },
+          message => { if (this.valid(token) && !ended) this.fail(message || "목소리를 재생하지 못했어. 소리 설정을 확인하고 다시 연결해 줘."); },
         );
         if (this.valid(token) && !ended) this.stopSpeech = cancelSpeech;
         else cancelSpeech();

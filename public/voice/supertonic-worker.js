@@ -19,11 +19,11 @@ async function handle({ id, type, text, voiceId = 'F1' }) {
       await initializing;
     }
     if (!styles.has(voiceId)) styles.set(voiceId, await loadVoiceStyle([`${ASSETS}/voice_styles/${voiceId}.json`]));
-    if (type === 'init') { self.postMessage({ id, type: 'ready' }); return; }
+    if (type === 'init') { self.postMessage({ id, type: 'ready', voiceId }); return; }
     if (type !== 'speak' || typeof text !== 'string' || !text.trim() || text.length > 6000) throw Error('Invalid voice request');
     const result = await engine.call(text, 'ko', styles.get(voiceId), 5, 1.0);
     const samples = Float32Array.from(result.wav);
-    self.postMessage({ id, type: 'audio', samples, sampleRate: engine.sampleRate }, [samples.buffer]);
+    self.postMessage({ id, type: 'audio', voiceId, samples, sampleRate: engine.sampleRate }, [samples.buffer]);
   } catch {
     initializing = undefined;
     self.postMessage({ id, type: 'error', message: '무료 한국어 목소리를 준비하지 못했어. 인터넷 연결과 기기 메모리를 확인한 뒤 다시 연결해 줘.' });

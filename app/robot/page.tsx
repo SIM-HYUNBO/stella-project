@@ -163,10 +163,10 @@ function RobotPage() {
     setRobotName(editInput.trim()); setEditingName(false);
   };
 
-  const streamAI = async (msgs: any[], onChunk: (t: string) => void): Promise<string> => {
+  const streamAI = async (msgs: any[], onChunk: (t: string) => void, voice = false): Promise<string> => {
     const res = await apiFetch("/api/ai", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs, robotName }),
+      body: JSON.stringify({ messages: msgs, robotName, ...(voice ? { mode: "voice" } : {}) }),
     });
     if (!res.ok) throw await requestError(res);
       clearRateLimit();
@@ -255,7 +255,7 @@ function RobotPage() {
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "user", content: userText, ...(attached ? { media: attached } : {}), createdAt: serverTimestamp() });
       userSaved = true; if (!voiceText) setPendingMedia(null);
       stage = "답변 요청";
-      const full = await streamAI(history, (t) => setStreamingText(t));
+      const full = await streamAI(history, (t) => setStreamingText(t), !!voiceText);
       stage = "답변 저장";
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "assistant", content: full, createdAt: serverTimestamp() });
       return full;
