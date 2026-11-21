@@ -66,6 +66,7 @@ export default function UpgradePage() {
               <ul className="mb-7 space-y-3 border-t border-white/10 pt-5 text-sm text-slate-200">
                 <li className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-300">✓</span>일반 AI 이용</li>
                 {plan.premium && <li className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-300">✓</span>학습용 AI 이용</li>}
+                {plan.premium && <li className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-300">✓</span>새 기능 미리보기</li>}
               </ul>
               <button type="button" disabled className={`flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border text-sm font-medium ${plan.premium ? "border-sky-100 bg-gradient-to-r from-sky-200 to-[#c5dfff] text-[#172a40] shadow-[0_0_24px_-8px_rgba(125,211,252,0.5)]" : "border-white/15 bg-white/5 text-slate-300"}`}>
                 <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="5" y="10" width="14" height="11" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
@@ -77,7 +78,7 @@ export default function UpgradePage() {
         <section aria-labelledby="plan-comparison" className="mt-10 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03]">
           <h2 id="plan-comparison" className="px-5 pb-4 pt-6 text-lg font-medium sm:px-7">기능 비교</h2>
           <table className="w-full table-fixed text-sm">
-            <caption className="sr-only">라이트와 프리미엄의 예정된 AI 이용 혜택</caption>
+            <caption className="sr-only">라이트와 프리미엄의 멤버십 혜택 비교</caption>
             <thead>
               <tr className="border-b border-white/10 text-xs text-slate-400">
                 <th scope="col" className="w-[42%] px-5 py-4 text-left font-normal sm:px-7">기능</th>
@@ -91,8 +92,13 @@ export default function UpgradePage() {
                 <td className="px-2 py-5 text-center text-sky-200">포함</td>
                 <td className="px-2 py-5 text-center text-sky-200">포함</td>
               </tr>
-              <tr>
+              <tr className="border-b border-white/5">
                 <th scope="row" className="px-5 py-5 text-left font-normal text-slate-300 sm:px-7">학습용 AI</th>
+                <td className="px-2 py-5 text-center text-slate-500">미포함</td>
+                <td className="px-2 py-5 text-center text-sky-200">포함</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-5 text-left font-normal text-slate-300 sm:px-7">새 기능 미리보기</th>
                 <td className="px-2 py-5 text-center text-slate-500">미포함</td>
                 <td className="px-2 py-5 text-center text-sky-200">포함</td>
               </tr>
