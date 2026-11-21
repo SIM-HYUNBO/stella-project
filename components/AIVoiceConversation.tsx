@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Headphones, Mic, MicOff, X, RotateCcw, AudioLines } from "lucide-react";
 import AIRateLimit from "./AIRateLimit";
 import { AIVoiceSession, VoiceState } from "@/lib/ai-voice-session";
-import { NaturalAIVoice } from "@/lib/natural-ai-voice";
+import { NaturalAIVoice, AIVoiceGender } from "@/lib/natural-ai-voice";
 import styles from "./ai-voice.module.css";
 
 export default function AIVoiceConversation({ disabled, name, onSend, retryAt = null }: {
@@ -15,6 +15,14 @@ export default function AIVoiceConversation({ disabled, name, onSend, retryAt = 
   const [state, setState] = useState<VoiceState>({ phase: "paused" });
   const session = useRef<AIVoiceSession | null>(null);
   const voice = useRef<NaturalAIVoice | null>(null);
+  const [gender, setGender] = useState<AIVoiceGender>("female");
+  useEffect(() => {
+    try { const saved = localStorage.getItem("wagie.aiVoiceGender"); if (saved === "male" || saved === "female") { setGender(saved); voice.current?.setVoice(saved); } } catch {}
+  }, []);
+  const selectVoice = (next: AIVoiceGender) => {
+    setGender(next); voice.current?.setVoice(next);
+    try { localStorage.setItem("wagie.aiVoiceGender", next); } catch {}
+  };
   const [voiceProgress, setVoiceProgress] = useState("목소리를 준비하고 있어");
   const latest = useRef({ disabled, onSend });
   latest.current = { disabled, onSend };
@@ -23,7 +31,7 @@ export default function AIVoiceConversation({ disabled, name, onSend, retryAt = 
     if (!(window as any).SpeechRecognition && !(window as any).webkitSpeechRecognition) {
       setState({ phase: "error", error: "이 브라우저는 음성 인식을 지원하지 않아. 다른 브라우저에서 열어 줘." }); return;
     }
-    try { voice.current ||= new NaturalAIVoice(); voice.current.unlock(); } catch { setState({ phase: "error", error: "이 기기에서는 자연스러운 음성 재생을 시작할 수 없어. 다른 브라우저에서 열어 줘." }); return; }
+    try { voice.current ||= new NaturalAIVoice(); voice.current.setVoice(gender); voice.current.unlock(); } catch { setState({ phase: "error", error: "이 기기에서는 자연스러운 음성 재생을 시작할 수 없어. 다른 브라우저에서 열어 줘." }); return; }
     if (!session.current) session.current = new AIVoiceSession({
       busy: () => latest.current.disabled,
       prepare: () => voice.current!.prepare(setVoiceProgress),
@@ -78,6 +86,14 @@ export default function AIVoiceConversation({ disabled, name, onSend, retryAt = 
         <div className={styles.wave} aria-hidden="true">{[0,1,2,3,4,5,6].map(i => <span key={i} style={{ animationDelay: `${i * 0.12}s` }} />)}</div>
       </main>
       <footer className={styles.footer}>
+        <div className={styles.voiceOptions} role="group" aria-label="AI 목소리 선택">
+          <span className={styles.voiceTitle}>목소리</span>
+          <div className={styles.voiceSwitch}>
+            <button type="button" aria-pressed={gender === "female"} onClick={() => selectVoice("female")}>여성</button>
+            <button type="button" aria-pressed={gender === "male"} onClick={() => selectVoice("male")}>남성</button>
+          </div>
+          <span className={styles.voiceHint}>다음 답변부터 적용</span>
+        </div>
         <AIRateLimit retryAt={retryAt} />
         {state.error && <p role="alert" className={styles.error}>{state.error}</p>}
         <div className={styles.controls}>

@@ -1,5 +1,6 @@
 type VoiceReply = { id: number; type: string; message?: string; samples?: Float32Array; sampleRate?: number };
 type Pending = { resolve: (value: VoiceReply) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout>; progress?: (message: string) => void };
+export type AIVoiceGender = "female" | "male";
 
 export function spokenAIText(text: string) {
   return text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/https?:\/\/\S+/g, "").replace(/[*#_`|]/g, " ").replace(/\s+/g, " ").trim();
@@ -14,11 +15,13 @@ export class NaturalAIVoice {
   private sequence = 0;
   private generation = 0;
   private ready: Promise<void> | null = null;
+  private gender: AIVoiceGender = "female";
+  setVoice(gender: AIVoiceGender) { this.gender = gender === "male" ? "male" : "female"; }
   unlock() {
     this.context ||= new AudioContext();
     void this.context.resume().catch(() => {});
   }
-  private request(type: string, text?: string, progress?: (message: string) => void): Promise<VoiceReply> {
+  private request(type: string, text?: string, progress?: (message: string) => void, gender = this.gender): Promise<VoiceReply> {
     if (!this.worker) {
       this.worker = new Worker('/voice/supertonic-worker.js', { type: 'module' });
       this.worker.onmessage = ({ data }: MessageEvent<VoiceReply>) => {
@@ -39,7 +42,7 @@ export class NaturalAIVoice {
         this.dispose();
       }, type === 'init' ? 240000 : 90000);
       this.pending.set(id, { resolve, reject, timer, progress });
-      this.worker!.postMessage({ id, type, text });
+      this.worker!.postMessage({ id, type, text, voiceId: gender === "male" ? "M1" : "F1" });
     });
   }
   prepare(progress: (message: string) => void) {
@@ -51,13 +54,14 @@ export class NaturalAIVoice {
   }
   speak(text: string, started: () => void, ended: () => void, failed: () => void) {
     const token = ++this.generation;
+    const gender = this.gender;
     void (async () => {
       try {
         const spoken = spokenAIText(text);
         if (!spoken) throw Error('Empty speech');
         // Small chunks keep time to first audio and peak memory bounded.
         const chunks = (spoken.match(/[^.!?。！？]{1,160}(?:[.!?。！？]+|\s|$)|[\s\S]{1,160}/g) || [spoken]).filter(chunk => chunk.trim());
-        const generate = (chunk: string) => this.request('speak', chunk.trim()).then(audio => ({ audio }), error => ({ error }));
+        const generate = (chunk: string) => this.request('speak', chunk.trim(), undefined, gender).then(audio => ({ audio }), error => ({ error }));
         let nextAudio = generate(chunks[0]);
         let didStart = false;
         for (let index = 0; index < chunks.length; index++) {

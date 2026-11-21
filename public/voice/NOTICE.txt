@@ -5,7 +5,7 @@ Source: https://github.com/supertone-oss-archive/supertonic/blob/main/web/helper
 License: MIT (see LICENSE-supertonic.txt).
 Local changes: pinned ONNX Runtime Web 1.23.2, single-threaded WASM, persistent model cache.
 
-Model: Supertone/supertonic-2, Korean (ko), preset F1.
+Model: Supertone/supertonic-2, Korean (ko), presets F1 (female) and M1 (male).
 Revision: 75e6727618a02f323c720cba9478152d4bc16ca4
 Model license: BigScience Open RAIL-M (included in LICENSE-supertonic.txt).
 Models are fetched directly by the browser from Hugging Face when voice is opened.

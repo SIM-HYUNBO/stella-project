@@ -18,6 +18,11 @@
 .wave{display:flex;align-items:center;gap:5px;height:32px;margin-top:23px;}
 .wave span{display:block;width:3px;height:7px;background:#91caf0;border-radius:8px;animation:wave 1.4s ease-in-out infinite;}
 .footer{flex-shrink:0;margin:0 auto;width:100%;max-width:460px;padding-top:12px;}
+.voiceOptions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.voiceTitle,.voiceHint{font-size:10px;color:#8c9caf;}
+.voiceSwitch{display:flex;gap:3px;padding:4px;border:1px solid #fff;background:#ffffff80;border-radius:999px;box-shadow:0 3px 14px #487ba008;}
+.voiceSwitch button{border-radius:999px;padding:8px 18px;font-size:12px;color:#8a9cb0;transition:background .2s,color .2s,box-shadow .2s;}
+.voiceSwitch button[aria-pressed="true"]{background:#fff;color:#2582b8;box-shadow:0 2px 9px #487ba014;}
 .controls{display:flex;gap:22px;align-items:center;justify-content:center;}
 .mute,.end{display:grid;place-items:center;border-radius:50%;transition:transform .2s,box-shadow .2s;}
 .mute{width:54px;height:54px;background:#ffffffb3;border:1px solid #fff;box-shadow:0 4px 18px #487ba00e;color:#7491aa;}
