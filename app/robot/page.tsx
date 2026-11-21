@@ -1,5 +1,8 @@
 "use client";
 
+import AIAssistantActions from "@/components/AIAssistantActions";
+import { aiRetryContext } from "@/lib/ai-retry-context";
+import { runTransaction } from "firebase/firestore";
 import { apiFetch } from "@/lib/api-fetch";
 import AIMembershipGate from "@/components/AIMembershipGate";
 import { buildConversations, conversationDay } from "@/lib/ai-conversations";
@@ -21,7 +24,7 @@ import {
   serverTimestamp, deleteDoc, doc, setDoc, updateDoc,
 } from "firebase/firestore";
 
-type ChatMessage = { id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; };
+type ChatMessage = { feedback?: "like" | "dislike" | null; id: string; role: "user" | "assistant"; content: string; createdAt: any; sessionId?: string; media?: AIMedia; };
 
 const accent = { from: "#38bdf8", to: "#2797d4", shadow: "rgba(56,189,248,0.22)", ring: "#bae6fd" };
 
@@ -68,6 +71,7 @@ function RobotPage() {
   const [showHistory, setShowHistory] = useState(false);
   const historyDialog = useRef<HTMLDialogElement>(null);
   const sendingRef = useRef(false);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
   const [conversationTitles, setConversationTitles] = useState<Record<string, string>>({});
   const [renamingChat, setRenamingChat] = useState<string | null>(null);
   const [chatTitle, setChatTitle] = useState("");
@@ -198,6 +202,33 @@ function RobotPage() {
       if (!saved) throw err;
       setErrorMsg(friendlyError(err?.message || ""));
     } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); }
+  };
+
+  const retryAnswer = async (id: string) => {
+    if (!user || sendingRef.current || mediaBusy) return;
+    const context = aiRetryContext(messages, id);
+    if (!context) { setErrorMsg("이 답변의 질문을 찾지 못했어."); return; }
+    sendingRef.current = true;
+    setIsStreaming(true); setRetryingId(id); setErrorMsg(null);
+    try {
+      const response = await apiFetch("/api/ai", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: mediaHistory(context.history), robotName }),
+      });
+      if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || `server ${response.status}`); }
+      if (!response.body) throw new Error("empty response");
+      const full = await readAIStream(response.body, () => {});
+      await runTransaction(db, async transaction => {
+        const target = doc(db, "robotChats", user.uid, "messages", id);
+        const prompt = doc(db, "robotChats", user.uid, "messages", context.prompt.id);
+        const current = await transaction.get(target);
+        const question = await transaction.get(prompt);
+        if (!current.exists() || !question.exists() || current.data().content !== context.target.content || question.data().content !== context.prompt.content) throw new Error("conversation changed");
+        transaction.update(target, { content: full, feedback: null });
+      });
+    } catch (error: any) {
+      setErrorMsg(error?.message === "conversation changed" ? "대화가 변경돼서 교체하지 않았어. 다시 눌러 줘." : friendlyError(error?.message || ""));
+    } finally { sendingRef.current = false; setIsStreaming(false); setRetryingId(null); }
   };
 
   const send = async () => {
@@ -365,11 +396,13 @@ function RobotPage() {
                 <article className="py-3 text-[15px] leading-7 text-slate-800">
                   <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
                   <div className="whitespace-pre-wrap break-words"><AIResponse text={msg.content} /></div>
+                  {retryingId === msg.id && <p role="status" className="mt-2 animate-pulse text-xs text-sky-500">새 답변을 만들고 있어…</p>}
+                  <AIAssistantActions content={msg.content} feedback={msg.feedback} disabled={isStreaming || mediaBusy} onError={setErrorMsg} onRetry={() => retryAnswer(msg.id)} onFeedback={async feedback => { await updateDoc(doc(db, "robotChats", user.uid, "messages", msg.id), { feedback }); }} />
                 </article>
               )}
             </div>
           ))}
-          {isStreaming && (
+          {isStreaming && !retryingId && (
             <article aria-busy="true" className="relative mx-auto w-full max-w-2xl py-3 text-[15px] leading-7 text-slate-800">
               <p className={`mb-2 text-xs font-medium ${theme.answerName}`}>{robotName}</p>
               <div className="whitespace-pre-wrap break-words">

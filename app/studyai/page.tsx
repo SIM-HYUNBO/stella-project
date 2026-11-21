@@ -1,5 +1,8 @@
 "use client";
 
+import AIAssistantActions from "@/components/AIAssistantActions";
+import { aiRetryContext } from "@/lib/ai-retry-context";
+import { runTransaction } from "firebase/firestore";
 import { apiFetch } from "@/lib/api-fetch";
 import AIMembershipGate from "@/components/AIMembershipGate";
 
@@ -22,7 +25,7 @@ import {
   onSnapshot,
   serverTimestamp,
   getDocs,
-  deleteDoc, doc,
+  deleteDoc, doc, updateDoc,
 } from "firebase/firestore";
 
 /* =========================================================
@@ -30,6 +33,7 @@ import {
 ========================================================= */
 
 type StudyMsg = {
+  feedback?: "like" | "dislike" | null;
   id: string;
   media?: AIMedia;
   role: "user" | "ai";
@@ -650,6 +654,7 @@ function StudyAIPage() {
   const [authReady, setAuthReady] = useState(false);
   const [historyReady, setHistoryReady] = useState(false);
   const sendingRef = useRef(false);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
   const [user, setUser] =
     useState<any>(null);
 
@@ -775,6 +780,33 @@ function StudyAIPage() {
       if (!saved) throw err;
       setErrorMsg(friendlyError(err?.message || ""));
     } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); }
+  };
+
+  const retryAnswer = async (id: string) => {
+    if (!user || sendingRef.current || mediaBusy) return;
+    const context = aiRetryContext(messages, id);
+    if (!context) { setErrorMsg("이 답변의 질문을 찾지 못했어."); return; }
+    sendingRef.current = true;
+    setIsStreaming(true); setRetryingId(id); setErrorMsg(null);
+    try {
+      const response = await apiFetch("/api/ai", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: mediaHistory(context.history), mode: "study", robotName: "학습용 AI" }),
+      });
+      if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || `server ${response.status}`); }
+      if (!response.body) throw new Error("empty response");
+      const full = await readAIStream(response.body, () => {});
+      await runTransaction(db, async transaction => {
+        const target = doc(db, "studyChats", user.uid, "messages", id);
+        const prompt = doc(db, "studyChats", user.uid, "messages", context.prompt.id);
+        const current = await transaction.get(target);
+        const question = await transaction.get(prompt);
+        if (!current.exists() || !question.exists() || current.data().content !== context.target.content || question.data().content !== context.prompt.content) throw new Error("conversation changed");
+        transaction.update(target, { content: full, feedback: null });
+      });
+    } catch (error: any) {
+      setErrorMsg(error?.message === "conversation changed" ? "대화가 변경돼서 교체하지 않았어. 다시 눌러 줘." : friendlyError(error?.message || ""));
+    } finally { sendingRef.current = false; setIsStreaming(false); setRetryingId(null); }
   };
 
   const send = async () => {
@@ -1015,6 +1047,8 @@ function StudyAIPage() {
                       msg.content
                     }
                   />
+                  {retryingId === msg.id && <p role="status" className="mt-2 animate-pulse text-xs text-sky-500">새 답변을 만들고 있어…</p>}
+                  <AIAssistantActions content={msg.content} feedback={msg.feedback} disabled={isStreaming || mediaBusy} onError={setErrorMsg} onRetry={() => retryAnswer(msg.id)} onFeedback={async feedback => { await updateDoc(doc(db, "studyChats", user.uid, "messages", msg.id), { feedback }); }} />
                 </div>
               )}
             </div>
@@ -1023,7 +1057,7 @@ function StudyAIPage() {
 
         {/* STREAMING */}
 
-        {isStreaming && (
+        {isStreaming && !retryingId && (
           <div
             className="mx-auto w-full max-w-2xl py-4"
             style={{
