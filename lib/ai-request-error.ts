@@ -1,4 +1,5 @@
 export function aiRequestFailure(status: number, data: { error?: unknown; code?: unknown }) {
+  if (data.code === "FIRESTORE_QUOTA") return "와기 데이터베이스(Firestore)의 이용 한도가 찼어. AI 모델 한도가 아니라서 데이터베이스 한도가 복구돼야 다시 사용할 수 있어.";
   const message = typeof data.error === "string" ? data.error : "서버가 오류 내용을 보내지 않았어.";
   if (status === 429) return message;
   const code = typeof data.code === "string" ? data.code.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) : "";

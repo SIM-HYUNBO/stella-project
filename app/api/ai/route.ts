@@ -153,6 +153,7 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
     });
 
   } catch (err: any) {
+    if (Number(err?.code) === 8) return NextResponse.json({ error: "와기 데이터베이스(Firestore)의 이용 한도가 찼어. AI 모델 사용량 한도가 아니라서 데이터베이스 한도가 복구돼야 다시 사용할 수 있어.", code: "FIRESTORE_QUOTA", retryable: false }, { status: 503 });
     if (err instanceof ApiError) return NextResponse.json({ error: err.message, retryAfterSeconds: err.retryAfterSeconds }, { status: err.status, headers: err.retryAfterSeconds !== undefined ? { "Retry-After": String(err.retryAfterSeconds) } : undefined });
     return NextResponse.json({ error: err?.message || "서버 오류" }, { status: 500 });
   }

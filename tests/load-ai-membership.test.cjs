@@ -7,3 +7,5 @@ test('refreshes expired auth once, without bypassing denial',async()=>{let calls
 test('does not retry membership rejection or invent access',async()=>{let calls=0;await assert.rejects(loadAIMembership(async()=>{calls++;return Response.json({error:'denied'},{status:403})},async()=>{},async()=>{}),/denied/);assert.equal(calls,1)});
 test('stops after bounded connectivity retries',async()=>{let calls=0;await assert.rejects(loadAIMembership(async()=>{calls++;throw Error('offline')},async()=>{},async()=>{}));assert.equal(calls,3)});
 test('rejects invalid plan data',async()=>{await assert.rejects(loadAIMembership(async()=>Response.json({plan:'premium'}),async()=>{},async()=>{}))});
+
+test('does not retry exhausted database quota',async()=>{let calls=0;await assert.rejects(loadAIMembership(async()=>{calls++;return Response.json({error:'database quota',retryable:false},{status:503})},async()=>{},async()=>{}),/database quota/);assert.equal(calls,1)});

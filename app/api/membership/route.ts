@@ -11,6 +11,7 @@ export async function GET(req: Request) {
     if (!(error instanceof ApiError)) {
       const code = error && typeof error === "object" && "code" in error ? error.code : "unknown";
       console.error("Membership lookup failed", { code });
+      if (Number(code) === 8) return NextResponse.json({ error: "와기 데이터베이스(Firestore)의 이용 한도가 차서 멤버십을 확인할 수 없어. 멤버십이 사라진 것은 아니야. 데이터베이스 한도가 복구된 뒤 다시 시도해 줘.", code: "FIRESTORE_QUOTA", retryable: false }, { status: 503, headers: { "Cache-Control": "no-store" } });
       if ([4, 8, 10, 13, 14].includes(Number(code))) return NextResponse.json({ error: "멤버십 서버 연결이 잠시 불안정해. 잠시 후 다시 시도해 줘." }, { status: 503, headers: { "Cache-Control": "no-store" } });
       if (Number(code) === 7) return NextResponse.json({ error: "멤버십 서버 권한 설정을 확인해야 해. 계정의 멤버십이 없어서 생긴 오류는 아니야." }, { status: 500, headers: { "Cache-Control": "no-store" } });
     }
