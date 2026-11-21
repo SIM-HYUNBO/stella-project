@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiUser, apiRateLimit, ApiError } from "@/lib/api-user";
 import { requireAIMembership } from "@/lib/membership-server";
+import { aiRetrySeconds } from "@/lib/ai-retry-delay";
 
 export const maxDuration = 60;
 
@@ -126,8 +127,8 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
       const original = response;
       const alternate = await requestModel("openai/gpt-oss-20b");
       if (alternate.status === 429) {
-        const firstWait = Number(original.headers.get("retry-after")) || Infinity;
-        const secondWait = Number(alternate.headers.get("retry-after")) || Infinity;
+        const firstWait = aiRetrySeconds(original.headers.get("retry-after")) ?? Infinity;
+        const secondWait = aiRetrySeconds(alternate.headers.get("retry-after")) ?? Infinity;
         response = firstWait <= secondWait ? original : alternate;
         await (response === original ? alternate : original).body?.cancel();
       } else {
@@ -139,8 +140,8 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
       const errMsg = data?.error?.message || `오류 (${response.status})`;
-      const retry = response.headers.get("retry-after");
-      return NextResponse.json({ error: errMsg, retryAfterSeconds: retry ? Number(retry) : undefined }, { status: response.status, headers: retry ? { "Retry-After": retry } : undefined });
+      const retry = aiRetrySeconds(response.headers.get("retry-after"), errMsg);
+      return NextResponse.json({ error: errMsg, retryAfterSeconds: retry }, { status: response.status, headers: retry !== null ? { "Retry-After": String(retry) } : undefined });
     }
 
     return new Response(response.body, {
@@ -152,7 +153,7 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
     });
 
   } catch (err: any) {
-    if (err instanceof ApiError) return NextResponse.json({ error: err.message }, { status: err.status });
+    if (err instanceof ApiError) return NextResponse.json({ error: err.message, retryAfterSeconds: err.retryAfterSeconds }, { status: err.status, headers: err.retryAfterSeconds !== undefined ? { "Retry-After": String(err.retryAfterSeconds) } : undefined });
     return NextResponse.json({ error: err?.message || "서버 오류" }, { status: 500 });
   }
 }

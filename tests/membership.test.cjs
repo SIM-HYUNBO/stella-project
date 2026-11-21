@@ -49,6 +49,7 @@ test('main AI endpoint denies free accounts and Light study requests before cont
     exports: route,
     fetch: () => { providerCalls++; throw Error('Provider must not be contacted'); },
     require: name => {
+      if (name === '@/lib/ai-retry-delay') return { aiRetrySeconds: () => null };
       if (name === 'next/server') return { NextResponse: { json: (body, options) => ({ body, status: options.status }) } };
       if (name === '@/lib/api-user') return { ApiError, apiUser: async () => ({ db: {}, uid: 'user' }), apiRateLimit: async () => { limitCalls++; } };
       if (name === '@/lib/membership-server') return { requireAIMembership: async (_db, _uid, study) => {

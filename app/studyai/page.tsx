@@ -3,6 +3,7 @@
 import AIAssistantActions from "@/components/AIAssistantActions";
 import { aiRetryContext } from "@/lib/ai-retry-context";
 import { runTransaction } from "firebase/firestore";
+import AIRateLimit, { useAIRateLimit } from "@/components/AIRateLimit";
 import { apiFetch } from "@/lib/api-fetch";
 import AIMembershipGate from "@/components/AIMembershipGate";
 
@@ -649,6 +650,7 @@ export default function StudyAIPageEntry() {
 }
 
 function StudyAIPage() {
+  const { retryAt, requestError, clearRateLimit } = useAIRateLimit();
   const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -772,7 +774,8 @@ function StudyAIPage() {
       await batch.commit(); saved = true;
       const history = mediaHistory([...messages.slice(0, index), { ...messages[index], content: text }]);
       const res = await apiFetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }) });
-      if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || `server ${res.status}`); }
+      if (!res.ok) throw await requestError(res);
+      clearRateLimit();
       if (!res.body) throw new Error("empty response");
       const full = await readAIStream(res.body, setStreamingText);
       await addDoc(collection(db, "studyChats", user.uid, "messages"), {  role: "ai", content: full, createdAt: serverTimestamp() });
@@ -793,7 +796,8 @@ function StudyAIPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: mediaHistory(context.history), mode: "study", robotName: "학습용 AI" }),
       });
-      if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || `server ${response.status}`); }
+      if (!response.ok) throw await requestError(response);
+      clearRateLimit();
       if (!response.body) throw new Error("empty response");
       const full = await readAIStream(response.body, () => {});
       await runTransaction(db, async transaction => {
@@ -824,10 +828,8 @@ function StudyAIPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "study", robotName: "학습용 AI", messages: history }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `server ${res.status}`);
-      }
+      if (!res.ok) throw await requestError(res);
+      clearRateLimit();
       if (!res.body) throw new Error("empty response");
       const full = await readAIStream(res.body, setStreamingText);
       await addDoc(collection(db, "studyChats", user.uid, "messages"), { role: "ai", content: full, createdAt: serverTimestamp() });
@@ -1117,6 +1119,7 @@ function StudyAIPage() {
           ERROR
       ===================================================== */}
 
+      <AIRateLimit retryAt={retryAt} />
       {errorMsg && (
         <div className="z-10 mx-4 mb-2 flex shrink-0 items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5">
           <span className="text-xs leading-snug text-red-600">

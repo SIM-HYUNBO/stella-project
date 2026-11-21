@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import AIRateLimit from "./AIRateLimit";
 import { Headphones, Mic, Square, X, Volume2 } from "lucide-react";
 
-export default function AIVoiceConversation({ disabled, name, onSend }: {
-  disabled: boolean; name: string; onSend: (text: string) => Promise<string | undefined>;
+export default function AIVoiceConversation({ disabled, name, onSend, retryAt = null }: {
+  retryAt?: number | null; disabled: boolean; name: string; onSend: (text: string) => Promise<string | undefined>;
 }) {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<"idle" | "listening" | "thinking" | "speaking">("idle");
@@ -116,6 +117,7 @@ export default function AIVoiceConversation({ disabled, name, onSend }: {
         <p role="status" className="text-sm text-slate-500">{phase === "listening" ? "듣고 있어. 다 말했으면 ‘말 끝내기’를 눌러 줘." : phase === "thinking" ? "답변을 생각하고 있어…" : phase === "speaking" ? "이야기하고 있어" : "마이크를 누르고 편하게 말해 봐"}</p>
         {text && <p className="w-full rounded-2xl bg-sky-100/70 px-5 py-3 text-sm text-slate-700">{text}</p>}
         {answer && <><p className="w-full whitespace-pre-wrap text-sm leading-7 text-slate-700">{answer}</p><button type="button" disabled={phase !== "idle" || disabled} onClick={() => { active.current = true; playAnswer(answer, ++generation.current); }} className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-sky-600 shadow-sm disabled:opacity-40"><Volume2 size={18} />답변 듣기</button></>}
+        <AIRateLimit retryAt={retryAt} />
         {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
       </div>
       <div className="flex justify-center pb-6">{phase === "idle" ? <button type="button" disabled={disabled} onClick={listen} className="flex items-center gap-2 rounded-full bg-sky-500 px-7 py-4 text-sm font-medium text-white shadow-lg disabled:opacity-40"><Mic size={20} />말하기</button> : phase === "listening" ? <button type="button" onClick={() => finishListening.current?.()} className="flex items-center gap-2 rounded-full bg-sky-500 px-7 py-4 text-sm font-medium text-white shadow-lg"><Square size={18} />말 끝내기</button> : <button type="button" onClick={() => { stop(); setPhase("idle"); }} className="flex items-center gap-2 rounded-full bg-white px-7 py-4 text-sm text-slate-600 shadow"><Square size={18} />멈추기</button>}</div>

@@ -12,7 +12,7 @@ function harness(onSend) {
  const window = { speechSynthesis:speech, SpeechRecognition:class { constructor(){rec=this} start(){} stop(){} abort(){this.onend?.()} } };
  const mod={exports:{}};
  const source=ts.transpileModule(fs.readFileSync('components/AIVoiceConversation.tsx','utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS}}).outputText;
- vm.runInNewContext(source,{exports:mod.exports, Error, setTimeout, clearTimeout, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; throw Error(name); }});
+ vm.runInNewContext(source,{exports:mod.exports, Error, setTimeout, clearTimeout, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; if(name==='./AIRateLimit')return {default:'rate-limit'}; throw Error(name); }});
  let tree;
  const render=()=>{cursor=0;tree=mod.exports.default({disabled:false,name:'AI',onSend});return tree};
  function find(label,node=tree) { if(!node||typeof node!=='object')return; if(node['aria-label']===label || (node.type==='button' && node.children?.includes?.(label)))return node; for(const child of [node.children].flat(Infinity).filter(child=>child != null)){ const match=find(label,child);if(match)return match; } }

@@ -4,6 +4,7 @@ import AIVoiceConversation from "@/components/AIVoiceConversation";
 import AIAssistantActions from "@/components/AIAssistantActions";
 import { aiRetryContext } from "@/lib/ai-retry-context";
 import { runTransaction } from "firebase/firestore";
+import AIRateLimit, { useAIRateLimit } from "@/components/AIRateLimit";
 import { apiFetch } from "@/lib/api-fetch";
 import AIMembershipGate from "@/components/AIMembershipGate";
 import { buildConversations, conversationDay } from "@/lib/ai-conversations";
@@ -65,6 +66,7 @@ export default function RobotPageEntry() {
 }
 
 function RobotPage() {
+  const { retryAt, requestError, clearRateLimit } = useAIRateLimit();
   const [pendingMedia, setPendingMedia] = useState<AIMedia | null>(null);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -164,10 +166,8 @@ function RobotPage() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: msgs, robotName }),
     });
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      throw new Error(d.error || `server ${res.status}`);
-    }
+    if (!res.ok) throw await requestError(res);
+      clearRateLimit();
     if (!res.body) throw new Error("empty response");
     return readAIStream(res.body, onChunk);
   };
@@ -219,7 +219,8 @@ function RobotPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: mediaHistory(context.history), robotName }),
       });
-      if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || `server ${response.status}`); }
+      if (!response.ok) throw await requestError(response);
+      clearRateLimit();
       if (!response.body) throw new Error("empty response");
       const full = await readAIStream(response.body, () => {});
       await runTransaction(db, async transaction => {
@@ -361,7 +362,7 @@ function RobotPage() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <AIVoiceConversation name={robotName || "AI"} disabled={isStreaming || mediaBusy || !historyReady || isListening} onSend={send} />
+            <AIVoiceConversation retryAt={retryAt} name={robotName || "AI"} disabled={isStreaming || mediaBusy || !historyReady || isListening} onSend={send} />
 
   <button
     onClick={() => router.push("/studyai")}
@@ -425,7 +426,8 @@ function RobotPage() {
         </div>
 
         {/* 에러 메시지 */}
-        {errorMsg && (
+        <AIRateLimit retryAt={retryAt} />
+      {errorMsg && (
           <div className="mx-4 mb-2 px-4 py-2.5 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-between shrink-0">
             <span className="text-xs text-red-600 leading-snug">⚠️ {errorMsg}</span>
             <button onClick={() => setErrorMsg(null)} className="ml-2 text-red-300 text-sm font-bold shrink-0">✕</button>

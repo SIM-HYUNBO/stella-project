@@ -1,7 +1,7 @@
 import getAdmin from "@/lib/firebaseAdmin";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public retryAfterSeconds?: number) { super(message); }
 }
 export async function apiUser(req: Request, legacyToken?: string) {
   const admin = getAdmin();
@@ -25,7 +25,7 @@ export async function apiRateLimit(db: ReturnType<ReturnType<typeof getAdmin>["f
   await db.runTransaction(async tx => {
     const data = (await tx.get(ref)).data();
     const count = data?.bucket === bucket ? data.count : 0;
-    if (count >= maximum) throw new ApiError(429, "요청이 너무 빨라. 1분 뒤 다시 시도해 줘.");
+    if (count >= maximum) throw new ApiError(429, "요청이 너무 빨라. 잠시 후 다시 시도해 줘.", Math.max(1, Math.ceil(((bucket + 1) * 60000 - now) / 1000)));
     tx.set(ref, { bucket, count: count + 1, deleteAfter: new Date(now + 86400000) });
   });
 }
