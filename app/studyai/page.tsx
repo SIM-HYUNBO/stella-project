@@ -47,6 +47,7 @@ type StudyMsg = {
 ========================================================= */
 
 function friendlyError(msg: string): string {
+  if (msg.startsWith("AI 요청 오류")) return msg;
   if (msg.includes("멤버십")) return msg;
   const m = msg.toLowerCase();
 

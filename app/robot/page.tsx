@@ -31,6 +31,7 @@ type ChatMessage = { feedback?: "like" | "dislike" | null; id: string; role: "us
 const accent = { from: "#38bdf8", to: "#2797d4", shadow: "rgba(56,189,248,0.22)", ring: "#bae6fd" };
 
 function friendlyError(msg: string): string {
+  if (msg.startsWith("AI 요청 오류")) return msg;
   if (msg.includes("멤버십") || msg.includes("로그인") || msg.includes("잠시 후") || msg.includes("너무 많") || msg.includes("요청이 너무 빨라")) return msg;
   if (msg.includes("Invalid messages")) return "대화가 너무 길거나 첨부 형식에 문제가 있어. 새 채팅에서 다시 말해 줘.";
   if (msg.includes("resource-exhausted")) return "지금 대화 저장 요청이 많아. 잠시 후 다시 말해 줘.";
@@ -248,15 +249,19 @@ function RobotPage() {
     const history = mediaHistory([...messages, { role: "user", content: userText, ...(attached ? { media: attached } : {}) }]);
     setIsStreaming(true); setStreamingText("");
     let userSaved = false;
+    let stage = "질문 저장";
     try {
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "user", content: userText, ...(attached ? { media: attached } : {}), createdAt: serverTimestamp() });
       userSaved = true; if (!voiceText) setPendingMedia(null);
+      stage = "답변 요청";
       const full = await streamAI(history, (t) => setStreamingText(t));
+      stage = "답변 저장";
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "assistant", content: full, createdAt: serverTimestamp() });
       return full;
     } catch (err: any) {
       if (!userSaved && !voiceText) setInput(userText);
-      const message = friendlyError(err?.message || "");
+      const code = typeof err?.code === "string" ? err.code.replace(/[^a-zA-Z0-9/_-]/g, "").slice(0, 64) : "unknown";
+      const message = `${friendlyError(err?.message || "")} (${stage} · ${code})`;
       setErrorMsg(message);
       if (voiceText) throw new Error(message);
     } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); if (!voiceText) inputRef.current?.focus(); }

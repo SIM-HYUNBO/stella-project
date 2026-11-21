@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { aiRetrySeconds } from "@/lib/ai-retry-delay";
+import { aiRequestFailure } from "@/lib/ai-request-error";
 
 export function useAIRateLimit() {
   const [retryAt, setRetryAt] = useState<number | null>(null);
@@ -11,7 +12,7 @@ export function useAIRateLimit() {
         ? data.retryAfterSeconds : aiRetrySeconds(response.headers.get("retry-after"), data.error);
       setRetryAt(seconds === null ? null : Date.now() + seconds * 1000);
     }
-    return new Error(data.error || `server ${response.status}`);
+    return new Error(aiRequestFailure(response.status, data));
   };
   return { retryAt, requestError, clearRateLimit: () => setRetryAt(null) };
 }

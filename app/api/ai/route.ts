@@ -141,7 +141,7 @@ hex 색상은 반드시 실제 존재하는 색상 코드로 써. 분위기에 �
       const data = await response.json().catch(() => ({}));
       const errMsg = data?.error?.message || `오류 (${response.status})`;
       const retry = aiRetrySeconds(response.headers.get("retry-after"), errMsg);
-      return NextResponse.json({ error: errMsg, retryAfterSeconds: retry }, { status: response.status, headers: retry !== null ? { "Retry-After": String(retry) } : undefined });
+      return NextResponse.json({ error: errMsg, code: data?.error?.code || data?.error?.type, retryAfterSeconds: retry }, { status: response.status, headers: retry !== null ? { "Retry-After": String(retry) } : undefined });
     }
 
     return new Response(response.body, {
