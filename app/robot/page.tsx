@@ -1,5 +1,6 @@
 "use client";
 
+import AIVoiceConversation from "@/components/AIVoiceConversation";
 import AIAssistantActions from "@/components/AIAssistantActions";
 import { aiRetryContext } from "@/lib/ai-retry-context";
 import { runTransaction } from "firebase/firestore";
@@ -231,25 +232,26 @@ function RobotPage() {
     } finally { sendingRef.current = false; setIsStreaming(false); setRetryingId(null); }
   };
 
-  const send = async () => {
-    if ((!input.trim() && !pendingMedia) || mediaBusy || !user || sendingRef.current || !historyReady) return;
+  const send = async (voiceText?: string): Promise<string | undefined> => {
+    if ((!(voiceText || input).trim() && !pendingMedia) || mediaBusy || !user || sendingRef.current || !historyReady) return;
     sendingRef.current = true;
     const targetSession = sessionId || crypto.randomUUID();
     setSessionId(targetSession);
-    const attached = pendingMedia;
-    const userText = input.trim() || (attached?.kind === "video" ? "이 동영상의 대표 장면을 설명해 줘." : "이 사진을 설명해 줘."); setInput(""); setErrorMsg(null);
+    const attached = voiceText ? null : pendingMedia;
+    const userText = (voiceText || input).trim() || (attached?.kind === "video" ? "이 동영상의 대표 장면을 설명해 줘." : "이 사진을 설명해 줘."); if (!voiceText) setInput(""); setErrorMsg(null);
     const history = mediaHistory([...messages, { role: "user", content: userText, ...(attached ? { media: attached } : {}) }]);
     setIsStreaming(true); setStreamingText("");
     let userSaved = false;
     try {
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "user", content: userText, ...(attached ? { media: attached } : {}), createdAt: serverTimestamp() });
-      userSaved = true; setPendingMedia(null);
+      userSaved = true; if (!voiceText) setPendingMedia(null);
       const full = await streamAI(history, (t) => setStreamingText(t));
       await addDoc(collection(db, "robotChats", user.uid, "messages"), { sessionId: targetSession, role: "assistant", content: full, createdAt: serverTimestamp() });
+      return full;
     } catch (err: any) {
-      if (!userSaved) setInput(userText);
+      if (!userSaved && !voiceText) setInput(userText);
       setErrorMsg(friendlyError(err?.message || ""));
-    } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); inputRef.current?.focus(); }
+    } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); if (!voiceText) inputRef.current?.focus(); }
   };
 
   const clearHistory = async () => {
@@ -337,6 +339,7 @@ function RobotPage() {
             </button>
             {editingName ? (
               <div className="flex items-center gap-1.5">
+            <AIVoiceConversation name={robotName || "AI"} disabled={isStreaming || mediaBusy || !historyReady || isListening} onSend={send} />
                 <input autoFocus value={editInput} onChange={(e) => setEditInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") updateName(); if (e.key === "Escape") setEditingName(false); }}
                   maxLength={12} className="text-sm font-black text-gray-800 border-b-2 border-sky-300 outline-none w-24 bg-transparent"/>
@@ -454,7 +457,7 @@ function RobotPage() {
               disabled={isStreaming || mediaBusy || !historyReady}
               className="relative min-w-0 flex-1 bg-transparent text-[13.5px] text-gray-700 placeholder:text-gray-400 outline-none disabled:opacity-50 font-medium z-10"/>
             {input.trim() || pendingMedia ? (
-              <button onClick={send} disabled={isStreaming || mediaBusy || !historyReady}
+              <button onClick={() => send()} disabled={isStreaming || mediaBusy || !historyReady}
                 className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90"
                 style={{
                   background: `linear-gradient(145deg, ${accent.from}, ${accent.to})`,
