@@ -31,3 +31,15 @@ test('closing while waiting never speaks a late answer',async()=>{
 test('empty recognition never sends a request',async()=>{
  let calls=0;const h=harness(async()=>{calls++;return '답'});await h.rec().onend();assert.equal(calls,0);assert.equal(h.spoken.length,0);
 });
+test('voice entry is outside the editable-name conditional',()=>{
+ const source=ts.createSourceFile('page.tsx',fs.readFileSync('app/robot/page.tsx','utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ let count=0;
+ function visit(node){
+  if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(source)==='AIVoiceConversation'){
+   count++;
+   for(let parent=node.parent;parent;parent=parent.parent)assert.equal(ts.isConditionalExpression(parent),false,'voice entry must remain visible without editing the AI name');
+  }
+  ts.forEachChild(node,visit);
+ }
+ visit(source);assert.equal(count,1);
+});

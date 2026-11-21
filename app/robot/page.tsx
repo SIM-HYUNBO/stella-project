@@ -339,7 +339,6 @@ function RobotPage() {
             </button>
             {editingName ? (
               <div className="flex items-center gap-1.5">
-            <AIVoiceConversation name={robotName || "AI"} disabled={isStreaming || mediaBusy || !historyReady || isListening} onSend={send} />
                 <input autoFocus value={editInput} onChange={(e) => setEditInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") updateName(); if (e.key === "Escape") setEditingName(false); }}
                   maxLength={12} className="text-sm font-black text-gray-800 border-b-2 border-sky-300 outline-none w-24 bg-transparent"/>
@@ -354,7 +353,8 @@ function RobotPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <AIVoiceConversation name={robotName || "AI"} disabled={isStreaming || mediaBusy || !historyReady || isListening} onSend={send} />
 
   <button
     onClick={() => router.push("/studyai")}
