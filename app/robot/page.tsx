@@ -398,6 +398,7 @@ function RobotPage() {
                   <div className="whitespace-pre-wrap break-words"><AIResponse text={msg.content} /></div>
                   {retryingId === msg.id && <p role="status" className="mt-2 animate-pulse text-xs text-sky-500">새 답변을 만들고 있어…</p>}
                   <AIAssistantActions content={msg.content} feedback={msg.feedback} disabled={isStreaming || mediaBusy} onError={setErrorMsg} onRetry={() => retryAnswer(msg.id)} onFeedback={async feedback => { await updateDoc(doc(db, "robotChats", user.uid, "messages", msg.id), { feedback }); }} />
+                  {!isStreaming && msg.id === messages.filter(message => message.role === "assistant").slice(-1)[0]?.id && <p className="mt-1 text-[11px] font-normal text-slate-400">AI는 정확하지 않을 수 있습니다</p>}
                 </article>
               )}
             </div>
