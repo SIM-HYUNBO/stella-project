@@ -583,8 +583,9 @@ export default function HomePage() {
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-sky-700 text-sm font-semibold mb-1">{getGreeting()}</p>
-                  <h1 className="text-4xl font-black text-slate-800 leading-tight">
-                    안녕,<br />{nickname} 👋
+                  <h1 className="text-4xl font-black leading-tight">
+                    <span className="text-[#526B82]">안녕,</span><br />
+                    <span className="text-[#243B53]">{nickname}</span> 👋
                   </h1>
                   {title && TITLE_MAP[title] && (
                     <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/25 backdrop-blur-sm">
