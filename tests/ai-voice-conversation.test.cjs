@@ -38,3 +38,6 @@ test('voice entry remains outside the name editing conditional',()=>{
  const src=ts.createSourceFile('page.tsx',fs.readFileSync('app/robot/page.tsx','utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let count=0;
  function visit(node){if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(src)==='AIVoiceConversation'){count++;for(let p=node.parent;p;p=p.parent)assert.equal(ts.isConditionalExpression(p),false)}ts.forEachChild(node,visit)}visit(src);assert.equal(count,1);
 });
+test('prepares natural voice before opening microphone, cancellation stays stopped',async()=>{
+ const h=harness();let resolve;h.deps.prepare=()=>new Promise(done=>{resolve=done});h.session.start();assert.equal(h.recs.length,0);assert.equal(h.states.at(-1).phase,'loading');h.session.stop();resolve();await h.flush();assert.equal(h.recs.length,0);
+});

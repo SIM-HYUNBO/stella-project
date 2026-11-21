@@ -1,0 +1,19 @@
+WAGIE local Korean voice
+
+Runtime: Supertonic reference web helper, Copyright (c) 2025 Supertone Inc.
+Source: https://github.com/supertone-oss-archive/supertonic/blob/main/web/helper.js
+License: MIT (see LICENSE-supertonic.txt).
+Local changes: pinned ONNX Runtime Web 1.23.2, single-threaded WASM, persistent model cache.
+
+Model: Supertone/supertonic-2, Korean (ko), preset F1.
+Revision: 75e6727618a02f323c720cba9478152d4bc16ca4
+Model license: BigScience Open RAIL-M (included in LICENSE-supertonic.txt).
+Models are fetched directly by the browser from Hugging Face when voice is opened.
+Weights are not included in the app repository. Downloads total approximately 250 MiB.
+Only model weights are cached. Generated audio and speech text are not stored in this cache.
+
+ONNX Runtime Web 1.23.2: https://github.com/microsoft/onnxruntime/tree/v1.23.2
+License: MIT, https://github.com/microsoft/onnxruntime/blob/v1.23.2/LICENSE
+
+This local voice synthesizer makes no billable speech API requests.
+Normal WAGIE AI messages still use the existing AI service and chat storage.

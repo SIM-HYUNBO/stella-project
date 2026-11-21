@@ -1,4 +1,4 @@
-export type VoiceState = { phase: "listening" | "thinking" | "speaking" | "paused" | "error"; error?: string };
+export type VoiceState = { phase: "loading" | "listening" | "thinking" | "speaking" | "paused" | "error"; error?: string };
 type Recognition = {
   lang: string; interimResults: boolean; continuous: boolean;
   onresult: ((event: any) => void) | null; onend: (() => void) | null; onerror: ((event: any) => void) | null;
@@ -7,6 +7,7 @@ type Recognition = {
 type Dependencies = {
   createRecognition: () => Recognition;
   busy: () => boolean;
+  prepare?: () => Promise<void>;
   send: (text: string) => Promise<string | undefined>;
   speak: (text: string, started: () => void, ended: () => void, failed: () => void) => () => void;
   state: (state: VoiceState) => void;
@@ -36,7 +37,16 @@ export class AIVoiceSession {
     const cancel = this.stopSpeech; this.stopSpeech = null; cancel?.();
   }
   pause() { this.stop(); this.deps.state({ phase: "paused" }); }
-  start() { if (this.running) return; this.running = true; this.listen(++this.generation); }
+  start() {
+    if (this.running) return;
+    this.running = true;
+    const token = ++this.generation;
+    if (!this.deps.prepare) { this.listen(token); return; }
+    this.deps.state({ phase: "loading" });
+    void this.deps.prepare().then(() => { if (this.valid(token)) this.listen(token); }).catch(error => {
+      if (this.valid(token)) this.fail(error instanceof Error ? error.message : "목소리를 준비하지 못했어. 다시 연결해 줘.");
+    });
+  }
   private fail(message: string) { this.stop(); this.deps.state({ phase: "error", error: message }); }
   private valid(token: number) { return this.running && token === this.generation; }
   private listen(token: number) {
@@ -56,11 +66,10 @@ export class AIVoiceSession {
         const answer = await this.deps.send(transcript.trim());
         if (!this.valid(token)) return;
         if (!answer?.trim()) { this.fail("답변을 받지 못했어. 연결 상태를 확인한 뒤 다시 연결해 줘."); return; }
-        this.deps.state({ phase: "speaking" });
-        this.later(() => { if (this.valid(token)) this.fail("음성 재생이 시작되지 않았어. 다시 연결해 줘."); }, 8000);
+        this.later(() => { if (this.valid(token)) this.fail("목소리 생성이 오래 걸리고 있어. 다시 연결해 줘."); }, 90000);
         let ended = false;
         const cancelSpeech = this.deps.speak(answer,
-          () => { if (this.valid(token) && !ended) this.clearTimer(); },
+          () => { if (this.valid(token) && !ended) { this.clearTimer(); this.deps.state({ phase: "speaking" }); } },
           () => {
             if (!this.valid(token) || ended) return;
             ended = true; this.clearTimer(); this.stopSpeech = null;
