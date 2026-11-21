@@ -90,7 +90,7 @@ export default function AIVoiceConversation({ disabled, name, onSend }: {
         if (!result) { setError("답변을 받지 못했어. 채팅 화면의 안내도 확인해 줘."); active.current = false; setPhase("idle"); return; }
         setAnswer(result);
         playAnswer(result, token);
-      } catch { if (token === generation.current) { active.current = false; setPhase("idle"); setError("음성 대화가 끊겼어. 다시 시도해 줘."); } }
+      } catch (error) { if (token === generation.current) { active.current = false; setPhase("idle"); setError(error instanceof Error ? error.message : "음성 대화가 끊겼어. 다시 시도해 줘."); } }
     };
     rec.onend = submit;
     finishListening.current = () => {

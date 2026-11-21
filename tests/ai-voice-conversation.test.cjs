@@ -12,7 +12,7 @@ function harness(onSend) {
  const window = { speechSynthesis:speech, SpeechRecognition:class { constructor(){rec=this} start(){} stop(){} abort(){this.onend?.()} } };
  const mod={exports:{}};
  const source=ts.transpileModule(fs.readFileSync('components/AIVoiceConversation.tsx','utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS}}).outputText;
- vm.runInNewContext(source,{exports:mod.exports, setTimeout, clearTimeout, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; throw Error(name); }});
+ vm.runInNewContext(source,{exports:mod.exports, Error, setTimeout, clearTimeout, window, document:{body:{}}, SpeechSynthesisUtterance:class { constructor(text){this.text=text} }, require(name){ if(name==='react')return {useState,useRef,useEffect(){}}; if(name==='react/jsx-runtime')return {jsx:element,jsxs:element,Fragment:'fragment'}; if(name==='react-dom')return {createPortal:x=>x}; if(name==='lucide-react')return {}; throw Error(name); }});
  let tree;
  const render=()=>{cursor=0;tree=mod.exports.default({disabled:false,name:'AI',onSend});return tree};
  function find(label,node=tree) { if(!node||typeof node!=='object')return; if(node['aria-label']===label || (node.type==='button' && node.children?.includes?.(label)))return node; for(const child of [node.children].flat(Infinity).filter(child=>child != null)){ const match=find(label,child);if(match)return match; } }
@@ -57,4 +57,12 @@ test('finish button sends even when browser never fires end, without duplicate s
  const calls=[];const h=harness(async text=>{calls.push(text);return '답변'});
  h.result('질문',false);h.render();h.find('말 끝내기').onClick();await h.rec().onend();
  assert.deepEqual(calls,['질문']);assert.equal(h.spoken.length,1);
+});
+
+test('voice view shows the actual friendly request failure instead of hiding it',async()=>{
+ const h=harness(async()=>{throw new Error('잠시 후 다시 말해 줘.');});
+ h.result('질문');await h.rec().onend();h.render();
+ assert.equal(h.spoken.length,0);
+ assert.ok(JSON.stringify(h.render()).includes('잠시 후 다시 말해 줘.'));
+ assert.ok(!JSON.stringify(h.render()).includes('채팅 화면의 안내도'));
 });

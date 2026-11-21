@@ -30,7 +30,10 @@ type ChatMessage = { feedback?: "like" | "dislike" | null; id: string; role: "us
 const accent = { from: "#38bdf8", to: "#2797d4", shadow: "rgba(56,189,248,0.22)", ring: "#bae6fd" };
 
 function friendlyError(msg: string): string {
-  if (msg.includes("멤버십")) return msg;
+  if (msg.includes("멤버십") || msg.includes("로그인") || msg.includes("잠시 후") || msg.includes("너무 많") || msg.includes("요청이 너무 빨라")) return msg;
+  if (msg.includes("Invalid messages")) return "대화가 너무 길거나 첨부 형식에 문제가 있어. 새 채팅에서 다시 말해 줘.";
+  if (msg.includes("resource-exhausted")) return "지금 대화 저장 요청이 많아. 잠시 후 다시 말해 줘.";
+  if (msg.includes("unavailable")) return "대화 저장 서버에 연결하지 못했어. 인터넷 연결을 확인해 줘.";
   const m = msg.toLowerCase();
   if (m.includes("model_not_found") || m.includes("model") && m.includes("not")) return "AI 모델 연결을 확인해야 해. 잠시 후 다시 시도해 줘.";
   if (m.includes("permission") || m.includes("insufficient")) return "대화를 저장할 권한이 없어. 다시 로그인해 줘.";
@@ -233,6 +236,8 @@ function RobotPage() {
   };
 
   const send = async (voiceText?: string): Promise<string | undefined> => {
+    if (voiceText && (!user || !historyReady)) throw new Error("대화를 불러오는 중이야. 잠시 후 다시 말해 줘.");
+    if (voiceText && (sendingRef.current || mediaBusy)) throw new Error("이전 요청을 처리하고 있어. 잠시 후 다시 말해 줘.");
     if ((!(voiceText || input).trim() && !pendingMedia) || mediaBusy || !user || sendingRef.current || !historyReady) return;
     sendingRef.current = true;
     const targetSession = sessionId || crypto.randomUUID();
@@ -250,7 +255,9 @@ function RobotPage() {
       return full;
     } catch (err: any) {
       if (!userSaved && !voiceText) setInput(userText);
-      setErrorMsg(friendlyError(err?.message || ""));
+      const message = friendlyError(err?.message || "");
+      setErrorMsg(message);
+      if (voiceText) throw new Error(message);
     } finally { sendingRef.current = false; setIsStreaming(false); setStreamingText(""); if (!voiceText) inputRef.current?.focus(); }
   };
 
