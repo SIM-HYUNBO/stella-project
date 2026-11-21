@@ -1,39 +1,54 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase";
 import { apiFetch } from "@/lib/api-fetch";
 import { canUseAI } from "@/lib/membership";
 import RobotWelcomeArt from "@/components/RobotWelcomeArt";
+import { loadAIMembership, MembershipCheckError } from "@/lib/load-ai-membership";
 
 export default function AIMembershipGate({ study = false, children }: { study?: boolean; children: ReactNode }) {
   const [state, setState] = useState<"loading" | "login" | "allowed" | "denied" | "error">("loading");
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const verified = useRef<{ uid: string; study: boolean; expiresAt: number | null } | null>(null);
   useEffect(() => {
     let cancelled = false;
     let generation = 0;
     let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+    let checking = false;
     const check = async () => {
+      if (checking) return;
+      checking = true;
       const request = ++generation;
       clearTimeout(expiryTimer);
       const user = auth.currentUser;
-      if (!user) { setState("login"); return; }
+      if (!user) { verified.current = null; setState("login"); checking = false; return; }
       try {
-        const response = await apiFetch("/api/membership", { cache: "no-store" });
-        const membership = await response.json();
-        if (!response.ok) throw Error(membership.error || "멤버십을 확인하지 못했어.");
+        const membership = await loadAIMembership(
+          () => apiFetch("/api/membership", { cache: "no-store" }),
+          () => user.getIdToken(true),
+        );
         if (cancelled || request !== generation || auth.currentUser?.uid !== user.uid) return;
         const allowed = canUseAI(membership, study) && (!membership.expiresAt || membership.expiresAt > Date.now());
         setState(allowed ? "allowed" : "denied");
+        verified.current = allowed ? { uid: user.uid, study, expiresAt: membership.expiresAt } : null;
         if (allowed && membership.expiresAt) expiryTimer = setTimeout(() => { setState("loading"); void check(); }, Math.min(2147483647, Math.max(1, membership.expiresAt - Date.now())));
       } catch (e) {
-        if (!cancelled && request === generation) { setError(e instanceof Error ? e.message : "멤버십을 확인하지 못했어."); setState("error"); }
-      }
+        if (!cancelled && request === generation) {
+          const previous = verified.current;
+          const denied = e instanceof MembershipCheckError && [401, 403].includes(e.status);
+          const stillVerified = !denied && auth.currentUser?.uid === user.uid && previous?.uid === user.uid && previous.study === study && (previous.expiresAt === null || previous.expiresAt > Date.now());
+          if (denied) verified.current = null;
+          setError(e instanceof Error ? e.message : "멤버십을 확인하지 못했어.");
+          if (!stillVerified) setState("error");
+          if (stillVerified && previous.expiresAt) expiryTimer = setTimeout(() => { verified.current = null; setState("loading"); void check(); }, Math.min(2147483647, Math.max(1, previous.expiresAt - Date.now())));
+        }
+      } finally { if (request === generation) checking = false; }
     };
-    const unsub = onAuthStateChanged(auth, () => { setState("loading"); void check(); });
+    const unsub = onAuthStateChanged(auth, () => { verified.current = null; generation++; checking = false; setState("loading"); void check(); });
     const refresh = () => { void check(); };
     const interval = window.setInterval(refresh, 60000);
     window.addEventListener("focus", refresh);
