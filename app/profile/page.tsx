@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc, collection, query, orderBy, where, getDocs, Timestamp } from "firebase/firestore";
+import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, Settings, Pencil, ImagePlus, QrCode, LogOut, Bell, ChevronRight, Camera, Check, X } from "lucide-react";
+import { ArrowLeft, Settings, Pencil, ImagePlus, QrCode, LogOut, Bell, ChevronRight, Camera, Check, X, LockKeyhole } from "lucide-react";
 import ProfileActivityChart from "@/components/ProfileActivityChart";
 import LoadingScreen from "@/components/LoadingScreen";
 import styles from "./profile.module.css";
@@ -193,7 +194,7 @@ export default function ProfilePage() {
       <section className={styles.menuCard} aria-label="프로필 메뉴"><button type="button" onClick={() => setShowQR(true)}><span className={styles.menuIcon}><QrCode size={20} strokeWidth={1.6} /></span><span><b>내 친구 초대장</b><small>QR코드로 더 가깝게</small></span><ChevronRight size={17} /></button><button type="button" onClick={() => setShowNotifications(value => !value)} aria-expanded={showNotifications}><span className={styles.menuIcon}><Bell size={19} strokeWidth={1.6} /></span><span><b>최근 알림</b><small>최근 한 달의 소식</small></span><ChevronRight size={17} /></button>
         {showNotifications && <div className={styles.notifications}>{notifications.length ? notifications.map(n => <button type="button" key={n.id} onClick={() => { if (typeof n.url === "string" && n.url.startsWith("/") && !n.url.startsWith("//")) router.push(n.url); }}><strong>{n.from || "WAGIE"}</strong><p>{n.message}</p></button>) : <p>최근 한 달 알림이 없어.</p>}</div>}
         <button type="button" onClick={handleLogout}><span className={styles.menuIcon}><LogOut size={19} strokeWidth={1.6} /></span><span><b>로그아웃</b><small>다음에 또 만나</small></span><ChevronRight size={17} /></button></section>
-      <div className={styles.pageFoot}><span>나답게, WAGIE.</span><button type="button" onClick={() => setConfirmDelete(true)}>계정 탈퇴</button></div>
+      <div className={styles.pageFoot}><span className="flex items-center gap-2">나답게, WAGIE.<Link href="/locked" aria-label="비밀 공간 열기" title="비밀 공간" className={styles.secretLink}><LockKeyhole size={15} strokeWidth={1.6} aria-hidden="true" /></Link></span><button type="button" onClick={() => setConfirmDelete(true)}>계정 탈퇴</button></div>
     </main>
     <input type="file" accept="image/*" ref={profileRef} onChange={changeProfileImage} className="hidden" />
     <input type="file" accept="image/*" ref={coverRef} onChange={changeCoverImage} className="hidden" />

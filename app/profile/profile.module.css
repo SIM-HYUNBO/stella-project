@@ -101,3 +101,7 @@
 .editor button:disabled,.page button:disabled{opacity:.45;cursor:wait;}
 @media(max-width:400px){.page{padding:0 13px 30px;}.hero{padding:17px 18px 22px;}.activity{padding:21px 18px 17px;}.editorOverlay{padding:10px;}.editor{padding:18px;border-radius:25px;}.editorPreview img{width:150px;height:160px;}}
 @media(prefers-reduced-motion:reduce){.page *,.editor *{transition:none!important;animation:none!important;}}
+
+.secretLink{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;border-radius:50%;color:#aab7c2;transition:color .2s,background .2s;}
+.secretLink:hover{color:#6b8da6;background:#eaf4fb;}
+.secretLink:focus-visible{outline:2px solid #8fc6e8;outline-offset:3px;}
