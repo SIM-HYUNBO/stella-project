@@ -1167,9 +1167,9 @@ export default function MeetingRoomPage() {
             const files = Array.from(e.target.files || []);
             e.target.value = "";
             if (!files.length) return;
-            if (files.length > 9) { alert("사진은 한 번에 9장까지 선택해 줘."); return; }
-            cancelPendingImage();
-            setPendingImages(files.map(file => ({ file, previewUrl: URL.createObjectURL(file) })));
+            if (pendingImages.length + files.length > 9) { alert("사진은 합쳐서 9장까지 선택해 줘. 기존에 고른 사진은 그대로 있어."); return; }
+            const added = files.map(file => ({ file, previewUrl: URL.createObjectURL(file) }));
+            setPendingImages(previous => [...previous, ...added]);
           }}
         />
 
