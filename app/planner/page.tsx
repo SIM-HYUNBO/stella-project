@@ -222,10 +222,10 @@ export default function PlannerPage() {
           </div>
 
           {/* 날짜 네비게이션 */}
-          <div className="flex items-center justify-between mx-4 mb-4 bg-white rounded-[18px] px-4 py-3">
+          <div className="jelly-panel flex items-center justify-between mx-4 mb-4 bg-white rounded-[18px] px-4 py-3">
             <button
               onClick={() => navigateDate(-1)}
-              className="w-8 h-8 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 text-lg font-bold active:scale-90 transition"
+              className="jelly-control w-8 h-8 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 text-lg font-bold active:scale-90 transition"
             >‹</button>
             <div className="text-center">
               <p className="font-black text-slate-800 text-sm">{formatDate(currentDate)}</p>
@@ -233,7 +233,7 @@ export default function PlannerPage() {
             </div>
             <button
               onClick={() => navigateDate(1)}
-              className="w-8 h-8 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 text-lg font-bold active:scale-90 transition"
+              className="jelly-control w-8 h-8 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 text-lg font-bold active:scale-90 transition"
             >›</button>
           </div>
 
@@ -243,7 +243,7 @@ export default function PlannerPage() {
             {type === "daily" && (
               <>
                 {tasks.length > 0 && (
-                  <div className="bg-white rounded-[18px] px-4 py-3">
+                  <div className="jelly-panel bg-white rounded-[18px] px-4 py-3">
                     <div className="flex justify-between text-xs font-bold text-slate-600 mb-2">
                       <span>진행률</span>
                       <span className="text-sky-500">{doneTasks} / {tasks.length}</span>
@@ -260,18 +260,18 @@ export default function PlannerPage() {
                   </div>
                 )}
 
-                <div className="bg-white rounded-[18px] px-4 py-3 flex gap-2">
+                <div className="jelly-panel bg-white rounded-[18px] px-4 py-3 flex gap-2">
                   <input
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addTask()}
                     placeholder="할 일 추가..."
-                    className="flex-1 text-sm text-slate-800 bg-sky-50 rounded-[12px] px-3 py-2.5 outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-gray-400"
+                    className="jelly-input flex-1 text-sm text-slate-800 bg-sky-50 rounded-[12px] px-3 py-2.5 outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-gray-400"
                   />
                   <button
                     onClick={addTask}
                     disabled={!newTask.trim()}
-                    className="px-4 bg-sky-200 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
+                    className="jelly-control px-4 bg-sky-200 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
                   >
                     추가
                   </button>
@@ -306,7 +306,7 @@ export default function PlannerPage() {
               <>
                 {/* 통계 */}
                 {sessions.length > 0 && (
-                  <div className="bg-white rounded-[18px] px-4 py-3 flex items-center gap-4">
+                  <div className="jelly-panel bg-white rounded-[18px] px-4 py-3 flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
                         <span>완료 세션</span>
@@ -327,19 +327,19 @@ export default function PlannerPage() {
                 )}
 
                 {/* 세션 추가 폼 */}
-                <div className="bg-white rounded-[18px] px-4 py-4 space-y-2">
+                <div className="jelly-panel bg-white rounded-[18px] px-4 py-4 space-y-2">
                   <p className="text-xs font-black text-gray-400 tracking-wider">새 스터디 세션</p>
                   <input
                     value={newSubject}
                     onChange={(e) => setNewSubject(e.target.value)}
                     placeholder="과목 / 주제"
-                    className="w-full text-sm text-slate-800 bg-yellow-50 rounded-[12px] px-3 py-2.5 outline-none focus:ring-2 focus:ring-yellow-200 placeholder:text-gray-400"
+                    className="jelly-input w-full text-sm text-slate-800 bg-yellow-50 rounded-[12px] px-3 py-2.5 outline-none focus:ring-2 focus:ring-yellow-200 placeholder:text-gray-400"
                   />
                   <input
                     value={newGoal}
                     onChange={(e) => setNewGoal(e.target.value)}
                     placeholder="오늘의 목표 (선택)"
-                    className="w-full text-sm text-slate-800 bg-yellow-50 rounded-[12px] px-3 py-2.5 outline-none focus:ring-2 focus:ring-yellow-200 placeholder:text-gray-400"
+                    className="jelly-input w-full text-sm text-slate-800 bg-yellow-50 rounded-[12px] px-3 py-2.5 outline-none focus:ring-2 focus:ring-yellow-200 placeholder:text-gray-400"
                   />
                   <div className="flex gap-2">
                     <div className="flex items-center gap-1.5 flex-1 bg-yellow-50 rounded-[12px] px-3 py-2.5">
@@ -355,7 +355,7 @@ export default function PlannerPage() {
                     <button
                       onClick={addSession}
                       disabled={!newSubject.trim()}
-                      className="px-5 bg-yellow-300 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
+                      className="jelly-control px-5 bg-yellow-300 text-white text-sm font-black rounded-[12px] disabled:opacity-40 active:scale-95 transition"
                     >
                       추가
                     </button>
@@ -425,14 +425,14 @@ export default function PlannerPage() {
                             <button
                               onClick={() => startTimer(session.id, session.duration)}
                               disabled={session.done || isFinished}
-                              className="flex items-center gap-1 px-4 py-1.5 bg-yellow-300 text-white text-xs font-black rounded-xl active:scale-90 transition disabled:opacity-40"
+                              className="jelly-control flex items-center gap-1 px-4 py-1.5 bg-yellow-300 text-white text-xs font-black rounded-xl active:scale-90 transition disabled:opacity-40"
                             >
                               ▶ {isActive ? "계속" : "시작"}
                             </button>
                           ) : (
                             <button
                               onClick={pauseTimer}
-                              className="flex items-center gap-1 px-4 py-1.5 bg-sky-200 text-white text-xs font-black rounded-xl active:scale-90 transition"
+                              className="jelly-control flex items-center gap-1 px-4 py-1.5 bg-sky-200 text-white text-xs font-black rounded-xl active:scale-90 transition"
                             >
                               ⏸ 일시정지
                             </button>
@@ -440,13 +440,13 @@ export default function PlannerPage() {
                           <button
                             onClick={() => resetTimer(session.id, session.duration)}
                             disabled={session.done}
-                            className="px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-black rounded-xl active:scale-90 transition disabled:opacity-40"
+                            className="jelly-control px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-black rounded-xl active:scale-90 transition disabled:opacity-40"
                           >
                             ↺
                           </button>
                           <button
                             onClick={() => deleteSession(session.id)}
-                            className="px-3 py-1.5 bg-red-50 text-red-300 text-xs font-bold rounded-xl active:scale-90 transition"
+                            className="jelly-control px-3 py-1.5 bg-red-50 text-red-300 text-xs font-bold rounded-xl active:scale-90 transition"
                           >
                             삭제
                           </button>

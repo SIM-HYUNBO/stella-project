@@ -392,7 +392,7 @@ ${content}
           {/* 열기 */}
           <button
             onClick={openFile}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-[11px] font-bold text-gray-500 transition hover:bg-gray-50 active:scale-95"
+            className="jelly-control rounded-xl border border-gray-200 bg-white px-3 py-2 text-[11px] font-bold text-gray-500 transition hover:bg-gray-50 active:scale-95"
           >
             열기
           </button>
@@ -401,7 +401,7 @@ ${content}
           <button
             onClick={saveFile}
             disabled={saving}
-            className="rounded-xl bg-violet-600 px-3.5 py-2 text-[11px] font-bold text-white shadow-sm transition hover:bg-violet-700 active:scale-95 disabled:opacity-50"
+            className="jelly-control rounded-xl bg-violet-600 px-3.5 py-2 text-[11px] font-bold text-white shadow-sm transition hover:bg-violet-700 active:scale-95 disabled:opacity-50"
           >
             {saving
               ? "저장 중"

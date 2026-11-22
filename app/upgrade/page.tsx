@@ -18,7 +18,7 @@ export default function UpgradePage() {
       </div>
 
       <header className="relative mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <Link href="/tools" aria-label="설정으로 돌아가기" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 active:scale-95">
+        <Link href="/tools" aria-label="설정으로 돌아가기" className="jelly-control flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 active:scale-95">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m14 6-6 6 6 6" /></svg>
         </Link>
         <Link href="/home" className="text-sm font-semibold tracking-[0.2em] text-slate-200">WAGIE<span className="ml-1 text-sky-300">.</span></Link>

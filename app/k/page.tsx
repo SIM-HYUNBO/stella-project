@@ -46,13 +46,13 @@ export default function LinedNotepad() {
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10 flex flex-col h-screen">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20 shrink-0">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+          <button onClick={() => router.back()} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">📝 메모장</span>
         </div>
 
         <div className="flex flex-1 overflow-hidden gap-3 p-4">
           {/* 작성 영역 */}
-          <div className="flex-1 flex flex-col rounded-[24px] bg-white overflow-hidden">
+          <div className="jelly-panel flex-1 flex flex-col rounded-[24px] bg-white overflow-hidden">
             <div className="px-4 py-3 border-b border-sky-50 flex items-center gap-2">
               <span className="text-lg">✏️</span>
               <p className="font-black text-slate-800 text-sm">{selectedId ? "메모 수정" : "새 메모"}</p>
@@ -66,7 +66,7 @@ export default function LinedNotepad() {
               style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 27px, rgba(56,189,248,0.08) 28px)" }}
               placeholder="여기에 내용을 입력하세요..." />
             <button onClick={handleSave}
-              className="mx-4 mb-4 h-12 rounded-[16px] bg-sky-200 text-white font-black text-sm active:scale-[0.98] transition-transform">
+              className="jelly-control mx-4 mb-4 h-12 rounded-[16px] bg-sky-200 text-white font-black text-sm active:scale-[0.98] transition-transform">
               {selectedId ? "수정하기 ✓" : "저장하기 💾"}
             </button>
           </div>

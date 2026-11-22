@@ -47,7 +47,7 @@ export default function LiveSTTWithHeader() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">🗣 와글와글 토의방</span>
         {listening && (
           <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50">
@@ -60,14 +60,14 @@ export default function LiveSTTWithHeader() {
       <div className="relative z-10 flex-1 flex flex-col px-4 py-4 gap-4 overflow-y-auto">
         {/* 제목 입력 */}
         <input
-          className="rounded-[20px] bg-white px-5 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none font-semibold"
+          className="jelly-input rounded-[20px] bg-white px-5 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none font-semibold"
           placeholder="회의 제목을 입력하세요"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         {/* 음성 텍스트 */}
-        <div className="flex-1 min-h-[180px] rounded-[20px] bg-white px-5 py-4 overflow-auto">
+        <div className="jelly-panel flex-1 min-h-[180px] rounded-[20px] bg-white px-5 py-4 overflow-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🎤</span>
             <p className="font-black text-slate-800 text-sm">음성 인식 내용</p>

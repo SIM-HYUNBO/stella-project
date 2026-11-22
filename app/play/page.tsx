@@ -9,7 +9,7 @@ export default function PlaymobilPage() {
     <div style={{ width: "100%", height: "100vh", position: "relative" }}>
       <button
         onClick={() => router.back()}
-        className="fixed top-4 right-4 z-[100] w-11 h-11 rounded-[14px] bg-sky-200 flex items-center justify-center text-white font-bold text-lg active:scale-95 transition-transform"
+        className="jelly-control fixed top-4 right-4 z-[100] w-11 h-11 rounded-[14px] bg-sky-200 flex items-center justify-center text-white font-bold text-lg active:scale-95 transition-transform"
       >
         ←
       </button>

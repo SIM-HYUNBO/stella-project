@@ -67,7 +67,7 @@ export default function ForestBackgroundWithMusic() {
       {/* 🎧 음악 버튼 */}
       <button
         onClick={toggleMusic}
-        className="absolute bottom-6 right-6 px-5 py-3 rounded-full bg-black/40 backdrop-blur text-white hover:bg-black/60 transition"
+        className="jelly-control absolute bottom-6 right-6 px-5 py-3 rounded-full bg-black/40 backdrop-blur text-white hover:bg-black/60 transition"
       >
         {playing ? "🎵 소리 끄기" : "🎶 소리 켜기"}
       </button>

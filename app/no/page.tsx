@@ -59,7 +59,7 @@ export default function AlarmSoundPage() {
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+          <button onClick={() => router.back()} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🔔 알림 소리 설정</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-3">

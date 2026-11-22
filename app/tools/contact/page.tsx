@@ -90,7 +90,7 @@ export default function QnaPage() {
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center h-14 px-4 bg-white shrink-0">
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+        <button onClick={() => router.back()} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
         <div>
           <p className="font-black text-slate-800 text-base">Q&amp;A방</p>
           <p className="text-[10px] text-sky-600 font-semibold -mt-0.5">궁금한 게 있으면 질문하세요</p>
@@ -147,24 +147,24 @@ export default function QnaPage() {
                     <div className="flex gap-2">
                       <input
                         autoFocus
-                        className="flex-1 bg-white/80 border rounded-[14px] px-3 py-2 text-sm text-slate-800 placeholder:text-sky-600 outline-none"
+                        className="jelly-input flex-1 bg-white/80 border rounded-[14px] px-3 py-2 text-sm text-slate-800 placeholder:text-sky-600 outline-none"
                         placeholder="답변 입력..."
                         value={answerInputs[item.id] || ""}
                         onChange={(e) => setAnswerInputs((p) => ({ ...p, [item.id]: e.target.value }))}
                         onKeyDown={(e) => e.key === "Enter" && postAnswer(item.id)}
                       />
                       <button onClick={() => postAnswer(item.id)}
-                        className="px-4 rounded-[14px] bg-sky-200 text-white font-black text-xs active:scale-95 transition-transform">
+                        className="jelly-control px-4 rounded-[14px] bg-sky-200 text-white font-black text-xs active:scale-95 transition-transform">
                         등록
                       </button>
                       <button onClick={() => setAnsweringId(null)}
-                        className="px-3 rounded-[14px] bg-gray-100 text-sky-600 font-bold text-xs">
+                        className="jelly-control px-3 rounded-[14px] bg-gray-100 text-sky-600 font-bold text-xs">
                         취소
                       </button>
                     </div>
                   ) : (
                     <button onClick={() => setAnsweringId(item.id)}
-                      className="text-xs font-black text-sky-600 border bg-sky-50 rounded-full px-4 py-1.5 active:scale-95 transition-transform">
+                      className="jelly-control text-xs font-black text-sky-600 border bg-sky-50 rounded-full px-4 py-1.5 active:scale-95 transition-transform">
                       + 답변하기
                     </button>
                   )
@@ -186,14 +186,14 @@ export default function QnaPage() {
       {!isAdmin && (
         <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white shrink-0">
           <input
-            className="flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+            className="jelly-input flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && postQuestion()}
             placeholder="궁금한 점을 질문해 보세요"
           />
           <button onClick={postQuestion}
-            className="w-11 h-11 rounded-[14px] bg-sky-200 text-white font-black active:scale-95 transition-transform flex items-center justify-center">
+            className="jelly-control w-11 h-11 rounded-[14px] bg-sky-200 text-white font-black active:scale-95 transition-transform flex items-center justify-center">
             ▶
           </button>
         </div>

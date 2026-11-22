@@ -29,7 +29,7 @@ export default function FontSettings() {
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
           <button onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+            className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">⚙️ 폰트 설정</span>
         </div>
 
@@ -54,7 +54,7 @@ export default function FontSettings() {
                 );
               })}
             </div>
-            <div className="mt-3 rounded-[14px] bg-white px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
+            <div className="jelly-panel mt-3 rounded-[14px] bg-white px-4 py-3 text-center text-[#b08060]" style={{ fontSize }}>
               미리보기 — 안녕하세요 WAGIE 🧡
             </div>
           </div>

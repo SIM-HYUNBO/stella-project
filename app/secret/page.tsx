@@ -88,7 +88,7 @@ export default function MeatChat() {
 
       {/* 고기 영역 */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4">
-        <div className="rounded-[28px] bg-white px-10 py-8 flex flex-col items-center gap-4">
+        <div className="jelly-panel rounded-[28px] bg-white px-10 py-8 flex flex-col items-center gap-4">
           <p className="font-black text-slate-800 text-lg">🥩 고기 굽기</p>
 
           <div
@@ -108,7 +108,7 @@ export default function MeatChat() {
 
           {state === "burn" && (
             <button onClick={resetGame}
-              className="px-6 py-3 rounded-[16px] bg-yellow-200 text-white font-black text-sm active:scale-95 transition-transform">
+              className="jelly-control px-6 py-3 rounded-[16px] bg-yellow-200 text-white font-black text-sm active:scale-95 transition-transform">
               🔄 다시 굽기
             </button>
           )}
@@ -131,7 +131,7 @@ export default function MeatChat() {
       {/* 입력 */}
       <div className="relative z-10 flex items-center gap-2 px-4 py-3 bg-white shrink-0">
         <input
-          className="flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+          className="jelly-input flex-1 bg-gray-50 rounded-[16px] px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}

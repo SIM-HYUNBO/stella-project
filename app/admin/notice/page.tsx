@@ -99,7 +99,7 @@ export default function AdminNoticePage() {
       {/* 헤더 */}
       <div className="flex items-center h-14 px-4 bg-white">
         <button onClick={() => router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+          className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
         <span className="font-black text-slate-800 text-base">공지사항 관리</span>
       </div>
 
@@ -111,7 +111,7 @@ export default function AdminNoticePage() {
           <button
             onClick={handleMigrate}
             disabled={migrating}
-            className="w-full py-3 rounded-xl bg-orange-400 text-white font-black text-sm disabled:opacity-40"
+            className="jelly-control w-full py-3 rounded-xl bg-orange-400 text-white font-black text-sm disabled:opacity-40"
           >
             {migrating ? "마이그레이션 중..." : "지금 복구하기"}
           </button>
@@ -119,25 +119,25 @@ export default function AdminNoticePage() {
         </div>
 
         {/* 작성 폼 */}
-        <div className="rounded-[24px] bg-white p-5 space-y-3">
+        <div className="jelly-panel rounded-[24px] bg-white p-5 space-y-3">
           <p className="font-black text-slate-800 text-sm">새 공지 작성</p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목"
-            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-400"
+            className="jelly-input w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-400"
           />
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력하세요"
             rows={5}
-            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-400 resize-none"
+            className="jelly-input w-full rounded-xl px-4 py-2.5 text-sm outline-none focus:border-sky-400 resize-none"
           />
           <button
             onClick={handleAdd}
             disabled={adding || !title.trim() || !content.trim()}
-            className="w-full py-3 rounded-xl bg-sky-200 text-white font-black text-sm disabled:opacity-40"
+            className="jelly-control w-full py-3 rounded-xl bg-sky-200 text-white font-black text-sm disabled:opacity-40"
           >
             {adding ? "등록 중..." : "공지 등록"}
           </button>
@@ -148,7 +148,7 @@ export default function AdminNoticePage() {
           <div className="space-y-3">
             <p className="font-black text-slate-800 text-sm px-1">등록된 공지 ({notices.length})</p>
             {notices.map((n) => (
-              <div key={n.id} className="rounded-[20px] bg-white px-5 py-4">
+              <div key={n.id} className="jelly-panel rounded-[20px] bg-white px-5 py-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-slate-800 text-sm">{n.title}</p>
@@ -157,7 +157,7 @@ export default function AdminNoticePage() {
                   </div>
                   <button
                     onClick={() => handleDelete(n.id)}
-                    className="shrink-0 w-8 h-8 rounded-xl bg-red-50 text-red-400 font-black text-sm flex items-center justify-center"
+                    className="jelly-control shrink-0 w-8 h-8 rounded-xl bg-red-50 text-red-400 font-black text-sm flex items-center justify-center"
                   >✕</button>
                 </div>
               </div>

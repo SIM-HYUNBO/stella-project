@@ -76,7 +76,7 @@ function CommentItem({
       <div className="flex items-start gap-2">
         <MiniAvatar nickname={comment.nickname} profileImage={comment.profileImage} />
         <div className="flex-1">
-          <div className="bg-white rounded-[14px] px-3 py-2">
+          <div className="jelly-panel bg-white rounded-[14px] px-3 py-2">
             <div className="flex items-center gap-1.5 mb-0.5">
               <span className="text-[11px] font-black text-slate-700">{comment.nickname}</span>
               <span className="text-[10px] text-gray-400">{formatTime(comment.createdAt)}</span>
@@ -104,7 +104,7 @@ function CommentItem({
               {replies.map((r) => (
                 <div key={r.id} className="flex items-start gap-1.5">
                   <MiniAvatar nickname={r.nickname} profileImage={r.profileImage} />
-                  <div className="flex-1 bg-white rounded-[12px] px-3 py-1.5">
+                  <div className="jelly-panel flex-1 bg-white rounded-[12px] px-3 py-1.5">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-[11px] font-black text-slate-700">{r.nickname}</span>
                       <span className="text-[10px] text-gray-400">{formatTime(r.createdAt)}</span>
@@ -120,12 +120,12 @@ function CommentItem({
                   onChange={(e) => onChangeReplyInput(comment.id, e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && onSubmitReply(diaryId, comment.id)}
                   placeholder="답글 입력..."
-                  className="flex-1 h-8 rounded-[10px] bg-white border border-sky-100 px-2.5 text-xs outline-none focus:ring-1 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
+                  className="jelly-input flex-1 h-8 rounded-[10px] bg-white border border-sky-100 px-2.5 text-xs outline-none focus:ring-1 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
                 />
                 <button
                   onClick={() => onSubmitReply(diaryId, comment.id)}
                   disabled={!replyInputs[comment.id]?.trim() || sendingReply === comment.id}
-                  className="h-8 px-2.5 rounded-[10px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
+                  className="jelly-control h-8 px-2.5 rounded-[10px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
                 >
                   전송
                 </button>
@@ -236,12 +236,12 @@ function ReactionBar({
               onChange={(e) => onChangeCommentInput(diaryId, e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && onSubmitComment(diaryId)}
               placeholder="댓글 입력..."
-              className="flex-1 h-9 rounded-[12px] bg-white border border-sky-100 px-3 text-xs outline-none focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
+              className="jelly-input flex-1 h-9 rounded-[12px] bg-white border border-sky-100 px-3 text-xs outline-none focus:ring-2 focus:ring-sky-200 text-slate-800 placeholder:text-gray-400"
             />
             <button
               onClick={() => onSubmitComment(diaryId)}
               disabled={!commentInputs[diaryId]?.trim() || sendingComment === diaryId}
-              className="h-9 px-3 rounded-[12px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
+              className="jelly-control h-9 px-3 rounded-[12px] bg-sky-200 text-white text-xs font-black disabled:opacity-40 active:scale-95 transition"
             >
               전송
             </button>
@@ -484,7 +484,7 @@ export default function DiaryPage() {
             <span className="text-xl font-black bg-yellow-200">DIARY</span>
             <button
               onClick={() => router.push("/friendmenu")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
+              className="jelly-control flex items-center gap-1 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-200 transition active:scale-90"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -494,7 +494,7 @@ export default function DiaryPage() {
             </button>
             <button
               onClick={() => router.push("/diary")}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 transition active:scale-90"
+              className="jelly-control flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 transition active:scale-90"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
@@ -507,7 +507,7 @@ export default function DiaryPage() {
         </div>
 
         {/* 탭 */}
-        <div className="mx-5 mt-4 flex bg-white/70 backdrop-blur-sm rounded-[18px] p-1 gap-1">
+        <div className="jelly-panel mx-5 mt-4 flex bg-white/70 backdrop-blur-sm rounded-[18px] p-1 gap-1">
           {(["mine", "friends"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-[14px] text-sm font-black transition-all ${
@@ -521,7 +521,7 @@ export default function DiaryPage() {
         <div className="px-5 pb-10 mt-4">
           {tab === "mine" && (
             <>
-              <div className="rounded-[24px] bg-white p-5 mb-4">
+              <div className="jelly-panel rounded-[24px] bg-white p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-[10px] font-black text-[#d4904a] tracking-widest">TODAY</p>
@@ -529,7 +529,7 @@ export default function DiaryPage() {
                   </div>
                   {todayEntry && !editing && (
                     <button onClick={() => setEditing(true)}
-                      className="px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 text-xs font-black">수정 ✏️</button>
+                      className="jelly-control px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 text-xs font-black">수정 ✏️</button>
                   )}
                 </div>
 
@@ -553,7 +553,7 @@ export default function DiaryPage() {
                     </div>
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}
                       placeholder="오늘 하루는 어땠어? ✍️" maxLength={200} rows={3}
-                      className="w-full text-sm text-slate-800 bg-sky-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
+                      className="jelly-input w-full text-sm text-slate-800 bg-sky-50/60 rounded-[16px] px-4 py-3 resize-none outline-none focus:ring-2 focus:ring-orange-200 placeholder:text-slate-400"
                     />
                     <div className="text-right text-xs text-slate-400 mb-3">{content.length}/200</div>
                     <div className="flex items-center justify-between">
@@ -564,7 +564,7 @@ export default function DiaryPage() {
                         {isPublic ? "🌍 공개" : "🔒 비공개"}
                       </button>
                       <button onClick={handleSave} disabled={saving || !content.trim()}
-                        className="px-6 py-2.5 bg-sky-200 text-white text-sm font-black rounded-full disabled:opacity-40 active:scale-[0.97] transition-transform">
+                        className="jelly-control px-6 py-2.5 bg-sky-200 text-white text-sm font-black rounded-full disabled:opacity-40 active:scale-[0.97] transition-transform">
                         {saving ? "저장 중..." : "저장 💾"}
                       </button>
                     </div>

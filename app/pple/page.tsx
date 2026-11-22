@@ -274,7 +274,7 @@ export default function ChibiHuman() {
       <div ref={mountRef} className="w-full h-full" />
 <button
   onClick={() => window.history.back()}
-  className="absolute top-6 left-6 px-4 py-2 rounded-full bg-white/80 border border-gray-200 shadow-lg text-gray-700">
+  className="jelly-control absolute top-6 left-6 px-4 py-2 rounded-full bg-white/80 border border-gray-200 shadow-lg text-gray-700">
   ← 뒤로가기
 </button>
       <div

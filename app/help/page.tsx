@@ -5,15 +5,15 @@ export default function HelpPage() {
   return (
     <main className="min-h-[100dvh] bg-gradient-to-br from-amber-50 via-white to-sky-50 px-5 py-6 text-slate-800">
       <div className="mx-auto max-w-xl">
-        <Link href="/home" className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-sky-700 shadow-sm">← 홈으로</Link>
-        <section className="mt-5 rounded-[28px] border border-sky-100 bg-white p-6 shadow-sm">
+        <Link href="/home" className="jelly-control inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-sky-700 shadow-sm">← 홈으로</Link>
+        <section className="jelly-panel mt-5 rounded-[28px] border border-sky-100 bg-white p-6 shadow-sm">
           <p className="text-xs font-black tracking-widest text-sky-700">WAGIE HELP</p>
           <h1 className="mt-2 text-2xl font-black">와기 도움말</h1>
           <p className="mt-2 text-sm text-slate-600">궁금한 기능을 골라 보세요. 누르면 사용 순서와 팁이 펼쳐져요.</p>
         </section>
         <section aria-label="도움말 메뉴" className="mt-4 space-y-2.5">
           {topics.map(topic => (
-            <details key={topic.id} name="wagie-help-topic" className="group rounded-[22px] border border-sky-100 bg-white shadow-sm">
+            <details key={topic.id} name="wagie-help-topic" className="jelly-panel group rounded-[22px] border border-sky-100 bg-white shadow-sm">
               <summary className="flex cursor-pointer list-none items-center gap-3 rounded-[22px] p-4 hover:bg-sky-50/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 [&::-webkit-details-marker]:hidden">
                 <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-50 text-xl">{topic.icon}</span>
                 <span className="min-w-0 flex-1">
@@ -39,7 +39,7 @@ export default function HelpPage() {
         <section className="mt-5 rounded-[22px] bg-sky-50 p-4">
           <h2 className="text-sm font-black">아직 궁금한 게 있나요?</h2>
           <p className="mt-1 text-sm text-slate-600">어떤 화면에서 막혔는지 적어 Q&amp;A방에 남겨 주세요.</p>
-          <Link href="/tools/contact" className="mt-3 inline-flex min-h-10 items-center rounded-xl bg-white px-4 text-sm font-bold text-sky-700">Q&amp;A방으로 →</Link>
+          <Link href="/tools/contact" className="jelly-control mt-3 inline-flex min-h-10 items-center rounded-xl bg-white px-4 text-sm font-bold text-sky-700">Q&amp;A방으로 →</Link>
         </section>
       </div>
     </main>

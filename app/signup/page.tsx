@@ -7,6 +7,10 @@ import { createUserWithEmailAndPassword, type User } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { saveFCMToken } from "../hooks/usePushSubscription";
+import { ArrowRight, Check, Mail, UserRound, Phone, CalendarDays, ShieldCheck, LoaderCircle } from "lucide-react";
+import AuthShell from "@/components/AuthShell";
+import { AuthInput, AuthPasswordInput } from "@/components/AuthInput";
+import styles from "@/app/welcome.module.css";
 
 const STEPS = ["기본 정보", "연락처", "약관"];
 
@@ -25,9 +29,14 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const pendingUser = useRef<User | null>(null);
+  const advanceLock = useRef(false);
+  const signupLock = useRef(false);
+  const [checking, setChecking] = useState(false);
 
   const nextStep = async () => {
-   
+    if (advanceLock.current || step >= 3) return;
+    advanceLock.current = true; setChecking(true); setError("");
+    try {
     if (step === 1) {
       if (nickname.trim().length < 2) { setError("닉네임은 2자 이상이어야 해요."); return; }
       if (nickname.trim().length > 30 || /[\/\x00-\x1f]/.test(nickname)) { setError("닉네임은 30자 이내로, 슬래시 없이 입력해 줘."); return; }
@@ -43,11 +52,14 @@ export default function SignupPage() {
       if (!birthdate) { setError("생년월일을 입력해주세요."); return; }
       if (phone.replace(/\D/g, "").length < 10) { setError("올바른 전화번호를 입력해주세요."); return; }
     }
-    setStep((s) => s + 1);
+    setStep((s) => Math.min(3, s + 1));
+    } finally { advanceLock.current = false; setChecking(false); }
   };
 
   const handleSignup = async () => {
+    if (signupLock.current) return;
     if (!agreed) return setError("약관에 동의해주세요.");
+    signupLock.current = true;
     setError("");
     setLoading(true);
     try {
@@ -75,149 +87,24 @@ export default function SignupPage() {
       else if (err.code === "auth/weak-password") setError("비밀번호가 너무 약해요.");
       else setError(`회원가입 실패: ${err.code || err.message}`);
     } finally {
-      setLoading(false);
+      signupLock.current = false; setLoading(false);
     }
   };
 
-  return (
-    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
-
-      {/* 브랜드 */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center">
-          <img src="/wag.png" alt="logo" className="w-5 h-5 object-contain" />
-        </div>
-        <span className="text-sky-500 font-black text-xl tracking-widest">WAGIE</span>
-      </div>
-
-      <div className="w-full max-w-2xl">
-        {/* 스텝 인디케이터 */}
-        <div className="flex items-center mb-8">
-          {STEPS.map((label, i) => {
-            const n = i + 1;
-            const done = step > n;
-            const active = step === n;
-            return (
-              <div key={n} className="flex items-center flex-1 last:flex-none">
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                    done ? "bg-sky-400 text-white" : active ? "bg-sky-400 text-white" : "bg-white border-2 border-gray-200 text-gray-400"
-                  }`}>
-                    {done ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    ) : n}
-                  </div>
-                  <span className={`text-sm font-semibold ${active ? "text-slate-800" : "text-gray-400"}`}>{label}</span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="flex-1 mx-4 h-px bg-gray-200" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 카드 */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-
-        
-          {/* Step 2 - 기본 정보 */}
-          {step === 1 && (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-1.5">닉네임</label>
-                <input type="text" placeholder="2자 이상" value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-400 transition placeholder:text-gray-300" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-1.5">비밀번호</label>
-                <input type="password" placeholder="6자 이상" value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-400 transition placeholder:text-gray-300" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-1.5">이메일</label>
-                <input type="email" placeholder="name@example.com" value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-400 transition placeholder:text-gray-300" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-1.5">비밀번호 확인</label>
-                <input type="password" placeholder="비밀번호 재입력" value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-400 transition placeholder:text-gray-300" />
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 - 연락처 */}
-          {step === 2 && (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-1.5">생년월일</label>
-                <input type="date" value={birthdate}
-                  onChange={(e) => setBirthdate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-400 transition text-slate-700" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-1.5">전화번호</label>
-                <input type="tel" placeholder="010-1234-5678" value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-400 transition placeholder:text-gray-300" />
-              </div>
-            </div>
-          )}
-
-          {/* Step 4 - 약관 */}
-          {step === 3 && (
-            <div className="space-y-5">
-              <div className="bg-gray-50 rounded-xl p-5">
-                <p className="font-bold text-slate-800 mb-1.5">모든 기능 무료 제공</p>
-                <p className="text-slate-500 text-sm leading-relaxed">채팅, 다이어리, AI 어시스턴트, 회의방 등을 제한 없이 사용할 수 있어요.</p>
-              </div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
-                  className="w-4 h-4 rounded accent-sky-400" />
-                <span className="text-sm text-slate-600">WAGIE 이용 약관과 개인정보 처리 안내를 확인했어요.</span>
-              </label>
-            </div>
-          )}
-
-          {error && (
-            <p className="mt-4 text-red-500 text-sm font-medium">{error}</p>
-          )}
-
-          {/* 버튼 */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
-            <button
-              onClick={() => { setError(""); setStep((s) => s - 1); }}
-              disabled={step === 1}
-              className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-slate-600 hover:bg-gray-50 transition disabled:opacity-30"
-            >
-              이전
-            </button>
-            {step < 4 ? (
-              <button onClick={nextStep}
-                className="px-8 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-500 text-white text-sm font-bold transition active:scale-95">
-                다음
-              </button>
-            ) : (
-              <button onClick={handleSignup} disabled={loading}
-                className="px-8 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-500 text-white text-sm font-bold transition active:scale-95 disabled:opacity-60">
-                {loading ? "가입 중..." : "가입 완료"}
-              </button>
-            )}
-          </div>
-        </div>
-
-        <p className="text-center text-sm text-slate-400 mt-6">
-          이미 계정이 있어요?{" "}
-          <Link href="/login" className="text-sky-500 font-bold">로그인</Link>
-        </p>
-      </div>
-    </main>
-  );
+  return <AuthShell mode="signup" title={step === 1 ? "우리, 와기에서 만나요" : step === 2 ? "조금 더 알려 주세요" : "이제 거의 다 됐어요"} description={step === 1 ? "작은 안부를 나눌 나만의 계정을 만들어요." : step === 2 ? "친구들과 연결될 정보를 입력해 주세요." : "아래 내용을 확인하면 바로 시작할 수 있어요."}>
+    <ol className={styles.steps} aria-label="회원가입 진행 단계">{STEPS.map((label,index) => <li key={label} aria-current={step === index + 1 ? "step" : undefined} data-active={step >= index + 1}><span>{step > index + 1 ? <Check size={13} strokeWidth={2}/> : index + 1}</span><span>{label}</span></li>)}</ol>
+    <form className={styles.form} onKeyDown={event => { if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault(); }} aria-busy={loading || checking} onSubmit={event => { event.preventDefault(); if (step === 3) void handleSignup(); else void nextStep(); }}>
+      {step === 1 && <>
+        <AuthInput id="signup-nickname" name="nickname" label="닉네임" type="text" autoComplete="nickname" maxLength={30} placeholder="친구들이 불러 줄 이름" icon={<UserRound size={17} strokeWidth={1.6}/>} value={nickname} onChange={event => setNickname(event.target.value)} disabled={loading || checking} required />
+        <AuthInput id="signup-email" name="email" label="이메일" type="email" autoComplete="email" placeholder="name@example.com" icon={<Mail size={17} strokeWidth={1.6}/>} value={email} onChange={event => setEmail(event.target.value)} disabled={loading || checking} required />
+        <AuthPasswordInput id="signup-password" name="new-password" label="비밀번호" autoComplete="new-password" minLength={6} placeholder="6자 이상 입력해 주세요" value={password} onChange={event => setPassword(event.target.value)} disabled={loading || checking} required />
+        <AuthPasswordInput id="signup-confirm-password" name="confirm-password" label="비밀번호 확인" autoComplete="new-password" placeholder="비밀번호를 한 번 더 입력해 주세요" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={loading || checking} required />
+      </>}
+      {step === 2 && <><AuthInput id="signup-birthdate" name="birthdate" label="생년월일" type="date" icon={<CalendarDays size={17} strokeWidth={1.6}/>} value={birthdate} onChange={event => setBirthdate(event.target.value)} disabled={loading || checking} required /><AuthInput id="signup-phone" name="phone" label="전화번호" type="tel" autoComplete="tel" inputMode="tel" placeholder="010-1234-5678" icon={<Phone size={17} strokeWidth={1.6}/>} value={phone} onChange={event => setPhone(event.target.value)} disabled={loading || checking} required /><p className={styles.fieldHint}>전화번호는 숫자만 입력해도 괜찮아요.</p></>}
+      {step === 3 && <><div className={styles.agreementCard}><span className={styles.agreementIcon}><ShieldCheck size={24} strokeWidth={1.5}/></span><h2>서로를 배려하는 대화의 시작</h2><p>개인정보는 소중하게, 대화는 따뜻하게.<br/>와기 이용 약관과 개인정보 처리 안내를 확인해 주세요.</p></div><label className={styles.agreement}><input type="checkbox" checked={agreed} onChange={event => setAgreed(event.target.checked)} disabled={loading} required/><span>WAGIE 이용 약관과 개인정보 처리 안내를 확인했어요.</span></label></>}
+      {error && <p className={styles.error} role="alert">{error}</p>}
+      <div className={styles.signupActions}>{step > 1 && <button type="button" disabled={loading || checking} className={styles.previous} onClick={() => { setError(""); setStep(value => value - 1); }}>이전</button>}<button type="submit" disabled={loading || checking} className={styles.submit}>{loading || checking ? <><LoaderCircle className={styles.spinner} size={18}/>{loading ? "가입하고 있어요" : "확인하고 있어요"}</> : <>{step === 3 ? "와기 시작하기" : "다음으로"}<ArrowRight size={18}/></>}</button></div>
+    </form>
+    <p className={styles.formBottom}>이미 계정이 있나요?<Link href="/login">로그인</Link></p>
+  </AuthShell>;
 }

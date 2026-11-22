@@ -214,7 +214,7 @@ export default function CalendarPage() {
               <span className="text-sm text-gray-400 font-semibold">{year}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <button onClick={goToday} className="px-3 py-1.5 rounded-xl bg-sky-50 text-sky-600 text-xs font-black">오늘</button>
+              <button onClick={goToday} className="jelly-control px-3 py-1.5 rounded-xl bg-sky-50 text-sky-600 text-xs font-black">오늘</button>
               {/* 월/일 뷰 토글 */}
               <div className="flex rounded-xl overflow-hidden">
                 <button onClick={() => setViewMode("month")}
@@ -223,10 +223,10 @@ export default function CalendarPage() {
                   className={`px-3 py-1.5 text-xs font-black transition ${viewMode === "day" ? "bg-sky-600 text-white" : "bg-white text-gray-400"}`}>일</button>
               </div>
               {viewMode === "month" && <>
-                <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+                <button onClick={prevMonth} className="jelly-control w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <button onClick={nextMonth} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+                <button onClick={nextMonth} className="jelly-control w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
               </>}
@@ -286,9 +286,9 @@ export default function CalendarPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => setViewMode("day")}
-                    className="px-2.5 py-1 rounded-xl bg-gray-100 text-gray-500 text-xs font-black">시간표</button>
+                    className="jelly-control px-2.5 py-1 rounded-xl bg-gray-100 text-gray-500 text-xs font-black">시간표</button>
                   <button onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); setNewRepeat("none"); }}
-                    className="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center active:scale-90 transition">
+                    className="jelly-control w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center active:scale-90 transition">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -310,7 +310,7 @@ export default function CalendarPage() {
                   </div>
                 )}
                 {selectedEvents.map((e) => (
-                  <div key={e.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3">
+                  <div key={e.id} className="jelly-panel flex items-center gap-3 bg-white rounded-2xl px-4 py-3">
                     <div className="w-3 h-3 rounded-full shrink-0" style={{ background: e.color }} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-[#1c1c1e] truncate">{e.title}</div>
@@ -323,7 +323,7 @@ export default function CalendarPage() {
                         )}
                       </div>
                     </div>
-                    <button onClick={() => deleteEvent(e.id)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition shrink-0">
+                    <button onClick={() => deleteEvent(e.id)} className="jelly-control w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition shrink-0">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                       </svg>
@@ -340,7 +340,7 @@ export default function CalendarPage() {
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* 날짜 네비 */}
             <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-white">
-              <button onClick={prevDay} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+              <button onClick={prevDay} className="jelly-control w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
               </button>
               <div className="flex items-baseline gap-2">
@@ -348,7 +348,7 @@ export default function CalendarPage() {
                 <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>{selDayLabel}요일</span>
                 {isSelToday && <span className="text-[10px] bg-sky-600 text-white px-1.5 py-0.5 rounded-full font-black">오늘</span>}
               </div>
-              <button onClick={nextDay} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
+              <button onClick={nextDay} className="jelly-control w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 transition">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
               </button>
             </div>
@@ -365,7 +365,7 @@ export default function CalendarPage() {
                   <div key={e.id} className="flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: e.color + "22" }}>
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: e.color }} />
                     <span className="text-xs font-bold flex-1" style={{ color: e.color }}>{e.title}</span>
-                    <button onClick={() => deleteEvent(e.id)} className="w-4 h-4 rounded-full bg-white/60 flex items-center justify-center">
+                    <button onClick={() => deleteEvent(e.id)} className="jelly-control w-4 h-4 rounded-full bg-white/60 flex items-center justify-center">
                       <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                       </svg>
@@ -422,7 +422,7 @@ export default function CalendarPage() {
                           </div>
                         </div>
                         <button onClick={() => deleteEvent(e.id)}
-                          className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center shrink-0 mt-0.5 active:scale-90">
+                          className="jelly-control w-4 h-4 rounded-full bg-white/30 flex items-center justify-center shrink-0 mt-0.5 active:scale-90">
                           <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                           </svg>
@@ -437,7 +437,7 @@ export default function CalendarPage() {
             {/* 추가 버튼 */}
             <button
               onClick={() => { setShowAdd(true); setNewTitle(""); setNewColor(EVENT_COLORS[0]); setNewAllDay(false); setNewStart("09:00"); setNewEnd("10:00"); setNewRepeat("none"); }}
-              className="absolute bottom-20 right-5 w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center active:scale-90 transition z-30"
+              className="jelly-control absolute bottom-20 right-5 w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center active:scale-90 transition z-30"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -449,7 +449,7 @@ export default function CalendarPage() {
         {/* ── 일정 추가 모달 ── */}
         {showAdd && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAdd(false)}>
-            <div className="w-full bg-white rounded-t-[28px] p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="jelly-panel w-full bg-white rounded-t-[28px] p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-black text-[#1c1c1e]">일정 추가</span>
                 <span className={`text-sm font-bold ${isSelSun ? "text-red-400" : isSelSat ? "text-blue-400" : "text-gray-400"}`}>
@@ -461,7 +461,7 @@ export default function CalendarPage() {
               <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addEvent()}
                 placeholder="일정 제목" autoFocus
-                className="w-full h-12 rounded-2xl bg-white border border-gray-200 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"/>
+                className="jelly-input w-full h-12 rounded-2xl bg-white border border-gray-200 px-4 text-sm outline-none text-[#1c1c1e] placeholder:text-gray-300 focus:ring-2 focus:ring-orange-200"/>
 
               {/* 종일 토글 */}
               <div className="flex items-center justify-between">
@@ -478,12 +478,12 @@ export default function CalendarPage() {
                   <div className="flex-1">
                     <p className="text-xs text-gray-400 font-bold mb-1">시작</p>
                     <input type="time" value={newStart} onChange={(e) => setNewStart(e.target.value)}
-                      className="w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
+                      className="jelly-input w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
                   </div>
                   <div className="flex-1">
                     <p className="text-xs text-gray-400 font-bold mb-1">종료</p>
                     <input type="time" value={newEnd} onChange={(e) => setNewEnd(e.target.value)}
-                      className="w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
+                      className="jelly-input w-full h-10 rounded-xl bg-gray-50 px-3 text-sm outline-none focus:ring-2 focus:ring-orange-200"/>
                   </div>
                 </div>
               )}
@@ -520,7 +520,7 @@ export default function CalendarPage() {
               </div>
 
               <button onClick={addEvent} disabled={adding || !newTitle.trim()}
-                className="w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition disabled:opacity-50">
+                className="jelly-control w-full h-12 rounded-2xl bg-sky-200 text-white font-black active:scale-95 transition disabled:opacity-50">
                 추가
               </button>
             </div>

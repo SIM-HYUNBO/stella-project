@@ -22,13 +22,13 @@ export default function AISettingsPage() {
       <div className="fixed inset-0 bg-gray-50" />
       <div className="relative z-10">
         <div className="flex items-center h-14 px-4 bg-white sticky top-0 z-20">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
+          <button onClick={() => router.back()} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg mr-3">←</button>
           <span className="font-black text-slate-800 text-base">🧠 AI 요약</span>
         </div>
         <div className="px-5 pt-6 pb-16 space-y-4">
 
           {/* 설명 카드 */}
-          <div className="rounded-[24px] bg-white px-5 py-5">
+          <div className="jelly-panel rounded-[24px] bg-white px-5 py-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 rounded-xl bg-sky-200 flex items-center justify-center text-2xl">🧠</div>
               <p className="font-black text-slate-800 text-base">AI 요약 기능</p>
@@ -41,7 +41,7 @@ export default function AISettingsPage() {
           </div>
 
           {/* 토글 */}
-          <div className="rounded-[24px] bg-white px-5 py-4 flex items-center justify-between">
+          <div className="jelly-panel rounded-[24px] bg-white px-5 py-4 flex items-center justify-between">
             <div>
               <p className="font-black text-slate-800 text-base">AI 요약 사용</p>
               <p className={`text-xs font-semibold mt-0.5 ${enabled ? "text-green-500" : "text-sky-600"}`}>

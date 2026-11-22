@@ -109,20 +109,20 @@ export default function DragBlockGame() {
       {/* 헤더 */}
       <div className="relative z-10 flex items-center justify-between h-14 px-4 bg-white sticky top-0">
         <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg">←</button>
+          <button onClick={() => router.back()} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-lg">←</button>
           <span className="font-black text-slate-800 text-base">🧩 블록 게임</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="rounded-[12px] bg-sky-200 px-4 py-1.5">
             <p className="text-white font-black text-sm">{score}점</p>
           </div>
-          <button onClick={resetGame} className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-base">↺</button>
+          <button onClick={resetGame} className="jelly-control w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 font-bold text-base">↺</button>
         </div>
       </div>
 
       <div className="relative z-10 flex flex-col lg:flex-row gap-6 items-center justify-center px-4 py-6">
         {/* 게임판 */}
-        <div className="rounded-[24px] bg-white p-3">
+        <div className="jelly-panel rounded-[24px] bg-white p-3">
           <div className="grid grid-cols-8 gap-1 bg-sky-50 p-2 rounded-[16px]">
             {board.map((row, r) =>
               row.map((cell, c) => (
@@ -138,7 +138,7 @@ export default function DragBlockGame() {
 
         {/* 블록 선택 */}
         <div className="flex flex-col gap-4 w-full max-w-xs">
-          <div className="rounded-[24px] bg-white px-5 py-4">
+          <div className="jelly-panel rounded-[24px] bg-white px-5 py-4">
             <p className="font-black text-slate-800 text-sm mb-4">블록 선택</p>
             <div className="flex flex-wrap gap-3">
               {blocks.map((block) => (
@@ -154,17 +154,17 @@ export default function DragBlockGame() {
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white px-5 py-4 text-sm text-[#9d7060] leading-relaxed">
+          <div className="jelly-panel rounded-[24px] bg-white px-5 py-4 text-sm text-[#9d7060] leading-relaxed">
             <p className="font-black text-slate-800 mb-1">사용법</p>
             블록을 드래그해서 게임판에 올려두세요. 가로 또는 세로로 한 줄을 채우면 지워져요!
           </div>
 
           {gameOver && (
-            <div className="rounded-[24px] bg-white shadow-sm px-5 py-5 text-center">
+            <div className="jelly-panel rounded-[24px] bg-white shadow-sm px-5 py-5 text-center">
               <p className="text-2xl font-black text-red-500 mb-1">GAME OVER</p>
               <p className="text-sm text-sky-600 mb-4">최종 점수: {score}점</p>
               <button onClick={resetGame}
-                className="px-6 py-3 rounded-[16px] bg-sky-200 text-white font-black active:scale-95 transition-transform">
+                className="jelly-control px-6 py-3 rounded-[16px] bg-sky-200 text-white font-black active:scale-95 transition-transform">
                 다시 시작
               </button>
             </div>
