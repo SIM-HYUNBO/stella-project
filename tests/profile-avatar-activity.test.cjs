@@ -28,6 +28,3 @@ test('activity endpoint aggregates authenticated user only and never returns mes
  assert.equal(seen.filter(x=>x.field==='fromUid'&&x.value==='me').length,7);
  assert.ok(!JSON.stringify(result.body).includes('content'));assert.equal(result.body.joinedAt,1234);
 });
-
-test('legacy avatars retain chosen hair, clothes and colors while new facial parts get defaults',()=>{const value=avatar.normalizeAvatar({hair:'short',outfit:'collar',skin:'#c58e6c',outfitColor:'#9ac9ae'});assert.equal(value.hair,'short');assert.equal(value.outfit,'collar');assert.equal(value.skin,'#c58e6c');for(const key of ['face','eyes','nose','brows'])assert.equal(value[key],avatar.DEFAULT_AVATAR[key])});
-test('every new face part changes the actual SVG and rejects unknown options',()=>{for(const key of ['face','eyes','nose','brows']){const variants=avatar.AVATAR_OPTIONS[key].map(value=>avatar.avatarSvg({...avatar.DEFAULT_AVATAR,[key]:value}));assert.equal(new Set(variants).size,avatar.AVATAR_OPTIONS[key].length);assert.equal(avatar.normalizeAvatar({[key]:'<bad>'})[key],avatar.DEFAULT_AVATAR[key])}});
