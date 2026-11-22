@@ -1,5 +1,8 @@
 "use client";
 
+import ForwardMessages from "@/components/ForwardMessages";
+import ForwardBundle from "@/components/ForwardBundle";
+
 import friendList from "./friend-list.module.css";
 
 import { useChatDraft } from "@/app/hooks/useChatDraft";
@@ -71,7 +74,8 @@ type Message = {
   fromUid?: string;
   toUid?: string;
   content: string;
-  type?: "text" | "image" | "sticker" | "audio" | "system";
+  type?: "text" | "image" | "sticker" | "audio" | "system" | "bundle";
+  bundle?: unknown;
   createdAt?: any;
   readBy?: string[];
   replyTo?: ReplyTo;
@@ -466,6 +470,7 @@ export default function Chat() {
 
   const [isMobile, setIsMobile] = useState(false);
 
+  const [forwardInitialId, setForwardInitialId] = useState<string | null>(null);
   const [ctxMenu, setCtxMenu] = useState<any>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -818,6 +823,7 @@ export default function Chat() {
           stickerName: data.stickerName,
           stickerVoice: data.stickerVoice,
           stickerFace: data.stickerFace,
+          bundle: data.bundle,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
           replyTo: data.replyTo,
@@ -1525,6 +1531,7 @@ export default function Chat() {
         </div>
       );
     }
+    if (m.type === "bundle") return <ForwardBundle items={m.bundle} />;
     if (m.spoiler) return <SpoilerMessage content={m.content}>{renderHighlighted(m.content)}</SpoilerMessage>;
     if (m.type === "image" && validDrawing(m.drawingStrokes)) return <DrawingReplay src={m.content} strokes={m.drawingStrokes} onExpand={() => setLightboxSrc(m.content)} />;
     if (m.type === "sticker") {
@@ -2171,6 +2178,7 @@ export default function Chat() {
         </div>
       </div>
 
+      {forwardInitialId && nickname && <ForwardMessages messages={messages} initialId={forwardInitialId} nickname={nickname} onClose={() => setForwardInitialId(null)} />}
       {ctxMenu && (
         <div
           className="fixed z-50"
@@ -2215,10 +2223,11 @@ export default function Chat() {
               ↩ 답장
             </button>
 
-            {ctxMenu.isMine && (
+            {(!ctxMenu.msg.type || ["text", "image"].includes(ctxMenu.msg.type)) && <button type="button" className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm flex gap-2 items-center" onClick={() => { setForwardInitialId(ctxMenu.msgId); setCtxMenu(null); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m14 4 7 7-7 7v-5H9c-3 0-5 2-6 5V11c0-4 3-6 6-6h5Z" /></svg>묶어서 전달</button>}
+              {ctxMenu.isMine && (
               <>
                 <button
-                  hidden={ctxMenu.msg.type === "sticker"}
+                  hidden={ctxMenu.msg.type === "sticker" || ctxMenu.msg.type === "bundle"}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm"
                   onClick={() =>
                     editMessage(

@@ -1,5 +1,8 @@
 "use client";
 
+import ForwardMessages from "@/components/ForwardMessages";
+import ForwardBundle from "@/components/ForwardBundle";
+
 import listCards from "@/app/avatar/friend-list.module.css";
 
 import { useChatDraft } from "@/app/hooks/useChatDraft";
@@ -87,7 +90,8 @@ type MeetingMessage = {
   id: string;
   from: string;
   content: string;
-  type?: "text" | "image" | "sticker" | "urgent" | "audio";
+  type?: "text" | "image" | "sticker" | "urgent" | "audio" | "bundle";
+  bundle?: unknown;
   createdAt?: any;
   readBy?: string[];
   replyTo?: { id: string; from: string; content: string; spoiler?: boolean };
@@ -136,6 +140,7 @@ export default function MeetingRoomPage() {
   const [allTypingUsers, setTypingUsers] = useState<string[]>([]);
   const typingUsers = allTypingUsers.filter(name => hidden.visible(null, name));
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [forwardInitialId, setForwardInitialId] = useState<string | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
   const [replyTo, setReplyTo] = useState<{ id: string; from: string; content: string; type: string; spoiler?: boolean } | null>(null);
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
@@ -291,6 +296,7 @@ export default function MeetingRoomPage() {
           stickerName: data.stickerName,
           stickerVoice: data.stickerVoice,
           stickerFace: data.stickerFace,
+          bundle: data.bundle,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
           replyTo: data.replyTo,
@@ -1030,6 +1036,8 @@ export default function MeetingRoomPage() {
                           <button onClick={saveMeetingEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
                         </div>
                       </div>
+                    ) : m.type === "bundle" ? (
+                      <ForwardBundle items={m.bundle} />
                     ) : m.spoiler ? (
                       <SpoilerMessage content={m.content}>{renderHighlighted(m.content)}</SpoilerMessage>
                     ) : m.type === "image" && validDrawing(m.drawingStrokes) ? (
@@ -1460,13 +1468,15 @@ export default function MeetingRoomPage() {
       <div className="fixed inset-0 z-40 flex flex-col" style={{ background: theme.bg }}>
         {renderRoom()}
         {renderInviteModal()}
-        {ctxMenu && (
+        {forwardInitialId && nickname && <ForwardMessages messages={messages} initialId={forwardInitialId} nickname={nickname} onClose={() => setForwardInitialId(null)} />}
+      {ctxMenu && (
           <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
               <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
+              {(!ctxMenu.msg.type || ["text", "image"].includes(ctxMenu.msg.type)) && <button type="button" className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm flex gap-2 items-center" onClick={() => { setForwardInitialId(ctxMenu.msgId); setCtxMenu(null); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m14 4 7 7-7 7v-5H9c-3 0-5 2-6 5V11c0-4 3-6 6-6h5Z" /></svg>묶어서 전달</button>}
               {ctxMenu.isMine && (
                 <>
-                  <button hidden={ctxMenu.msg.type === "sticker"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
+                  <button hidden={ctxMenu.msg.type === "sticker" || ctxMenu.msg.type === "bundle"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
                   <button className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-500 text-sm" onClick={() => deleteMeetingMsg(ctxMenu.msgId)}>🗑️ 삭제</button>
                 </>
               )}
