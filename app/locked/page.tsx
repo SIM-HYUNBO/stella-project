@@ -50,7 +50,7 @@ export default function LockedPage() {
   return <main aria-label="비밀 페이지" className={`${styles.screen} ${dark ? styles.dark : ""}`}>
     <div className={styles.halo} aria-hidden="true" />
     <p role="status" className={`${styles.greeting} ${phase === "greeting" || phase === "failed" ? styles.greetingVisible : ""}`}>{phase === "greeting" ? "쉿! 비밀 화면 진입 성공!" : phase === "failed" ? "다음 기회에..." : ""}</p>
-    {dark && <button type="button" className={styles.back} aria-label="뒤로가기" onClick={() => router.back()}><ArrowLeft size={20} /></button>}
+    <button type="button" className={styles.back} aria-label="뒤로가기" onClick={() => router.back()}><ArrowLeft size={20} /></button>
     {["reveal", "menu", "buttonsOut", "titleOut"].includes(phase) && <section className={`${styles.menu} ${phase === "titleOut" ? styles.titleOut : ""}`}>
       <div className={styles.intro}><span className={styles.tag}><LockKeyhole size={12} />WAGIE AFTER HOURS</span><h1>게임 선택<span>.</span></h1><p>비밀은 오래 기다리지 않아.</p></div>
       <div className={`${styles.games} ${phase === "menu" ? styles.gamesVisible : ""}`}>

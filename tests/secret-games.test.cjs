@@ -54,7 +54,8 @@ test('successful entrance opens after greeting and expires after five seconds wi
 test('80-percent failure shows next-time message and never opens the game menu', () => {
   const app = screen(.201); app.advance(800);
   assert.ok(JSON.stringify(app.tree()).includes('다음 기회에...'));
-  app.advance(3000); assert.equal(nodes(app.tree()).filter(n => n.type === 'button').length, 0);
+  app.advance(3000); assert.equal(nodes(app.tree()).filter(n => n.type === 'button').length, 1);
+  assert.ok(nodes(app.tree()).some(n => n.type === 'button' && n.props['aria-label'] === '뒤로가기'));
 });
 test('choosing a game cancels the five-second disappearance', () => {
   const app = screen(.1); app.advance(2500);
