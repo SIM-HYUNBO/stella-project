@@ -7,12 +7,9 @@ import { auth, db } from "@/app/firebase";
 import { onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc, collection, query, orderBy, where, getDocs, Timestamp } from "firebase/firestore";
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, Settings, Sparkles, Pencil, ImagePlus, QrCode, LogOut, Bell, ChevronRight, Camera, Check, X } from "lucide-react";
-import ProfileAvatarEditor from "@/components/ProfileAvatarEditor";
+import { ArrowLeft, Settings, Pencil, ImagePlus, QrCode, LogOut, Bell, ChevronRight, Camera, Check, X } from "lucide-react";
 import ProfileActivityChart from "@/components/ProfileActivityChart";
 import LoadingScreen from "@/components/LoadingScreen";
-import { DEFAULT_AVATAR, ProfileAvatar, normalizeAvatar, avatarDataUri } from "@/lib/profile-avatar";
-import { DiceAvatar, normalizeDiceAvatar, diceAvatarUri, diceAvatarPng } from "@/lib/dicebear-avatar";
 import styles from "./profile.module.css";
 
 export default function ProfilePage() {
@@ -20,10 +17,6 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [avatar, setAvatar] = useState<ProfileAvatar>(DEFAULT_AVATAR);
-  const [diceAvatar, setDiceAvatar] = useState<DiceAvatar | null>(null);
-  const [avatarEnabled, setAvatarEnabled] = useState(true);
-  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
   const originalStatus = useRef("");
   const [nickname, setNickname] = useState("");
@@ -52,9 +45,6 @@ export default function ProfilePage() {
       if (snap.exists()) {
         if (auth.currentUser?.uid !== u.uid) return;
         const data = snap.data();
-        setAvatar(normalizeAvatar(data.avatar2d));
-        setDiceAvatar(data.dicebearAvatar ? normalizeDiceAvatar(data.dicebearAvatar) : null);
-        setAvatarEnabled(data.avatarEnabled === true || !data.profileImage);
         const nick = data.nickname || "";
         setNickname(nick);
         originalNicknameRef.current = nick;
@@ -108,7 +98,7 @@ export default function ProfilePage() {
     try {
       const base64 = await compressImage(file, 300, 0.7);
       await updateDoc(doc(db, "users", user.uid), { profileImage: base64, avatarEnabled: false });
-      setProfileImage(base64); setAvatarEnabled(false);
+      setProfileImage(base64);
     } catch { setLoadError("프로필 사진을 저장하지 못했어. 다시 시도해 줘."); }
   };
 
@@ -117,13 +107,6 @@ export default function ProfilePage() {
     try { const image = await compressImage(file, 900, 0.75); await updateDoc(doc(db, "users", user.uid), { coverImage: image }); setCoverImage(image); }
     catch { setLoadError("배경을 저장하지 못했어. 다시 시도해 줘."); }
   };
-  const saveAvatar = async (value: DiceAvatar) => {
-    if (!user) throw Error("다시 로그인해 줘.");
-    const config = normalizeDiceAvatar(value), image = await diceAvatarPng(config);
-    await updateDoc(doc(db, "users", user.uid), { dicebearAvatar: config, avatarEnabled: true, profileImage: image });
-    setDiceAvatar(config); setProfileImage(image); setAvatarEnabled(true);
-  };
-
   const saveNickname = async () => {
     if (!user) return;
     const oldNickname = originalNicknameRef.current;
@@ -197,14 +180,14 @@ export default function ProfilePage() {
       {loadError && <p role="alert" className={styles.error}>{loadError}<button type="button" aria-label="안내 닫기" onClick={() => setLoadError("")}><X size={15} /></button></p>}
       <section className={styles.hero} style={{ background: coverGradient || undefined }}>
         {coverImage && <img src={coverImage} alt="내 프로필 배경" className={styles.coverImage} />}
-        <div className={styles.heroTop}><span className={styles.heroTag}><span />MY AVATAR</span><button type="button" onClick={() => coverRef.current?.click()} aria-label="프로필 배경 바꾸기" className={styles.coverButton}><ImagePlus size={17} /></button></div>
+        <div className={styles.heroTop}><span className={styles.heroTag}><span />MY PROFILE</span><button type="button" onClick={() => coverRef.current?.click()} aria-label="프로필 배경 바꾸기" className={styles.coverButton}><ImagePlus size={17} /></button></div>
         <p className={styles.heroIntro}>오늘도, <span>나답게.</span></p>
-        <button type="button" onClick={() => setShowAvatarEditor(true)} className={styles.avatarStage} aria-label="내 아바타 꾸미기"><span className={styles.avatarHalo} /><img src={avatarEnabled ? (diceAvatar ? diceAvatarUri(diceAvatar) : avatarDataUri(avatar)) : profileImage || avatarDataUri(avatar)} alt="내 프로필 캐릭터" className={avatarEnabled ? styles.avatarImage : styles.photoImage} /><span className={styles.avatarSpark}>✦</span><span className={styles.avatarEdit}><Pencil size={14} /></span></button>
+        <button type="button" onClick={() => profileRef.current?.click()} className={styles.avatarStage} aria-label="프로필 사진 바꾸기"><span className={styles.avatarHalo} /><img src={profileImage || "/wag.png"} alt="내 프로필 사진" className={styles.photoImage} /><span className={styles.avatarEdit}><Camera size={14} /></span></button>
         <div className={styles.identity}>
           {editNickname ? <form className={styles.inlineForm} onSubmit={event => { event.preventDefault(); void saveNickname(); }}><input autoFocus aria-label="닉네임" maxLength={30} value={nickname} disabled={nicknameSaving} onChange={event => setNickname(event.target.value)} /><button type="submit" disabled={nicknameSaving} aria-label="닉네임 저장"><Check size={18} /></button><button type="button" disabled={nicknameSaving} aria-label="닉네임 수정 취소" onClick={() => { setNickname(originalNicknameRef.current); setEditNickname(false); }}><X size={18} /></button></form> : <button type="button" className={styles.nickname} onClick={() => setEditNickname(true)}><h1>{nickname || "나의 프로필"}</h1><Pencil size={14} /></button>}
           {editStatus ? <form className={styles.inlineForm} onSubmit={event => { event.preventDefault(); void saveStatus(); }}><input autoFocus aria-label="상태 메시지" maxLength={100} value={status} disabled={statusSaving} onChange={event => setStatus(event.target.value)} /><button type="submit" disabled={statusSaving} aria-label="상태 메시지 저장"><Check size={18} /></button><button type="button" disabled={statusSaving} aria-label="상태 메시지 수정 취소" onClick={() => { setStatus(originalStatus.current); setEditStatus(false); }}><X size={18} /></button></form> : <button type="button" className={styles.statusMessage} onClick={() => { originalStatus.current = status; setEditStatus(true); }}>{status || "오늘의 나를 한 줄로 남겨 봐"}<Pencil size={12} /></button>}
         </div>
-        <div className={styles.heroActions}><button type="button" className={styles.customize} onClick={() => setShowAvatarEditor(true)}><Sparkles size={17} />아바타 꾸미기</button><button type="button" className={styles.photoButton} aria-label="사진을 프로필로 사용" onClick={() => profileRef.current?.click()}><Camera size={17} /></button></div>
+        <div className={styles.heroActions}><button type="button" className={styles.customize} onClick={() => profileRef.current?.click()}><Camera size={17} />프로필 사진 바꾸기</button></div>
       </section>
       <ProfileActivityChart uid={user.uid} />
       <section className={styles.menuCard} aria-label="프로필 메뉴"><button type="button" onClick={() => setShowQR(true)}><span className={styles.menuIcon}><QrCode size={20} strokeWidth={1.6} /></span><span><b>내 친구 초대장</b><small>QR코드로 더 가깝게</small></span><ChevronRight size={17} /></button><button type="button" onClick={() => setShowNotifications(value => !value)} aria-expanded={showNotifications}><span className={styles.menuIcon}><Bell size={19} strokeWidth={1.6} /></span><span><b>최근 알림</b><small>최근 한 달의 소식</small></span><ChevronRight size={17} /></button>
@@ -214,8 +197,6 @@ export default function ProfilePage() {
     </main>
     <input type="file" accept="image/*" ref={profileRef} onChange={changeProfileImage} className="hidden" />
     <input type="file" accept="image/*" ref={coverRef} onChange={changeCoverImage} className="hidden" />
-    {diceAvatar && avatarEnabled && <p className="text-center text-[10px] text-slate-400 my-3">Avatar: <a href="https://www.dicebear.com/styles/adventurer/" target="_blank" rel="noreferrer" className="underline">Adventurer / Lisa Wischofsky</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a> · 색상·부위 조합</p>}
-    {showAvatarEditor && <ProfileAvatarEditor initial={normalizeDiceAvatar(diceAvatar)} onClose={() => setShowAvatarEditor(false)} onSave={saveAvatar} />}
       {/* QR 모달 */}
       {showQR && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-5" onClick={() => setShowQR(false)}>
