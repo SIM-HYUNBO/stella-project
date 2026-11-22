@@ -1,6 +1,8 @@
 "use client";
 
-import ForwardMessages from "@/components/ForwardMessages";
+import PhotoAlbum from "@/components/PhotoAlbum";
+import PendingPhotos, { PendingPhoto } from "@/components/PendingPhotos";
+import { preparePhotoAlbum } from "@/lib/photo-album";
 import ForwardBundle from "@/components/ForwardBundle";
 
 import listCards from "@/app/avatar/friend-list.module.css";
@@ -92,6 +94,7 @@ type MeetingMessage = {
   content: string;
   type?: "text" | "image" | "sticker" | "urgent" | "audio" | "bundle";
   bundle?: unknown;
+  images?: string[];
   createdAt?: any;
   readBy?: string[];
   replyTo?: { id: string; from: string; content: string; spoiler?: boolean };
@@ -140,7 +143,6 @@ export default function MeetingRoomPage() {
   const [allTypingUsers, setTypingUsers] = useState<string[]>([]);
   const typingUsers = allTypingUsers.filter(name => hidden.visible(null, name));
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [forwardInitialId, setForwardInitialId] = useState<string | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ msgId: string; x: number; y: number; isMine: boolean; msg: any } | null>(null);
   const [replyTo, setReplyTo] = useState<{ id: string; from: string; content: string; type: string; spoiler?: boolean } | null>(null);
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
@@ -171,7 +173,11 @@ export default function MeetingRoomPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
-  const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [pendingImages, setPendingImages] = useState<PendingPhoto[]>([]);
+  const photoSendLock = useRef(false);
+  const pendingPhotosRef = useRef<PendingPhoto[]>([]);
+  pendingPhotosRef.current = pendingImages;
+  useEffect(() => () => { pendingPhotosRef.current.forEach(p => URL.revokeObjectURL(p.previewUrl)); }, []);
   const [sendingImage, setSendingImage] = useState(false);
   const [editingRoomName, setEditingRoomName] = useState(false);
   const [newRoomNameEdit, setNewRoomNameEdit] = useState("");
@@ -297,6 +303,7 @@ export default function MeetingRoomPage() {
           stickerVoice: data.stickerVoice,
           stickerFace: data.stickerFace,
           bundle: data.bundle,
+          images: data.images,
           createdAt: data.createdAt,
           readBy: data.readBy || [],
           replyTo: data.replyTo,
@@ -393,22 +400,23 @@ export default function MeetingRoomPage() {
   }, [nickname]);
 
   const cancelPendingImage = () => {
-    if (pendingImage) URL.revokeObjectURL(pendingImage.previewUrl);
-    setPendingImage(null);
+    pendingImages.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    setPendingImages([]);
   };
-
+  const removePendingImage = (index: number) => {
+    URL.revokeObjectURL(pendingImages[index].previewUrl);
+    setPendingImages(previous => previous.filter((_, i) => i !== index));
+  };
   const sendPendingImage = async () => {
-    if (!pendingImage || sendingImage) return;
-    setSendingImage(true);
+    if (!pendingImages.length || photoSendLock.current || !nickname || !currentRoom) return;
+    photoSendLock.current = true; setSendingImage(true);
     try {
-      await sendImage(pendingImage.file);
-      URL.revokeObjectURL(pendingImage.previewUrl);
-      setPendingImage(null);
-    } catch {
-      alert("전송 실패. 다시 시도해주세요.");
-    } finally {
-      setSendingImage(false);
-    }
+      const images = await preparePhotoAlbum(pendingImages.map(p => p.file));
+      await addDoc(collection(db, "meeting_rooms", currentRoom.id, "messages"), { from: nickname,  content: images[0], type: "image", ...(images.length > 1 ? { images } : {}), createdAt: serverTimestamp(), readBy: [nickname] });
+      cancelPendingImage();
+      void apiFetch("/api/fcm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ toNicknames: currentRoom.members.filter(member => member !== nickname), fromNickname: nickname, message: images.length > 1 ? `📷 사진 ${images.length}장을 보냈어요` : "📷 사진을 보냈어요", roomName: currentRoom.name, url: `/meetingroom?room=${currentRoom.id}` }) }).catch(() => {});
+    } catch (e) { alert(e instanceof Error ? e.message : "사진을 보내지 못했어. 다시 시도해 줘."); }
+    finally { photoSendLock.current = false; setSendingImage(false); }
   };
 
   const saveRoomName = async () => {
@@ -1036,6 +1044,8 @@ export default function MeetingRoomPage() {
                           <button onClick={saveMeetingEdit} className="text-xs text-white font-black px-3 py-1 rounded-full bg-white/30 active:scale-95 transition">완료</button>
                         </div>
                       </div>
+                    ) : m.type === "image" && m.images && m.images.length > 1 ? (
+                      <PhotoAlbum images={m.images} onOpen={setLightboxSrc} />
                     ) : m.type === "bundle" ? (
                       <ForwardBundle items={m.bundle} />
                     ) : m.spoiler ? (
@@ -1127,23 +1137,7 @@ export default function MeetingRoomPage() {
       )}
 
       {/* 입력창 */}
-      {pendingImage && (
-        <div className="px-3 py-2 bg-white flex items-center gap-3 shrink-0">
-          <img src={pendingImage.previewUrl} alt="미리보기" className="w-14 h-14 rounded-xl object-cover shrink-0" />
-          <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button onClick={cancelPendingImage} disabled={sendingImage} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-gray-50 disabled:opacity-40">✕</button>
-            <button
-              onClick={sendPendingImage}
-              disabled={sendingImage}
-              className="w-10 h-10 rounded-[12px] bg-sky-200 text-white flex items-center justify-center disabled:opacity-50"
-            >
-              {sendingImage
-                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : "➤"}
-            </button>
-          </div>
-        </div>
-      )}
+      {pendingImages.length > 0 && <PendingPhotos photos={pendingImages} sending={sendingImage} onRemove={removePendingImage} onCancel={cancelPendingImage} onSend={sendPendingImage} />}
 
       {replyTo && hidden.visible(null, replyTo.from) && (
         <div className="px-4 py-2 bg-sky-50 border-t border-sky-100 flex items-center gap-2 shrink-0">
@@ -1166,14 +1160,16 @@ export default function MeetingRoomPage() {
           type="file"
           ref={imageInputRef}
           accept="image/*"
+          multiple
+          disabled={sendingImage}
           className="hidden"
           onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) {
-              const url = URL.createObjectURL(f);
-              setPendingImage({ file: f, previewUrl: url });
-            }
+            const files = Array.from(e.target.files || []);
             e.target.value = "";
+            if (!files.length) return;
+            if (files.length > 9) { alert("사진은 한 번에 9장까지 선택해 줘."); return; }
+            cancelPendingImage();
+            setPendingImages(files.map(file => ({ file, previewUrl: URL.createObjectURL(file) })));
           }}
         />
 
@@ -1468,12 +1464,10 @@ export default function MeetingRoomPage() {
       <div className="fixed inset-0 z-40 flex flex-col" style={{ background: theme.bg }}>
         {renderRoom()}
         {renderInviteModal()}
-        {forwardInitialId && nickname && <ForwardMessages messages={messages} initialId={forwardInitialId} nickname={nickname} onClose={() => setForwardInitialId(null)} />}
       {ctxMenu && (
           <div className="fixed inset-0 z-[200]" onClick={() => setCtxMenu(null)}>
             <div className="fixed bg-white rounded-3xl shadow-2xl overflow-hidden w-44" style={{ top: ctxMenu.y, left: ctxMenu.x }} onClick={(e) => e.stopPropagation()}>
               <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => { setReplyTo({ id: ctxMenu.msgId, from: ctxMenu.msg.from, content: ctxMenu.msg.content, type: ctxMenu.msg.type, spoiler: ctxMenu.msg.spoiler || false }); setCtxMenu(null); }}>↩ 답장</button>
-              {(!ctxMenu.msg.type || ["text", "image"].includes(ctxMenu.msg.type)) && <button type="button" className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm flex gap-2 items-center" onClick={() => { setForwardInitialId(ctxMenu.msgId); setCtxMenu(null); }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m14 4 7 7-7 7v-5H9c-3 0-5 2-6 5V11c0-4 3-6 6-6h5Z" /></svg>묶어서 전달</button>}
               {ctxMenu.isMine && (
                 <>
                   <button hidden={ctxMenu.msg.type === "sticker" || ctxMenu.msg.type === "bundle"} className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm" onClick={() => editMeetingMsg(ctxMenu.msgId)}>✏️ 수정</button>
